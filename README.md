@@ -11,5 +11,5 @@ imodc
 ```
 or import it in Python via
 ```python
-from imod_coupler import MetaMod
+import imod_coupler
 ```
