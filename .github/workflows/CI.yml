@@ -22,7 +22,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Install amipy
         run: |
-          pip install https://github.com/mjr-deltares/amipy/zipball/develop
+          pip install https://github.com/mjr-deltares/modflow6-bmipy/zipball/develop
           pip install .
 
   lint:
