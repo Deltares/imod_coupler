@@ -20,7 +20,7 @@ jobs:
         uses: actions/setup-python@v1
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Install amipy
+      - name: Install imod_coupler
         run: |
           pip install https://github.com/mjr-deltares/modflow6-bmipy/zipball/develop
           pip install .
