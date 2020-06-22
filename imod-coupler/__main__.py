@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 import sys
 import os
-import re
 import json
 import numpy as np
 from amipy import AmiWrapper
