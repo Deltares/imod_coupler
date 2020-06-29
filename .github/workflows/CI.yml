@@ -20,11 +20,21 @@ jobs:
         uses: actions/setup-python@v1
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Install imod_coupler
+      - name: Install dependencies
         run: |
           pip install https://github.com/mjr-deltares/modflow6-bmipy/zipball/develop
+          pip install pytest
+          pip install pytest-cov
+      - name: Install imod_coupler
+        run: |
           pip install .
-
+      - name: Test with pytest
+        run: |
+          pytest --cov=imod_coupler --cov-report=xml tests/
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }} # only required for private repos
   lint:
     runs-on: ubuntu-latest
     steps:
