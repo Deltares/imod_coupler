@@ -26,11 +26,12 @@ def mapids(ids1, ids2):
 
 
 def read_mapping(map_file):
-    map_arr = np.loadtxt(map_file, dtype=str, delimiter=',')
+    map_arr = np.loadtxt(map_file, dtype=str, delimiter=",")
+    map_in = {}
     for sgw, ssv in map_arr:
-        gw = int(sgw)-1
-        sv = int(ssv.replace("'","").split()[0])
-        map_in.setdefault(gw, []).append(sv-1)
+        gw = int(sgw) - 1
+        sv = int(ssv.replace("'", "").split()[0])
+        map_in.setdefault(gw, []).append(sv - 1)
     return map_in
 
 
@@ -225,4 +226,3 @@ class MetaMod(AmiWrapper):
         # because the condition "if i in map_msw2mod" is never true.
         # Initalize the heads in MetaSWAP by copying them from MODFLOW
         self.xchg_mod2msw()
-
