@@ -174,6 +174,8 @@ class MetaMod(AmiWrapper):
 
         self.finalize_time_step()
         current_time = self.get_current_time()
+        self.msw_time = current_time
+        self.msw.finalize_time_step()
         return current_time
 
     def getTimes(self):
@@ -191,6 +193,7 @@ class MetaMod(AmiWrapper):
         self.msw_head = self.msw.get_value_ptr("dhgwmod")
         self.msw_volume = self.msw.get_value_ptr("dvsim")
         self.msw_storage = self.msw.get_value_ptr("dsc1sim")
+        self.msw_time = self.msw.get_value_ptr("currenttime")
 
         self.ncell_msw = np.size(self.msw_storage)
 
