@@ -27,7 +27,7 @@ jobs:
           pip install pytest-cov
       - name: Install imod_coupler
         run: |
-          pip install .
+          pip install -e .
       - name: Test with pytest
         run: |
           pytest --cov=imod_coupler --cov-report=xml tests/
