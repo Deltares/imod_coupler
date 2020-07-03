@@ -96,9 +96,7 @@ def main():
         sys.stderr.write("MetaSWAP Model path " + msw_model_dir + " not found.")
         sys.exit()
 
-    if os.path.isdir(msw_mpi_dll_dir):
-        os.environ["PATH"] += os.pathsep + msw_mpi_dll_dir
-    else:
+    if not os.path.isdir(msw_mpi_dll_dir):
         sys.stderr.write("Metaswap MPI dlls " + msw_mpi_dll_dir + " not found.")
         sys.exit()
 
@@ -115,6 +113,7 @@ def main():
         msw_modeldir=msw_model_dir,
         mf6_dll=mf6_dll,
         msw_dll=msw_dll,
+        msw_dep=msw_mpi_dll_dir,
     )
     # Run the time loop
     start_time, current_time, end_time = MMinst.getTimes()
