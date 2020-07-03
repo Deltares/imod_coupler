@@ -88,6 +88,7 @@ class MetaMod(AmiWrapper):
         msw_dll = kwargs["msw_dll"]
         mf6_modeldir = kwargs["mf6_modeldir"]
         msw_modeldir = kwargs["msw_modeldir"]
+        msw_dep = kwargs["msw_dep"]
 
         super().__init__(mf6_dll)
         self.working_directory = mf6_modeldir
@@ -112,7 +113,7 @@ class MetaMod(AmiWrapper):
         self.ncell_recharge = np.size(self.mf6_recharge)
         self.max_iter = self.get_value_ptr("SLN_1/MXITER")[0]
 
-        self.couple(msw_dll, msw_modeldir)
+        self.couple(msw_dll, msw_modeldir, msw_dep)
 
     def xchg_msw2mod(self):
         for i in range(self.ncell_mod):
@@ -181,9 +182,9 @@ class MetaMod(AmiWrapper):
     def getTimes(self):
         return self.get_start_time(), self.get_current_time(), self.get_end_time()
 
-    def couple(self, msw_dll, msw_modeldir):
+    def couple(self, msw_dll, msw_modeldir, msw_dep):
         # Load and init MetaSWAP
-        self.msw = AmiWrapper(msw_dll)
+        self.msw = AmiWrapper(msw_dll, (msw_dep,))
         self.msw.working_directory = msw_modeldir
         self.msw.initialize(
             "config_file"
