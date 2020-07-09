@@ -119,7 +119,7 @@ def main():
     start_time, current_time, end_time = MMinst.getTimes()
 
     while current_time < end_time:
-        current_time = MMinst.do_time_step()
+        current_time = MMinst.update_coupled()
     MMinst.finalize()
     sys.stderr.write("NEW SIMULATION TERMINATED NORMALLY")
 
