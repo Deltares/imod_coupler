@@ -128,7 +128,6 @@ def main():
 
     while current_time < end_time:
         current_time = MMinst.update_coupled()
-    MMinst.finalize()
 
     log.info("New Simulation terminated normally")
 
