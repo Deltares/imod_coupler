@@ -1,9 +1,11 @@
-#!/usr/bin/env python
-import sys
-import os
 import argparse
+import logging
+import os
+import sys
 
 from imod_coupler.metamod import MetaMod
+
+log = logging.getLogger(__name__)
 
 
 # copied from https://stackoverflow.com/a/10551190
@@ -64,14 +66,23 @@ def main():
         + "(can also be specified using MSW_MPI_DLL_DIR environment variable)",
     )
 
-    # Remove this argument, as soon as the metaswap dll's are in the right place again
     parser.add_argument(
         "--enable-debug-native",
         action="store_true",
         help="Stop the script to wait for the native debugger",
     )
 
+    parser.add_argument(
+        "--log-level",
+        action="store",
+        choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
+        default="WARNING",
+        help="Define log level",
+    )
+
     args = parser.parse_args()
+    logging.basicConfig()
+    log.setLevel(args.log_level)
 
     mf6_dll = args.mf6_dll
     msw_dll = args.msw_dll
@@ -81,30 +92,32 @@ def main():
     debug_native = args.enable_debug_native
 
     if not os.path.exists(mf6_dll):
-        sys.stderr.write("MODFLOW6 dll " + mf6_dll + " not found.")
-        sys.exit()
+        log.error("MODFLOW6 dll " + mf6_dll + " not found.")
+        sys.exit(1)
 
     if not os.path.exists(msw_dll):
-        sys.stderr.write("METASWAP dd " + msw_dll + " not found.")
-        sys.exit()
+        log.error("METASWAP dd " + msw_dll + " not found.")
+        sys.exit(1)
 
     if not os.path.isdir(mf6_model_dir):
-        sys.stderr.write("MODFLOW6 Model path " + mf6_model_dir + " not found.")
-        sys.exit()
+        log.error("MODFLOW6 Model path " + mf6_model_dir + " not found.")
+        sys.exit(1)
 
     if not os.path.isdir(msw_model_dir):
-        sys.stderr.write("MetaSWAP Model path " + msw_model_dir + " not found.")
-        sys.exit()
+        log.error("MetaSWAP Model path " + msw_model_dir + " not found.")
+        sys.exit(1)
 
     if not os.path.isdir(msw_mpi_dll_dir):
-        sys.stderr.write("Metaswap MPI dlls " + msw_mpi_dll_dir + " not found.")
-        sys.exit()
+        log.error("Metaswap MPI dlls " + msw_mpi_dll_dir + " not found.")
+        sys.exit(1)
 
     # for debugging
     if debug_native:
-        print("PID: ", os.getpid(), "; continue? [y]")
-        answer = input()
-        if answer != "y":
+        answer = ""
+        while answer not in {"y", "n"}:
+            print("PID: ", os.getpid(), "; continue? [y/n]")
+            answer = input()
+        if answer == "n":
             exit(0)
 
     # Create an instance
@@ -121,7 +134,8 @@ def main():
     while current_time < end_time:
         current_time = MMinst.update_coupled()
     MMinst.finalize()
-    sys.stderr.write("NEW SIMULATION TERMINATED NORMALLY")
+
+    log.info("New Simulation terminated normally")
 
 
 if __name__ == "__main__":
