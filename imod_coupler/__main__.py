@@ -111,14 +111,9 @@ def main():
         log.error("Metaswap MPI dlls " + msw_mpi_dll_dir + " not found.")
         sys.exit(1)
 
-    # for debugging
+    # wait for native debugging
     if debug_native:
-        answer = ""
-        while answer not in {"y", "n"}:
-            print("PID: ", os.getpid(), "; continue? [y/n]")
-            answer = input()
-        if answer == "n":
-            exit(0)
+        input(f"PID: {os.getpid()}, press any key to continue ....")
 
     # Create an instance
     MMinst = MetaMod(

@@ -43,34 +43,6 @@ def read_mapping(map_file):
     return map_in
 
 
-# TODO: This is not used anywhere. Do we still need it?
-def read_mapping_json(map_file):  # json-style input couple
-    try:
-        fmap = open(map_file, "r")
-    except IOError:
-        log.exception(f"Opening mapping file '{map_file}' failed!")
-        return {}
-    map_in = {}
-    cnt = 0
-    for line in fmap.readlines():
-        cnt = cnt + 1
-        try:
-            json_dict = json.loads(line)
-        except Exception:
-            log.exception(f"Parsing error in line %d ... {cnt}")
-        mswlist = json_dict["msw"]
-        mf6list = json_dict["mf6"]
-        for gw in mf6list:
-            if gw not in map_in:
-                map_in[gw] = []
-            for sv in mswlist:
-                map_in[gw].append(sv)
-    fmap.close()
-    for gw in map_in.keys():
-        map_in[gw] = list(set(map_in[gw]))
-    return map_in
-
-
 def invert_mapping(map_in):
     map_out = {}
     for i, lst in map_in.items():
