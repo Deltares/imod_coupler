@@ -147,7 +147,7 @@ class MetaMod(AmiWrapper):
         self.msw.finalize_solve(0)
         return has_converged
 
-    def do_time_step(self):
+    def update_coupled(self):
         self.prepare_time_step(0.0)
         self.delt = self.get_time_step()
         self.msw.prepare_time_step(self.delt)
