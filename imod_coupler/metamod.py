@@ -55,18 +55,33 @@ def invert_mapping(map_in):
     return map_out
 
 
-class MetaMod(AmiWrapper):
-    def __init__(self, **kwargs):
-        mf6_dll = kwargs["mf6_dll"]
-        msw_dll = kwargs["msw_dll"]
-        mf6_modeldir = kwargs["mf6_modeldir"]
-        msw_modeldir = kwargs["msw_modeldir"]
-        msw_dep = kwargs["msw_dep"]
+class MetaMod:
+    def __init__(self, mf6_modeldir, msw_modeldir, mf6_dll, msw_dll, msw_dep):
+        # Load and init Modflow 6
+        self.mf6 = AmiWrapper(mf6_dll)
+        self.mf6.working_directory = mf6_modeldir
+        mf6_config_file = os.path.join(msw_modeldir, "mfsim.nam")
+        self.mf6.initialize(mf6_config_file)
 
-        engines = {"mf6": mf6_dll, "msw": msw_dll}
-        models = {"mf6": mf6_modeldir, "msw": msw_modeldir}
-        dependencies = [msw_dep]
-        self.couple(engines, models, dependencies)
+        # Load and init MetaSWAP
+        self.msw = AmiWrapper(msw_dll, (msw_dep,))
+        self.msw.working_directory = msw_modeldir
+        self.msw.initialize(
+            "config_file"
+        )  # config file is a dummy argument, not used by msw
+
+        self.couple()
+
+    def get_mf6_modelname(self):
+        # extract the model name from the the mf6_config_file
+        mfsim_name = os.path.join(self.mf6.working_directory, "mfsim.nam")
+        mfsim = open(mfsim_name, "r")
+        mfsim_lines = mfsim.readlines()
+        mfsim.close()
+        for ndx, line in enumerate(mfsim_lines):
+            if "BEGIN MODELS" in line:
+                modeltype, modelnamfile, modelname = mfsim_lines[ndx + 1].split()
+                return modelname
 
     def xchg_msw2mod(self):
         for i in range(self.ncell_mod):
@@ -134,38 +149,16 @@ class MetaMod(AmiWrapper):
             self.mf6.get_end_time(),
         )
 
-    def couple(self, engines, models, deps):
-        # Load and init MODFLOW6
-        self.mf6 = AmiWrapper(engines["mf6"])
-
-        self.mf6.working_directory = models["mf6"]
-        mf6_config_file = os.path.join(models["mf6"], "mfsim.nam")
-        self.mf6.set_int("ISTDOUTTOFILE", 0)
-        self.mf6.initialize(mf6_config_file)
-
-        # extract the model name from the the mf6_config_file
-        mfsim_name = os.path.join(self.mf6.working_directory, "mfsim.nam")
-        mfsim = open(mfsim_name, "r")
-        mfsim_lines = mfsim.readlines()
-        mfsim.close()
-        for ndx, line in enumerate(mfsim_lines):
-            if "BEGIN MODELS" in line:
-                modeltype, modelnamfile, modelname = mfsim_lines[ndx + 1].split()
-                break
-
+    def couple(self):
+        mf6_modelname = self.get_mf6_modelname()
         self.mf6_head = self.mf6.get_value_ptr("SLN_1/X")
-        self.mf6_recharge = self.mf6.get_value_ptr(modelname.upper() + " RCH-1/BOUND")
-        self.mf6_storage = self.mf6.get_value_ptr(modelname.upper() + " STO/SC2")
+        self.mf6_recharge = self.mf6.get_value_ptr(
+            mf6_modelname.upper() + " RCH-1/BOUND"
+        )
+        self.mf6_storage = self.mf6.get_value_ptr(mf6_modelname.upper() + " STO/SC2")
         self.ncell_mod = np.size(self.mf6_storage)
         self.ncell_recharge = np.size(self.mf6_recharge)
         self.max_iter = self.mf6.get_value_ptr("SLN_1/MXITER")[0]
-
-        # Load and init MetaSWAP
-        self.msw = AmiWrapper(engines["msw"], deps)
-        self.msw.working_directory = models["msw"]
-        self.msw.initialize(
-            "config_file"
-        )  # config file is a dummy argument, not used by msw
 
         # get some 'pointers' to MF6 and MSW internal data
         self.msw_head = self.msw.get_value_ptr("dhgwmod")
