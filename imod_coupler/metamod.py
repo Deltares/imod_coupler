@@ -1,10 +1,13 @@
-#!/usr/bin/env python
-import sys
-import os
 import json
-import numpy as np
-from amipy import AmiWrapper
 import logging
+import os
+import sys
+
+import numpy as np
+
+from amipy import AmiWrapper
+
+log = logging.getLogger(__name__)
 
 
 def mapids(ids1, ids2):
@@ -37,36 +40,6 @@ def read_mapping(map_file):
     for gw, sv in zip(map_arr[:, 0], map_arr[:, 1]):
         map_in.setdefault(gw, []).append(sv)
 
-    return map_in
-
-
-def read_mapping_json(map_file):  # json-style input couple
-    try:
-        fmap = open(map_file, "r")
-    except Exception as e:
-        sys.stderr.write("Opening mapping file '" + map_file + "' failed !\n")
-        sys.stderr.write(str(e))
-        return {}
-    map_in = {}
-    cnt = 0
-    for line in fmap.readlines():
-        cnt = cnt + 1
-        try:
-            json_dict = json.loads(line)
-        except Exception as e:
-            sys.stderr.write("Parsing error in line %d ..." % cnt)
-            sys.stderr.write("%s" % line)
-            sys.stderr.write(str(e))
-        mswlist = json_dict["msw"]
-        mf6list = json_dict["mf6"]
-        for gw in mf6list:
-            if gw not in map_in:
-                map_in[gw] = []
-            for sv in mswlist:
-                map_in[gw].append(sv)
-    fmap.close()
-    for gw in map_in.keys():
-        map_in[gw] = list(set(map_in[gw]))
     return map_in
 
 
@@ -162,13 +135,7 @@ class MetaMod(AmiWrapper):
             while kiter < self.max_iter:
                 has_converged = self.do_iter(sol_id)
                 if has_converged:
-                    logging.info(
-                        "\n\nComponent ",
-                        sol_id,
-                        " converged in ",
-                        kiter,
-                        "iterations\n",
-                    )
+                    log.info(f"Component {sol_id} converged in {kiter} iterations")
                     break
                 kiter += 1
             self.finalize_solve(sol_id)
@@ -210,8 +177,8 @@ class MetaMod(AmiWrapper):
         if os.path.isfile(mapping_file):
             map_mod2msw["storage"] = read_mapping(mapping_file)
         else:
-            sys.stderr.write("Missing mod2svat.inp")
-            sys.exit(-1)
+            raise Exception("Missing mod2svat.inp")
+
         map_msw2mod["head"] = invert_mapping(map_mod2msw["storage"])
         self.map_msw2mod = map_msw2mod
         self.map_mod2msw = map_mod2msw
@@ -222,8 +189,7 @@ class MetaMod(AmiWrapper):
         if os.path.isfile(mapping_file_recharge):
             map_mod2msw["recharge"] = read_mapping(mapping_file_recharge)
         else:
-            sys.stderr.write("Missing mod2svat_recharge.inp")
-            sys.exit(-1)
+            raise Exception("Missing mod2svat_recharge.inp")
 
         self.map_mod2msw = map_mod2msw
         self.map_msw2map = map_msw2mod
@@ -232,4 +198,3 @@ class MetaMod(AmiWrapper):
         # because the condition "if i in map_msw2mod" is never true.
         # Initalize the heads in MetaSWAP by copying them from MODFLOW
         self.xchg_mod2msw()
-
