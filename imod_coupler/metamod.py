@@ -55,38 +55,33 @@ def invert_mapping(map_in):
     return map_out
 
 
-class MetaMod(AmiWrapper):
-    def __init__(self, **kwargs):
-        mf6_dll = kwargs["mf6_dll"]
-        msw_dll = kwargs["msw_dll"]
-        mf6_modeldir = kwargs["mf6_modeldir"]
-        msw_modeldir = kwargs["msw_modeldir"]
-        msw_dep = kwargs["msw_dep"]
+class MetaMod:
+    def __init__(self, mf6_modeldir, msw_modeldir, mf6_dll, msw_dll, msw_dep):
+        # Load and init Modflow 6
+        self.mf6 = AmiWrapper(mf6_dll)
+        self.mf6.working_directory = mf6_modeldir
+        mf6_config_file = os.path.join(msw_modeldir, "mfsim.nam")
+        self.mf6.initialize(mf6_config_file)
 
-        super().__init__(mf6_dll)
-        self.working_directory = mf6_modeldir
-        mf6_config_file = os.path.join(mf6_modeldir, "mfsim.nam")
-        self.set_int("ISTDOUTTOFILE", 0)
-        self.initialize(mf6_config_file)
+        # Load and init MetaSWAP
+        self.msw = AmiWrapper(msw_dll, (msw_dep,))
+        self.msw.working_directory = msw_modeldir
+        self.msw.initialize(
+            "config_file"
+        )  # config file is a dummy argument, not used by msw
 
+        self.couple()
+
+    def get_mf6_modelname(self):
         # extract the model name from the the mf6_config_file
-        mfsim_name = os.path.join(self.working_directory, "mfsim.nam")
+        mfsim_name = os.path.join(self.mf6.working_directory, "mfsim.nam")
         mfsim = open(mfsim_name, "r")
         mfsim_lines = mfsim.readlines()
         mfsim.close()
         for ndx, line in enumerate(mfsim_lines):
             if "BEGIN MODELS" in line:
                 modeltype, modelnamfile, modelname = mfsim_lines[ndx + 1].split()
-                break
-
-        self.mf6_head = self.get_value_ptr("SLN_1/X")
-        self.mf6_recharge = self.get_value_ptr(modelname.upper() + " RCH-1/BOUND")
-        self.mf6_storage = self.get_value_ptr(modelname.upper() + " STO/SC2")
-        self.ncell_mod = np.size(self.mf6_storage)
-        self.ncell_recharge = np.size(self.mf6_recharge)
-        self.max_iter = self.get_value_ptr("SLN_1/MXITER")[0]
-
-        self.couple(msw_dll, msw_modeldir, msw_dep)
+                return modelname
 
     def xchg_msw2mod(self):
         for i in range(self.ncell_mod):
@@ -96,7 +91,8 @@ class MetaMod(AmiWrapper):
                 )
         for i in range(self.ncell_recharge):
             if i in self.map_mod2msw["recharge"]:
-                # Divide by delta time, since Metaswap only keeps track of volumes
+                # Divide by delta time,
+                # since Metaswap only keeps track of volumes
                 # leaving its domain, not fluxes
                 # Multiply with -1 as recharge is leaving MetaSWAP (negative)
                 # and entering MF6 (positive)
@@ -115,47 +111,54 @@ class MetaMod(AmiWrapper):
         self.msw.prepare_solve(0)
         self.msw.solve(0)
         self.xchg_msw2mod()
-        has_converged = self.solve(sol_id)
+        has_converged = self.mf6.solve(sol_id)
         self.xchg_mod2msw()
         self.msw.finalize_solve(0)
         return has_converged
 
     def update_coupled(self):
-        self.prepare_time_step(0.0)
-        self.delt = self.get_time_step()
+        self.mf6.prepare_time_step(0.0)
+        self.delt = self.mf6.get_time_step()
         self.msw.prepare_time_step(self.delt)
 
         # loop over subcomponents
-        n_solutions = self.get_subcomponent_count()
+        n_solutions = self.mf6.get_subcomponent_count()
         for sol_id in range(1, n_solutions + 1):
 
             # convergence loop
             kiter = 0
-            self.prepare_solve(sol_id)
+            self.mf6.prepare_solve(sol_id)
             while kiter < self.max_iter:
                 has_converged = self.do_iter(sol_id)
                 if has_converged:
                     log.info(f"Component {sol_id} converged in {kiter} iterations")
                     break
                 kiter += 1
-            self.finalize_solve(sol_id)
+            self.mf6.finalize_solve(sol_id)
 
-        self.finalize_time_step()
-        current_time = self.get_current_time()
+        self.mf6.finalize_time_step()
+        current_time = self.mf6.get_current_time()
         self.msw_time = current_time
         self.msw.finalize_time_step()
         return current_time
 
     def getTimes(self):
-        return self.get_start_time(), self.get_current_time(), self.get_end_time()
+        return (
+            self.mf6.get_start_time(),
+            self.mf6.get_current_time(),
+            self.mf6.get_end_time(),
+        )
 
-    def couple(self, msw_dll, msw_modeldir, msw_dep):
-        # Load and init MetaSWAP
-        self.msw = AmiWrapper(msw_dll, (msw_dep,))
-        self.msw.working_directory = msw_modeldir
-        self.msw.initialize(
-            "config_file"
-        )  # config file is a dummy argument, not used by msw
+    def couple(self):
+        mf6_modelname = self.get_mf6_modelname()
+        self.mf6_head = self.mf6.get_value_ptr("SLN_1/X")
+        self.mf6_recharge = self.mf6.get_value_ptr(
+            mf6_modelname.upper() + " RCH-1/BOUND"
+        )
+        self.mf6_storage = self.mf6.get_value_ptr(mf6_modelname.upper() + " STO/SC2")
+        self.ncell_mod = np.size(self.mf6_storage)
+        self.ncell_recharge = np.size(self.mf6_recharge)
+        self.max_iter = self.mf6.get_value_ptr("SLN_1/MXITER")[0]
 
         # get some 'pointers' to MF6 and MSW internal data
         self.msw_head = self.msw.get_value_ptr("dhgwmod")
