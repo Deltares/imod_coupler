@@ -84,7 +84,7 @@ def main():
     logging.basicConfig()
     log.setLevel(args.log_level)
 
-    mf6_dll = args.mf6_dll
+    mf6_dll =  args.mf6_dll
     msw_dll = args.msw_dll
     mf6_model_dir = args.mf6_model_dir
     msw_model_dir = args.msw_model_dir
