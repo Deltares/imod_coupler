@@ -7,7 +7,7 @@ import numpy as np
 
 from amipy import AmiWrapper
 
-log = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 
 def mapids(ids1, ids2):
@@ -56,15 +56,17 @@ def invert_mapping(map_in):
 
 
 class MetaMod:
-    def __init__(self, mf6_modeldir, msw_modeldir, mf6_dll, msw_dll, msw_dep):
+    def __init__(self, mf6_modeldir, msw_modeldir, mf6_dll, msw_dll, msw_dep, timing):
+        self.timing = timing
         # Load and init Modflow 6
-        self.mf6 = AmiWrapper(mf6_dll)
+        self.mf6 = AmiWrapper(mf6_dll, timing=self.timing)
         self.mf6.working_directory = mf6_modeldir
         mf6_config_file = os.path.join(msw_modeldir, "mfsim.nam")
+        self.mf6.set_int("ISTDOUTTOFILE", 0)
         self.mf6.initialize(mf6_config_file)
 
         # Load and init MetaSWAP
-        self.msw = AmiWrapper(msw_dll, (msw_dep,))
+        self.msw = AmiWrapper(msw_dll, (msw_dep,), timing=self.timing)
         self.msw.working_directory = msw_modeldir
         self.msw.initialize(
             "config_file"
@@ -131,7 +133,7 @@ class MetaMod:
             while kiter < self.max_iter:
                 has_converged = self.do_iter(sol_id)
                 if has_converged:
-                    log.info(f"Component {sol_id} converged in {kiter} iterations")
+                    logger.debug(f"Component {sol_id} converged in {kiter} iterations")
                     break
                 kiter += 1
             self.mf6.finalize_solve(sol_id)
@@ -148,6 +150,16 @@ class MetaMod:
             self.mf6.get_current_time(),
             self.mf6.get_end_time(),
         )
+
+    def report_timing_totals(self):
+        if self.timing:
+            total = self.mf6.report_timing_totals() + self.msw.report_timing_totals()
+            logger.info(
+                f"Total elapsed time in compiled libraries: {total:0.4f} seconds"
+            )
+            return total
+        else:
+            raise Exception("Timing not activated")
 
     def couple(self):
         mf6_modelname = self.get_mf6_modelname()
