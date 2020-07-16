@@ -77,7 +77,7 @@ def main():
         "--log-level",
         action="store",
         choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
-        default="WARNING",
+        default="INFO",
         help="Define log level.",
     )
 
