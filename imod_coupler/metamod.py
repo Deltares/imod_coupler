@@ -5,7 +5,7 @@ import sys
 
 import numpy as np
 
-from amipy import AmiWrapper
+from xmipy import XmiWrapper
 
 logger = logging.getLogger(__name__)
 
@@ -59,14 +59,14 @@ class MetaMod:
     def __init__(self, mf6_modeldir, msw_modeldir, mf6_dll, msw_dll, msw_dep, timing):
         self.timing = timing
         # Load and init Modflow 6
-        self.mf6 = AmiWrapper(mf6_dll, timing=self.timing)
+        self.mf6 = XmiWrapper(mf6_dll, timing=self.timing)
         self.mf6.working_directory = mf6_modeldir
         mf6_config_file = os.path.join(msw_modeldir, "mfsim.nam")
         self.mf6.set_int("ISTDOUTTOFILE", 0)
         self.mf6.initialize(mf6_config_file)
 
         # Load and init MetaSWAP
-        self.msw = AmiWrapper(msw_dll, (msw_dep,), timing=self.timing)
+        self.msw = XmiWrapper(msw_dll, (msw_dep,), timing=self.timing)
         self.msw.working_directory = msw_modeldir
         self.msw.initialize(
             "config_file"
