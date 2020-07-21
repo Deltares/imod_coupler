@@ -5,6 +5,7 @@ import sys
 import time
 
 from imod_coupler.metamod import MetaMod
+from imod_coupler import __version__
 
 logger = logging.getLogger(__name__)
 
@@ -31,7 +32,7 @@ def main():
         required=True,
         action=EnvDefault,
         envvar="MF6_DLL",
-        help="Specify the path to Modflow6 dll \
+        help="specify the path to Modflow6 dll \
             (can also be specified using MF6_DLL environment variable).",
     )
     parser.add_argument(
@@ -39,7 +40,7 @@ def main():
         required=True,
         action=EnvDefault,
         envvar="MSW_DLL",
-        help="Specify the path to Metaswap dll \
+        help="specify the path to Metaswap dll \
             (can also be specified using MSW_DLL environment variable).",
     )
     parser.add_argument(
@@ -47,7 +48,7 @@ def main():
         required=True,
         action=EnvDefault,
         envvar="MF6_MODEL_DIR",
-        help="Specify the path to Modflow6 model directory "
+        help="specify the path to Modflow6 model directory "
         + "(can also be specified using MF6_MODEL_DIR environment variable).",
     )
     parser.add_argument(
@@ -55,7 +56,7 @@ def main():
         required=True,
         action=EnvDefault,
         envvar="MSW_MODEL_DIR",
-        help="Specify the path to Metaswap model directory "
+        help="specify the path to Metaswap model directory "
         + "(can also be specified using MSW_MODEL_DIR environment variable).",
     )
     # Remove this argument, as soon as the metaswap dll's are in the right place again
@@ -63,14 +64,14 @@ def main():
         "--msw-mpi-dll-dir",
         action=EnvDefault,
         envvar="MSW_MPI_DLL_DIR",
-        help="Specify the path containing the Metaswap MPI dlls "
+        help="specify the path containing the Metaswap MPI dlls "
         + "(can also be specified using MSW_MPI_DLL_DIR environment variable).",
     )
 
     parser.add_argument(
         "--enable-debug-native",
         action="store_true",
-        help="Stop the script to wait for the native debugger.",
+        help="stop the script to wait for the native debugger.",
     )
 
     parser.add_argument(
@@ -78,16 +79,23 @@ def main():
         action="store",
         choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
         default="INFO",
-        help="Define log level.",
+        help="define log level.",
     )
 
     parser.add_argument(
         "--timing",
         action="store_true",
-        help="Activates timing. Verbosity can be adjusted with the log-level.",
+        help="activates timing, verbosity can be adjusted with the log-level.",
+    )
+
+    parser.add_argument(
+        "--version",
+        action="version",
+        version="%(prog)s {version}".format(version=__version__),
     )
 
     args = parser.parse_args()
+
     logging.basicConfig(level=args.log_level)
     mf6_dll = args.mf6_dll
     msw_dll = args.msw_dll
