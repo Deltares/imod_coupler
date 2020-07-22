@@ -4,58 +4,21 @@ import os
 import numpy as np
 
 from xmipy import XmiWrapper
+from imod_coupler.utils import read_mapping, invert_mapping
 
 logger = logging.getLogger(__name__)
 
 
-def mapids(ids1, ids2):
-    """ Given id-list ids1 and ids2,
-    return a mapping coupling cells in ids1 to those in ids2
-    based on matching id ..... SAME as in mapids in driver_module
-    """
-
-    dict = {}
-    map_in = {}
-    for i1 in range(len(ids1)):
-        map_in[i1] = []
-        id1 = ids1[i1]
-        if id1 not in dict:
-            dict[id1] = []
-        dict[id1].append(i1)
-    for i2 in range(len(ids1)):
-        for i1 in dict[ids2[i2]]:  # for each id in ids1 equal to ids2[i2]
-            map_in[i1].append(i2)  # add i2 to the list of connections
-    return map_in
-
-
-def read_mapping(map_file):
-    map_arr = np.loadtxt(map_file, dtype=np.int32)
-    map_arr[:, 0] = (
-        map_arr[:, 0] - 1
-    )  # 1-based indices (fortran) to 0-based indices (python)
-    map_arr[:, 1] = map_arr[:, 1] - 1
-
-    map_in = {}
-    for gw, sv in zip(map_arr[:, 0], map_arr[:, 1]):
-        map_in.setdefault(gw, []).append(sv)
-
-    return map_in
-
-
-def invert_mapping(map_in):
-    map_out = {}
-    for i, lst in map_in.items():
-        for j in lst:
-            if j not in map_out:
-                map_out[j] = []
-            map_out[j].append(i)
-    for key in map_out.keys():
-        map_out[key] = list(set(map_out[key]))
-    return map_out
-
-
 class MetaMod:
-    def __init__(self, mf6_modeldir, msw_modeldir, mf6_dll, msw_dll, msw_dep, timing):
+    def __init__(
+        self,
+        mf6_modeldir: str,
+        msw_modeldir: str,
+        mf6_dll: str,
+        msw_dll: str,
+        msw_dep: str,
+        timing: bool = False,
+    ):
         self.timing = timing
 
         # Load and init Modflow 6
@@ -82,7 +45,7 @@ class MetaMod:
                 if "BEGIN MODELS" in line:
                     break
             modeltype, modelnamfile, modelname = mfsim.readline().split()
-            return modelname
+            return modelname.upper()
 
     def xchg_msw2mod(self):
         for i in range(self.ncell_mod):
@@ -108,7 +71,7 @@ class MetaMod:
             if i in self.map_msw2mod["head"]:
                 self.msw_head[i] = np.mean(self.mf6_head[self.map_msw2mod["head"][i]])
 
-    def do_iter(self, sol_id):
+    def do_iter(self, sol_id: int):
         self.msw.prepare_solve(0)
         self.msw.solve(0)
         self.xchg_msw2mod()
@@ -125,7 +88,6 @@ class MetaMod:
         # loop over subcomponents
         n_solutions = self.mf6.get_subcomponent_count()
         for sol_id in range(1, n_solutions + 1):
-
             # convergence loop
             kiter = 0
             self.mf6.prepare_solve(sol_id)
@@ -163,10 +125,8 @@ class MetaMod:
     def couple(self):
         mf6_modelname = self.get_mf6_modelname()
         self.mf6_head = self.mf6.get_value_ptr("SLN_1/X")
-        self.mf6_recharge = self.mf6.get_value_ptr(
-            mf6_modelname.upper() + " RCH-1/BOUND"
-        )
-        self.mf6_storage = self.mf6.get_value_ptr(mf6_modelname.upper() + " STO/SC2")
+        self.mf6_recharge = self.mf6.get_value_ptr(f"{mf6_modelname} RCH-1/BOUND")
+        self.mf6_storage = self.mf6.get_value_ptr(f"{mf6_modelname} STO/SC2")
         self.ncell_mod = np.size(self.mf6_storage)
         self.ncell_recharge = np.size(self.mf6_recharge)
         self.max_iter = self.mf6.get_value_ptr("SLN_1/MXITER")[0]

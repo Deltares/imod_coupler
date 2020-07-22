@@ -109,23 +109,23 @@ def main():
         start = time.perf_counter()
 
     if not os.path.exists(mf6_dll):
-        logger.error("MODFLOW6 dll " + mf6_dll + " not found.")
+        logger.error(f"MODFLOW6 dll {mf6_dll} not found.")
         sys.exit(1)
 
     if not os.path.exists(msw_dll):
-        logger.error("METASWAP dd " + msw_dll + " not found.")
+        logger.error(f"METASWAP dd {msw_dll} not found.")
         sys.exit(1)
 
     if not os.path.isdir(mf6_model_dir):
-        logger.error("MODFLOW6 Model path " + mf6_model_dir + " not found.")
+        logger.error(f"MODFLOW6 Model path {mf6_model_dir} not found.")
         sys.exit(1)
 
     if not os.path.isdir(msw_model_dir):
-        logger.error("MetaSWAP Model path " + msw_model_dir + " not found.")
+        logger.error(f"MetaSWAP Model path {msw_model_dir} not found.")
         sys.exit(1)
 
     if not os.path.isdir(msw_mpi_dll_dir):
-        logger.error("Metaswap MPI dlls " + msw_mpi_dll_dir + " not found.")
+        logger.error(f"Metaswap MPI dlls {msw_mpi_dll_dir} not found.")
         sys.exit(1)
 
     # wait for native debugging
