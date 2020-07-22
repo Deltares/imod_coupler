@@ -57,19 +57,20 @@ def invert_mapping(map_in):
 class MetaMod:
     def __init__(self, mf6_modeldir, msw_modeldir, mf6_dll, msw_dll, msw_dep, timing):
         self.timing = timing
+
         # Load and init Modflow 6
-        self.mf6 = XmiWrapper(mf6_dll, timing=self.timing)
-        self.mf6.working_directory = mf6_modeldir
-        mf6_config_file = os.path.join(msw_modeldir, "mfsim.nam")
+        self.mf6 = XmiWrapper(
+            mf6_dll, working_directory=mf6_modeldir, timing=self.timing
+        )
+        # Print output to stdout
         self.mf6.set_int("ISTDOUTTOFILE", 0)
-        self.mf6.initialize(mf6_config_file)
+        self.mf6.initialize()
 
         # Load and init MetaSWAP
-        self.msw = XmiWrapper(msw_dll, (msw_dep,), timing=self.timing)
-        self.msw.working_directory = msw_modeldir
-        self.msw.initialize(
-            "config_file"
-        )  # config file is a dummy argument, not used by msw
+        self.msw = XmiWrapper(
+            msw_dll, (msw_dep,), working_directory=msw_modeldir, timing=self.timing
+        )
+        self.msw.initialize()
 
         self.couple()
 
