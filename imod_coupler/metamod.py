@@ -1,7 +1,5 @@
-import json
 import logging
 import os
-import sys
 
 import numpy as np
 
@@ -11,9 +9,11 @@ logger = logging.getLogger(__name__)
 
 
 def mapids(ids1, ids2):
-    # Given id-list ids1 and ids2,
-    # return a mapping coupling cells in ids1 to those in ids2
-    # based on matching id ..... SAME as in mapids in driver_module
+    """ Given id-list ids1 and ids2,
+    return a mapping coupling cells in ids1 to those in ids2
+    based on matching id ..... SAME as in mapids in driver_module
+    """
+
     dict = {}
     map_in = {}
     for i1 in range(len(ids1)):
@@ -29,7 +29,6 @@ def mapids(ids1, ids2):
 
 
 def read_mapping(map_file):
-
     map_arr = np.loadtxt(map_file, dtype=np.int32)
     map_arr[:, 0] = (
         map_arr[:, 0] - 1
@@ -58,32 +57,32 @@ def invert_mapping(map_in):
 class MetaMod:
     def __init__(self, mf6_modeldir, msw_modeldir, mf6_dll, msw_dll, msw_dep, timing):
         self.timing = timing
+
         # Load and init Modflow 6
-        self.mf6 = XmiWrapper(mf6_dll, timing=self.timing)
-        self.mf6.working_directory = mf6_modeldir
-        mf6_config_file = os.path.join(msw_modeldir, "mfsim.nam")
+        self.mf6 = XmiWrapper(
+            mf6_dll, working_directory=mf6_modeldir, timing=self.timing
+        )
+        # Print output to stdout
         self.mf6.set_int("ISTDOUTTOFILE", 0)
-        self.mf6.initialize(mf6_config_file)
+        self.mf6.initialize()
 
         # Load and init MetaSWAP
-        self.msw = XmiWrapper(msw_dll, (msw_dep,), timing=self.timing)
-        self.msw.working_directory = msw_modeldir
-        self.msw.initialize(
-            "config_file"
-        )  # config file is a dummy argument, not used by msw
+        self.msw = XmiWrapper(
+            msw_dll, (msw_dep,), working_directory=msw_modeldir, timing=self.timing
+        )
+        self.msw.initialize()
 
         self.couple()
 
     def get_mf6_modelname(self):
-        # extract the model name from the the mf6_config_file
+        """Extract the model name from the the mf6_config_file."""
         mfsim_name = os.path.join(self.mf6.working_directory, "mfsim.nam")
-        mfsim = open(mfsim_name, "r")
-        mfsim_lines = mfsim.readlines()
-        mfsim.close()
-        for ndx, line in enumerate(mfsim_lines):
-            if "BEGIN MODELS" in line:
-                modeltype, modelnamfile, modelname = mfsim_lines[ndx + 1].split()
-                return modelname
+        with open(mfsim_name, "r") as mfsim:
+            for ndx, line in enumerate(mfsim):
+                if "BEGIN MODELS" in line:
+                    break
+            modeltype, modelnamfile, modelname = mfsim.readline().split()
+            return modelname
 
     def xchg_msw2mod(self):
         for i in range(self.ncell_mod):
