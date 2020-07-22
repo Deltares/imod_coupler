@@ -133,7 +133,7 @@ def main():
         input(f"PID: {os.getpid()}, press any key to continue ....")
 
     # Create an instance
-    MMinst = MetaMod(
+    metamod = MetaMod(
         mf6_modeldir=mf6_model_dir,
         msw_modeldir=msw_model_dir,
         mf6_dll=mf6_dll,
@@ -142,14 +142,14 @@ def main():
         timing=timing,
     )
     # Run the time loop
-    start_time, current_time, end_time = MMinst.getTimes()
+    start_time, current_time, end_time = metamod.getTimes()
 
     while current_time < end_time:
-        current_time = MMinst.update_coupled()
+        current_time = metamod.update_coupled()
     logger.info("New Simulation terminated normally")
 
     if timing:
-        MMinst.report_timing_totals()
+        metamod.report_timing_totals()
 
     if timing:
         end = time.perf_counter()
