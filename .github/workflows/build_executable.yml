@@ -26,7 +26,8 @@ jobs:
           pip install pyinstaller
       - name: Run pyinstaller
         run: |
-          pyinstaller --onefile imod_coupler/__main__.py --name imodc --distpath ${{ matrix.os }}
+          pyinstaller --onefile imod_coupler/__main__.py --name imodc
       - uses: actions/upload-artifact@v2
         with:
-          path: ${{ matrix.os }}
+          name: ${{ matrix.os }}
+          path: dist
