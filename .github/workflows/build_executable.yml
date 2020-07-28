@@ -1,0 +1,32 @@
+name: Build executable
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+jobs:
+  nightly:
+    name: Deploy nightly
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macOS-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python 3.8
+        uses: actions/setup-python@v1
+        with:
+          python-version: 3.8
+      - name: Install imod_coupler
+        run: |
+          pip install -e .
+      - name: Install pyinstaller
+        run: |
+          pip install pyinstaller
+      - name: Run pyinstaller
+        run: |
+          pyinstaller --onefile imod_coupler/__main__.py --name imodc --distpath ${{ matrix.os }}
+      - uses: actions/upload-artifact@v2
+        with:
+          path: ${{ matrix.os }}
