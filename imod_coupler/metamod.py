@@ -69,8 +69,7 @@ class MetaMod:
                 )
 
     def xchg_mod2msw(self):
-        """Exchange Modflow to Metaswap:
-           Initalize the heads in MetaSWAP by copying them from MODFLOW"""
+        """Exchange Modflow to Metaswap"""
         for i in range(self.ncell_msw):
             if i in self.map_msw2mod["head"]:
                 self.msw_head[i] = np.mean(self.mf6_head[self.map_msw2mod["head"][i]])
