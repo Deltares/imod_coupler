@@ -18,8 +18,9 @@ jobs:
         uses: actions/setup-python@v1
         with:
           python-version: 3.8
-      - name: Install imod_coupler
+      - name: Install xmipy and imod_coupler
         run: |
+          pip install https://github.com/Deltares/xmipy/zipball/develop
           pip install -e .
       - name: Install pyinstaller
         run: |
