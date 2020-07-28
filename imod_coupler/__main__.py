@@ -150,8 +150,6 @@ def main():
 
     if timing:
         metamod.report_timing_totals()
-
-    if timing:
         end = time.perf_counter()
         logger.info(f"Total elapsed time: {end-start:0.4f} seconds")
 
