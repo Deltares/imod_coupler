@@ -19,6 +19,7 @@ class MetaMod:
         msw_dep: str,
         timing: bool = False,
     ):
+        """Defines the class usable to couple Metaswap and Modflow"""
         self.timing = timing
 
         # Load and init Modflow 6
@@ -48,6 +49,7 @@ class MetaMod:
             return modelname.upper()
 
     def xchg_msw2mod(self):
+        """Exchange Metaswap to Modflow"""
         for i in range(self.ncell_mod):
             if i in self.map_mod2msw["storage"]:
                 self.mf6_storage[i] = np.sum(
@@ -67,11 +69,13 @@ class MetaMod:
                 )
 
     def xchg_mod2msw(self):
+        """Exchange Modflow to Metaswap"""
         for i in range(self.ncell_msw):
             if i in self.map_msw2mod["head"]:
                 self.msw_head[i] = np.mean(self.mf6_head[self.map_msw2mod["head"][i]])
 
-    def do_iter(self, sol_id: int):
+    def do_iter(self, sol_id: int) -> bool:
+        """Execute a single iteration"""
         self.msw.prepare_solve(0)
         self.msw.solve(0)
         self.xchg_msw2mod()
@@ -81,7 +85,11 @@ class MetaMod:
         return has_converged
 
     def update_coupled(self):
+        """Advance by one timestep"""
+        # we cannot set the timestep (yet) in Modflow
+        # -> set to the (dummy) value 0.0 for now
         self.mf6.prepare_time_step(0.0)
+
         self.delt = self.mf6.get_time_step()
         self.msw.prepare_time_step(self.delt)
 
@@ -89,14 +97,12 @@ class MetaMod:
         n_solutions = self.mf6.get_subcomponent_count()
         for sol_id in range(1, n_solutions + 1):
             # convergence loop
-            kiter = 0
             self.mf6.prepare_solve(sol_id)
-            while kiter < self.max_iter:
+            for kiter in range(self.max_iter):
                 has_converged = self.do_iter(sol_id)
                 if has_converged:
                     logger.debug(f"Component {sol_id} converged in {kiter} iterations")
                     break
-                kiter += 1
             self.mf6.finalize_solve(sol_id)
 
         self.mf6.finalize_time_step()
@@ -106,6 +112,7 @@ class MetaMod:
         return current_time
 
     def getTimes(self):
+        """Return times"""
         return (
             self.mf6.get_start_time(),
             self.mf6.get_current_time(),
@@ -113,16 +120,19 @@ class MetaMod:
         )
 
     def report_timing_totals(self):
+        """Report total time spent in numerical kernels to logger"""
         if self.timing:
             total = self.mf6.report_timing_totals() + self.msw.report_timing_totals()
             logger.info(
-                f"Total elapsed time in compiled libraries: {total:0.4f} seconds"
+                f"Total elapsed time in numerical kernels: {total:0.4f} seconds"
             )
             return total
         else:
             raise Exception("Timing not activated")
 
     def couple(self):
+        """Couple Modflow and Metaswap"""
+        # get some 'pointers' to MF6 and MSW internal data
         mf6_modelname = self.get_mf6_modelname()
         self.mf6_head = self.mf6.get_value_ptr("SLN_1/X")
         self.mf6_recharge = self.mf6.get_value_ptr(f"{mf6_modelname} RCH-1/BOUND")
@@ -130,8 +140,6 @@ class MetaMod:
         self.ncell_mod = np.size(self.mf6_storage)
         self.ncell_recharge = np.size(self.mf6_recharge)
         self.max_iter = self.mf6.get_value_ptr("SLN_1/MXITER")[0]
-
-        # get some 'pointers' to MF6 and MSW internal data
         self.msw_head = self.msw.get_value_ptr("dhgwmod")
         self.msw_volume = self.msw.get_value_ptr("dvsim")
         self.msw_storage = self.msw.get_value_ptr("dsc1sim")
@@ -167,8 +175,4 @@ class MetaMod:
 
         self.map_mod2msw = map_mod2msw
         self.map_msw2map = map_msw2mod
-
-        # TODO: Fix the loops below, they are invalid and only work,
-        # because the condition "if i in map_msw2mod" is never true.
-        # Initalize the heads in MetaSWAP by copying them from MODFLOW
         self.xchg_mod2msw()
