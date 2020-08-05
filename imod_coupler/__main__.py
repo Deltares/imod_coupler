@@ -1,5 +1,6 @@
 import argparse
 import logging
+import json
 import os
 import sys
 import time
@@ -83,6 +84,13 @@ def main():
     )
 
     parser.add_argument(
+        "--config",
+        action="store",
+        default="",
+        help="Provide optional config file in json-format.",
+    )
+
+    parser.add_argument(
         "--timing",
         action="store_true",
         help="activates timing, verbosity can be adjusted with the log-level.",
@@ -101,9 +109,12 @@ def main():
     msw_dll = args.msw_dll
     mf6_model_dir = args.mf6_model_dir
     msw_model_dir = args.msw_model_dir
+    configfile = args.config
     msw_mpi_dll_dir = args.msw_mpi_dll_dir
     debug_native = args.enable_debug_native
     timing = args.timing
+    print('Config : '+configfile)
+    sys.exit()
 
     if timing:
         start = time.perf_counter()
@@ -132,15 +143,27 @@ def main():
     if debug_native:
         input(f"PID: {os.getpid()}, press any key to continue ....")
 
+    if configfile:
+        try:
+            with open('json1.json') as fjs:
+                configdata = json.load(fjs)
+        except:
+            pass
+        
+    configdata = {'components':[],'dependencies':[],'parameters':[],'exchanges':[]}
+    if msw_dll and msw_model_dir:
+        configdata['components'].append({'engine':'msw','dll':msw_dll,'wd':msw_model_dir})
+    if msw_dll and msw_model_dir:
+        configdata['components'].append({'engine':'mf6','dll':mf6_dll,'wd':mf6_model_dir})
+    if msw_mpi_dll_dir:
+        configdata['dependencies'].append(msw_mpi_dll_dir)
+
     # Create an instance
     metamod = MetaMod(
-        mf6_modeldir=mf6_model_dir,
-        msw_modeldir=msw_model_dir,
-        mf6_dll=mf6_dll,
-        msw_dll=msw_dll,
-        msw_dep=msw_mpi_dll_dir,
+        config_data
         timing=timing,
     )
+`
     # Run the time loop
     start_time, current_time, end_time = metamod.getTimes()
 
