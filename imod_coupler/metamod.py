@@ -4,7 +4,7 @@ import os
 import numpy as np
 
 from xmipy import XmiWrapper
-from imod_coupler.utils import read_mapping, invert_mapping
+from imod_coupler.utils import read_mapping
 
 logger = logging.getLogger(__name__)
 
@@ -35,7 +35,6 @@ class MetaMod:
             msw_dll, (msw_dep,), working_directory=msw_modeldir, timing=self.timing
         )
         self.msw.initialize()
-
         self.couple()
 
     def get_mf6_modelname(self):
@@ -50,29 +49,19 @@ class MetaMod:
 
     def xchg_msw2mod(self):
         """Exchange Metaswap to Modflow"""
-        for i in range(self.ncell_mod):
-            if i in self.map_mod2msw["storage"]:
-                self.mf6_storage[i] = np.sum(
-                    self.msw_storage[self.map_mod2msw["storage"][i]]
-                )
-        for i in range(self.ncell_recharge):
-            if i in self.map_mod2msw["recharge"]:
-                # Divide by delta time,
-                # since Metaswap only keeps track of volumes
-                # leaving its domain, not fluxes
-                # Multiply with -1 as recharge is leaving MetaSWAP (negative)
-                # and entering MF6 (positive)
-                self.mf6_recharge[i] = (
-                    -1
-                    * np.sum(self.msw_volume[self.map_mod2msw["recharge"][i]])
-                    / self.delt
-                )
+        self.mf6_storage = self.map_mod2msw["storage"].dot(self.msw_storage)
+        self.mf6_storage /= -1.0 * self.delt
+        # Divide by delta time,
+        # since Metaswap only keeps track of volumes
+        # leaving its domain, not fluxes
+        # Multiply with -1 as recharge is leaving MetaSWAP (negative)
+        # and entering MF6 (positive)
+
+        self.mf6_recharge = self.map_mod2msw["recharge"].dot(self.msw_volume)
 
     def xchg_mod2msw(self):
         """Exchange Modflow to Metaswap"""
-        for i in range(self.ncell_msw):
-            if i in self.map_msw2mod["head"]:
-                self.msw_head[i] = np.mean(self.mf6_head[self.map_msw2mod["head"][i]])
+        self.msw_head = self.map_msw2mod["head"].dot(self.mf6_head)
 
     def do_iter(self, sol_id: int) -> bool:
         """Execute a single iteration"""
@@ -157,22 +146,25 @@ class MetaMod:
 
         mapping_file = os.path.join(self.msw.working_directory, "mod2svat.inp")
         if os.path.isfile(mapping_file):
-            map_mod2msw["storage"] = read_mapping(mapping_file)
+            map_mod2msw["storage"] = read_mapping(mapping_file,
+                                                  self.mf6_storage.size,
+                                                  self.msw_storage.size, 'sum', False)
+            map_msw2mod["head"] = read_mapping(mapping_file,
+                                               self.msw_head.size,
+                                               self.mf6_head.size, 'avg', True)
         else:
             raise Exception("Missing mod2svat.inp")
-
-        map_msw2mod["head"] = invert_mapping(map_mod2msw["storage"])
-        self.map_msw2mod = map_msw2mod
-        self.map_mod2msw = map_mod2msw
 
         mapping_file_recharge = os.path.join(
             self.msw.working_directory, "mod2svat_recharge.inp"
         )
         if os.path.isfile(mapping_file_recharge):
-            map_mod2msw["recharge"] = read_mapping(mapping_file_recharge)
+            map_mod2msw["recharge"] = read_mapping(mapping_file_recharge,
+                                                   self.msw_volume.size,
+                                                   self.mf6_recharge.size, 'sum', False)
         else:
             raise Exception("Missing mod2svat_recharge.inp")
 
         self.map_mod2msw = map_mod2msw
-        self.map_msw2map = map_msw2mod
+        self.map_msw2mod = map_msw2mod
         self.xchg_mod2msw()

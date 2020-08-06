@@ -1,26 +1,22 @@
 import numpy as np
+import scipy.sparse as sc
 
 
-def read_mapping(map_file: str):
+def read_mapping(map_file: str, nsrc: int, ntgt: int, operator: str, swap: bool):
     map_arr = np.loadtxt(map_file, dtype=np.int32)
     # 1-based indices (fortran) to 0-based indices (python)
-    map_arr[:, 0] = map_arr[:, 0] - 1
-    map_arr[:, 1] = map_arr[:, 1] - 1
-
-    map_in = {}
-    for gw, sv in zip(map_arr[:, 0], map_arr[:, 1]):
-        map_in.setdefault(gw, []).append(sv)
-
-    return map_in
-
-
-def invert_mapping(map_in: dict):
-    map_out = {}
-    for i, lst in map_in.items():
-        for j in lst:
-            if j not in map_out:
-                map_out[j] = []
-            map_out[j].append(i)
-    for key in map_out.keys():
-        map_out[key] = list(set(map_out[key]))
+    if swap:
+        col = map_arr[:, 0] - 1
+        row = map_arr[:, 1] - 1
+    else:
+        row = map_arr[:, 0] - 1
+        col = map_arr[:, 1] - 1
+    if operator == 'avg':
+        cnt = np.zeros(max(row) + 1)
+        for i in range(col.size):
+            cnt[row[i]] += 1
+        dat = np.array([1. / cnt[xx] for xx in row])
+    if operator == 'sum':
+        dat = np.array([1. for xx in row])
+    map_out = sc.csr_matrix((dat, (row, col)), shape=(nsrc, ntgt))
     return map_out
