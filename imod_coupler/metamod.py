@@ -63,7 +63,6 @@ class MetaMod:
         """Exchange Modflow to Metaswap"""
         self.msw_head = self.map_msw2mod["head"].dot(self.mf6_head)
 
-
     def do_iter(self, sol_id: int) -> bool:
         """Execute a single iteration"""
         self.msw.prepare_solve(0)
