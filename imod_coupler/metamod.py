@@ -12,23 +12,32 @@ logger = logging.getLogger(__name__)
 class MetaMod:
     def __init__(
         self,
-        config_data
-        timing: bool = False,
+        config_data,
+        timing: bool = False
     ):
         """Defines the class usable to couple Metaswap and Modflow"""
         self.timing = timing
-
-        self.mf6 = []    # MODFLOW6 wrappers
-        self.msw = []    # MetaSWAP wrappers
-        for label,cmp in config_data['components'].items():
-            new_xmi = XmiWrapper(cmp['dll'], cmp['wd'], timing=self.timing)
-            if cmp['type'] == 'mf6':
+        deps = config_data['dependencies']
+        for dep in deps:
+            if not os.path.isdir(dep):
+                raise Exception(f"Dependend directory {dep} not found.")
+        for label, cmp in config_data['components'].items():
+            if not os.path.exists(cmp['dll']):
+                raise Exception(f"Component {label} dll {cmp['dll']} not found.")
+            if not os.path.isdir(cmp['wd']):
+                raise Exception(
+                    f"Component {label} working directory {cmp['wd']} not found.")
+            new_xmi = XmiWrapper(cmp['dll'], deps,
+                                 working_directory=cmp['wd'],
+                                 timing=self.timing)
+            if label == 'mf6':
                 new_xmi.set_int("ISTDOUTTOFILE", 0)
                 new_xmi.initialize()
-                self.mf6[label] = new_xmi
-            if cmp['type'] == 'msw':
+                self.mf6 = new_xmi
+            if label == 'msw':
                 new_xmi.initialize()
-                self.msw[label] = new_xmi
+                self.msw = new_xmi
+
         self.couple(config_data)
 
     def get_mf6_modelname(self):
@@ -123,20 +132,20 @@ class MetaMod:
         else:
             raise Exception("Timing not activated")
 
-    def couple(self,config_data):
+    def couple(self, config_data):
         """Couple Modflow and Metaswap"""
         # get some 'pointers' to MF6 and MSW internal data
         mf6_modelname = self.get_mf6_modelname()
-        self.mf6_head = self.mf6[0].get_value_ptr("SLN_1/X")
-        self.mf6_recharge = self.mf6[0].get_value_ptr(f"{mf6_modelname} RCH-1/BOUND")
-        self.mf6_storage = self.mf6[0].get_value_ptr(f"{mf6_modelname} STO/SC2")
+        self.mf6_head = self.mf6.get_value_ptr("SLN_1/X")
+        self.mf6_recharge = self.mf6.get_value_ptr(f"{mf6_modelname} RCH-1/BOUND")
+        self.mf6_storage = self.mf6.get_value_ptr(f"{mf6_modelname} STO/SC2")
         self.ncell_mod = np.size(self.mf6_storage)
         self.ncell_recharge = np.size(self.mf6_recharge)
-        self.max_iter = self.mf6[0].get_value_ptr("SLN_1/MXITER")[0]
-        self.msw_head = self.msw[0].get_value_ptr("dhgwmod")
-        self.msw_volume = self.msw[0].get_value_ptr("dvsim")
-        self.msw_storage = self.msw[0].get_value_ptr("dsc1sim")
-        self.msw_time = self.msw[0].get_value_ptr("currenttime")
+        self.max_iter = self.mf6.get_value_ptr("SLN_1/MXITER")[0]
+        self.msw_head = self.msw.get_value_ptr("dhgwmod")
+        self.msw_volume = self.msw.get_value_ptr("dvsim")
+        self.msw_storage = self.msw.get_value_ptr("dsc1sim")
+        self.msw_time = self.msw.get_value_ptr("currenttime")
 
         self.ncell_msw = np.size(self.msw_storage)
 

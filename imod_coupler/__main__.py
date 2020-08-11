@@ -30,7 +30,7 @@ def main():
 
     parser.add_argument(
         "--mf6-dll",
-        required=True,
+        required=False,
         action=EnvDefault,
         envvar="MF6_DLL",
         help="specify the path to Modflow6 dll \
@@ -38,7 +38,7 @@ def main():
     )
     parser.add_argument(
         "--msw-dll",
-        required=True,
+        required=False,
         action=EnvDefault,
         envvar="MSW_DLL",
         help="specify the path to Metaswap dll \
@@ -46,7 +46,7 @@ def main():
     )
     parser.add_argument(
         "--mf6-model-dir",
-        required=True,
+        required=False,
         action=EnvDefault,
         envvar="MF6_MODEL_DIR",
         help="specify the path to Modflow6 model directory "
@@ -54,7 +54,7 @@ def main():
     )
     parser.add_argument(
         "--msw-model-dir",
-        required=True,
+        required=False,
         action=EnvDefault,
         envvar="MSW_MODEL_DIR",
         help="specify the path to Metaswap model directory "
@@ -64,6 +64,7 @@ def main():
     parser.add_argument(
         "--msw-mpi-dll-dir",
         action=EnvDefault,
+        required=False,
         envvar="MSW_MPI_DLL_DIR",
         help="specify the path containing the Metaswap MPI dlls "
         + "(can also be specified using MSW_MPI_DLL_DIR environment variable).",
@@ -102,6 +103,8 @@ def main():
         version="%(prog)s {version}".format(version=__version__),
     )
 
+    if len(sys.argv) == 1:
+        sys.argv.append("--help")
     args = parser.parse_args()
 
     logging.basicConfig(level=args.log_level)
@@ -113,57 +116,40 @@ def main():
     msw_mpi_dll_dir = args.msw_mpi_dll_dir
     debug_native = args.enable_debug_native
     timing = args.timing
-    print('Config : '+configfile)
-    sys.exit()
 
     if timing:
         start = time.perf_counter()
-
-    if not os.path.exists(mf6_dll):
-        logger.error(f"MODFLOW6 dll {mf6_dll} not found.")
-        sys.exit(1)
-
-    if not os.path.exists(msw_dll):
-        logger.error(f"METASWAP dd {msw_dll} not found.")
-        sys.exit(1)
-
-    if not os.path.isdir(mf6_model_dir):
-        logger.error(f"MODFLOW6 Model path {mf6_model_dir} not found.")
-        sys.exit(1)
-
-    if not os.path.isdir(msw_model_dir):
-        logger.error(f"MetaSWAP Model path {msw_model_dir} not found.")
-        sys.exit(1)
-
-    if not os.path.isdir(msw_mpi_dll_dir):
-        logger.error(f"Metaswap MPI dlls {msw_mpi_dll_dir} not found.")
-        sys.exit(1)
 
     # wait for native debugging
     if debug_native:
         input(f"PID: {os.getpid()}, press any key to continue ....")
 
-    if configfile:
-        try:
-            with open('json1.json') as fjs:
-                configdata = json.load(fjs)
-        except:
-            pass
-        
-    configdata = {'components':[],'dependencies':[],'parameters':[],'exchanges':[]}
+    config_data = \
+        {'components': {}, 'dependencies': [], 'parameters': [], 'exchanges': []}
     if msw_dll and msw_model_dir:
-        configdata['components'].append({'engine':'msw','dll':msw_dll,'wd':msw_model_dir})
+        config_data['components']['msw'] = \
+            {'engine': 'msw', 'dll': msw_dll, 'wd': msw_model_dir}
     if msw_dll and msw_model_dir:
-        configdata['components'].append({'engine':'mf6','dll':mf6_dll,'wd':mf6_model_dir})
+        config_data['components']['mf6'] = \
+            {'engine': 'mf6', 'dll': mf6_dll, 'wd': mf6_model_dir}
     if msw_mpi_dll_dir:
-        configdata['dependencies'].append(msw_mpi_dll_dir)
+        config_data['dependencies'].append(msw_mpi_dll_dir)
+
+    # Parse config file
+    if configfile:
+        if os.path.isfile(configfile):
+            with open(configfile) as fjs:
+                config_data = json.load(fjs)
+        else:
+            logger.error(f"Config file {configfile} not found.")
+            sys.exit(1)
 
     # Create an instance
     metamod = MetaMod(
-        config_data
-        timing=timing,
+        config_data,
+        timing=timing
     )
-`
+ 
     # Run the time loop
     start_time, current_time, end_time = metamod.getTimes()
 
