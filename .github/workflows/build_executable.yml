@@ -19,7 +19,10 @@ jobs:
         with:
           python-version: 3.8
       - name: Install xmipy and imod_coupler
+        # upgrading of setuptools can be removed
+        # as soon as pyinstaller 4.0 is released
         run: |
+          pip install setuptools --upgrade
           pip install https://github.com/Deltares/xmipy/zipball/develop
           pip install -e .
       - name: Install pyinstaller
