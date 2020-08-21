@@ -3,9 +3,12 @@ import os
 import re
 import sys
 from typing import Any, List
+
 import toml
 
 from imod_coupler.errors import ConfigError
+from imod_coupler.utils import cd
+from imod_coupler.kernel import Kernel
 
 logger = logging.getLogger()
 
@@ -19,46 +22,25 @@ class Config(object):
         if not os.path.isfile(filepath):
             raise ConfigError(f"Config file '{filepath}' does not exist")
 
-        # Load in the config file at the given filepath
-        self.data = toml.load(filepath)
+        with cd(os.path.dirname(filepath)):
+            # Load in the config file at the given filepath
+            self.data = toml.load(filepath)
+            self.filepath = filepath
 
-        self.exchanges = self._get_cfg(["exchanges"])
+            self.exchanges = self._get_cfg(["exchanges"])
 
-        self.kernels = self.get_kernels()
+            kernels = self.get_kernel_set()
 
-        self.validate_kernel_paths()
+            self.get_kernel_data(kernels)
 
-    def validate_kernel_paths(self):
-        for kernel in self.kernels:
-            # Validate paths
-            dll_path = self._get_cfg(["kernels", kernel, "dll"])
-            if not os.path.exists(dll_path):
-                raise ConfigError(
-                    f"DLL path '{dll_path}' for '{kernel}' does not exist"
-                )
-
-            model_path = self._get_cfg(["kernels", kernel, "model"])
-            if not os.path.isdir(model_path):
-                raise ConfigError(
-                    f"Model path '{model_path}' for '{kernel}' does not exist"
-                )
-
-            dependency_path = self._get_cfg(
-                ["kernels", kernel, "dll_dependency"], required=False
-            )
-            if dependency_path:
-                if not os.path.isdir(dependency_path):
-                    raise ConfigError(
-                        f"DDL dependency path '{dependency_path}' for '{kernel}' does not exist"
-                    )
-
-    def get_kernels(self):
+    def get_kernel_set(self):
         """Get kernels and check if they match up"""
 
         expected_kernels = set()
         for index, _ in enumerate(self.exchanges):
-            expected_kernels.add(self._get_cfg(["exchanges", index, "kernel1"]))
-            expected_kernels.add(self._get_cfg(["exchanges", index, "kernel2"]))
+            kernels = self._get_cfg(["exchanges", index, "kernels"])
+            for kernel in kernels:
+                expected_kernels.add(kernel)
 
         kernels = set(self._get_cfg(["kernels"]).keys())
         missing_kernels = set.difference(expected_kernels, kernels)
@@ -66,6 +48,36 @@ class Config(object):
             raise ConfigError(f"Kernel {', '.join(missing_kernels)} missing")
 
         return expected_kernels
+
+    def get_kernel_data(self, kernels):
+        self.kernels = {}
+        for kernel in kernels:
+            # Validate paths
+            dll = self._get_cfg(["kernels", kernel, "dll"])
+            if not os.path.exists(dll):
+                raise ConfigError(f"DLL path '{dll}' for '{kernel}' does not exist")
+            else:
+                dll = os.path.abspath(dll)
+
+            model = self._get_cfg(["kernels", kernel, "model"])
+            if not os.path.isdir(model):
+                raise ConfigError(f"Model path '{model}' for '{kernel}' does not exist")
+            else:
+                model = os.path.abspath(model)
+
+            dll_dependency = self._get_cfg(
+                ["kernels", kernel, "dll_dependency"], required=False
+            )
+            if dll_dependency:
+                if not os.path.isdir(dll_dependency):
+                    raise ConfigError(
+                        f"DLL dependency path '{dll_dependency}'"
+                        f"for '{kernel}' does not exist"
+                    )
+                else:
+                    dll_dependency = os.path.abspath(dll_dependency)
+
+            self.kernels[kernel] = Kernel(dll, model, dll_dependency)
 
     def _get_cfg(self, path, default=None, required=True):
         """Get a config option from a path and option name, specifying whether it is
@@ -81,7 +93,7 @@ class Config(object):
                 data = data[name]
             except KeyError:
                 # Raise an error if it was required
-                if required or not default:
+                if required:
                     raise ConfigError(f"Config option {'.'.join(path)} is required")
 
                 # or return the default value

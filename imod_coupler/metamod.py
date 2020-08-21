@@ -5,26 +5,24 @@ import numpy as np
 
 from xmipy import XmiWrapper
 from imod_coupler.utils import read_mapping
+from imod_coupler.kernel import Kernel
 
 logger = logging.getLogger(__name__)
 
 
 class MetaMod:
     def __init__(
-        self,
-        mf6_modeldir: str,
-        msw_modeldir: str,
-        mf6_dll: str,
-        msw_dll: str,
-        msw_dep: str,
-        timing: bool = False,
+        self, mf6: Kernel, msw: Kernel, timing: bool = False,
     ):
         """Defines the class usable to couple Metaswap and Modflow"""
         self.timing = timing
 
         # Load and init Modflow 6
         self.mf6 = XmiWrapper(
-            mf6_dll, working_directory=mf6_modeldir, timing=self.timing
+            lib_path=mf6.dll,
+            lib_dependency=mf6.dll_dependency,
+            working_directory=mf6.model,
+            timing=self.timing,
         )
         # Print output to stdout
         self.mf6.set_int("ISTDOUTTOFILE", 0)
@@ -32,7 +30,10 @@ class MetaMod:
 
         # Load and init MetaSWAP
         self.msw = XmiWrapper(
-            msw_dll, (msw_dep,), working_directory=msw_modeldir, timing=self.timing
+            lib_path=msw.dll,
+            lib_dependency=msw.dll_dependency,
+            working_directory=msw.model,
+            timing=self.timing,
         )
         self.msw.initialize()
         self.couple()
@@ -123,14 +124,15 @@ class MetaMod:
         """Couple Modflow and Metaswap"""
         # get some 'pointers' to MF6 and MSW internal data
         mf6_modelname = self.get_mf6_modelname()
-        head_tag = self.mf6.get_var_address("SLN_1", "X")
-        self.mf6_head = self.mf6.get_value_ptr(head_tag)
-        rch_tag = self.mf6.get_var_address(mf6_modelname, "RCH-1", "BOUND")
-        self.mf6_recharge = self.mf6.get_value_ptr(rch_tag)
-        storage_tag = self.mf6.get_var_address(mf6_modelname, "STO", "SC2")
-        self.mf6_storage = self.mf6.get_value_ptr(storage_tag)
-        mxit_tag = self.mf6.get_var_address("SLN_1", "MXITER")
-        self.max_iter = self.mf6.get_value_ptr(mxit_tag)[0]
+        mf6_head_tag = self.mf6.get_var_address("X", "SLN_1")
+        mf6_recharge_tag = self.mf6.get_var_address("BOUND", mf6_modelname, "RCH-1")
+        mf6_storage_tag = self.mf6.get_var_address("SC2", mf6_modelname, "STO")
+        mf6_max_iter_tag = self.mf6.get_var_address("MXITER", "SLN_1")
+
+        self.mf6_head = self.mf6.get_value_ptr(mf6_head_tag)
+        self.mf6_recharge = self.mf6.get_value_ptr(mf6_recharge_tag)
+        self.mf6_storage = self.mf6.get_value_ptr(mf6_storage_tag)
+        self.max_iter = self.mf6.get_value_ptr(mf6_max_iter_tag)[0]
 
         self.ncell_mod = np.size(self.mf6_storage)
         self.ncell_recharge = np.size(self.mf6_recharge)
@@ -152,12 +154,12 @@ class MetaMod:
 
         mapping_file = os.path.join(self.msw.working_directory, "mod2svat.inp")
         if os.path.isfile(mapping_file):
-            map_mod2msw["storage"] = read_mapping(mapping_file,
-                                                  self.mf6_storage.size,
-                                                  self.msw_storage.size, 'sum', False)
-            map_msw2mod["head"] = read_mapping(mapping_file,
-                                               self.msw_head.size,
-                                               self.mf6_head.size, 'avg', True)
+            map_mod2msw["storage"] = read_mapping(
+                mapping_file, self.mf6_storage.size, self.msw_storage.size, "sum", False
+            )
+            map_msw2mod["head"] = read_mapping(
+                mapping_file, self.msw_head.size, self.mf6_head.size, "avg", True
+            )
         else:
             raise Exception("Missing mod2svat.inp")
 
@@ -165,9 +167,13 @@ class MetaMod:
             self.msw.working_directory, "mod2svat_recharge.inp"
         )
         if os.path.isfile(mapping_file_recharge):
-            map_mod2msw["recharge"] = read_mapping(mapping_file_recharge,
-                                                   self.msw_volume.size,
-                                                   self.mf6_recharge.size, 'sum', False)
+            map_mod2msw["recharge"] = read_mapping(
+                mapping_file_recharge,
+                self.msw_volume.size,
+                self.mf6_recharge.size,
+                "sum",
+                False,
+            )
         else:
             raise Exception("Missing mod2svat_recharge.inp")
 
