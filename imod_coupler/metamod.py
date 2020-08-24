@@ -123,12 +123,18 @@ class MetaMod:
         """Couple Modflow and Metaswap"""
         # get some 'pointers' to MF6 and MSW internal data
         mf6_modelname = self.get_mf6_modelname()
-        self.mf6_head = self.mf6.get_value_ptr("SLN_1/X")
-        self.mf6_recharge = self.mf6.get_value_ptr(f"{mf6_modelname} RCH-1/BOUND")
-        self.mf6_storage = self.mf6.get_value_ptr(f"{mf6_modelname} STO/SC2")
+        head_tag = self.mf6.get_var_address("SLN_1","X")
+        self.mf6_head = self.mf6.get_value_ptr(head_tag)
+        rch_tag = self.mf6.get_var_address(mf6_modelname, "RCH-1", "BOUND")
+        self.mf6_recharge = self.mf6.get_value_ptr(rch_tag)
+        storage_tag = self.mf6.get_var_address(mf6_modelname, "STO", "SC2")
+        self.mf6_storage = self.mf6.get_value_ptr(storage_tag)
+        mxit_tag = self.mf6.get_var_address("SLN_1", "MXITER")
+        self.max_iter = self.mf6.get_value_ptr(mxit_tag)[0]
+
         self.ncell_mod = np.size(self.mf6_storage)
         self.ncell_recharge = np.size(self.mf6_recharge)
-        self.max_iter = self.mf6.get_value_ptr("SLN_1/MXITER")[0]
+        
         self.msw_head = self.msw.get_value_ptr("dhgwmod")
         self.msw_volume = self.msw.get_value_ptr("dvsim")
         self.msw_storage = self.msw.get_value_ptr("dsc1sim")
