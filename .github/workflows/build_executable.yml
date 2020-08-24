@@ -5,8 +5,8 @@ on:
   pull_request:
 
 jobs:
-  nightly:
-    name: Deploy nightly
+  build:
+    name: Build executable
     strategy:
       fail-fast: false
       matrix:
