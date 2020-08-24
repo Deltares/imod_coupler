@@ -123,7 +123,7 @@ class MetaMod:
         """Couple Modflow and Metaswap"""
         # get some 'pointers' to MF6 and MSW internal data
         mf6_modelname = self.get_mf6_modelname()
-        head_tag = self.mf6.get_var_address("SLN_1","X")
+        head_tag = self.mf6.get_var_address("SLN_1", "X")
         self.mf6_head = self.mf6.get_value_ptr(head_tag)
         rch_tag = self.mf6.get_var_address(mf6_modelname, "RCH-1", "BOUND")
         self.mf6_recharge = self.mf6.get_value_ptr(rch_tag)
@@ -134,7 +134,7 @@ class MetaMod:
 
         self.ncell_mod = np.size(self.mf6_storage)
         self.ncell_recharge = np.size(self.mf6_recharge)
-        
+
         self.msw_head = self.msw.get_value_ptr("dhgwmod")
         self.msw_volume = self.msw.get_value_ptr("dvsim")
         self.msw_storage = self.msw.get_value_ptr("dsc1sim")
