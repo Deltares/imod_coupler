@@ -82,15 +82,29 @@ class Config(object):
     def _get_cfg(self, path, default=None, required=True):
         """Get a config option from a path and option name, specifying whether it is
         required.
+        It also checks for environment variables used to override the config path.
+
         Raises:
             ConfigError: If required is specified and the object is not found
                 (and there is no default value provided), this error will be raised
         """
-        data = self.data
+
+        # Create the environment variable string
+        # e.g. IMODC__KERNELS__MODFLOW6__DLL
+        env_variable = "IMODC"
+        for name in path:
+            env_variable = env_variable + "__" + str(name)
+
+        # Check if an environment variable is set to override the config file
+        value = os.environ.get(env_variable)
+        if value:
+            return value
+
+        value = self.data
         # Sift through the the config until we reach our option
         for name in path:
             try:
-                data = data[name]
+                value = value[name]
             except KeyError:
                 # Raise an error if it was required
                 if required:
@@ -100,4 +114,4 @@ class Config(object):
                 return default
 
         # We found the option. Return it
-        return data
+        return value
