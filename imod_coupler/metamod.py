@@ -136,7 +136,8 @@ class MetaMod:
         mf6_max_iter_tag = self.mf6.get_var_address("MXITER", "SLN_1")
 
         self.mf6_head = self.mf6.get_value_ptr(mf6_head_tag)
-        self.mf6_recharge = self.mf6.get_value_ptr(mf6_recharge_tag)[:, 0]  # set to first column in BOUND
+        # NB: recharge is set to first column in BOUND
+        self.mf6_recharge = self.mf6.get_value_ptr(mf6_recharge_tag)[:, 0]
         self.mf6_storage = self.mf6.get_value_ptr(mf6_storage_tag)
         self.mf6_sto_reset = self.mf6.get_value_ptr(mf6_sto_reset_tag)
         self.max_iter = self.mf6.get_value_ptr(mf6_max_iter_tag)[0]
