@@ -50,19 +50,20 @@ class MetaMod:
 
     def xchg_msw2mod(self):
         """Exchange Metaswap to Modflow"""
-        self.mf6_storage = self.map_mod2msw["storage"].dot(self.msw_storage)
+        self.mf6_storage[:] = self.map_mod2msw["storage"].dot(self.msw_storage)[:]
+        self.mf6_sto_reset[0] = 1
         # Divide by delta time,
         # since Metaswap only keeps track of volumes
         # leaving its domain, not fluxes
         # Multiply with -1 as recharge is leaving MetaSWAP (negative)
         # and entering MF6 (positive)
 
-        self.mf6_recharge = self.map_mod2msw["recharge"].dot(self.msw_volume)
-        self.mf6_recharge /= -1.0 * self.delt
+        self.mf6_recharge[:] = self.map_mod2msw["recharge"].dot(self.msw_volume)[:]
+        self.mf6_recharge[:] /= -1.0 * self.delt
 
     def xchg_mod2msw(self):
         """Exchange Modflow to Metaswap"""
-        self.msw_head = self.map_msw2mod["head"].dot(self.mf6_head)
+        self.msw_head[:] = self.map_msw2mod["head"].dot(self.mf6_head)[:]
 
     def do_iter(self, sol_id: int) -> bool:
         """Execute a single iteration"""
@@ -76,6 +77,10 @@ class MetaMod:
 
     def update_coupled(self):
         """Advance by one timestep"""
+
+        # heads to MetaSWAP
+        self.xchg_mod2msw()
+
         # we cannot set the timestep (yet) in Modflow
         # -> set to the (dummy) value 0.0 for now
         self.mf6.prepare_time_step(0.0)
@@ -126,12 +131,14 @@ class MetaMod:
         mf6_modelname = self.get_mf6_modelname()
         mf6_head_tag = self.mf6.get_var_address("X", "SLN_1")
         mf6_recharge_tag = self.mf6.get_var_address("BOUND", mf6_modelname, "RCH-1")
-        mf6_storage_tag = self.mf6.get_var_address("SC2", mf6_modelname, "STO")
+        mf6_storage_tag = self.mf6.get_var_address("SC1", mf6_modelname, "STO")
+        mf6_sto_reset_tag = self.mf6.get_var_address("IRESETSC1", mf6_modelname, "STO")
         mf6_max_iter_tag = self.mf6.get_var_address("MXITER", "SLN_1")
 
         self.mf6_head = self.mf6.get_value_ptr(mf6_head_tag)
-        self.mf6_recharge = self.mf6.get_value_ptr(mf6_recharge_tag)
+        self.mf6_recharge = self.mf6.get_value_ptr(mf6_recharge_tag)[:,0] # recharge is the first column in the MODFLOW BOUND array
         self.mf6_storage = self.mf6.get_value_ptr(mf6_storage_tag)
+        self.mf6_sto_reset = self.mf6.get_value_ptr(mf6_sto_reset_tag)
         self.max_iter = self.mf6.get_value_ptr(mf6_max_iter_tag)[0]
 
         self.ncell_mod = np.size(self.mf6_storage)
@@ -179,5 +186,4 @@ class MetaMod:
 
         self.map_mod2msw = map_mod2msw
         self.map_msw2mod = map_msw2mod
-        self.xchg_mod2msw()
 
