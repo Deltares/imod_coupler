@@ -5,37 +5,19 @@ import numpy as np
 
 from xmipy import XmiWrapper
 from imod_coupler.utils import read_mapping
-from imod_coupler.kernel import Kernel
 
 logger = logging.getLogger(__name__)
 
 
 class MetaMod:
     def __init__(
-        self, mf6: Kernel, msw: Kernel, timing: bool = False,
+        self, mf6: XmiWrapper, msw: XmiWrapper, timing: bool = False,
     ):
         """Defines the class usable to couple Metaswap and Modflow"""
         self.timing = timing
+        self.mf6 = mf6
+        self.msw = msw
 
-        # Load and init Modflow 6
-        self.mf6 = XmiWrapper(
-            lib_path=mf6.dll,
-            lib_dependency=mf6.dll_dependency,
-            working_directory=mf6.model,
-            timing=self.timing,
-        )
-        # Print output to stdout
-        self.mf6.set_int("ISTDOUTTOFILE", 0)
-        self.mf6.initialize()
-
-        # Load and init MetaSWAP
-        self.msw = XmiWrapper(
-            lib_path=msw.dll,
-            lib_dependency=msw.dll_dependency,
-            working_directory=msw.model,
-            timing=self.timing,
-        )
-        self.msw.initialize()
         self.couple()
 
     def get_mf6_modelname(self):

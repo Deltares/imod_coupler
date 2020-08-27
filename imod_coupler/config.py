@@ -3,12 +3,12 @@ import os
 import re
 import sys
 from typing import Any, List
+from xmipy import XmiWrapper
 
 import toml
 
 from imod_coupler.errors import ConfigError
 from imod_coupler.utils import cd
-from imod_coupler.kernel import Kernel
 
 logger = logging.getLogger()
 
@@ -28,6 +28,10 @@ class Config(object):
             self.filepath = filepath
 
             self.exchanges = self._get_cfg(["exchanges"])
+            self.timing = self._get_cfg(["timing"], default=False, required=False)
+            self.log_level = self._get_cfg(
+                ["log_level"], default="INFO", required=False
+            )
 
             kernels = self.get_kernel_set()
 
@@ -77,7 +81,12 @@ class Config(object):
                 else:
                     dll_dependency = os.path.abspath(dll_dependency)
 
-            self.kernels[kernel] = Kernel(dll, model, dll_dependency)
+            self.kernels[kernel] = XmiWrapper(
+                lib_path=dll,
+                lib_dependency=dll_dependency,
+                working_directory=model,
+                timing=self.timing,
+            )
 
     def _get_cfg(self, path, default=None, required=True):
         """Get a config option from a path and option name, specifying whether it is
