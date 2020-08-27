@@ -22,20 +22,6 @@ def main():
     )
 
     parser.add_argument(
-        "--log-level",
-        action="store",
-        choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
-        default="INFO",
-        help="define log level.",
-    )
-
-    parser.add_argument(
-        "--timing",
-        action="store_true",
-        help="activates timing, verbosity can be adjusted with the log-level.",
-    )
-
-    parser.add_argument(
         "--version",
         action="version",
         version="%(prog)s {version}".format(version=__version__),
@@ -49,14 +35,8 @@ def main():
     )
 
     args = parser.parse_args()
-
-    logging.basicConfig(level=args.log_level)
     debug_native = args.enable_debug_native
-    timing = args.timing
     config_path = args.config_path
-
-    if timing:
-        start = time.perf_counter()
 
     try:
         config = Config(config_path)
@@ -64,6 +44,12 @@ def main():
         logger.error("Could not parse configuration file")
         logger.error(e)
         sys.exit(1)
+
+    logging.basicConfig(level=config.log_level)
+
+    timing = config.timing
+    if timing:
+        start = time.perf_counter()
 
     # wait for native debugging
     if debug_native:
@@ -73,6 +59,14 @@ def main():
         if "modflow6" in exchange["kernels"] and "metaswap" in exchange["kernels"]:
             mf6 = config.kernels["modflow6"]
             msw = config.kernels["metaswap"]
+
+            # Print output to stdout
+            mf6.set_int("ISTDOUTTOFILE", 0)
+
+            # Initialize kernels
+            mf6.initialize()
+            msw.initialize()
+
             # Create an instance
             metamod = MetaMod(mf6=mf6, msw=msw, timing=timing,)
             # Run the time loop
