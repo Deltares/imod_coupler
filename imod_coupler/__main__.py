@@ -68,7 +68,7 @@ def main():
             msw.initialize()
 
             # Create an instance
-            metamod = MetaMod(mf6=mf6, msw=msw, timing=timing,)
+            metamod = MetaMod(mf6=mf6, msw=msw, timing=timing)
             # Run the time loop
             start_time, current_time, end_time = metamod.getTimes()
 
