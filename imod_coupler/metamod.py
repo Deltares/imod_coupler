@@ -10,9 +10,7 @@ logger = logging.getLogger(__name__)
 
 
 class MetaMod:
-    def __init__(
-        self, mf6: XmiWrapper, msw: XmiWrapper, timing: bool = False,
-    ):
+    def __init__(self, mf6: XmiWrapper, msw: XmiWrapper, timing: bool = False):
         """Defines the class usable to couple Metaswap and Modflow"""
         self.timing = timing
         self.mf6 = mf6
@@ -169,4 +167,3 @@ class MetaMod:
 
         self.map_mod2msw = map_mod2msw
         self.map_msw2mod = map_msw2mod
-
