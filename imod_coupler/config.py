@@ -14,7 +14,7 @@ logger = logging.getLogger()
 
 
 class Config(object):
-    def __init__(self, filepath):
+    def __init__(self, filepath, timing):
         """
         Args:
             filepath (str): Path to config file
@@ -28,14 +28,10 @@ class Config(object):
             self.filepath = filepath
 
             self.exchanges = self._get_cfg(["exchanges"])
-            self.timing = self._get_cfg(["timing"], default=False, required=False)
-            self.log_level = self._get_cfg(
-                ["log_level"], default="INFO", required=False
-            )
 
             kernels = self.get_kernel_set()
 
-            self.get_kernel_data(kernels)
+            self.get_kernel_data(kernels, timing)
 
     def get_kernel_set(self):
         """Get kernels and check if they match up"""
@@ -53,7 +49,7 @@ class Config(object):
 
         return expected_kernels
 
-    def get_kernel_data(self, kernels):
+    def get_kernel_data(self, kernels, timing):
         self.kernels = {}
         for kernel in kernels:
             # Validate paths
@@ -85,7 +81,7 @@ class Config(object):
                 lib_path=dll,
                 lib_dependency=dll_dependency,
                 working_directory=model,
-                timing=self.timing,
+                timing=timing,
             )
 
     def _get_cfg(self, path, default=None, required=True):
