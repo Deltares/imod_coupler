@@ -54,4 +54,4 @@ kernels = ['modflow6', 'metaswap']
 
 ## Technical Reference
 
-The technical details can be found [here](TECHNICAL.md).
+A technical explanation can be found [here](TECHNICAL.md).
