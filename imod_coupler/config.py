@@ -33,6 +33,10 @@ class Config(object):
 
             self.get_kernel_data(kernels, timing)
 
+            envvars = self._get_cfg(["envvars"], default={}, required=False)
+            for varname, varcontent in envvars.items():
+                os.environ[varname] = varcontent
+
     def get_kernel_set(self):
         """Get kernels and check if they match up"""
 
