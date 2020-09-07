@@ -32,14 +32,10 @@ class MetaMod:
         """Exchange Metaswap to Modflow"""
         self.mf6_storage[:] = self.map_mod2msw["storage"].dot(self.msw_storage)[:]
         self.mf6_sto_reset[0] = 1
-        # Divide by delta time,
-        # since Metaswap only keeps track of volumes
-        # leaving its domain, not fluxes
-        # Multiply with -1 as recharge is leaving MetaSWAP (negative)
-        # and entering MF6 (positive)
+        # Divide by delta time
 
         self.mf6_recharge[:] = self.map_mod2msw["recharge"].dot(self.msw_volume)[:]
-        self.mf6_recharge[:] /= -1.0 * self.delt
+        self.mf6_recharge[:] /= self.delt
 
     def xchg_mod2msw(self):
         """Exchange Modflow to Metaswap"""
