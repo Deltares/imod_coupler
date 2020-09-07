@@ -90,17 +90,6 @@ class MetaMod:
             self.mf6.get_end_time(),
         )
 
-    def report_timing_totals(self):
-        """Report total time spent in numerical kernels to logger"""
-        if self.timing:
-            total = self.mf6.report_timing_totals() + self.msw.report_timing_totals()
-            logger.info(
-                f"Total elapsed time in numerical kernels: {total:0.4f} seconds"
-            )
-            return total
-        else:
-            raise Exception("Timing not activated")
-
     def couple(self):
         """Couple Modflow and Metaswap"""
         # get some 'pointers' to MF6 and MSW internal data
