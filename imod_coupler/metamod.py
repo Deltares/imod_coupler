@@ -30,15 +30,15 @@ class MetaMod:
 
     def xchg_msw2mod(self):
         """Exchange Metaswap to Modflow"""
-        self.mf6_storage[:] = self.map_mod2msw["storage"].dot(self.msw_storage)[:]
+        self.mf6_storage[:] = self.map_msw2mod["storage"].dot(self.msw_storage)[:]
 
         # Divide by delta time
-        self.mf6_recharge[:] = self.map_mod2msw["recharge"].dot(self.msw_volume)[:]
+        self.mf6_recharge[:] = self.map_msw2mod["recharge"].dot(self.msw_volume)[:]
         self.mf6_recharge[:] /= self.delt
 
     def xchg_mod2msw(self):
         """Exchange Modflow to Metaswap"""
-        self.msw_head[:] = self.map_msw2mod["head"].dot(self.mf6_head)[:]
+        self.msw_head[:] = self.map_mod2msw["head"].dot(self.mf6_head)[:]
 
     def do_iter(self, sol_id: int) -> bool:
         """Execute a single iteration"""
@@ -126,11 +126,11 @@ class MetaMod:
 
         mapping_file = os.path.join(self.msw.working_directory, "mod2svat.inp")
         if os.path.isfile(mapping_file):
-            map_mod2msw["storage"] = read_mapping(
-                mapping_file, self.mf6_storage.size, self.msw_storage.size, "sum", False
+            map_msw2mod["storage"] = read_mapping(
+                mapping_file, self.msw_storage.size, self.mf6_storage.size, "sum", False
             )
-            map_msw2mod["head"] = read_mapping(
-                mapping_file, self.msw_head.size, self.mf6_head.size, "avg", True
+            map_mod2msw["head"] = read_mapping(
+                mapping_file, self.mf6_head.size, self.msw_head.size, "avg", True
             )
         else:
             raise Exception("Missing mod2svat.inp")
@@ -139,7 +139,7 @@ class MetaMod:
             self.msw.working_directory, "mod2svat_recharge.inp"
         )
         if os.path.isfile(mapping_file_recharge):
-            map_mod2msw["recharge"] = read_mapping(
+            map_msw2mod["recharge"] = read_mapping(
                 mapping_file_recharge,
                 self.msw_volume.size,
                 self.mf6_recharge.size,
