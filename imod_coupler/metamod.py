@@ -31,7 +31,6 @@ class MetaMod:
     def xchg_msw2mod(self):
         """Exchange Metaswap to Modflow"""
         self.mf6_storage[:] = self.map_mod2msw["storage"].dot(self.msw_storage)[:]
-        self.mf6_sto_reset[0] = 1
 
         # Divide by delta time
         self.mf6_recharge[:] = self.map_mod2msw["recharge"].dot(self.msw_volume)[:]
