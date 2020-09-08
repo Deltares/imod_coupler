@@ -68,7 +68,7 @@ class MetaMod:
         for sol_id in range(1, n_solutions + 1):
             # convergence loop
             self.mf6.prepare_solve(sol_id)
-            for kiter in range(self.max_iter):
+            for kiter in range(1, self.max_iter + 1):
                 has_converged = self.do_iter(sol_id)
                 if has_converged:
                     logger.debug(f"Component {sol_id} converged in {kiter} iterations")
@@ -96,14 +96,12 @@ class MetaMod:
         mf6_head_tag = self.mf6.get_var_address("X", "SLN_1")
         mf6_recharge_tag = self.mf6.get_var_address("BOUND", mf6_modelname, "RCH-1")
         mf6_storage_tag = self.mf6.get_var_address("SC1", mf6_modelname, "STO")
-        mf6_sto_reset_tag = self.mf6.get_var_address("IRESETSC1", mf6_modelname, "STO")
         mf6_max_iter_tag = self.mf6.get_var_address("MXITER", "SLN_1")
 
         self.mf6_head = self.mf6.get_value_ptr(mf6_head_tag)
         # NB: recharge is set to first column in BOUND
         self.mf6_recharge = self.mf6.get_value_ptr(mf6_recharge_tag)[:, 0]
         self.mf6_storage = self.mf6.get_value_ptr(mf6_storage_tag)
-        self.mf6_sto_reset = self.mf6.get_value_ptr(mf6_sto_reset_tag)
         self.max_iter = self.mf6.get_value_ptr(mf6_max_iter_tag)[0]
 
         self.ncell_mod = np.size(self.mf6_storage)
