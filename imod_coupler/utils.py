@@ -22,7 +22,7 @@ def read_mapping(map_file: str, nsrc: int, ntgt: int, operator: str, swap: bool)
         dat = np.array([1.0 / cnt[xx] for xx in row])
     if operator == "sum":
         dat = np.array([1.0 for xx in row])
-    map_out = sparse.csr_matrix((dat, (row, col)), shape=(nsrc, ntgt))
+    map_out = sparse.csr_matrix((dat, (row, col)), shape=(ntgt, nsrc))
     return map_out
 
 
