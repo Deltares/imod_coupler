@@ -3,6 +3,7 @@ from contextlib import contextmanager
 
 import numpy as np
 from scipy import sparse
+from pathlib import Path
 
 
 def read_mapping(map_file: str, nsrc: int, ntgt: int, operator: str, swap: bool):
@@ -26,10 +27,12 @@ def read_mapping(map_file: str, nsrc: int, ntgt: int, operator: str, swap: bool)
 
 
 @contextmanager
-def cd(newdir):
-    prevdir = os.getcwd()
-    os.chdir(os.path.expanduser(newdir))
+def cd(path):
+    """Changes working directory and returns to previous on exit."""
+    prev_cwd = Path.cwd()
+    path = Path(path)
+    os.chdir(path)
     try:
         yield
     finally:
-        os.chdir(prevdir)
+        os.chdir(prev_cwd)
