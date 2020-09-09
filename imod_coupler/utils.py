@@ -9,8 +9,8 @@ from pathlib import Path
 def read_mapping(map_file: str, nsrc: int, ntgt: int, operator: str, swap: bool):
     map_arr = np.loadtxt(map_file, dtype=np.int32)
     """Read the mapping from file, constructs a sparse matrix of size ntgt x nsrc
-    and creates a mask array with 0 for mapped entries and 1 otherwise. The mask 
-    allows to update the target array without overwriting the unmapped entries 
+    and creates a mask array with 0 for mapped entries and 1 otherwise. The mask
+    allows to update the target array without overwriting the unmapped entries
     with zeroes:
     
     target = mask * target + mapping * source
@@ -23,10 +23,10 @@ def read_mapping(map_file: str, nsrc: int, ntgt: int, operator: str, swap: bool)
     ntgt : int
         the number of entries in the target array
     operator : str
-       indicating how n-1 mappings should be dealt 
+       indicating how n-1 mappings should be dealt
        with: "avg" for average, "sum" for sum
     swap : bool
-        when true, the columns and rows from the mapping file are reversed            
+        when true, the columns and rows from the mapping file are reversed
     """
     # 1-based indices (fortran) to 0-based indices (python)
     if swap:
