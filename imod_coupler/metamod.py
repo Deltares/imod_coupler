@@ -30,23 +30,27 @@ class MetaMod:
 
     def xchg_msw2mod(self):
         """Exchange Metaswap to Modflow"""
+        print("before:")
+        print(self.mf6_storage)
         self.mf6_storage[:] = (
-            self.mask_mod2msw["storage"][:] * self.mf6_storage[:]
-            + self.map_mod2msw["storage"].dot(self.msw_storage)[:]
+            self.mask_msw2mod["storage"][:] * self.mf6_storage[:]
+            + self.map_msw2mod["storage"].dot(self.msw_storage)[:]
         )
+        print("after:")
+        print(self.mf6_storage)
 
         # Divide by delta time
+        tled = 1 / self.delt
         self.mf6_recharge[:] = (
-            self.mask_mod2msw["recharge"][:] * self.mf6_recharge[:]
-            + self.map_mod2msw["recharge"].dot(self.msw_volume)[:]
+            self.mask_msw2mod["recharge"][:] * self.mf6_recharge[:]
+            + tled * self.map_msw2mod["recharge"].dot(self.msw_volume)[:]
         )
-        self.mf6_recharge[:] /= self.delt
 
     def xchg_mod2msw(self):
         """Exchange Modflow to Metaswap"""
         self.msw_head[:] = (
-            self.mask_msw2mod["head"][:] * self.msw_head[:]
-            + self.map_msw2mod["head"].dot(self.mf6_head)[:]
+            self.mask_mod2msw["head"][:] * self.msw_head[:]
+            + self.map_mod2msw["head"].dot(self.mf6_head)[:]
         )
 
     def do_iter(self, sol_id: int) -> bool:
@@ -77,7 +81,7 @@ class MetaMod:
         for sol_id in range(1, n_solutions + 1):
             # convergence loop
             self.mf6.prepare_solve(sol_id)
-            for kiter in range(self.max_iter):
+            for kiter in range(1, self.max_iter + 1):
                 has_converged = self.do_iter(sol_id)
                 if has_converged:
                     logger.debug(f"Component {sol_id} converged in {kiter} iterations")
@@ -105,14 +109,12 @@ class MetaMod:
         mf6_head_tag = self.mf6.get_var_address("X", "SLN_1")
         mf6_recharge_tag = self.mf6.get_var_address("BOUND", mf6_modelname, "RCH-1")
         mf6_storage_tag = self.mf6.get_var_address("SC1", mf6_modelname, "STO")
-        mf6_sto_reset_tag = self.mf6.get_var_address("IRESETSC1", mf6_modelname, "STO")
         mf6_max_iter_tag = self.mf6.get_var_address("MXITER", "SLN_1")
 
         self.mf6_head = self.mf6.get_value_ptr(mf6_head_tag)
         # NB: recharge is set to first column in BOUND
         self.mf6_recharge = self.mf6.get_value_ptr(mf6_recharge_tag)[:, 0]
         self.mf6_storage = self.mf6.get_value_ptr(mf6_storage_tag)
-        self.mf6_sto_reset = self.mf6.get_value_ptr(mf6_sto_reset_tag)
         self.max_iter = self.mf6.get_value_ptr(mf6_max_iter_tag)[0]
 
         self.ncell_mod = np.size(self.mf6_storage)
@@ -137,11 +139,11 @@ class MetaMod:
 
         mapping_file = os.path.join(self.msw.working_directory, "mod2svat.inp")
         if os.path.isfile(mapping_file):
-            map_mod2msw["storage"], mask_mod2msw["storage"] = read_mapping(
-                mapping_file, self.mf6_storage.size, self.msw_storage.size, "sum", False
+            map_msw2mod["storage"], mask_msw2mod["storage"] = read_mapping(
+                mapping_file, self.msw_storage.size, self.mf6_storage.size, "sum", False
             )
-            map_msw2mod["head"], mask_msw2mod["head"] = read_mapping(
-                mapping_file, self.msw_head.size, self.mf6_head.size, "avg", True
+            map_mod2msw["head"], mask_mod2msw["head"] = read_mapping(
+                mapping_file, self.mf6_head.size, self.msw_head.size, "avg", True
             )
         else:
             raise Exception("Missing mod2svat.inp")
@@ -150,7 +152,7 @@ class MetaMod:
             self.msw.working_directory, "mod2svat_recharge.inp"
         )
         if os.path.isfile(mapping_file_recharge):
-            map_mod2msw["recharge"], mask_mod2msw["recharge"] = read_mapping(
+            map_msw2mod["recharge"], mask_msw2mod["recharge"] = read_mapping(
                 mapping_file_recharge,
                 self.msw_volume.size,
                 self.mf6_recharge.size,
