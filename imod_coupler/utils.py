@@ -11,9 +11,9 @@ def read_mapping(map_file: str, nsrc: int, ntgt: int, operator: str, swap: bool)
     and creates a mask array with 0 for mapped entries and 1 otherwise. The mask
     allows to update the target array without overwriting the unmapped entries
     with zeroes:
-    
+
     target = mask * target + mapping * source
-    
+
     Parameters
     ----------
     map_file : the file with the mapping
