@@ -7,6 +7,32 @@ from pathlib import Path
 
 
 def read_mapping(map_file: str, nsrc: int, ntgt: int, operator: str, swap: bool):
+    """Read the mapping from file, constructs a sparse matrix of size ntgt x nsrc
+    and creates a mask array with 0 for mapped entries and 1 otherwise. The mask
+    allows to update the target array without overwriting the unmapped entries
+    with zeroes:
+
+    target = mask * target + mapping * source
+
+    Parameters
+    ----------
+    map_file : the file with the mapping
+    nsrc : int
+        the number of entries in the source array
+    ntgt : int
+        the number of entries in the target array
+    operator : str
+       indicating how n-1 mappings should be dealt
+       with: "avg" for average, "sum" for sum
+    swap : bool
+        when true, the columns and rows from the mapping file are reversed
+
+    Returns
+    -------
+    Tuple
+        containing the mapping (csr_matrix) and a mask (numpy array)
+    """
+
     map_arr = np.loadtxt(map_file, dtype=np.int32)
     # 1-based indices (fortran) to 0-based indices (python)
     if swap:
@@ -23,7 +49,8 @@ def read_mapping(map_file: str, nsrc: int, ntgt: int, operator: str, swap: bool)
     if operator == "sum":
         dat = np.array([1.0 for xx in row])
     map_out = sparse.csr_matrix((dat, (row, col)), shape=(ntgt, nsrc))
-    return map_out
+    mask = np.array([0 if i > 0 else 1 for i in map_out.getnnz(axis=1)])
+    return map_out, mask
 
 
 @contextmanager
