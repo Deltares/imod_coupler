@@ -30,14 +30,10 @@ class MetaMod:
 
     def xchg_msw2mod(self):
         """Exchange Metaswap to Modflow"""
-        print("before:")
-        print(self.mf6_storage)
         self.mf6_storage[:] = (
             self.mask_msw2mod["storage"][:] * self.mf6_storage[:]
             + self.map_msw2mod["storage"].dot(self.msw_storage)[:]
         )
-        print("after:")
-        print(self.mf6_storage)
 
         # Divide by delta time
         tled = 1 / self.delt
