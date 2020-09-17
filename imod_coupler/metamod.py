@@ -4,7 +4,7 @@ import os
 import numpy as np
 
 from xmipy import XmiWrapper
-from imod_coupler.utils import read_mapping, create_mapping
+from imod_coupler.utils import create_mapping
 
 logger = logging.getLogger(__name__)
 
@@ -154,7 +154,7 @@ class MetaMod:
             raise Exception("Can't find " + msw_mod2svat_file)
 
         # create mappings
-        mapping_file = os.path.join(self.mf6.working_directory, "node2svat.dxc")
+        mapping_file = os.path.join(self.mf6.working_directory, "nodenr2svat.dxc")
         if os.path.isfile(mapping_file):
             table_node2svat = np.loadtxt(mapping_file, dtype=np.int32)
             node_idx = table_node2svat[:, 0] - 1
@@ -203,7 +203,7 @@ class MetaMod:
             raise Exception("Can't find " + mapping_file_recharge)
 
         mapping_file_sprinkling = os.path.join(
-            self.mf6.working_directory, "well2svat.dxc"
+            self.mf6.working_directory, "wellindex2svat.dxc"
         )
         if os.path.isfile(mapping_file_sprinkling):
             table_well2svat = np.loadtxt(mapping_file_sprinkling, dtype=np.int32)
