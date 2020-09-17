@@ -18,19 +18,19 @@ Furthermore, a well package (WEL) is required to facilitate the extraction of gr
 
 # Files
 The following files are required to couple the two model codes. 
-These files provide the mappings from modflow indices to the MetaSWAP svats.
+These files provide the mappings from MODFLOW indices to the MetaSWAP svats.
 
 MetaSWAP requires the file:
 * `mod2svat.inp`
 
-Modflow6 requires the files
+Modflow6 requires the files:
 * `[filename].rch`
-* `[filename].wel`
+* `[filename].wel` (optional)
 
 The coupler itsself requires the following files:
-* `wellindex2svat.dxc`  
-* `rchindex2svat.dxc`
 * `nodenr2svat.dxc`
+* `rchindex2svat.dxc`
+* `wellindex2svat.dxc` (optional)
 
 Below we will describe the format for each file.
 
@@ -39,32 +39,38 @@ Below we will describe the format for each file.
 The file format for this file is also described in the [MetaSWAP IO manual](ftp://ftp.wur.nl/simgro/doc/Report_913_3_V8_0_0_7.pdf). It is as follows:
 
 ```
-id svat ly
+node_nr svat ly
 ```
 
-Where `id` is an index which can be the `node_nr` or `well_index` depending on whether `ly` equals 1 or is greater than 1, respectively. 
+Were `node_nr` is the MODFLOW6 node number (to be specific: the user node number), which which replaces the MODFLOW 2005 CellID.
 `svat` is the MetaSWAP svat number and `ly` is the Modflow layer number.
 
 ## Modflow6
-### [filename].wel
-A dummy well file, of which the fluxes will be overrided. To specify uncoupled extractions/injections, a second WEL package should be defined.
-
 ### [filename].rch
-A dummy recharge file, of which the fluxes will be overrided. To specify a fixed recharge, a second RCH package should be defined. 
+A dummy recharge file, of which the fluxes will be overrided. 
+To specify an uncoupled recharge as well, a second RCH package should be defined. 
+How to do that is explained [here](#how-to-define-a-second-stress-package-for-modflow6).
+
+### [filename].wel
+A dummy well file, of which the fluxes will be overrided. 
+The location of the wells is used to 
+To specify uncoupled extractions/injections as well, a second WEL package should be defined. 
+How to do that is explained [here](#how-to-define-a-second-stress-package-for-modflow6).
 
 ## Coupler
-### wellindex2svat.dxc
-This file takes care of coupling the wells to the MetaSWAP svats. The file format is as follows:
+### nodenr2svat.dxc
+This file takes care of mapping the MODFLOW node numbers to the MetaSWAP svats. The file format is as follows:
 
 ```
-well_index svat ly
+node_nr svat ly
 ```
 
-Where `well_index` is the MODFLOW6 WEL index number, which equals the row number of the data specified under `period` in the `.wel` file. 
+Where `node_nr` is the MODFLOW6 node number 
+(to be specific: the user node number), which replaces the MODFLOW 2005 CellID. 
 `svat` is the MetaSWAP svat number and `ly` is the Modflow layer number.
 
 ### rchindex2svat.dxc
-The file format is as follows:
+This file takes care of mapping the recharge cells to the MetaSWAP svats. The file format is as follows:
 
 ```
 rch_index svat ly
@@ -73,14 +79,14 @@ rch_index svat ly
 Where `rch_index` is the MODFLOW6 RCH index number, which equals the row number of the data specified under `period` in the `.rch` file. 
 `svat` is the MetaSWAP svat number and `ly` is the Modflow layer number.
 
-### nodenr2svat.dxc
-The file format is as follows:
+### wellindex2svat.dxc
+This file takes care of mapping MODFLOW wells to the MetaSWAP svats for sprinkling. The file format is as follows:
 
 ```
-node_nr svat ly
+well_index svat ly
 ```
 
-Where `node_nr` is the MODFLOW6 node number (to be specific: the user node number), which replaces the MODFLOW 2005 CellID. 
+Where `well_index` is the MODFLOW6 WEL index number, which equals the row number of the data specified under `period` in the `.wel` file. 
 `svat` is the MetaSWAP svat number and `ly` is the Modflow layer number.
 
 ## How to define a second stress package for Modflow6
