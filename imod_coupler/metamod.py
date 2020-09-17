@@ -4,7 +4,7 @@ import os
 import numpy as np
 
 from xmipy import XmiWrapper
-from imod_coupler.utils import read_mapping
+from imod_coupler.utils import read_mapping, create_mapping
 
 logger = logging.getLogger(__name__)
 
@@ -35,11 +35,16 @@ class MetaMod:
             + self.map_msw2mod["storage"].dot(self.msw_storage)[:]
         )
 
-        # Divide by delta time
+        # Divide recharge and extraction by delta time
         tled = 1 / self.delt
         self.mf6_recharge[:] = (
             self.mask_msw2mod["recharge"][:] * self.mf6_recharge[:]
             + tled * self.map_msw2mod["recharge"].dot(self.msw_volume)[:]
+        )
+
+        self.mf6_sprinkling_wells[:] = (
+            self.mask_msw2mod["sprinkling"][:] * self.mf6_sprinkling_wells[:]
+            + tled * self.map_msw2mod["sprinkling"].dot(self.msw_volume)[:]
         )
 
     def xchg_mod2msw(self):
@@ -105,12 +110,16 @@ class MetaMod:
         mf6_head_tag = self.mf6.get_var_address("X", "SLN_1")
         mf6_recharge_tag = self.mf6.get_var_address("BOUND", mf6_modelname, "RCH-1")
         mf6_storage_tag = self.mf6.get_var_address("SC1", mf6_modelname, "STO")
+        mf6_sprinkling_tag = self.mf6.get_var_address(
+            "BOUND", mf6_modelname, "WELLS_MSW"
+        )
         mf6_max_iter_tag = self.mf6.get_var_address("MXITER", "SLN_1")
 
         self.mf6_head = self.mf6.get_value_ptr(mf6_head_tag)
         # NB: recharge is set to first column in BOUND
         self.mf6_recharge = self.mf6.get_value_ptr(mf6_recharge_tag)[:, 0]
         self.mf6_storage = self.mf6.get_value_ptr(mf6_storage_tag)
+        self.mf6_sprinkling_wells = self.mf6.get_value_ptr(mf6_sprinkling_tag)[:, 0]
         self.max_iter = self.mf6.get_value_ptr(mf6_max_iter_tag)[0]
 
         self.ncell_mod = np.size(self.mf6_storage)
@@ -123,40 +132,96 @@ class MetaMod:
 
         self.ncell_msw = np.size(self.msw_storage)
 
-        # map_msw2mod is a dict (size nid) of lists so that xchg[i]
-        # holds the list of swat indices associated with the i-th gw-cell
-        #       or a list of scalar indices
-        # The mapping between gw cells and svats can be n-to-m
-
+        # mappings and masks for each set of coupled variables between
+        # msw and mod, see (the documentation of) the create_mapping
+        # function for further details
         map_mod2msw = {}
         map_msw2mod = {}
         mask_mod2msw = {}
         mask_msw2mod = {}
 
-        mapping_file = os.path.join(self.msw.working_directory, "mod2svat.inp")
+        # create a lookup, with the svat tuples (id, lay) as keys and the
+        # metaswap internal indexes as values
+        svat_lookup = {}
+        msw_mod2svat_file = os.path.join(self.msw.working_directory, "mod2svat.inp")
+        if os.path.isfile(msw_mod2svat_file):
+            svat_data = np.loadtxt(msw_mod2svat_file, dtype=np.int32)
+            svat_id = svat_data[:, 1]
+            svat_lay = svat_data[:, 2]
+            for vi in range(svat_id.size):
+                svat_lookup[(svat_id[vi], svat_lay[vi])] = vi
+        else:
+            raise Exception("Can't find " + msw_mod2svat_file)
+
+        # create mappings
+        mapping_file = os.path.join(self.mf6.working_directory, "node2svat.dxc")
         if os.path.isfile(mapping_file):
-            map_msw2mod["storage"], mask_msw2mod["storage"] = read_mapping(
-                mapping_file, self.msw_storage.size, self.mf6_storage.size, "sum", False
+            table_node2svat = np.loadtxt(mapping_file, dtype=np.int32)
+            node_idx = table_node2svat[:, 0] - 1
+            msw_idx = [
+                svat_lookup[table_node2svat[ii, 1], table_node2svat[ii, 2]]
+                for ii in range(len(table_node2svat))
+            ]
+
+            map_msw2mod["storage"], mask_msw2mod["storage"] = create_mapping(
+                msw_idx,
+                node_idx,
+                self.msw_storage.size,
+                self.mf6_storage.size,
+                "sum",
             )
-            map_mod2msw["head"], mask_mod2msw["head"] = read_mapping(
-                mapping_file, self.mf6_head.size, self.msw_head.size, "avg", True
+
+            map_mod2msw["head"], mask_mod2msw["head"] = create_mapping(
+                node_idx,
+                msw_idx,
+                self.mf6_head.size,
+                self.msw_head.size,
+                "avg",
             )
         else:
-            raise Exception("Missing mod2svat.inp")
+            raise Exception("Can't find " + mapping_file)
 
         mapping_file_recharge = os.path.join(
-            self.msw.working_directory, "mod2svat_recharge.inp"
+            self.mf6.working_directory, "rchindex2svat.dxc"
         )
         if os.path.isfile(mapping_file_recharge):
-            map_msw2mod["recharge"], mask_msw2mod["recharge"] = read_mapping(
-                mapping_file_recharge,
+            table_rch2svat = np.loadtxt(mapping_file_recharge, dtype=np.int32)
+            rch_idx = table_rch2svat[:, 0] - 1
+            msw_idx = [
+                svat_lookup[table_rch2svat[ii, 1], table_rch2svat[ii, 2]]
+                for ii in range(len(table_rch2svat))
+            ]
+
+            map_msw2mod["recharge"], mask_msw2mod["recharge"] = create_mapping(
+                msw_idx,
+                rch_idx,
                 self.msw_volume.size,
                 self.mf6_recharge.size,
                 "sum",
-                False,
             )
         else:
-            raise Exception("Missing mod2svat_recharge.inp")
+            raise Exception("Can't find " + mapping_file_recharge)
+
+        mapping_file_sprinkling = os.path.join(
+            self.mf6.working_directory, "well2svat.dxc"
+        )
+        if os.path.isfile(mapping_file_sprinkling):
+            table_well2svat = np.loadtxt(mapping_file_sprinkling, dtype=np.int32)
+            well_idx = table_well2svat[:, 0] - 1
+            msw_idx = [
+                svat_lookup[table_well2svat[ii, 1], table_well2svat[ii, 2]]
+                for ii in range(len(table_well2svat))
+            ]
+
+            map_msw2mod["sprinkling"], mask_msw2mod["sprinkling"] = create_mapping(
+                msw_idx,
+                well_idx,
+                self.msw_volume.size,
+                self.mf6_sprinkling_wells.size,
+                "sum",
+            )
+        else:
+            raise Exception("Can't find " + mapping_file_sprinkling)
 
         self.map_mod2msw = map_mod2msw
         self.map_msw2mod = map_msw2mod
