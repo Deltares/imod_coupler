@@ -42,10 +42,11 @@ class MetaMod:
             + tled * self.map_msw2mod["recharge"].dot(self.msw_volume)[:]
         )
 
-        self.mf6_sprinkling_wells[:] = (
-            self.mask_msw2mod["sprinkling"][:] * self.mf6_sprinkling_wells[:]
-            + tled * self.map_msw2mod["sprinkling"].dot(self.msw_volume)[:]
-        )
+        if self.is_sprinkling_active:
+            self.mf6_sprinkling_wells[:] = (
+                self.mask_msw2mod["sprinkling"][:] * self.mf6_sprinkling_wells[:]
+                + tled * self.map_msw2mod["sprinkling"].dot(self.msw_volume)[:]
+            )
 
     def xchg_mod2msw(self):
         """Exchange Modflow to Metaswap"""
@@ -202,10 +203,12 @@ class MetaMod:
         else:
             raise Exception("Can't find " + mapping_file_recharge)
 
+        self.is_sprinkling_active = False
         mapping_file_sprinkling = os.path.join(
             self.mf6.working_directory, "wellindex2svat.dxc"
         )
         if os.path.isfile(mapping_file_sprinkling):
+            # in this case we have a sprinkling demand from MetaSWAP
             table_well2svat = np.loadtxt(mapping_file_sprinkling, dtype=np.int32)
             well_idx = table_well2svat[:, 0] - 1
             msw_idx = [
@@ -220,8 +223,8 @@ class MetaMod:
                 self.mf6_sprinkling_wells.size,
                 "sum",
             )
-        else:
-            raise Exception("Can't find " + mapping_file_sprinkling)
+
+            self.is_sprinkling_active = True
 
         self.map_mod2msw = map_mod2msw
         self.map_msw2mod = map_msw2mod
