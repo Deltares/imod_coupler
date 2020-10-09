@@ -109,7 +109,7 @@ class MetaMod:
         # get some 'pointers' to MF6 and MSW internal data
         mf6_modelname = self.get_mf6_modelname()
         mf6_head_tag = self.mf6.get_var_address("X", "SLN_1")
-        mf6_recharge_tag = self.mf6.get_var_address("BOUND", mf6_modelname, "RCH-1")
+        mf6_recharge_tag = self.mf6.get_var_address("BOUND", mf6_modelname, "RCH_MSW")
         mf6_storage_tag = self.mf6.get_var_address("SC1", mf6_modelname, "STO")
         mf6_sprinkling_tag = self.mf6.get_var_address(
             "BOUND", mf6_modelname, "WELLS_MSW"
