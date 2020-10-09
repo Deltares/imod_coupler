@@ -106,21 +106,28 @@ class MetaMod:
 
     def couple(self):
         """Couple Modflow and Metaswap"""
+        mapping_file_sprinkling = os.path.join(
+            self.mf6.working_directory, "wellindex2svat.dxc"
+        )          
+
         # get some 'pointers' to MF6 and MSW internal data
         mf6_modelname = self.get_mf6_modelname()
         mf6_head_tag = self.mf6.get_var_address("X", "SLN_1")
         mf6_recharge_tag = self.mf6.get_var_address("BOUND", mf6_modelname, "RCH_MSW")
         mf6_storage_tag = self.mf6.get_var_address("SC1", mf6_modelname, "STO")
-        mf6_sprinkling_tag = self.mf6.get_var_address(
-            "BOUND", mf6_modelname, "WELLS_MSW"
-        )
+
         mf6_max_iter_tag = self.mf6.get_var_address("MXITER", "SLN_1")
+
+        if os.path.isfile(mapping_file_sprinkling):
+            mf6_sprinkling_tag = self.mf6.get_var_address(
+                "BOUND", mf6_modelname, "WELLS_MSW"
+            )            
+            self.mf6_sprinkling_wells = self.mf6.get_value_ptr(mf6_sprinkling_tag)[:, 0]
 
         self.mf6_head = self.mf6.get_value_ptr(mf6_head_tag)
         # NB: recharge is set to first column in BOUND
         self.mf6_recharge = self.mf6.get_value_ptr(mf6_recharge_tag)[:, 0]
         self.mf6_storage = self.mf6.get_value_ptr(mf6_storage_tag)
-        self.mf6_sprinkling_wells = self.mf6.get_value_ptr(mf6_sprinkling_tag)[:, 0]
         self.max_iter = self.mf6.get_value_ptr(mf6_max_iter_tag)[0]
 
         self.ncell_mod = np.size(self.mf6_storage)
@@ -204,9 +211,7 @@ class MetaMod:
             raise Exception("Can't find " + mapping_file_recharge)
 
         self.is_sprinkling_active = False
-        mapping_file_sprinkling = os.path.join(
-            self.mf6.working_directory, "wellindex2svat.dxc"
-        )
+
         if os.path.isfile(mapping_file_sprinkling):
             # in this case we have a sprinkling demand from MetaSWAP
             table_well2svat = np.loadtxt(mapping_file_sprinkling, dtype=np.int32)
