@@ -108,8 +108,8 @@ class MetaMod:
         """Couple Modflow and Metaswap"""
         # get some 'pointers' to MF6 and MSW internal data
         mf6_modelname = self.get_mf6_modelname()
-        mf6_head_tag = self.mf6.get_var_address("X", "SLN_1")
-        mf6_recharge_tag = self.mf6.get_var_address("BOUND", mf6_modelname, "RCH-1")
+        mf6_head_tag = self.mf6.get_var_address("X", mf6_modelname)
+        mf6_recharge_tag = self.mf6.get_var_address("BOUND", mf6_modelname, "RCH_MSW")
         mf6_storage_tag = self.mf6.get_var_address("SC1", mf6_modelname, "STO")
         mf6_sprinkling_tag = self.mf6.get_var_address(
             "BOUND", mf6_modelname, "WELLS_MSW"
@@ -120,8 +120,13 @@ class MetaMod:
         # NB: recharge is set to first column in BOUND
         self.mf6_recharge = self.mf6.get_value_ptr(mf6_recharge_tag)[:, 0]
         self.mf6_storage = self.mf6.get_value_ptr(mf6_storage_tag)
-        self.mf6_sprinkling_wells = self.mf6.get_value_ptr(mf6_sprinkling_tag)[:, 0]
         self.max_iter = self.mf6.get_value_ptr(mf6_max_iter_tag)[0]
+
+        # check if we have sprinkling
+        self.is_sprinkling_active = False
+        if mf6_sprinkling_tag in self.mf6.get_output_var_names():
+            self.mf6_sprinkling_wells = self.mf6.get_value_ptr(mf6_sprinkling_tag)[:, 0]
+            self.is_sprinkling_active = True
 
         self.ncell_mod = np.size(self.mf6_storage)
         self.ncell_recharge = np.size(self.mf6_recharge)
@@ -203,28 +208,28 @@ class MetaMod:
         else:
             raise Exception("Can't find " + mapping_file_recharge)
 
-        self.is_sprinkling_active = False
-        mapping_file_sprinkling = os.path.join(
-            self.mf6.working_directory, "wellindex2svat.dxc"
-        )
-        if os.path.isfile(mapping_file_sprinkling):
-            # in this case we have a sprinkling demand from MetaSWAP
-            table_well2svat = np.loadtxt(mapping_file_sprinkling, dtype=np.int32)
-            well_idx = table_well2svat[:, 0] - 1
-            msw_idx = [
-                svat_lookup[table_well2svat[ii, 1], table_well2svat[ii, 2]]
-                for ii in range(len(table_well2svat))
-            ]
-
-            map_msw2mod["sprinkling"], mask_msw2mod["sprinkling"] = create_mapping(
-                msw_idx,
-                well_idx,
-                self.msw_volume.size,
-                self.mf6_sprinkling_wells.size,
-                "sum",
+        if self.is_sprinkling_active:
+            mapping_file_sprinkling = os.path.join(
+                self.mf6.working_directory, "wellindex2svat.dxc"
             )
+            if os.path.isfile(mapping_file_sprinkling):
+                # in this case we have a sprinkling demand from MetaSWAP
+                table_well2svat = np.loadtxt(mapping_file_sprinkling, dtype=np.int32)
+                well_idx = table_well2svat[:, 0] - 1
+                msw_idx = [
+                    svat_lookup[table_well2svat[ii, 1], table_well2svat[ii, 2]]
+                    for ii in range(len(table_well2svat))
+                ]
 
-            self.is_sprinkling_active = True
+                map_msw2mod["sprinkling"], mask_msw2mod["sprinkling"] = create_mapping(
+                    msw_idx,
+                    well_idx,
+                    self.msw_volume.size,
+                    self.mf6_sprinkling_wells.size,
+                    "sum",
+                )
+            else:
+                raise Exception("Can't find " + mapping_file_recharge)
 
         self.map_mod2msw = map_mod2msw
         self.map_msw2mod = map_msw2mod
