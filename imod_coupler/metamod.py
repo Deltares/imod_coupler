@@ -151,7 +151,7 @@ class MetaMod:
         svat_lookup = {}
         msw_mod2svat_file = os.path.join(self.msw.working_directory, "mod2svat.inp")
         if os.path.isfile(msw_mod2svat_file):
-            svat_data = np.loadtxt(msw_mod2svat_file, dtype=np.int32)
+            svat_data = np.loadtxt(msw_mod2svat_file, dtype=np.int32, ndmin=2)
             svat_id = svat_data[:, 1]
             svat_lay = svat_data[:, 2]
             for vi in range(svat_id.size):
@@ -162,7 +162,7 @@ class MetaMod:
         # create mappings
         mapping_file = os.path.join(self.mf6.working_directory, "nodenr2svat.dxc")
         if os.path.isfile(mapping_file):
-            table_node2svat = np.loadtxt(mapping_file, dtype=np.int32)
+            table_node2svat = np.loadtxt(mapping_file, dtype=np.int32, ndmin=2)
             node_idx = table_node2svat[:, 0] - 1
             msw_idx = [
                 svat_lookup[table_node2svat[ii, 1], table_node2svat[ii, 2]]
@@ -191,7 +191,7 @@ class MetaMod:
             self.mf6.working_directory, "rchindex2svat.dxc"
         )
         if os.path.isfile(mapping_file_recharge):
-            table_rch2svat = np.loadtxt(mapping_file_recharge, dtype=np.int32)
+            table_rch2svat = np.loadtxt(mapping_file_recharge, dtype=np.int32, ndmin=2)
             rch_idx = table_rch2svat[:, 0] - 1
             msw_idx = [
                 svat_lookup[table_rch2svat[ii, 1], table_rch2svat[ii, 2]]
@@ -214,7 +214,9 @@ class MetaMod:
             )
             if os.path.isfile(mapping_file_sprinkling):
                 # in this case we have a sprinkling demand from MetaSWAP
-                table_well2svat = np.loadtxt(mapping_file_sprinkling, dtype=np.int32)
+                table_well2svat = np.loadtxt(
+                    mapping_file_sprinkling, dtype=np.int32, ndmin=2
+                )
                 well_idx = table_well2svat[:, 0] - 1
                 msw_idx = [
                     svat_lookup[table_well2svat[ii, 1], table_well2svat[ii, 2]]
