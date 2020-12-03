@@ -16,6 +16,26 @@ class MetaMod:
         self.mf6 = mf6
         self.msw = msw
 
+        # define (and document!) instance attributes here:
+        self.max_iter = None  # max. nr outer iterations in MODFLOW kernel
+        self.delt = None  # time step from MODFLOW 6 (leading)
+
+        self.mf6_head = None  # the hydraulic head array in the coupled model
+        self.mf6_recharge = None  # the coupled recharge array from the RCH package
+        self.mf6_storage = None  # the storage coefficients array (sc1)
+        self.mf6_sprinkling_wells = None  # the well data for coupled extractions
+        self.is_sprinkling_active = None  # true when sprinkling is active
+
+        self.msw_head = None  # internal MetaSWAP groundwater head
+        self.msw_volume = None  # unsaturated zone flux (as a volume!)
+        self.msw_storage = None  # MetaSWAP storage coefficients (MODFLOW's sc1)
+        self.msw_time = None  # MetaSWAP current time
+
+        self.map_mod2msw = None  # dictionary with mapping tables for mod=>msw coupling
+        self.map_msw2mod = None  # dictionary with mapping tables for msw=>mod coupling
+        self.mask_mod2msw = None  # dict. with mask arrays for mod=>msw coupling
+        self.mask_msw2mod = None  # dict. with mask arrays for msw=>mod coupling
+
         self.couple()
 
     def get_mf6_modelname(self):
@@ -78,7 +98,8 @@ class MetaMod:
         self.delt = self.mf6.get_time_step()
         self.msw.prepare_time_step(self.delt)
 
-        # loop over subcomponents
+        # loop over subcomponents (formally correct but
+        # currently we have no use cases where n_solutions > 1)
         n_solutions = self.mf6.get_subcomponent_count()
         for sol_id in range(1, n_solutions + 1):
             # convergence loop
@@ -96,7 +117,7 @@ class MetaMod:
         self.msw.finalize_time_step()
         return current_time
 
-    def getTimes(self):
+    def get_times(self):
         """Return times"""
         return (
             self.mf6.get_start_time(),
@@ -128,15 +149,10 @@ class MetaMod:
             self.mf6_sprinkling_wells = self.mf6.get_value_ptr(mf6_sprinkling_tag)[:, 0]
             self.is_sprinkling_active = True
 
-        self.ncell_mod = np.size(self.mf6_storage)
-        self.ncell_recharge = np.size(self.mf6_recharge)
-
         self.msw_head = self.msw.get_value_ptr("dhgwmod")
         self.msw_volume = self.msw.get_value_ptr("dvsim")
         self.msw_storage = self.msw.get_value_ptr("dsc1sim")
         self.msw_time = self.msw.get_value_ptr("currenttime")
-
-        self.ncell_msw = np.size(self.msw_storage)
 
         # mappings and masks for each set of coupled variables between
         # msw and mod, see (the documentation of) the create_mapping

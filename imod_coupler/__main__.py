@@ -84,7 +84,7 @@ def main():
             metamod = MetaMod(mf6=mf6, msw=msw, timing=timing)
 
             # Run the time loop
-            start_time, current_time, end_time = metamod.getTimes()
+            start_time, current_time, end_time = metamod.get_times()
             while current_time < end_time:
                 current_time = metamod.update_coupled()
             logger.info("New Simulation terminated normally")
