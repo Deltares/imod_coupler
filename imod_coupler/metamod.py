@@ -23,7 +23,7 @@ class MetaMod:
         mfsim_name = os.path.join(self.mf6.working_directory, "mfsim.nam")
         with open(mfsim_name, "r") as mfsim:
             for ndx, line in enumerate(mfsim):
-                if "BEGIN MODELS" in line:
+                if "BEGIN MODELS" in line.upper():
                     break
             modeltype, modelnamfile, modelname = mfsim.readline().split()
             return modelname.upper()
