@@ -98,18 +98,14 @@ class MetaMod:
         self.delt = self.mf6.get_time_step()
         self.msw.prepare_time_step(self.delt)
 
-        # loop over subcomponents (formally correct but
-        # currently we have no use cases where n_solutions > 1)
-        n_solutions = self.mf6.get_subcomponent_count()
-        for sol_id in range(1, n_solutions + 1):
-            # convergence loop
-            self.mf6.prepare_solve(sol_id)
-            for kiter in range(1, self.max_iter + 1):
-                has_converged = self.do_iter(sol_id)
-                if has_converged:
-                    logger.debug(f"Component {sol_id} converged in {kiter} iterations")
-                    break
-            self.mf6.finalize_solve(sol_id)
+        # convergence loop
+        self.mf6.prepare_solve(1)
+        for kiter in range(1, self.max_iter + 1):
+            has_converged = self.do_iter(1)
+            if has_converged:
+                logger.debug(f"MF6-MSW converged in {kiter} iterations")
+                break
+        self.mf6.finalize_solve(1)
 
         self.mf6.finalize_time_step()
         current_time = self.mf6.get_current_time()
