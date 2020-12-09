@@ -1,3 +1,8 @@
+""" MetaMod: the coupling between MetaSWAP and MODFLOW 6
+
+description:
+
+"""
 import logging
 import os
 
@@ -11,12 +16,13 @@ logger = logging.getLogger(__name__)
 
 class MetaMod:
     def __init__(self, mf6: XmiWrapper, msw: XmiWrapper, timing: bool = False):
-        """Defines the class usable to couple Metaswap and Modflow"""
-        self.timing = timing
-        self.mf6 = mf6
-        self.msw = msw
+        """Constructs the simulation object coupling MetaSWAP and MODFLOW 6"""
 
-        # define (and document!) instance attributes here:
+        # define (and document!) all instance attributes here:
+        self.timing = timing  # true, when timing is enabled
+        self.mf6 = mf6  # the MODFLOW 6 XMI kernel
+        self.msw = msw  # the MetaSWAP XMI kernel
+
         self.max_iter = None  # max. nr outer iterations in MODFLOW kernel
         self.delt = None  # time step from MODFLOW 6 (leading)
 
@@ -36,17 +42,52 @@ class MetaMod:
         self.mask_mod2msw = None  # dict. with mask arrays for mod=>msw coupling
         self.mask_msw2mod = None  # dict. with mask arrays for msw=>mod coupling
 
+    def initialize(self):
+        """Initialize the coupled models"""
+        self.mf6.initialize()
+        self.msw.initialize()
         self.couple()
 
-    def get_mf6_modelname(self):
-        """Extract the model name from the the mf6_config_file."""
-        mfsim_name = os.path.join(self.mf6.working_directory, "mfsim.nam")
-        with open(mfsim_name, "r") as mfsim:
-            for ndx, line in enumerate(mfsim):
-                if "BEGIN MODELS" in line.upper():
-                    break
-            modeltype, modelnamfile, modelname = mfsim.readline().split()
-            return modelname.upper()
+    def update(self):
+        """Perform a single time step"""
+        # heads to MetaSWAP
+        self.xchg_mod2msw()
+
+        # we cannot set the timestep (yet) in Modflow
+        # -> set to the (dummy) value 0.0 for now
+        self.mf6.prepare_time_step(0.0)
+
+        self.delt = self.mf6.get_time_step()
+        self.msw.prepare_time_step(self.delt)
+
+        # convergence loop
+        self.mf6.prepare_solve(1)
+        for kiter in range(1, self.max_iter + 1):
+            has_converged = self.do_iter(1)
+            if has_converged:
+                logger.debug(f"MF6-MSW converged in {kiter} iterations")
+                break
+        self.mf6.finalize_solve(1)
+
+        self.mf6.finalize_time_step()
+        current_time = self.mf6.get_current_time()
+        self.msw_time = current_time
+        self.msw.finalize_time_step()
+
+        return current_time
+
+    def finalize(self):
+        """Cleanup the resources"""
+        self.mf6.finalize()
+        self.msw.finalize()
+
+    def get_times(self):
+        """Return times"""
+        return (
+            self.mf6.get_start_time(),
+            self.mf6.get_current_time(),
+            self.mf6.get_end_time(),
+        )
 
     def xchg_msw2mod(self):
         """Exchange Metaswap to Modflow"""
@@ -84,42 +125,6 @@ class MetaMod:
         self.xchg_mod2msw()
         self.msw.finalize_solve(0)
         return has_converged
-
-    def update_coupled(self):
-        """Advance by one timestep"""
-
-        # heads to MetaSWAP
-        self.xchg_mod2msw()
-
-        # we cannot set the timestep (yet) in Modflow
-        # -> set to the (dummy) value 0.0 for now
-        self.mf6.prepare_time_step(0.0)
-
-        self.delt = self.mf6.get_time_step()
-        self.msw.prepare_time_step(self.delt)
-
-        # convergence loop
-        self.mf6.prepare_solve(1)
-        for kiter in range(1, self.max_iter + 1):
-            has_converged = self.do_iter(1)
-            if has_converged:
-                logger.debug(f"MF6-MSW converged in {kiter} iterations")
-                break
-        self.mf6.finalize_solve(1)
-
-        self.mf6.finalize_time_step()
-        current_time = self.mf6.get_current_time()
-        self.msw_time = current_time
-        self.msw.finalize_time_step()
-        return current_time
-
-    def get_times(self):
-        """Return times"""
-        return (
-            self.mf6.get_start_time(),
-            self.mf6.get_current_time(),
-            self.mf6.get_end_time(),
-        )
 
     def couple(self):
         """Couple Modflow and Metaswap"""
@@ -249,3 +254,14 @@ class MetaMod:
         self.map_msw2mod = map_msw2mod
         self.mask_mod2msw = mask_mod2msw
         self.mask_msw2mod = mask_msw2mod
+
+    def get_mf6_modelname(self):
+        """Extract the model name from the the mf6_config_file.
+        (This will go when we have multi-model simulations)"""
+        mfsim_name = os.path.join(self.mf6.working_directory, "mfsim.nam")
+        with open(mfsim_name, "r") as mfsim:
+            for ndx, line in enumerate(mfsim):
+                if "BEGIN MODELS" in line.upper():
+                    break
+            modeltype, modelnamfile, modelname = mfsim.readline().split()
+            return modelname.upper()
