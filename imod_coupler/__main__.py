@@ -76,18 +76,19 @@ def main():
             # Print output to stdout
             mf6.set_int("ISTDOUTTOFILE", 0)
 
-            # Initialize kernels
-            mf6.initialize()
-            msw.initialize()
-
             # Create an instance
             metamod = MetaMod(mf6=mf6, msw=msw, timing=timing)
 
+            # This will initialize and couple the kernels
+            metamod.initialize()
+
             # Run the time loop
-            start_time, current_time, end_time = metamod.getTimes()
+            start_time, current_time, end_time = metamod.get_times()
             while current_time < end_time:
-                current_time = metamod.update_coupled()
+                current_time = metamod.update()
             logger.info("New Simulation terminated normally")
+
+            metamod.finalize()
 
     # Report timing
     if timing:

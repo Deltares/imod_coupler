@@ -1,3 +1,8 @@
+""" MetaMod: the coupling between MetaSWAP and MODFLOW 6
+
+description:
+
+"""
 import logging
 import os
 
@@ -11,22 +16,78 @@ logger = logging.getLogger(__name__)
 
 class MetaMod:
     def __init__(self, mf6: XmiWrapper, msw: XmiWrapper, timing: bool = False):
-        """Defines the class usable to couple Metaswap and Modflow"""
-        self.timing = timing
-        self.mf6 = mf6
-        self.msw = msw
+        """Constructs the simulation object coupling MetaSWAP and MODFLOW 6"""
 
+        # define (and document!) all instance attributes here:
+        self.timing = timing  # true, when timing is enabled
+        self.mf6 = mf6  # the MODFLOW 6 XMI kernel
+        self.msw = msw  # the MetaSWAP XMI kernel
+
+        self.max_iter = None  # max. nr outer iterations in MODFLOW kernel
+        self.delt = None  # time step from MODFLOW 6 (leading)
+
+        self.mf6_head = None  # the hydraulic head array in the coupled model
+        self.mf6_recharge = None  # the coupled recharge array from the RCH package
+        self.mf6_storage = None  # the storage coefficients array (sc1)
+        self.mf6_sprinkling_wells = None  # the well data for coupled extractions
+        self.is_sprinkling_active = None  # true when sprinkling is active
+
+        self.msw_head = None  # internal MetaSWAP groundwater head
+        self.msw_volume = None  # unsaturated zone flux (as a volume!)
+        self.msw_storage = None  # MetaSWAP storage coefficients (MODFLOW's sc1)
+        self.msw_time = None  # MetaSWAP current time
+
+        self.map_mod2msw = None  # dictionary with mapping tables for mod=>msw coupling
+        self.map_msw2mod = None  # dictionary with mapping tables for msw=>mod coupling
+        self.mask_mod2msw = None  # dict. with mask arrays for mod=>msw coupling
+        self.mask_msw2mod = None  # dict. with mask arrays for msw=>mod coupling
+
+    def initialize(self):
+        """Initialize the coupled models"""
+        self.mf6.initialize()
+        self.msw.initialize()
         self.couple()
 
-    def get_mf6_modelname(self):
-        """Extract the model name from the the mf6_config_file."""
-        mfsim_name = os.path.join(self.mf6.working_directory, "mfsim.nam")
-        with open(mfsim_name, "r") as mfsim:
-            for ndx, line in enumerate(mfsim):
-                if "BEGIN MODELS" in line:
-                    break
-            modeltype, modelnamfile, modelname = mfsim.readline().split()
-            return modelname.upper()
+    def update(self):
+        """Perform a single time step"""
+        # heads to MetaSWAP
+        self.xchg_mod2msw()
+
+        # we cannot set the timestep (yet) in Modflow
+        # -> set to the (dummy) value 0.0 for now
+        self.mf6.prepare_time_step(0.0)
+
+        self.delt = self.mf6.get_time_step()
+        self.msw.prepare_time_step(self.delt)
+
+        # convergence loop
+        self.mf6.prepare_solve(1)
+        for kiter in range(1, self.max_iter + 1):
+            has_converged = self.do_iter(1)
+            if has_converged:
+                logger.debug(f"MF6-MSW converged in {kiter} iterations")
+                break
+        self.mf6.finalize_solve(1)
+
+        self.mf6.finalize_time_step()
+        current_time = self.mf6.get_current_time()
+        self.msw_time = current_time
+        self.msw.finalize_time_step()
+
+        return current_time
+
+    def finalize(self):
+        """Cleanup the resources"""
+        self.mf6.finalize()
+        self.msw.finalize()
+
+    def get_times(self):
+        """Return times"""
+        return (
+            self.mf6.get_start_time(),
+            self.mf6.get_current_time(),
+            self.mf6.get_end_time(),
+        )
 
     def xchg_msw2mod(self):
         """Exchange Metaswap to Modflow"""
@@ -65,45 +126,6 @@ class MetaMod:
         self.msw.finalize_solve(0)
         return has_converged
 
-    def update_coupled(self):
-        """Advance by one timestep"""
-
-        # heads to MetaSWAP
-        self.xchg_mod2msw()
-
-        # we cannot set the timestep (yet) in Modflow
-        # -> set to the (dummy) value 0.0 for now
-        self.mf6.prepare_time_step(0.0)
-
-        self.delt = self.mf6.get_time_step()
-        self.msw.prepare_time_step(self.delt)
-
-        # loop over subcomponents
-        n_solutions = self.mf6.get_subcomponent_count()
-        for sol_id in range(1, n_solutions + 1):
-            # convergence loop
-            self.mf6.prepare_solve(sol_id)
-            for kiter in range(1, self.max_iter + 1):
-                has_converged = self.do_iter(sol_id)
-                if has_converged:
-                    logger.debug(f"Component {sol_id} converged in {kiter} iterations")
-                    break
-            self.mf6.finalize_solve(sol_id)
-
-        self.mf6.finalize_time_step()
-        current_time = self.mf6.get_current_time()
-        self.msw_time = current_time
-        self.msw.finalize_time_step()
-        return current_time
-
-    def getTimes(self):
-        """Return times"""
-        return (
-            self.mf6.get_start_time(),
-            self.mf6.get_current_time(),
-            self.mf6.get_end_time(),
-        )
-
     def couple(self):
         """Couple Modflow and Metaswap"""
         # get some 'pointers' to MF6 and MSW internal data
@@ -128,15 +150,10 @@ class MetaMod:
             self.mf6_sprinkling_wells = self.mf6.get_value_ptr(mf6_sprinkling_tag)[:, 0]
             self.is_sprinkling_active = True
 
-        self.ncell_mod = np.size(self.mf6_storage)
-        self.ncell_recharge = np.size(self.mf6_recharge)
-
         self.msw_head = self.msw.get_value_ptr("dhgwmod")
         self.msw_volume = self.msw.get_value_ptr("dvsim")
         self.msw_storage = self.msw.get_value_ptr("dsc1sim")
         self.msw_time = self.msw.get_value_ptr("currenttime")
-
-        self.ncell_msw = np.size(self.msw_storage)
 
         # mappings and masks for each set of coupled variables between
         # msw and mod, see (the documentation of) the create_mapping
@@ -151,7 +168,7 @@ class MetaMod:
         svat_lookup = {}
         msw_mod2svat_file = os.path.join(self.msw.working_directory, "mod2svat.inp")
         if os.path.isfile(msw_mod2svat_file):
-            svat_data = np.loadtxt(msw_mod2svat_file, dtype=np.int32)
+            svat_data = np.loadtxt(msw_mod2svat_file, dtype=np.int32, ndmin=2)
             svat_id = svat_data[:, 1]
             svat_lay = svat_data[:, 2]
             for vi in range(svat_id.size):
@@ -162,7 +179,7 @@ class MetaMod:
         # create mappings
         mapping_file = os.path.join(self.mf6.working_directory, "nodenr2svat.dxc")
         if os.path.isfile(mapping_file):
-            table_node2svat = np.loadtxt(mapping_file, dtype=np.int32)
+            table_node2svat = np.loadtxt(mapping_file, dtype=np.int32, ndmin=2)
             node_idx = table_node2svat[:, 0] - 1
             msw_idx = [
                 svat_lookup[table_node2svat[ii, 1], table_node2svat[ii, 2]]
@@ -191,7 +208,7 @@ class MetaMod:
             self.mf6.working_directory, "rchindex2svat.dxc"
         )
         if os.path.isfile(mapping_file_recharge):
-            table_rch2svat = np.loadtxt(mapping_file_recharge, dtype=np.int32)
+            table_rch2svat = np.loadtxt(mapping_file_recharge, dtype=np.int32, ndmin=2)
             rch_idx = table_rch2svat[:, 0] - 1
             msw_idx = [
                 svat_lookup[table_rch2svat[ii, 1], table_rch2svat[ii, 2]]
@@ -214,7 +231,9 @@ class MetaMod:
             )
             if os.path.isfile(mapping_file_sprinkling):
                 # in this case we have a sprinkling demand from MetaSWAP
-                table_well2svat = np.loadtxt(mapping_file_sprinkling, dtype=np.int32)
+                table_well2svat = np.loadtxt(
+                    mapping_file_sprinkling, dtype=np.int32, ndmin=2
+                )
                 well_idx = table_well2svat[:, 0] - 1
                 msw_idx = [
                     svat_lookup[table_well2svat[ii, 1], table_well2svat[ii, 2]]
@@ -235,3 +254,14 @@ class MetaMod:
         self.map_msw2mod = map_msw2mod
         self.mask_mod2msw = mask_mod2msw
         self.mask_msw2mod = mask_msw2mod
+
+    def get_mf6_modelname(self):
+        """Extract the model name from the the mf6_config_file.
+        (This will go when we have multi-model simulations)"""
+        mfsim_name = os.path.join(self.mf6.working_directory, "mfsim.nam")
+        with open(mfsim_name, "r") as mfsim:
+            for ndx, line in enumerate(mfsim):
+                if "BEGIN MODELS" in line.upper():
+                    break
+            modeltype, modelnamfile, modelname = mfsim.readline().split()
+            return modelname.upper()
