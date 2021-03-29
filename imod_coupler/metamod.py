@@ -7,6 +7,7 @@ import logging
 import os
 
 import numpy as np
+from scipy.sparse import dia_matrix
 
 from xmipy import XmiWrapper
 from imod_coupler.utils import create_mapping
@@ -28,7 +29,9 @@ class MetaMod:
 
         self.mf6_head = None  # the hydraulic head array in the coupled model
         self.mf6_recharge = None  # the coupled recharge array from the RCH package
-        self.mf6_storage = None  # the storage coefficients array (sc1)
+        self.mf6_storage = None  # the specific storage array (ss)
+        self.mf6_area = None  # cell area
+
         self.mf6_sprinkling_wells = None  # the well data for coupled extractions
         self.is_sprinkling_active = None  # true when sprinkling is active
 
@@ -132,7 +135,8 @@ class MetaMod:
         mf6_modelname = self.get_mf6_modelname()
         mf6_head_tag = self.mf6.get_var_address("X", mf6_modelname)
         mf6_recharge_tag = self.mf6.get_var_address("BOUND", mf6_modelname, "RCH_MSW")
-        mf6_storage_tag = self.mf6.get_var_address("SC1", mf6_modelname, "STO")
+        mf6_storage_tag = self.mf6.get_var_address("SS", mf6_modelname, "STO")
+        mf6_area_tag = self.mf6.get_var_address("AREA", mf6_modelname, "DIS")
         mf6_sprinkling_tag = self.mf6.get_var_address(
             "BOUND", mf6_modelname, "WELLS_MSW"
         )
@@ -142,6 +146,7 @@ class MetaMod:
         # NB: recharge is set to first column in BOUND
         self.mf6_recharge = self.mf6.get_value_ptr(mf6_recharge_tag)[:, 0]
         self.mf6_storage = self.mf6.get_value_ptr(mf6_storage_tag)
+        self.mf6_area = self.mf6.get_value_ptr(mf6_area_tag)
         self.max_iter = self.mf6.get_value_ptr(mf6_max_iter_tag)[0]
 
         # check if we have sprinkling
@@ -193,6 +198,15 @@ class MetaMod:
                 self.mf6_storage.size,
                 "sum",
             )
+
+            # MetaSWAP gives SC1, MODFLOW needs SS, temporarily convert here,
+            # this needs to be solved in MetaSWAP!!
+            area_conversion = dia_matrix(
+                ((1.0 / self.mf6_area), [0]),
+                shape=(self.mf6_area.size, self.mf6_area.size),
+                dtype=self.mf6_area.dtype,
+            )
+            map_msw2mod["storage"] = area_conversion * map_msw2mod["storage"]
 
             map_mod2msw["head"], mask_mod2msw["head"] = create_mapping(
                 node_idx,
