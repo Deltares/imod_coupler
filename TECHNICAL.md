@@ -53,7 +53,7 @@ Note that the format for this file should be fixed to
 ```python
 f"{nodenr:10d}  {svat:10d}{ly:2d}"
 ```
-where the number behind the colon indicates the number of characters, padded with whitepsace. 
+where the number behind the colon indicates the number of characters, padded with whitespace. 
 Note the two whitespaces between `nodenr` and `svat`.
 
 ## Modflow6
