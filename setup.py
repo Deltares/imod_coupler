@@ -34,7 +34,7 @@ setup(
     url="https://github.com/Deltares/imod-coupler",
     license="LGPL",
     platforms="Windows, Mac OS-X, Linux",
-    install_requires=["numpy", "scipy", "xmipy>=1.0"],
+    install_requires=["numpy", "scipy", "xmipy>=1.0", "toml"],
     packages=find_namespace_packages(exclude=("tests", "examples")),
     version=get_version("imod_coupler/__init__.py"),
     classifiers=["Topic :: Scientific/Engineering :: Hydrology"],
