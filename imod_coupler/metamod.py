@@ -208,7 +208,7 @@ class MetaMod:
             # MetaSWAP gives SC1, MODFLOW needs SS, temporarily convert here,
             # following the definition on specific storage in chapter 5 of
             # the MODFLOW manual, but, this needs to be solved in MetaSWAP!!
-            sc1_to_ss = 1./np.multiply(self.mf6_area, self.mf6_top - self.mf6_bot)
+            sc1_to_ss = 1.0 / np.multiply(self.mf6_area, self.mf6_top - self.mf6_bot)
             area_conversion = dia_matrix(
                 (sc1_to_ss, [0]),
                 shape=(self.mf6_area.size, self.mf6_area.size),
