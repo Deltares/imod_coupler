@@ -30,7 +30,9 @@ class MetaMod:
         self.mf6_head = None  # the hydraulic head array in the coupled model
         self.mf6_recharge = None  # the coupled recharge array from the RCH package
         self.mf6_storage = None  # the specific storage array (ss)
-        self.mf6_area = None  # cell area
+        self.mf6_area = None  # cell area (size:nodes)
+        self.mf6_top = None  # top of cell (size:nodes)
+        self.mf6_bot = None  # bottom of cell (size:nodes)
 
         self.mf6_sprinkling_wells = None  # the well data for coupled extractions
         self.is_sprinkling_active = None  # true when sprinkling is active
@@ -137,6 +139,8 @@ class MetaMod:
         mf6_recharge_tag = self.mf6.get_var_address("BOUND", mf6_modelname, "RCH_MSW")
         mf6_storage_tag = self.mf6.get_var_address("SS", mf6_modelname, "STO")
         mf6_area_tag = self.mf6.get_var_address("AREA", mf6_modelname, "DIS")
+        mf6_top_tag = self.mf6.get_var_address("TOP", mf6_modelname, "DIS")
+        mf6_bot_tag = self.mf6.get_var_address("BOT", mf6_modelname, "DIS")
         mf6_sprinkling_tag = self.mf6.get_var_address(
             "BOUND", mf6_modelname, "WELLS_MSW"
         )
@@ -147,6 +151,8 @@ class MetaMod:
         self.mf6_recharge = self.mf6.get_value_ptr(mf6_recharge_tag)[:, 0]
         self.mf6_storage = self.mf6.get_value_ptr(mf6_storage_tag)
         self.mf6_area = self.mf6.get_value_ptr(mf6_area_tag)
+        self.mf6_top = self.mf6.get_value_ptr(mf6_top_tag)
+        self.mf6_bot = self.mf6.get_value_ptr(mf6_bot_tag)
         self.max_iter = self.mf6.get_value_ptr(mf6_max_iter_tag)[0]
 
         # check if we have sprinkling
@@ -200,9 +206,11 @@ class MetaMod:
             )
 
             # MetaSWAP gives SC1, MODFLOW needs SS, temporarily convert here,
-            # this needs to be solved in MetaSWAP!!
+            # following the definition on specific storage in chapter 5 of
+            # the MODFLOW manual, but, this needs to be solved in MetaSWAP!!
+            sc1_to_ss = 1.0 / np.multiply(self.mf6_area, self.mf6_top - self.mf6_bot)
             area_conversion = dia_matrix(
-                ((1.0 / self.mf6_area), [0]),
+                (sc1_to_ss, [0]),
                 shape=(self.mf6_area.size, self.mf6_area.size),
                 dtype=self.mf6_area.dtype,
             )
