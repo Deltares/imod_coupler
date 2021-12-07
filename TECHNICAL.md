@@ -63,6 +63,7 @@ The location of the recharge cells is used to assign an recharge index by Modflo
 The file format of the .rch file is described [here](https://modflow6.readthedocs.io/en/latest/_mf6io/gwf-rch.html).
 To specify an uncoupled recharge as well, a second RCH package should be defined. 
 How to define a second stress package is explained [here](#how-to-define-a-second-stress-package-for-modflow6).
+Please note that in the model name file the [package name](https://modflow6.readthedocs.io/en/latest/_mf6io/gwf-nam.html#block-packages) has to be defined as "RCH_MSW".
 
 ### [filename].wel
 A dummy well file, of which the fluxes will be overrided. 
@@ -70,6 +71,7 @@ The location of the wells is used to assign an well index by Modflow6.
 The file format of the .wel file is described [here](https://modflow6.readthedocs.io/en/latest/_mf6io/gwf-wel.html).
 To specify uncoupled extractions/injections as well, a second WEL package should be defined. 
 How to define a second stress package is explained [here](#how-to-define-a-second-stress-package-for-modflow6).
+Please note that in the model name file the [package name](https://modflow6.readthedocs.io/en/latest/_mf6io/gwf-nam.html#block-packages) has to be defined as "WELLS_MSW".
 
 ## Coupler
 ### nodenr2svat.dxc
@@ -110,7 +112,7 @@ Where `well_index` is the MODFLOW6 WEL index number, which equals the row number
 `svat` is the MetaSWAP svat number and `ly` is the Modflow layer number.
 
 ## How to define a second stress package for Modflow6
-A second stress package can be defined in the flow model's `.nam` file (GWF_1.nam).
+A second stress package (in our case named `WELL2`) can be defined in the flow model's `.nam` file (GWF_1.nam).
 
 ```
 begin options
@@ -121,10 +123,12 @@ begin packages
   chd6 GWF_1/chd.chd
   npf6 GWF_1/npf.npf
   ic6 GWF_1/ic.ic
-  wel6 GWF_1/wel.wel wel1
-  wel6 GWF_1/wel2.wel wel2
+  wel6 GWF_1/wel.wel WELLS_MSW
+  wel6 GWF_1/wel2.wel WELL2
   sto6 GWF_1/sto.sto
   oc6 GWF_1/oc.oc
 end packages
 ```
-The optional argument values "wel1" and "wel2", specify the packagenames to be printed in the water budget .lst file.
+
+The argument values `WELLS_MSW` and `WELL2`, specify the packagenames to be printed in the water budget .lst file.
+In the case of `WELLS_MSW`, this specific name additionally allows `imod_coupler` to detect which well package to use for sprinkling.
