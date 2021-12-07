@@ -112,7 +112,7 @@ Where `well_index` is the MODFLOW6 WEL index number, which equals the row number
 `svat` is the MetaSWAP svat number and `ly` is the Modflow layer number.
 
 ## How to define a second stress package for Modflow6
-A second stress package `wel2` can be defined in the flow model's `.nam` file (GWF_1.nam).
+A second stress package (in our case named `WELL2`) can be defined in the flow model's `.nam` file (GWF_1.nam).
 
 ```
 begin options
@@ -124,8 +124,11 @@ begin packages
   npf6 GWF_1/npf.npf
   ic6 GWF_1/ic.ic
   wel6 GWF_1/wel.wel WELLS_MSW
-  wel6 GWF_1/wel2.wel wel2
+  wel6 GWF_1/wel2.wel WELL2
   sto6 GWF_1/sto.sto
   oc6 GWF_1/oc.oc
 end packages
 ```
+
+The argument values `WELLS_MSW` and `WELL2`, specify the packagenames to be printed in the water budget .lst file.
+In the case of `WELLS_MSW`, this specific name additionally allows `imod_coupler` to detect which well package to use for sprinkling.
