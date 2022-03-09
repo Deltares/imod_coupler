@@ -8,8 +8,8 @@ import os
 
 import numpy as np
 from scipy.sparse import dia_matrix
-
 from xmipy import XmiWrapper
+
 from imod_coupler.utils import create_mapping
 
 logger = logging.getLogger(__name__)

@@ -1,7 +1,8 @@
-import sys
-from setuptools import find_namespace_packages, setup
 import codecs
 import os.path
+import sys
+
+from setuptools import find_namespace_packages, setup
 
 
 def read(rel_path):
@@ -35,6 +36,14 @@ setup(
     license="LGPL",
     platforms="Windows, Mac OS-X, Linux",
     install_requires=["numpy", "scipy", "xmipy>=1.0", "toml"],
+    extras_require={
+        "tests": ["pytest", "pytest-cov"],
+        "lint": [
+            "flake8",
+            "black",
+            "isort",
+        ],
+    },
     packages=find_namespace_packages(exclude=("tests", "examples")),
     version=get_version("imod_coupler/__init__.py"),
     classifiers=["Topic :: Scientific/Engineering :: Hydrology"],
