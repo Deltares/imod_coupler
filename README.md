@@ -55,7 +55,10 @@ kernels = ['modflow6', 'metaswap']
 
 A technical explanation can be found [here](TECHNICAL.md).
 
-## Known Issues
-### Release v0.9.0 
-_FileNotFoundError: Could not find module "\path\to\MetaSWAP.dll" (or one of its dependencies). Try using the full path with constructor syntax._
-This is caused by not having the Intel redistrutable libraries on the system. They can be installed from https://software.intel.com/content/www/us/en/develop/articles/intel-compilers-redistributable-libraries-by-version.html.
+# Contributing
+
+In order to develop on `imod_coupler` locally, execute the following line inside your virtual environment
+
+```bash
+pip install -e ".[tests, lint]"
+```
