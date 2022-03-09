@@ -1,9 +1,9 @@
 import os
 from contextlib import contextmanager
+from pathlib import Path
 
 import numpy as np
 from scipy import sparse
-from pathlib import Path
 
 
 def create_mapping(src_idx, tgt_idx, nsrc: int, ntgt: int, operator: str):

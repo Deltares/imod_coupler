@@ -2,7 +2,7 @@ name: Continuous integration
 
 on:
   push:
-    branches: [master]
+    branches: [main]
   pull_request:
 
 jobs:
@@ -10,15 +10,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - name: Set up Python 3.8
+      - name: Set up Python 3.10
         uses: actions/setup-python@v1
-        with:
-          python-version: 3.8
-      - name: Install packages
+      - name: Install lint dependencies
         run: |
-          pip install black
-          pip install flake8
+          pip install -e ".[lint]"
       - name: Run black
         run: black --check .
+      - name: Run isort
+        run: isort --check .
       - name: Run flake8
         run: flake8

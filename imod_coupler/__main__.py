@@ -4,10 +4,10 @@ import os
 import sys
 import time
 
-from imod_coupler.metamod import MetaMod
 from imod_coupler import __version__
 from imod_coupler.config import Config
 from imod_coupler.errors import ConfigError
+from imod_coupler.metamod import MetaMod
 
 logger = logging.getLogger(__name__)
 

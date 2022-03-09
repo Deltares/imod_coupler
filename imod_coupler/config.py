@@ -1,8 +1,8 @@
 import logging
 import os
-from xmipy import XmiWrapper
 
 import toml
+from xmipy import XmiWrapper
 
 from imod_coupler.errors import ConfigError
 from imod_coupler.utils import cd
