@@ -15,7 +15,7 @@
 
 # -- Project information -----------------------------------------------------
 
-project = "iMOD Suite"
+project = "iMOD Coupler"
 copyright = "Deltares"
 author = "The iMOD development team"
 
