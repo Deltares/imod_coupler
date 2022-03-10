@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   inkscape:export-ydpi="2.6016259"
+   inkscape:export-xdpi="2.6016259"
+   inkscape:export-filename="C:\src\iMOD-Documentation\docs\screenshots\qgis\icons\cross-section.png"
+   inkscape:version="1.0 (4035a4fb49, 2020-05-01)"
+   sodipodi:docname="cross-section.svg"
+   id="svg6"
+   preserveAspectRatio="xMidYMid meet"
+   viewBox="0 0 1107.000000 1109.000000"
+   height="1109.000000pt"
+   width="1107.000000pt"
+   version="1.0">
+  <metadata
+     id="metadata12">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title />
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <defs
+     id="defs10" />
+  <sodipodi:namedview
+     inkscape:current-layer="svg6"
+     inkscape:window-maximized="1"
+     inkscape:window-y="-8"
+     inkscape:window-x="1912"
+     inkscape:cy="471.20629"
+     inkscape:cx="1282.799"
+     inkscape:zoom="0.18434829"
+     showgrid="false"
+     id="namedview8"
+     inkscape:window-height="1057"
+     inkscape:window-width="1827"
+     inkscape:pageshadow="2"
+     inkscape:pageopacity="0"
+     guidetolerance="10"
+     gridtolerance="10"
+     objecttolerance="10"
+     borderopacity="1"
+     bordercolor="#666666"
+     pagecolor="#ffffff"
+     inkscape:document-rotation="0"
+     inkscape:snap-bbox="false"
+     inkscape:snap-grids="false">
+    <inkscape:grid
+       type="xygrid"
+       id="grid1515" />
+  </sodipodi:namedview>
+  <g
+     style="fill:#080c80;fill-opacity:1"
+     id="g4"
+     stroke="none"
+     fill="#000000"
+     transform="translate(0.000000,1109.000000) scale(0.100000,-0.100000)">
+    <path
+       sodipodi:nodetypes="ccccccccccsccc"
+       style="fill:#080c80;fill-opacity:1"
+       id="path2"
+       d="m 955,10675 c -233,-42 -430,-231 -480,-460 -14,-63 -15,-556 -13,-4705 l 3,-4635 23,-65 c 77,-213 256,-367 469,-405 66,-12 802,-14 4643,-15 3114,0 4585,3 4629,11 141,22 245,76 348,179 71,72 131,180 158,285 13,52 15,592 15,4675 0,4083 -2,4623 -15,4675 -62,246 -256,424 -506,464 -102,17 -9182,13 -9274,-4 z" />
+  </g>
+  <path
+     style="fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:0.75px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+     d="M 44.752248,475.73258 295.42107,394.39366 479.87363,483.99242 1073.2113,280.62712 V 405.63291 L 473.7354,609.02742 294.37012,514.89494 44.465807,592.76473 Z"
+     id="path1496"
+     sodipodi:nodetypes="ccccccccc" />
+  <path
+     sodipodi:nodetypes="ccccccccc"
+     id="path1496-4"
+     d="m 44.752247,772.2801 250.668823,-81.33892 184.45255,89.59876 593.33768,-203.36529 0,204.33931 L 481.87216,997.11362 271.99399,898.91274 44.465807,970.67996 Z"
+     style="fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:0.75px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+  <path
+     style="fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:2.26545px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+     d="M 193.38643,451.84592 V 357.5212 H 84.564946 L 193.38643,239.61532 h -76.17504 l 76.17504,-82.53412 h -43.5286 l 65.2929,-70.743544 65.29289,70.743544 h -43.52859 l 76.17504,82.53412 H 236.91503 L 345.73652,357.5212 H 236.91503 v 94.32472"
+     id="path1513"
+     sodipodi:nodetypes="ccccccccccccccc" />
+  <path
+     sodipodi:nodetypes="ccccccccc"
+     id="path1496-1"
+     d="m 45.8032,674.177 250.66882,-81.33892 184.45256,89.59876 593.33762,-203.36529 0,61.71655 L 474.78635,744.18261 295.42107,650.05013 44.752247,731.38905 Z"
+     style="fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:0.75px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+</svg>

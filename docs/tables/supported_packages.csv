@@ -1,0 +1,23 @@
+Package,Description,iMOD Suite,iMOD 5
+DIS,Structured Discretization,x,x
+DISV,Discretization by Vertices,x,
+DISU,Structured Discretization,,
+IC,Initial Conditions,x,x
+OC,Output Control,x,x
+NPF,Node Property Flow,x,x
+HFB,Horizontal Flow Barrier,x,x
+STO,Storage,x,x
+CSUB,"Skeletal Storage, Compaction, and Subsidence",,
+BUY,Buoyancy,,
+CHD,Constant-Head,x,x
+WEL,Well,x,x
+DRN,Drain,x,x
+RIV,River,x,x
+GHB,General-Head Boundary,x,x
+RCH,Recharge,x,x
+EVT,Evapotranspiration,x,x
+MAW,Multi-Aquifer Well,,
+SFR,Streamflow Routing,,x
+LAK,Lake ,,
+UZF,Unsaturated Zone Flow,x,
+MVR,Water Mover,,
