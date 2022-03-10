@@ -1,0 +1,525 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>1. A conceptual fresh-salt model &#8212; iMOD Suite  documentation</title>
+    
+    <link href="_static/styles/theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
+<link href="_static/styles/pydata-sphinx-theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
+  
+    
+    <link rel="stylesheet"
+      href="_static/vendor/fontawesome/5.13.0/css/all.min.css">
+    <link rel="preload" as="font" type="font/woff2" crossorigin
+      href="_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+    <link rel="preload" as="font" type="font/woff2" crossorigin
+      href="_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+  
+    
+      
+  
+    
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/pydata-sphinx-theme.css" />
+    <link rel="stylesheet" type="text/css" href="_static/theme-deltares.css" />
+    
+    <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf">
+  
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Further Links" href="further_links.html" />
+    <link rel="prev" title="Example workflows" href="workflow_index.html" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="docsearch:language" content="en">
+    
+
+    <!-- Google Analytics -->
+    
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+    <div class="container-fluid" id="banner"></div>
+
+    
+  <nav class="navbar navbar-dark navbar-expand-lg bg-deltares fixed-top bd-navbar shadow" id="navbar-main"><div class="container-xl">
+
+    <a class="navbar-brand" href="index.html">
+    <p style="color:#fff;font-size:25px;" class="title">iMOD Suite</p>
+    </a>
+
+    <a class="navbar-brand" href="index.html">
+    <img src="_static/iMOD_letters.svg" class="logo" alt="logo" />
+    </a>
+  
+    <div id="navbar-menu" class="collapse navbar-collapse">
+      <ul id="navbar-main-elements" class="navbar-nav">
+        <li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="viewer_index.html">
+  iMOD Viewer
+ </a>
+</li>
+
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="python_index.html">
+  iMOD Python
+ </a>
+</li>
+
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="coupler_index.html">
+  iMOD Coupler
+ </a>
+</li>
+
+<li class="toctree-l1 current active nav-item">
+ <a class="reference internal nav-link" href="workflow_index.html">
+  Example workflows
+ </a>
+</li>
+
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="further_links.html">
+  Further Links
+ </a>
+</li>
+
+        
+      </ul>
+    </div>
+
+    <a class="navbar-brand" href="https://www.deltares.nl/en/">
+    <img src="_static/deltares-white.svg" class="logo" alt="logo" />
+    </a>
+
+</div>
+  </nav>
+
+
+    <div class="container-xl">
+      <div class="row">
+          
+            
+            <!-- Only show if we have sidebars configured, else just a small margin  -->
+            <div class="col-12 col-md-3 bd-sidebar">
+              <div class="sidebar-start-items"><form class="bd-search d-flex align-items-center" action="search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form><nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+  <div class="bd-toc-item active">
+    <ul class="current nav bd-sidenav">
+ <li class="toctree-l1 current active">
+  <a class="current reference internal" href="#">
+   1. A conceptual fresh-salt model
+  </a>
+ </li>
+</ul>
+
+  </div>
+</nav>
+              </div>
+              <div class="sidebar-end-items">
+              </div>
+            </div>
+            
+          
+
+          
+          <div class="d-none d-xl-block col-xl-2 bd-toc">
+            
+              
+              <div class="toc-item">
+                
+<div class="tocsection onthispage pt-5 pb-3">
+    <i class="fas fa-list"></i> On this page
+</div>
+
+<nav id="bd-toc-nav">
+    <ul class="visible nav section-nav flex-column">
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#creating-a-model">
+   1.1. Creating a model
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#running-the-model">
+   1.2. Running the model
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#convert-output-data">
+   1.3. Convert output data
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#viewing-the-results-in-qgis">
+   1.4. Viewing the results in QGIS
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#viewing-the-results-in-the-imod-3d-viewer">
+   1.5. Viewing the results in the iMOD 3D Viewer
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#concluding">
+   1.6. Concluding
+  </a>
+ </li>
+</ul>
+
+</nav>
+              </div>
+              
+              <div class="toc-item">
+                
+              </div>
+              
+            
+          </div>
+          
+
+          
+          
+            
+          
+          <main class="col-12 col-md-9 col-xl-7 py-md-5 pl-md-5 pr-md-4 bd-content" role="main">
+              
+              <div>
+                
+  <section id="a-conceptual-fresh-salt-model">
+<h1><span class="section-number">1. </span>A conceptual fresh-salt model<a class="headerlink" href="#a-conceptual-fresh-salt-model" title="Permalink to this headline">¶</a></h1>
+<p>In this example we create an example fresh-salt groundwater model of
+a strip-shaped freshwater lens, which could be a very simple analogue
+of a barrier island.</p>
+<p>The workflow consists of the following steps:</p>
+<ol class="arabic simple">
+<li><p>Creating a model with an iMOD-python script</p></li>
+<li><p>Running the model in a terminal with iMOD-WQ</p></li>
+<li><p>Use iMOD-python to post-process the model output (IDF)
+to a data format supported by QGIS (UGRID)</p></li>
+<li><p>Viewing a cross-section in iMOD QGIS plugin</p></li>
+<li><p>Use the plugin to view the results in the iMOD 3D viewer</p></li>
+</ol>
+<section id="creating-a-model">
+<h2><span class="section-number">1.1. </span>Creating a model<a class="headerlink" href="#creating-a-model" title="Permalink to this headline">¶</a></h2>
+<p>The iMOD-python script below creates a simple 3D iMOD-WQ model.</p>
+<p>To install iMOD-python, see
+<a class="reference external" href="https://deltares.gitlab.io/imod/imod-python/installation.html">these instructions</a>.</p>
+<p>We define a middle strip which has fresh recharge (<code class="docutils literal notranslate"><span class="pre">rch</span></code>) applied, and
+the sides have a fixed concentration (<code class="docutils literal notranslate"><span class="pre">bnd</span> <span class="pre">=</span> <span class="pre">-1</span></code>)
+of 35 (<code class="docutils literal notranslate"><span class="pre">sconc</span> <span class="pre">=</span> <span class="pre">35.</span></code>) in the top layer.
+This creates freshwater lens along the strip.</p>
+<div class="literal-block-wrapper docutils container" id="id1">
+<div class="code-block-caption"><span class="caption-number">Listing 1.1.1 </span><span class="caption-text">create_wq_input.py</span><a class="headerlink" href="#id1" title="Permalink to this code">¶</a></div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">imod</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">xarray</span> <span class="k">as</span> <span class="nn">xr</span>
+
+<span class="c1"># Discretization</span>
+<span class="n">nrow</span> <span class="o">=</span> <span class="mi">40</span>  <span class="c1"># number of rows</span>
+<span class="n">ncol</span> <span class="o">=</span> <span class="mi">40</span>  <span class="c1"># number of columns</span>
+<span class="n">nlay</span> <span class="o">=</span> <span class="mi">15</span>  <span class="c1"># number of layers</span>
+
+<span class="n">dz</span> <span class="o">=</span> <span class="mi">10</span>
+<span class="n">dx</span> <span class="o">=</span> <span class="mi">250</span>
+<span class="n">dy</span> <span class="o">=</span> <span class="o">-</span><span class="n">dx</span>
+
+<span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mf">0.5</span> <span class="o">*</span> <span class="n">dx</span><span class="p">,</span> <span class="n">dx</span> <span class="o">*</span> <span class="n">ncol</span><span class="p">,</span> <span class="n">dx</span><span class="p">)</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="o">-</span><span class="n">dy</span> <span class="o">*</span> <span class="n">ncol</span><span class="p">,</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="o">-</span><span class="n">dy</span><span class="p">,</span> <span class="n">dy</span><span class="p">)</span>
+
+<span class="c1"># setup ibound</span>
+<span class="n">bnd</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">DataArray</span><span class="p">(</span>
+    <span class="n">data</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">((</span><span class="n">nlay</span><span class="p">,</span> <span class="n">nrow</span><span class="p">,</span> <span class="n">ncol</span><span class="p">),</span> <span class="mf">1.0</span><span class="p">),</span>
+    <span class="n">coords</span><span class="o">=</span><span class="p">{</span>
+        <span class="s2">&quot;y&quot;</span><span class="p">:</span> <span class="n">y</span><span class="p">,</span>
+        <span class="s2">&quot;x&quot;</span><span class="p">:</span> <span class="n">x</span><span class="p">,</span>
+        <span class="s2">&quot;layer&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span> <span class="o">+</span> <span class="n">nlay</span><span class="p">),</span>
+        <span class="s2">&quot;dx&quot;</span><span class="p">:</span> <span class="n">dx</span><span class="p">,</span>
+        <span class="s2">&quot;dy&quot;</span><span class="p">:</span> <span class="n">dy</span><span class="p">,</span>
+    <span class="p">},</span>
+    <span class="n">dims</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;layer&quot;</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="s2">&quot;x&quot;</span><span class="p">),</span>
+<span class="p">)</span>
+
+<span class="c1"># set constant heads</span>
+<span class="n">bnd</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:,</span> <span class="mi">0</span><span class="p">:</span><span class="mi">12</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+<span class="n">bnd</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:,</span> <span class="mi">28</span><span class="p">:</span><span class="mi">40</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+
+<span class="c1"># set up tops and bottoms</span>
+<span class="n">top1D</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">DataArray</span><span class="p">(</span>
+    <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">nlay</span> <span class="o">*</span> <span class="n">dz</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="o">-</span><span class="n">dz</span><span class="p">),</span> <span class="p">{</span><span class="s2">&quot;layer&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">nlay</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)},</span> <span class="p">(</span><span class="s2">&quot;layer&quot;</span><span class="p">)</span>
+<span class="p">)</span>
+
+<span class="n">top3D</span> <span class="o">=</span> <span class="n">top1D</span> <span class="o">*</span> <span class="n">xr</span><span class="o">.</span><span class="n">full_like</span><span class="p">(</span><span class="n">bnd</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+<span class="n">bot</span> <span class="o">=</span> <span class="n">top3D</span> <span class="o">-</span> <span class="n">dz</span>
+
+<span class="c1"># Defining the starting concentrations</span>
+<span class="n">sconc</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">DataArray</span><span class="p">(</span>
+    <span class="n">data</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">((</span><span class="n">nlay</span><span class="p">,</span> <span class="n">nrow</span><span class="p">,</span> <span class="n">ncol</span><span class="p">),</span> <span class="mf">35.0</span><span class="p">),</span>
+    <span class="n">coords</span><span class="o">=</span><span class="p">{</span>
+        <span class="s2">&quot;y&quot;</span><span class="p">:</span> <span class="n">y</span><span class="p">,</span>
+        <span class="s2">&quot;x&quot;</span><span class="p">:</span> <span class="n">x</span><span class="p">,</span>
+        <span class="s2">&quot;layer&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">nlay</span> <span class="o">+</span> <span class="mi">1</span><span class="p">),</span>
+        <span class="s2">&quot;dx&quot;</span><span class="p">:</span> <span class="n">dx</span><span class="p">,</span>
+        <span class="s2">&quot;dy&quot;</span><span class="p">:</span> <span class="n">dy</span><span class="p">,</span>
+    <span class="p">},</span>
+    <span class="n">dims</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;layer&quot;</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="s2">&quot;x&quot;</span><span class="p">),</span>
+<span class="p">)</span>
+
+<span class="n">sconc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:,</span> <span class="mi">13</span><span class="p">:</span><span class="mi">27</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
+
+<span class="c1"># Defining the recharge rates</span>
+<span class="n">rch_rate</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">DataArray</span><span class="p">(</span>
+    <span class="n">data</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">((</span><span class="n">nrow</span><span class="p">,</span> <span class="n">ncol</span><span class="p">),</span> <span class="mf">0.0</span><span class="p">),</span>
+    <span class="n">coords</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;y&quot;</span><span class="p">:</span> <span class="n">y</span><span class="p">,</span> <span class="s2">&quot;x&quot;</span><span class="p">:</span> <span class="n">x</span><span class="p">,</span> <span class="s2">&quot;dx&quot;</span><span class="p">:</span> <span class="n">dx</span><span class="p">,</span> <span class="s2">&quot;dy&quot;</span><span class="p">:</span> <span class="n">dy</span><span class="p">},</span>
+    <span class="n">dims</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="s2">&quot;x&quot;</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="n">rch_rate</span><span class="p">[:,</span> <span class="mi">13</span><span class="p">:</span><span class="mi">27</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.001</span>
+
+<span class="n">rch_conc</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">full_like</span><span class="p">(</span><span class="n">rch_rate</span><span class="p">,</span> <span class="n">fill_value</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span>
+
+
+<span class="c1"># Finally, we build the model.</span>
+
+<span class="n">m</span> <span class="o">=</span> <span class="n">imod</span><span class="o">.</span><span class="n">wq</span><span class="o">.</span><span class="n">SeawatModel</span><span class="p">(</span><span class="s2">&quot;FreshwaterLens&quot;</span><span class="p">)</span>
+<span class="n">m</span><span class="p">[</span><span class="s2">&quot;bas&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">imod</span><span class="o">.</span><span class="n">wq</span><span class="o">.</span><span class="n">BasicFlow</span><span class="p">(</span>
+    <span class="n">ibound</span><span class="o">=</span><span class="n">bnd</span><span class="p">,</span> <span class="n">top</span><span class="o">=</span><span class="n">top3D</span><span class="o">.</span><span class="n">sel</span><span class="p">(</span><span class="n">layer</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span> <span class="n">bottom</span><span class="o">=</span><span class="n">bot</span><span class="p">,</span> <span class="n">starting_head</span><span class="o">=</span><span class="mf">0.0</span>
+<span class="p">)</span>
+<span class="n">m</span><span class="p">[</span><span class="s2">&quot;lpf&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">imod</span><span class="o">.</span><span class="n">wq</span><span class="o">.</span><span class="n">LayerPropertyFlow</span><span class="p">(</span>
+    <span class="n">k_horizontal</span><span class="o">=</span><span class="mf">10.0</span><span class="p">,</span> <span class="n">k_vertical</span><span class="o">=</span><span class="mf">20.0</span><span class="p">,</span> <span class="n">specific_storage</span><span class="o">=</span><span class="mf">0.0</span>
+<span class="p">)</span>
+<span class="n">m</span><span class="p">[</span><span class="s2">&quot;btn&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">imod</span><span class="o">.</span><span class="n">wq</span><span class="o">.</span><span class="n">BasicTransport</span><span class="p">(</span>
+    <span class="n">icbund</span><span class="o">=</span><span class="n">bnd</span><span class="p">,</span> <span class="n">starting_concentration</span><span class="o">=</span><span class="n">sconc</span><span class="p">,</span> <span class="n">porosity</span><span class="o">=</span><span class="mf">0.35</span>
+<span class="p">)</span>
+<span class="n">m</span><span class="p">[</span><span class="s2">&quot;adv&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">imod</span><span class="o">.</span><span class="n">wq</span><span class="o">.</span><span class="n">AdvectionTVD</span><span class="p">(</span><span class="n">courant</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
+<span class="n">m</span><span class="p">[</span><span class="s2">&quot;dsp&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">imod</span><span class="o">.</span><span class="n">wq</span><span class="o">.</span><span class="n">Dispersion</span><span class="p">(</span><span class="n">longitudinal</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">diffusion_coefficient</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span>
+<span class="n">m</span><span class="p">[</span><span class="s2">&quot;vdf&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">imod</span><span class="o">.</span><span class="n">wq</span><span class="o">.</span><span class="n">VariableDensityFlow</span><span class="p">(</span><span class="n">density_concentration_slope</span><span class="o">=</span><span class="mf">0.71</span><span class="p">)</span>
+<span class="n">m</span><span class="p">[</span><span class="s2">&quot;rch&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">imod</span><span class="o">.</span><span class="n">wq</span><span class="o">.</span><span class="n">RechargeHighestActive</span><span class="p">(</span><span class="n">rate</span><span class="o">=</span><span class="n">rch_rate</span><span class="p">,</span> <span class="n">concentration</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span>
+<span class="n">m</span><span class="p">[</span><span class="s2">&quot;pcg&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">imod</span><span class="o">.</span><span class="n">wq</span><span class="o">.</span><span class="n">PreconditionedConjugateGradientSolver</span><span class="p">(</span>
+    <span class="n">max_iter</span><span class="o">=</span><span class="mi">150</span><span class="p">,</span> <span class="n">inner_iter</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span> <span class="n">hclose</span><span class="o">=</span><span class="mf">0.0001</span><span class="p">,</span> <span class="n">rclose</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">relax</span><span class="o">=</span><span class="mf">0.98</span><span class="p">,</span> <span class="n">damp</span><span class="o">=</span><span class="mf">1.0</span>
+<span class="p">)</span>
+<span class="n">m</span><span class="p">[</span><span class="s2">&quot;gcg&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">imod</span><span class="o">.</span><span class="n">wq</span><span class="o">.</span><span class="n">GeneralizedConjugateGradientSolver</span><span class="p">(</span>
+    <span class="n">max_iter</span><span class="o">=</span><span class="mi">150</span><span class="p">,</span>
+    <span class="n">inner_iter</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span>
+    <span class="n">cclose</span><span class="o">=</span><span class="mf">1.0e-6</span><span class="p">,</span>
+    <span class="n">preconditioner</span><span class="o">=</span><span class="s2">&quot;mic&quot;</span><span class="p">,</span>
+    <span class="n">lump_dispersion</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">m</span><span class="p">[</span><span class="s2">&quot;oc&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">imod</span><span class="o">.</span><span class="n">wq</span><span class="o">.</span><span class="n">OutputControl</span><span class="p">(</span><span class="n">save_head_idf</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">save_concentration_idf</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">m</span><span class="o">.</span><span class="n">time_discretization</span><span class="p">(</span><span class="n">times</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;1900-01-01T00:00&quot;</span><span class="p">,</span> <span class="s2">&quot;2000-01-01T00:00&quot;</span><span class="p">])</span>
+
+<span class="c1"># Now we write the model, including runfile:</span>
+<span class="n">m</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;FreshwaterLens&quot;</span><span class="p">)</span>
+<span class="c1"># You can run the model using the command prompt and the iMOD-WQ executable</span>
+</pre></div>
+</div>
+</div>
+</section>
+<section id="running-the-model">
+<h2><span class="section-number">1.2. </span>Running the model<a class="headerlink" href="#running-the-model" title="Permalink to this headline">¶</a></h2>
+<p>This model requires the iMOD-WQ kernel,
+which is part of iMOD 5 and which you can download
+<a class="reference external" href="https://oss.deltares.nl/web/imod/deltares-executables-of-imod">for free here after registering</a>.
+It usually takes only a few minutes before a link is sent.</p>
+<p>Open a terminal (cmd.exe is fine,
+<a class="reference external" href="https://deltares.gitlab.io/imod/imod-practical-tips/how_to_look_like_a_pro.html">but the cool kids use Powershell</a>)
+and call the following lines of code:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">./path/to/iMOD-WQ.exe ./FreshwaterLens.run</span>
+</pre></div>
+</div>
+<p>This will run the iMOD-WQ model, and should not take more than 10 seconds.</p>
+<img alt="_images/cmd_run_output.png" src="_images/cmd_run_output.png" />
+</section>
+<section id="convert-output-data">
+<h2><span class="section-number">1.3. </span>Convert output data<a class="headerlink" href="#convert-output-data" title="Permalink to this headline">¶</a></h2>
+<p>iMOD-WQ writes IDF files, a data format used in iMOD 5,
+which not many other software packages support.
+Therefore iMOD-python allows for reading these IDF files
+and converting them to other data formats in Python.</p>
+<p>In this example we convert the output to a UGRID file,
+which can be read by QGIS.</p>
+<div class="literal-block-wrapper docutils container" id="id2">
+<div class="code-block-caption"><span class="caption-number">Listing 1.3.1 </span><span class="caption-text">convert_output.py</span><a class="headerlink" href="#id2" title="Permalink to this code">¶</a></div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">imod</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">xarray</span> <span class="k">as</span> <span class="nn">xr</span>
+
+<span class="c1"># We assume that this script is located in the same directory</span>
+<span class="c1"># as in create_wq_input.py.</span>
+<span class="c1"># We provide a UNIX style global path</span>
+<span class="c1"># to select all IDF files in the conc directory.</span>
+<span class="n">conc_path</span> <span class="o">=</span> <span class="s2">&quot;./results/conc/*.IDF&quot;</span>
+<span class="n">bottom_path</span> <span class="o">=</span> <span class="s2">&quot;./FreshwaterLens/bas/bottom*.idf&quot;</span>
+<span class="n">top_path</span> <span class="o">=</span> <span class="s2">&quot;./FreshwaterLens/bas/top.idf&quot;</span>
+
+<span class="c1"># Open the IDF files.</span>
+<span class="n">conc</span> <span class="o">=</span> <span class="n">imod</span><span class="o">.</span><span class="n">idf</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">conc_path</span><span class="p">)</span><span class="o">.</span><span class="n">compute</span><span class="p">()</span>
+<span class="n">bottom</span> <span class="o">=</span> <span class="n">imod</span><span class="o">.</span><span class="n">idf</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">bottom_path</span><span class="p">)</span><span class="o">.</span><span class="n">compute</span><span class="p">()</span>
+<span class="n">surface</span> <span class="o">=</span> <span class="n">imod</span><span class="o">.</span><span class="n">idf</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">top_path</span><span class="p">)</span><span class="o">.</span><span class="n">compute</span><span class="p">()</span>
+
+<span class="c1"># Reconstruct vertical discretization</span>
+<span class="c1"># We need this as IDFs do not store vertical discretization</span>
+<span class="n">surface</span> <span class="o">=</span> <span class="n">surface</span><span class="o">.</span><span class="n">assign_coords</span><span class="p">(</span><span class="n">layer</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+<span class="c1">## Create 3D array of tops</span>
+<span class="c1">### Roll bottom one layer downward: the bottom of a layer is top of next layer</span>
+<span class="n">top</span> <span class="o">=</span> <span class="n">bottom</span><span class="o">.</span><span class="n">roll</span><span class="p">(</span><span class="n">layer</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">roll_coords</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="c1">### Remove layer 1</span>
+<span class="n">top</span> <span class="o">=</span> <span class="n">top</span><span class="o">.</span><span class="n">sel</span><span class="p">(</span><span class="n">layer</span><span class="o">=</span><span class="nb">slice</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span>
+<span class="c1">### Add surface as layer 1</span>
+<span class="n">top</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">surface</span><span class="p">,</span> <span class="n">top</span><span class="p">],</span> <span class="n">dim</span><span class="o">=</span><span class="s2">&quot;layer&quot;</span><span class="p">)</span>
+<span class="c1">### Reorder dimensions</span>
+<span class="n">top</span> <span class="o">=</span> <span class="n">top</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="s2">&quot;layer&quot;</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="s2">&quot;x&quot;</span><span class="p">)</span>
+
+<span class="c1"># Merge into dataset</span>
+<span class="n">ds</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">merge</span><span class="p">([</span><span class="n">conc</span><span class="p">,</span> <span class="n">top</span><span class="p">,</span> <span class="n">bottom</span><span class="p">])</span>
+
+<span class="c1"># Create MDAL supported UGRID</span>
+<span class="c1"># NOTE: This requires iMOD-python v1.0(?)</span>
+<span class="n">ds_ugrid</span> <span class="o">=</span> <span class="n">imod</span><span class="o">.</span><span class="n">util</span><span class="o">.</span><span class="n">to_ugrid2d</span><span class="p">(</span><span class="n">ds</span><span class="p">)</span>
+
+<span class="c1">#%% Due to a bug in MDAL, we have to encode the times as floats</span>
+<span class="c1"># instead of integers</span>
+<span class="c1"># until this is fixed: https://github.com/lutraconsulting/MDAL/issues/348</span>
+<span class="n">ds_ugrid</span><span class="p">[</span><span class="s2">&quot;time&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">encoding</span><span class="p">[</span><span class="s2">&quot;dtype&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span>
+
+<span class="n">ds_ugrid</span><span class="o">.</span><span class="n">to_netcdf</span><span class="p">(</span><span class="s2">&quot;./results/output_ugrid.nc&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</section>
+<section id="viewing-the-results-in-qgis">
+<h2><span class="section-number">1.4. </span>Viewing the results in QGIS<a class="headerlink" href="#viewing-the-results-in-qgis" title="Permalink to this headline">¶</a></h2>
+<p>Start QGIS and open the <code class="docutils literal notranslate"><span class="pre">./results/output_ugrid.nc</span></code> file as a mesh.</p>
+<figure class="align-default" id="id3">
+<img alt="_images/load_mesh.png" src="_images/load_mesh.png" />
+<figcaption>
+<p><span class="caption-number">Fig. 1.4.1 </span><span class="caption-text">Where to find the action to load a mesh layer</span><a class="headerlink" href="#id3" title="Permalink to this image">¶</a></p>
+</figcaption>
+</figure>
+<p>You can select the variable to plot on the map canvas by right-clicking the
+<em>output_ugrid</em> layer in the <em>Layers</em> panel, and then navigating to:
+<em>Properties &gt; Symbology</em></p>
+<p>Next select which variable to plot in the group selection screen by
+clicking the color ramp next to the variable name, which will render
+the variable on the map canvas.</p>
+<figure class="align-default" id="id4">
+<img alt="_images/group_selection.png" src="_images/group_selection.png" />
+<figcaption>
+<p><span class="caption-number">Fig. 1.4.2 </span><span class="caption-text">Where to find the group selection screen.
+Here you can select the variables to be plotted.
+The red circle indicates where the color ramp symbol can be found.</span><a class="headerlink" href="#id4" title="Permalink to this image">¶</a></p>
+</figcaption>
+</figure>
+<p>Colormaps can be set by navigating to the color selection menu</p>
+<figure class="align-default" id="id5">
+<img alt="_images/color_ramp_selection.png" src="_images/color_ramp_selection.png" />
+<figcaption>
+<p><span class="caption-number">Fig. 1.4.3 </span><span class="caption-text">The color selection menu, here you can set the colormap that will be used,
+as well as adjusting its binning.
+In these example screenshots we use the colormap “Spectral”.</span><a class="headerlink" href="#id5" title="Permalink to this image">¶</a></p>
+</figcaption>
+</figure>
+<p>Next, open the iMOD plugin’s cross-section tool <a class="reference internal" href="_images/cross-section.png"><img alt="cross-section" src="_images/cross-section.png" style="width: 40px; height: 40px;" /></a>
+and draw a cross-section by clicking <em>from Map</em> and right-clicking to stop drawing.
+Then select <em>conc</em> as variable to be plotted, and click <em>Add</em>.
+Next click <em>Plot</em>.</p>
+<p>By default the tool will plot with a green to blue gradient called <em>Viridis</em>,
+but we can change the gradient by clicking the dataset’s gradient box under
+<em>symbology</em> in the table.</p>
+<p>This opens up a color dialog, where we can select the color ramp.
+Clicking the small arrow next to the color gradient box in the dialog will
+allow selecting presets.
+We chose “Spectral” and also select “Invert Color Ramp” in the examples,
+but you can select whatever colormap you think is suitable!</p>
+<figure class="align-default" id="id6">
+<img alt="_images/cross-section2.png" src="_images/cross-section2.png" />
+<figcaption>
+<p><span class="caption-number">Fig. 1.4.4 </span><span class="caption-text">You should see this if you followed precisely what we did.</span><a class="headerlink" href="#id6" title="Permalink to this image">¶</a></p>
+</figcaption>
+</figure>
+</section>
+<section id="viewing-the-results-in-the-imod-3d-viewer">
+<h2><span class="section-number">1.5. </span>Viewing the results in the iMOD 3D Viewer<a class="headerlink" href="#viewing-the-results-in-the-imod-3d-viewer" title="Permalink to this headline">¶</a></h2>
+<p>As a final step we will look at the results in the iMOD 3D Viewer.
+Click the 3D viewer symbol <a class="reference internal" href="_images/3d-viewer.png"><img alt="3d-viewer" src="_images/3d-viewer.png" style="width: 40px; height: 40px;" /></a> in QGIS, which will open up the
+3D viewer widget of the iMOD plugin.</p>
+<p>First, click the <em>Draw Extent</em> button to draw an extent to be plotted.
+This can be very useful for large datasets, to only look at a smaller zone
+of the data.</p>
+<p>Second, click <em>Start iMOD 3D viewer</em> to start the iMOD 3D viewer.
+Third, click <em>Load mesh data</em> to load the mesh you selected in the QGIS widget
+to be opened in the 3D viewer.</p>
+<p>Fourth, to plot the data, under the <em>Imported files</em>,
+expand the data selection tree, and under <em>Layered datasets</em>, selecting <em>conc</em>.</p>
+<p>Finally, you can migrate the colormap you used in QGIS by clicking <em>Load legend</em>.</p>
+<figure class="align-default" id="id7">
+<img alt="_images/3d_viewer.png" src="_images/3d_viewer.png" />
+<figcaption>
+<p><span class="caption-number">Fig. 1.5.2 </span><span class="caption-text">If you followed the instructions, you should see this.</span><a class="headerlink" href="#id7" title="Permalink to this image">¶</a></p>
+</figcaption>
+</figure>
+</section>
+<section id="concluding">
+<h2><span class="section-number">1.6. </span>Concluding<a class="headerlink" href="#concluding" title="Permalink to this headline">¶</a></h2>
+<p>In short, we wrote model input with iMOD-python, ran a model with iMOD-WQ,
+converted its output to UGRID with iMOD-python, and viewed the results in QGIS
+and the iMOD 3D viewer.</p>
+</section>
+</section>
+
+
+              </div>
+              
+              
+              <!-- Previous / next buttons -->
+<div class='prev-next-area'>
+    <a class='left-prev' id="prev-link" href="workflow_index.html" title="previous page">
+        <i class="fas fa-angle-left"></i>
+        <div class="prev-next-info">
+            <p class="prev-next-subtitle">previous</p>
+            <p class="prev-next-title">Example workflows</p>
+        </div>
+    </a>
+    <a class='right-next' id="next-link" href="further_links.html" title="next page">
+    <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Further Links</p>
+    </div>
+    <i class="fas fa-angle-right"></i>
+    </a>
+</div>
+              
+          </main>
+          
+
+      </div>
+    </div>
+  
+    <script src="_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf"></script>
+  <footer class="footer mt-5 mt-md-0">
+  <div class="container">
+    
+    <div class="footer-item">
+      <p class="copyright">
+    &copy; Copyright Deltares.<br>
+</p>
+    </div>
+    
+    <div class="footer-item">
+      <p class="sphinx-version">
+Created using <a href="http://sphinx-doc.org/">Sphinx</a> 4.4.0.<br>
+</p>
+    </div>
+    
+  </div>
+</footer>
+  </body>
+</html>

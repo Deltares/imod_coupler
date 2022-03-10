@@ -1,0 +1,319 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>4. Known Issues &#8212; iMOD Suite  documentation</title>
+    
+    <link href="_static/styles/theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
+<link href="_static/styles/pydata-sphinx-theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
+  
+    
+    <link rel="stylesheet"
+      href="_static/vendor/fontawesome/5.13.0/css/all.min.css">
+    <link rel="preload" as="font" type="font/woff2" crossorigin
+      href="_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+    <link rel="preload" as="font" type="font/woff2" crossorigin
+      href="_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+  
+    
+      
+  
+    
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/pydata-sphinx-theme.css" />
+    <link rel="stylesheet" type="text/css" href="_static/theme-deltares.css" />
+    
+    <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf">
+  
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="iMOD Python" href="python_index.html" />
+    <link rel="prev" title="3. 3D Viewer User Manual" href="3dviewer_user_manual.html" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="docsearch:language" content="en">
+    
+
+    <!-- Google Analytics -->
+    
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+    <div class="container-fluid" id="banner"></div>
+
+    
+  <nav class="navbar navbar-dark navbar-expand-lg bg-deltares fixed-top bd-navbar shadow" id="navbar-main"><div class="container-xl">
+
+    <a class="navbar-brand" href="index.html">
+    <p style="color:#fff;font-size:25px;" class="title">iMOD Suite</p>
+    </a>
+
+    <a class="navbar-brand" href="index.html">
+    <img src="_static/iMOD_letters.svg" class="logo" alt="logo" />
+    </a>
+  
+    <div id="navbar-menu" class="collapse navbar-collapse">
+      <ul id="navbar-main-elements" class="navbar-nav">
+        <li class="toctree-l1 current active nav-item">
+ <a class="reference internal nav-link" href="viewer_index.html">
+  iMOD Viewer
+ </a>
+</li>
+
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="python_index.html">
+  iMOD Python
+ </a>
+</li>
+
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="coupler_index.html">
+  iMOD Coupler
+ </a>
+</li>
+
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="workflow_index.html">
+  Example workflows
+ </a>
+</li>
+
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="further_links.html">
+  Further Links
+ </a>
+</li>
+
+        
+      </ul>
+    </div>
+
+    <a class="navbar-brand" href="https://www.deltares.nl/en/">
+    <img src="_static/deltares-white.svg" class="logo" alt="logo" />
+    </a>
+
+</div>
+  </nav>
+
+
+    <div class="container-xl">
+      <div class="row">
+          
+            
+            <!-- Only show if we have sidebars configured, else just a small margin  -->
+            <div class="col-12 col-md-3 bd-sidebar">
+              <div class="sidebar-start-items"><form class="bd-search d-flex align-items-center" action="search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form><nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+  <div class="bd-toc-item active">
+    <ul class="current nav bd-sidenav">
+ <li class="toctree-l1">
+  <a class="reference internal" href="viewer_install.html">
+   1. Install
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="qgis_user_manual.html">
+   2. QGIS Plugin User Manual
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="3dviewer_user_manual.html">
+   3. 3D Viewer User Manual
+  </a>
+ </li>
+ <li class="toctree-l1 current active">
+  <a class="current reference internal" href="#">
+   4. Known Issues
+  </a>
+ </li>
+</ul>
+
+  </div>
+</nav>
+              </div>
+              <div class="sidebar-end-items">
+              </div>
+            </div>
+            
+          
+
+          
+          <div class="d-none d-xl-block col-xl-2 bd-toc">
+            
+              
+              <div class="toc-item">
+                
+<div class="tocsection onthispage pt-5 pb-3">
+    <i class="fas fa-list"></i> On this page
+</div>
+
+<nav id="bd-toc-nav">
+    <ul class="visible nav section-nav flex-column">
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#qgis-plugin">
+   4.1. QGIS plugin
+  </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#id1">
+     4.1.1. Plot axis off
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#ipf-reader-does-not-support-all-ipf-files">
+     4.1.2. IPF reader does not support all IPF files
+    </a>
+   </li>
+  </ul>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#d-viewer">
+   4.2. 3D Viewer
+  </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#msvcr100-dll-missing">
+     4.2.1. MSVCR100.dll missing
+    </a>
+   </li>
+  </ul>
+ </li>
+</ul>
+
+</nav>
+              </div>
+              
+              <div class="toc-item">
+                
+              </div>
+              
+            
+          </div>
+          
+
+          
+          
+            
+          
+          <main class="col-12 col-md-9 col-xl-7 py-md-5 pl-md-5 pr-md-4 bd-content" role="main">
+              
+              <div>
+                
+  <section id="known-issues">
+<h1><span class="section-number">4. </span>Known Issues<a class="headerlink" href="#known-issues" title="Permalink to this headline">¶</a></h1>
+<section id="qgis-plugin">
+<span id="plot-axis-off"></span><h2><span class="section-number">4.1. </span>QGIS plugin<a class="headerlink" href="#qgis-plugin" title="Permalink to this headline">¶</a></h2>
+<section id="id1">
+<h3><span class="section-number">4.1.1. </span>Plot axis off<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
+<p>In the QGIS plugin,
+a weird offset in the plot axis can occur when you use a multiple monitor setup.
+Both the Time series widget as well as the Cross-section widget can suffer from this.</p>
+<figure class="align-default" id="id2">
+<img alt="_images/plot_axis_offset.png" src="_images/plot_axis_offset.png" />
+<figcaption>
+<p><span class="caption-number">Fig. 4.1.1 </span><span class="caption-text">Notice the y-axis being moved too high and
+the x-axis being scaled weirdly.</span><a class="headerlink" href="#id2" title="Permalink to this image">¶</a></p>
+</figcaption>
+</figure>
+<p>So far we haven’t been able to fix it in the code,
+so you can fix this as a user by either:</p>
+<ul class="simple">
+<li><p>Moving your QGIS application to the <strong>main window</strong> of your monitor setup</p></li>
+<li><p>In Windows, navigate to <em>Settings &gt; Display</em> then under
+<em>Rearrange your displays</em> select the monitor you want to view QGIS on,
+and finally tick the box <em>Make this my main display</em></p></li>
+</ul>
+</section>
+<section id="ipf-reader-does-not-support-all-ipf-files">
+<h3><span class="section-number">4.1.2. </span>IPF reader does not support all IPF files<a class="headerlink" href="#ipf-reader-does-not-support-all-ipf-files" title="Permalink to this headline">¶</a></h3>
+<p>Currently the IPF reader is not able to read every IPF file,
+as iMOD 5 supports quite a wide range of IPF files.
+For example, iMOD 5 supports both whitespace and comma seperated files,
+whereas the QGIS plugin only supports comma seperated IPF files.
+If the plugin is unable to read your IPF file,
+it is best to
+<a class="reference external" href="https://deltares.gitlab.io/imod/imod-python/api/generated/io/imod.ipf.read.html">read the file with iMOD Python</a>
+and consequently
+<a class="reference external" href="https://deltares.gitlab.io/imod/imod-python/api/generated/io/imod.ipf.write.html">write it again</a>.
+This can help, because the IPF reader in iMOD Python
+is a lot more flexible, but its writer always writes
+to a specific format.
+We plan to improve the flexibility of the plugin’s IPF reader.</p>
+</section>
+</section>
+<section id="d-viewer">
+<h2><span class="section-number">4.2. </span>3D Viewer<a class="headerlink" href="#d-viewer" title="Permalink to this headline">¶</a></h2>
+<section id="msvcr100-dll-missing">
+<h3><span class="section-number">4.2.1. </span>MSVCR100.dll missing<a class="headerlink" href="#msvcr100-dll-missing" title="Permalink to this headline">¶</a></h3>
+<p>You might get an error at startup of the 3D viewer, such as:
+<em>“The code execution cannot proceed because MSVCR100.dll was not found.
+Reinstalling the progam may fix the problem”</em></p>
+<p>This usually happens on a clean machine, which has not yet installed the
+Microsoft Visual C++ 2010 redistributable.
+<a class="reference external" href="https://www.microsoft.com/en-us/download/details.aspx?id=26999">You can download it here</a></p>
+<p>Make sure to check if you have a 32-bit or 64-bit Windows version on your
+system and consequently installing the right version of the redistributable.
+You can find this out pressing the Windows key (or clicking <em>Start</em>) and typing
+<em>System Information</em>. Click it, and look under <em>“System Type”</em>. If it says
+<em>x64-based PC</em>, you have a 64-bit system.</p>
+</section>
+</section>
+</section>
+
+
+              </div>
+              
+              
+              <!-- Previous / next buttons -->
+<div class='prev-next-area'>
+    <a class='left-prev' id="prev-link" href="3dviewer_user_manual.html" title="previous page">
+        <i class="fas fa-angle-left"></i>
+        <div class="prev-next-info">
+            <p class="prev-next-subtitle">previous</p>
+            <p class="prev-next-title"><span class="section-number">3. </span>3D Viewer User Manual</p>
+        </div>
+    </a>
+    <a class='right-next' id="next-link" href="python_index.html" title="next page">
+    <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">iMOD Python</p>
+    </div>
+    <i class="fas fa-angle-right"></i>
+    </a>
+</div>
+              
+          </main>
+          
+
+      </div>
+    </div>
+  
+    <script src="_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf"></script>
+  <footer class="footer mt-5 mt-md-0">
+  <div class="container">
+    
+    <div class="footer-item">
+      <p class="copyright">
+    &copy; Copyright Deltares.<br>
+</p>
+    </div>
+    
+    <div class="footer-item">
+      <p class="sphinx-version">
+Created using <a href="http://sphinx-doc.org/">Sphinx</a> 4.4.0.<br>
+</p>
+    </div>
+    
+  </div>
+</footer>
+  </body>
+</html>
