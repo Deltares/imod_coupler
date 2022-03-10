@@ -60,5 +60,5 @@ A technical explanation can be found [here](TECHNICAL.md).
 In order to develop on `imod_coupler` locally, execute the following line inside your virtual environment
 
 ```bash
-pip install -e ".[tests, lint]"
+pip install -e ".[tests, lint, docs]"
 ```
