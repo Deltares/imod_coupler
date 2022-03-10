@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
-    <title>iMOD Suite &#8212; iMOD Suite  documentation</title>
+    <title>iMOD Coupler &#8212; iMOD Coupler  documentation</title>
     
     <link href="_static/styles/theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
 <link href="_static/styles/pydata-sphinx-theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
@@ -35,7 +35,7 @@
     <script src="_static/doctools.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="iMOD Viewer" href="viewer_index.html" />
+    <link rel="next" title="Further Links" href="further_links.html" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="docsearch:language" content="en">
     
@@ -51,7 +51,7 @@
   <nav class="navbar navbar-dark navbar-expand-lg bg-deltares fixed-top bd-navbar shadow" id="navbar-main"><div class="container-xl">
 
     <a class="navbar-brand" href="#">
-    <p style="color:#fff;font-size:25px;" class="title">iMOD Suite</p>
+    <p style="color:#fff;font-size:25px;" class="title">iMOD Coupler</p>
     </a>
 
     <a class="navbar-brand" href="#">
@@ -61,30 +61,6 @@
     <div id="navbar-menu" class="collapse navbar-collapse">
       <ul id="navbar-main-elements" class="navbar-nav">
         <li class="toctree-l1 nav-item">
- <a class="reference internal nav-link" href="viewer_index.html">
-  iMOD Viewer
- </a>
-</li>
-
-<li class="toctree-l1 nav-item">
- <a class="reference internal nav-link" href="python_index.html">
-  iMOD Python
- </a>
-</li>
-
-<li class="toctree-l1 nav-item">
- <a class="reference internal nav-link" href="coupler_index.html">
-  iMOD Coupler
- </a>
-</li>
-
-<li class="toctree-l1 nav-item">
- <a class="reference internal nav-link" href="workflow_index.html">
-  Example workflows
- </a>
-</li>
-
-<li class="toctree-l1 nav-item">
  <a class="reference internal nav-link" href="further_links.html">
   Further Links
  </a>
@@ -136,13 +112,13 @@
 <nav id="bd-toc-nav">
     <ul class="visible nav section-nav flex-column">
  <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#introduction">
-   Introduction
+  <a class="reference internal nav-link" href="#coupling-to-modflow-6">
+   Coupling to MODFLOW 6
   </a>
  </li>
  <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#comparison-with-imod-5">
-   Comparison with iMOD 5
+  <a class="reference internal nav-link" href="#source-code">
+   Source Code
   </a>
  </li>
 </ul>
@@ -166,262 +142,32 @@
               
               <div>
                 
-  <section id="imod-suite">
-<h1>iMOD Suite<a class="headerlink" href="#imod-suite" title="Permalink to this headline">¶</a></h1>
-<section id="introduction">
-<h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
-<p>The iMOD Suite provides tools to efficiently build and visualize
-groundwater models.</p>
-<p>Deltares is working to integrate and improve our groundwater software.
-Therefore iMOD is extended with a new iMOD Suite to link to the latest
-developments on the MODFLOW and on the changing requirements in the field
-of groundwatermodelling, most pressing currently the support
-of unstructured grids.</p>
-<p>We created the new iMOD Suite to aid pre- and post-processing
-unstructured groundwater models.
-Furthermore, a second goal of this suite was to better connect to
-the latest developments in the data science ecosystem, by utilizing:</p>
-<ul class="simple">
-<li><p>Existing data format conventions (NetCDF, UGRID) instead of
-developing new ones, allowing more user flexibility to find the right
-tools for the right job.</p></li>
-<li><p>Widely used and tested software (QGIS) to which we add our extension,
-instead of creating complete programs ourselves.</p></li>
-<li><p>Modern programming languages (C++ and Python) that
-allow connecting to a big and lively software ecoystem.</p></li>
-</ul>
-<p>The iMOD Suite offers different modules which support
-modelling with MODFLOW 6 (including unstructured meshes):</p>
-<ol class="arabic simple">
-<li><p><a class="reference internal" href="viewer_index.html"><span class="doc">iMOD Viewer</span></a>:
-The iMOD Viewer consist of a standalone 3D viewer and a QGIS plugin. The
-<a class="reference internal" href="qgis_user_manual.html"><span class="doc">iMOD QGIS Plugin</span></a> QGIS plugin allows visualisation
-of model input and output with tools for cross-sections, timeseries and link
-to the 3D viewer. It supports structured NetCDF, UGRID and IPF files. And the
-<a class="reference internal" href="3dviewer_user_manual.html"><span class="doc">iMOD 3D Viewer</span></a> for interactive 3D visualisation
-of unstructured input and output. Supports UGRID file format and IPF borelog
-files.</p></li>
-<li><p><a class="reference internal" href="python_index.html"><span class="doc">iMOD Python</span></a>:
-A Python package to support MODFLOW groundwater modeling. It makes it easy
-to go from your raw data to a fully defined MODFLOW model, with the aim
-to make this workflow reproducable.</p></li>
-<li><p><a class="reference internal" href="coupler_index.html"><span class="doc">iMOD Coupler</span></a>:
-Software that couples MODFLOW 6 to other computational cores. It currently
-supports a coupling to MetaSWAP, but additional computational cores are
-planned in the future.</p></li>
-</ol>
-<figure class="align-default" id="id1">
-<img alt="_images/NHI-zz_cross-section.png" src="_images/NHI-zz_cross-section.png" />
-<figcaption>
-<p><span class="caption-number">Fig. 1 </span><span class="caption-text">Easy plotting of 4 dimensional [t, z, y, x] data in the iMOD QGIS plugin.
-The example shows the chlorine concentrations computed
-by the <a class="reference external" href="https://gitlab.com/deltares/imod/nhi-fresh-salt">NHI fresh-salt model</a>.</span><a class="headerlink" href="#id1" title="Permalink to this image">¶</a></p>
-</figcaption>
-</figure>
-<figure class="align-default" id="id2">
-<img alt="_images/NHI-zz_3d_viewer.png" src="_images/NHI-zz_3d_viewer.png" />
-<figcaption>
-<p><span class="caption-number">Fig. 2 </span><span class="caption-text">The chlorine concentrations computed by the NHI-fresh-salt model
-for the province of Zeeland, plotted in the new iMOD 3D viewer.
-The top layer is made partly transparent,
-creating the pretty mist effect in the creek ridges.</span><a class="headerlink" href="#id2" title="Permalink to this image">¶</a></p>
-</figcaption>
-</figure>
+  <section id="imod-coupler">
+<h1>iMOD Coupler<a class="headerlink" href="#imod-coupler" title="Permalink to this headline">¶</a></h1>
+<section id="coupling-to-modflow-6">
+<h2>Coupling to MODFLOW 6<a class="headerlink" href="#coupling-to-modflow-6" title="Permalink to this headline">¶</a></h2>
+<p>Deltares have worked together with the USGS to create the <a class="reference external" href="https://www.sciencedirect.com/science/article/pii/S1364815221002991">MODFLOW API</a> , based
+on the <a class="reference external" href="https://bmi-spec.readthedocs.io/en/latest/">Basic Model Interface (BMI)</a> with some extensions. The first
+version of this functionality became available with the release of MODFLOW
+6.2.0. BMI is a set of standard control and query functions that, when added to
+a model code, make that model both easier to learn and easier to couple with
+other software elements. Furthermore, the BMI makes it possible to control
+MODFLOW 6 execution from scripting languages using bindings for the BMI.</p>
+<p>We have also developed <a class="reference external" href="https://github.com/Deltares/xmipy">xmipy</a>, a Python
+package with bindings for the API, which allow you to run and update (at
+runtime) a MODFLOW 6 model from Python. This allows coupling MODFLOW 6 to other
+computational cores. One of its first applications is a coupling of MODFLOW 6 to
+MetaSWAP, as part of the
+<a class="reference external" href="https://github.com/Deltares/imod_coupler">iMOD Coupler</a>
+package. Other applications can be found in <a class="reference external" href="https://www.sciencedirect.com/science/article/pii/S1364815221002991">this paper.</a></p>
 </section>
-<section id="comparison-with-imod-5">
-<h2>Comparison with iMOD 5<a class="headerlink" href="#comparison-with-imod-5" title="Permalink to this headline">¶</a></h2>
-<p>The proven technology and expertise of iMOD is consolidated within
-iMOD 5. iMOD 5 supports structured calculations with MODFLOW2005
-and structured MODFLOW 6 and can be coupled to the unsaturated zone
-model MetaSWAP.
-The model input and output can be visualised in its fast interactive viewer.
-<a class="reference external" href="https://oss.deltares.nl/web/imod">The documentation of iMOD 5 can be found here</a>
-.</p>
-<p>Important technological innovations will be developed
-in the new iMOD Suite, whereas iMOD 5 will be maintained the coming years,
-but will see no big new feature developments.
-<a class="reference internal" href="#table-1"><span class="std std-numref">Table 1</span></a> and <a class="reference internal" href="#table-2"><span class="std std-numref">Table 2</span></a> respectively provide comparisons
-between iMOD Suite and iMOD 5 for the components and supported MODFLOW6 packages.</p>
-<span id="table-1"></span><table class="table" id="id3">
-<caption><span class="caption-number">Table 1 </span><span class="caption-text">Comparison between iMOD Suite &amp; iMOD 5</span><a class="headerlink" href="#id3" title="Permalink to this table">¶</a></caption>
-<colgroup>
-<col style="width: 33%" />
-<col style="width: 33%" />
-<col style="width: 33%" />
-</colgroup>
-<thead>
-<tr class="row-odd"><th class="head stub"></th>
-<th class="head"><p>iMOD Suite</p></th>
-<th class="head"><p>iMOD 5</p></th>
-</tr>
-</thead>
-<tbody>
-<tr class="row-even"><th class="stub"><p>computational kernels</p></th>
-<td><p>MODFLOW 2005, MODFLOW 6, SEAWAT, MT3DMS</p></td>
-<td><p>MODFLOW 2005, MODFLOW 6, SEAWAT, MT3DMS, MetaSWAP</p></td>
-</tr>
-<tr class="row-odd"><th class="stub"><p>file types</p></th>
-<td><p>NetCDF, UGRID, shp, tiff, idf, ipf, gen</p></td>
-<td><p>idf, ipf, isg, gen</p></td>
-</tr>
-<tr class="row-even"><th class="stub"><p>grid types</p></th>
-<td><p>structured &amp; unstructured</p></td>
-<td><p>structured &amp; nested structured</p></td>
-</tr>
-<tr class="row-odd"><th class="stub"><p>scripted pre-processing</p></th>
-<td><p>iMOD Python</p></td>
-<td><p>iMOD Batch</p></td>
-</tr>
-<tr class="row-even"><th class="stub"><p>interactive pre-processing</p></th>
-<td><p>(QGIS)</p></td>
-<td><p>iMOD GUI</p></td>
-</tr>
-<tr class="row-odd"><th class="stub"><p>scripted 2D plot</p></th>
-<td><p>iMOD Python</p></td>
-<td><p>iMOD Batch</p></td>
-</tr>
-<tr class="row-even"><th class="stub"><p>interactive 2D plot</p></th>
-<td><p>iMOD QGIS plugin (&amp; QGIS)</p></td>
-<td><p>iMOD GUI</p></td>
-</tr>
-<tr class="row-odd"><th class="stub"><p>scripted 3D plot</p></th>
-<td><p>iMOD Python</p></td>
-<td></td>
-</tr>
-<tr class="row-even"><th class="stub"><p>interactive 3D plot</p></th>
-<td><p>iMOD 3D Viewer</p></td>
-<td><p>iMOD GUI</p></td>
-</tr>
-</tbody>
-</table>
-<span id="table-2"></span><table class="colwidths-given table" id="id4">
-<caption><span class="caption-number">Table 2 </span><span class="caption-text">Supported MODFLOW6 flow packages in iMOD Suite &amp; iMOD 5</span><a class="headerlink" href="#id4" title="Permalink to this table">¶</a></caption>
-<colgroup>
-<col style="width: 16%" />
-<col style="width: 42%" />
-<col style="width: 21%" />
-<col style="width: 21%" />
-</colgroup>
-<thead>
-<tr class="row-odd"><th class="head"><p>Package</p></th>
-<th class="head"><p>Description</p></th>
-<th class="head"><p>iMOD Suite</p></th>
-<th class="head"><p>iMOD 5</p></th>
-</tr>
-</thead>
-<tbody>
-<tr class="row-even"><td><p>DIS</p></td>
-<td><p>Structured Discretization</p></td>
-<td><p>x</p></td>
-<td><p>x</p></td>
-</tr>
-<tr class="row-odd"><td><p>DISV</p></td>
-<td><p>Discretization by Vertices</p></td>
-<td><p>x</p></td>
-<td></td>
-</tr>
-<tr class="row-even"><td><p>DISU</p></td>
-<td><p>Structured Discretization</p></td>
-<td></td>
-<td></td>
-</tr>
-<tr class="row-odd"><td><p>IC</p></td>
-<td><p>Initial Conditions</p></td>
-<td><p>x</p></td>
-<td><p>x</p></td>
-</tr>
-<tr class="row-even"><td><p>OC</p></td>
-<td><p>Output Control</p></td>
-<td><p>x</p></td>
-<td><p>x</p></td>
-</tr>
-<tr class="row-odd"><td><p>NPF</p></td>
-<td><p>Node Property Flow</p></td>
-<td><p>x</p></td>
-<td><p>x</p></td>
-</tr>
-<tr class="row-even"><td><p>HFB</p></td>
-<td><p>Horizontal Flow Barrier</p></td>
-<td><p>x</p></td>
-<td><p>x</p></td>
-</tr>
-<tr class="row-odd"><td><p>STO</p></td>
-<td><p>Storage</p></td>
-<td><p>x</p></td>
-<td><p>x</p></td>
-</tr>
-<tr class="row-even"><td><p>CSUB</p></td>
-<td><p>Skeletal Storage, Compaction, and Subsidence</p></td>
-<td></td>
-<td></td>
-</tr>
-<tr class="row-odd"><td><p>BUY</p></td>
-<td><p>Buoyancy</p></td>
-<td></td>
-<td></td>
-</tr>
-<tr class="row-even"><td><p>CHD</p></td>
-<td><p>Constant-Head</p></td>
-<td><p>x</p></td>
-<td><p>x</p></td>
-</tr>
-<tr class="row-odd"><td><p>WEL</p></td>
-<td><p>Well</p></td>
-<td><p>x</p></td>
-<td><p>x</p></td>
-</tr>
-<tr class="row-even"><td><p>DRN</p></td>
-<td><p>Drain</p></td>
-<td><p>x</p></td>
-<td><p>x</p></td>
-</tr>
-<tr class="row-odd"><td><p>RIV</p></td>
-<td><p>River</p></td>
-<td><p>x</p></td>
-<td><p>x</p></td>
-</tr>
-<tr class="row-even"><td><p>GHB</p></td>
-<td><p>General-Head Boundary</p></td>
-<td><p>x</p></td>
-<td><p>x</p></td>
-</tr>
-<tr class="row-odd"><td><p>RCH</p></td>
-<td><p>Recharge</p></td>
-<td><p>x</p></td>
-<td><p>x</p></td>
-</tr>
-<tr class="row-even"><td><p>EVT</p></td>
-<td><p>Evapotranspiration</p></td>
-<td><p>x</p></td>
-<td><p>x</p></td>
-</tr>
-<tr class="row-odd"><td><p>MAW</p></td>
-<td><p>Multi-Aquifer Well</p></td>
-<td></td>
-<td></td>
-</tr>
-<tr class="row-even"><td><p>SFR</p></td>
-<td><p>Streamflow Routing</p></td>
-<td></td>
-<td><p>x</p></td>
-</tr>
-<tr class="row-odd"><td><p>LAK</p></td>
-<td><p>Lake</p></td>
-<td></td>
-<td></td>
-</tr>
-<tr class="row-even"><td><p>UZF</p></td>
-<td><p>Unsaturated Zone Flow</p></td>
-<td><p>x</p></td>
-<td></td>
-</tr>
-<tr class="row-odd"><td><p>MVR</p></td>
-<td><p>Water Mover</p></td>
-<td></td>
-<td></td>
-</tr>
-</tbody>
-</table>
+<section id="source-code">
+<h2>Source Code<a class="headerlink" href="#source-code" title="Permalink to this headline">¶</a></h2>
+<p>The developments on <code class="docutils literal notranslate"><span class="pre">xmipy</span></code> can be found on:
+<a class="reference external" href="https://github.com/Deltares/xmipy">https://github.com/Deltares/xmipy</a></p>
+<p>The example of <code class="docutils literal notranslate"><span class="pre">imod_coupler</span></code> with the coupling between MODFLOW 6 and the
+unsaturated zone model MetaSWAP can be found on:
+<a class="reference external" href="https://github.com/Deltares/imod_coupler">https://github.com/Deltares/imod_coupler</a></p>
 <div class="toctree-wrapper compound">
 </div>
 </section>
@@ -433,10 +179,10 @@ between iMOD Suite and iMOD 5 for the components and supported MODFLOW6 packages
               
               <!-- Previous / next buttons -->
 <div class='prev-next-area'>
-    <a class='right-next' id="next-link" href="viewer_index.html" title="next page">
+    <a class='right-next' id="next-link" href="further_links.html" title="next page">
     <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">iMOD Viewer</p>
+        <p class="prev-next-title">Further Links</p>
     </div>
     <i class="fas fa-angle-right"></i>
     </a>
