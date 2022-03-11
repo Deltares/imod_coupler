@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
-    <title>Further Links &#8212; iMOD Coupler  documentation</title>
+    <title>Configuration file &#8212; iMOD Coupler  documentation</title>
     
     <link href="_static/styles/theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
 <link href="_static/styles/pydata-sphinx-theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
@@ -73,7 +73,7 @@
 
 <li class="toctree-l1 current active nav-item">
  <a class="current reference internal nav-link" href="#">
-  Further Links
+  Configuration file
  </a>
 </li>
 
@@ -116,29 +116,9 @@
               
               <div class="toc-item">
                 
-<div class="tocsection onthispage pt-5 pb-3">
-    <i class="fas fa-list"></i> On this page
-</div>
 
 <nav id="bd-toc-nav">
-    <ul class="visible nav section-nav flex-column">
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#videos">
-   Videos
-  </a>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#practical-tips">
-   Practical Tips
-  </a>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#source-code">
-   Source Code
-  </a>
- </li>
-</ul>
-
+    
 </nav>
               </div>
               
@@ -158,34 +138,36 @@
               
               <div>
                 
-  <section id="further-links">
-<h1>Further Links<a class="headerlink" href="#further-links" title="Permalink to this headline">¶</a></h1>
-<section id="videos">
-<h2>Videos<a class="headerlink" href="#videos" title="Permalink to this headline">¶</a></h2>
-<p>A list of videos which are iMOD Suite related are shown below.</p>
-<ul class="simple">
-<li><p><a class="reference external" href="https://oss.deltares.nl/web/imod/-/international-imod-user-day-2021">DSD 2021 with explanation iMOD viewer and iMOD-python and 3D viewer</a></p></li>
-</ul>
-</section>
-<section id="practical-tips">
-<h2>Practical Tips<a class="headerlink" href="#practical-tips" title="Permalink to this headline">¶</a></h2>
-<p>We also maintain documentation with general practical and technical tips.
-It varies from fixing specific Powershell errors to a full explanation on how
-to do proper version control of both your data and scripts with Git and DVC.</p>
-<p><a class="reference external" href="https://deltares.gitlab.io/imod/imod-practical-tips/">iMOD Practical tips</a></p>
-</section>
-<section id="source-code">
-<h2>Source Code<a class="headerlink" href="#source-code" title="Permalink to this headline">¶</a></h2>
-<p>Below is the list of repositories that contain
-the source code of the individual components.
-You can raise issues, or suggest changes, here.</p>
-<ul class="simple">
-<li><p><a class="reference external" href="https://github.com/Deltares/iMOD-Documentation">iMOD Documentation Github</a></p></li>
-<li><p><a class="reference external" href="https://github.com/Deltares/imod-qgis">iMOD QGIS plugin Github</a></p></li>
-<li><p><a class="reference external" href="https://github.com/Deltares/imod-gui">iMOD 3D Viewer Github</a></p></li>
-<li><p><a class="reference external" href="https://gitlab.com/deltares/imod/imod-python">iMOD Python Gitlab</a></p></li>
-</ul>
-</section>
+  <section id="configuration-file">
+<h1>Configuration file<a class="headerlink" href="#configuration-file" title="Permalink to this headline">¶</a></h1>
+<p>The configuration file is necessary to describe the model and its
+dependencies. It is in the <a class="reference external" href="https://toml.io/en/">toml</a> format and
+should have a <code class="docutils literal notranslate"><span class="pre">.toml</span></code> extension.</p>
+<p>Note that <code class="docutils literal notranslate"><span class="pre">toml</span></code> uses quote marks differently than <code class="docutils literal notranslate"><span class="pre">python</span></code>. Single
+quotes in toml (<code class="docutils literal notranslate"><span class="pre">''</span></code>) are interpreted similarly to how python would
+interpret a rawstring (<code class="docutils literal notranslate"><span class="pre">r''</span></code> or <code class="docutils literal notranslate"><span class="pre">r&quot;&quot;</span></code>), whereas double quotes
+(<code class="docutils literal notranslate"><span class="pre">&quot;&quot;</span></code>) are interpreted in a similar manner to regular strings in
+python (<code class="docutils literal notranslate"><span class="pre">&quot;&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">''</span></code>). This matters for paths on Windows, for which
+we advice to use single quotes.</p>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="c1"># This is a configuration file for the imod_coupler</span><span class="w"></span>
+<span class="c1"># Relative paths are interpreted as relative to the configuration file path</span><span class="w"></span>
+
+<span class="k">[kernels]</span><span class="w"></span>
+<span class="w">    </span><span class="k">[kernels.modflow6]</span><span class="w"></span>
+<span class="w">    </span><span class="n">dll</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&#39;/path/to/libmf6.dll&#39;</span><span class="w"></span>
+<span class="w">    </span><span class="n">model</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&#39;.&#39;</span><span class="w"></span>
+
+<span class="w">    </span><span class="k">[kernels.metaswap]</span><span class="w"></span>
+<span class="w">    </span><span class="n">dll</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&#39;/path/to/MetaSWAP.dll&#39;</span><span class="w"></span>
+<span class="w">    </span><span class="n">model</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&#39;./GWF_1/MSWAPINPUT&#39;</span><span class="w"></span>
+<span class="w">    </span><span class="n">dll_dependency</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&#39;/path/to/MPICHDLL&#39;</span><span class="w"></span>
+
+
+<span class="k">[[exchanges]]</span><span class="w"></span>
+<span class="c1"># Two kernels per exchange</span><span class="w"></span>
+<span class="n">kernels</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s">&#39;modflow6&#39;</span><span class="p">,</span><span class="w"> </span><span class="s">&#39;metaswap&#39;</span><span class="p">]</span><span class="w"></span>
+</pre></div>
+</div>
 </section>
 
 
