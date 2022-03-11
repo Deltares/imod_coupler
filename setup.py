@@ -43,7 +43,7 @@ setup(
             "black",
             "isort",
         ],
-        "docs": ["sphinx", "sphinx_rtd_theme"],
+        "docs": ["sphinx", "pydata-sphinx-theme"],
     },
     packages=find_namespace_packages(exclude=("tests", "examples")),
     version=get_version("imod_coupler/__init__.py"),
