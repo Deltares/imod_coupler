@@ -40,4 +40,4 @@ https://github.com/Deltares/imod_coupler
    :hidden:
 
    technical
-   further_links
+   configuration
