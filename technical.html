@@ -49,24 +49,29 @@
     <div class="container-fluid" id="banner"></div>
 
     
-  <nav class="navbar navbar-dark navbar-expand-lg bg-deltares fixed-top bd-navbar shadow" id="navbar-main"><div class="container-xl">
-  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-menu"
-    aria-controls="navbar-menu" aria-expanded="false" aria-label="Toggle navigation">
+    <nav class="navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main"><div class="container-xl">
+
+  <div id="navbar-start">
+    
+    
+<a class="navbar-brand" href="index.html">
+<p class="title">iMOD Coupler</p>
+</a>
+
+    
+  </div>
+
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-collapsible" aria-controls="navbar-collapsible" aria-expanded="false" aria-label="Toggle navigation">
     <span class="navbar-toggler-icon"></span>
   </button>
 
-
-  <a class="navbar-brand" href="index.html">
-    <p style="color:#fff;font-size:25px;" class="title">iMOD Coupler</p>
-  </a>
-
-  <a class="navbar-brand" href="index.html">
-    <img src="_static/iMOD_letters.svg" class="logo" alt="logo" />
-  </a>
-
-  <div id="navbar-menu" class="collapse navbar-collapse">
-    <ul id="navbar-main-elements" class="navbar-nav">
-      <li class="toctree-l1 current active nav-item">
+  
+  <div id="navbar-collapsible" class="col-lg-9 collapse navbar-collapse">
+    <div id="navbar-center" class="mr-auto">
+      
+      <div class="navbar-center-item">
+        <ul id="navbar-main-elements" class="navbar-nav">
+    <li class="toctree-l1 current active nav-item">
  <a class="current reference internal nav-link" href="#">
   Technical Reference
  </a>
@@ -78,17 +83,27 @@
  </a>
 </li>
 
+    
+</ul>
+      </div>
       
-    </ul>
+    </div>
+
+    <div id="navbar-end">
+      
+      <div class="navbar-end-item">
+        <ul id="navbar-icon-links" class="navbar-nav" aria-label="Icon Links">
+        <li class="nav-item">
+          <a class="nav-link" href="https://deltares.nl/en/" rel="noopener" target="_blank" title="Deltares"><img src="_static/deltares-white.svg" class="icon-link-image" alt="Deltares"/></a>
+        </li>
+      </ul>
+      </div>
+      
+    </div>
   </div>
-
-  <a class="navbar-brand" href="https://www.deltares.nl/en/">
-    <img src="_static/deltares-white.svg" class="logo" alt="logo" />
-  </a>
-
 </div>
-  </nav>
-
+    </nav>
+    
 
     <div class="container-xl">
       <div class="row">
