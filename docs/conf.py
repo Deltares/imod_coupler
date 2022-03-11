@@ -114,7 +114,6 @@ html_logo = "_static/imod-python-logo.svg"
 htmlhelp_basename = "imoddoc"
 
 
-
 # -- Options for manual page output ------------------------------------------
 
 # One entry per manual page. List of tuples
