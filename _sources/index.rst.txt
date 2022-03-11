@@ -39,4 +39,5 @@ https://github.com/Deltares/imod_coupler
 .. toctree::
    :hidden:
 
+   technical
    further_links

@@ -1,0 +1,438 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>Technical Reference &#8212; iMOD Coupler  documentation</title>
+    
+    <link href="_static/styles/theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
+<link href="_static/styles/pydata-sphinx-theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
+  
+    
+    <link rel="stylesheet"
+      href="_static/vendor/fontawesome/5.13.0/css/all.min.css">
+    <link rel="preload" as="font" type="font/woff2" crossorigin
+      href="_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+    <link rel="preload" as="font" type="font/woff2" crossorigin
+      href="_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+  
+    
+      
+  
+    
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/pydata-sphinx-theme.css" />
+    <link rel="stylesheet" type="text/css" href="_static/theme-deltares.css" />
+    
+    <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf">
+  
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Further Links" href="further_links.html" />
+    <link rel="prev" title="iMOD Coupler" href="index.html" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="docsearch:language" content="en">
+    
+
+    <!-- Google Analytics -->
+    
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+    <div class="container-fluid" id="banner"></div>
+
+    
+  <nav class="navbar navbar-dark navbar-expand-lg bg-deltares fixed-top bd-navbar shadow" id="navbar-main"><div class="container-xl">
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-menu"
+    aria-controls="navbar-menu" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+
+
+  <a class="navbar-brand" href="index.html">
+    <p style="color:#fff;font-size:25px;" class="title">iMOD Coupler</p>
+  </a>
+
+  <a class="navbar-brand" href="index.html">
+    <img src="_static/iMOD_letters.svg" class="logo" alt="logo" />
+  </a>
+
+  <div id="navbar-menu" class="collapse navbar-collapse">
+    <ul id="navbar-main-elements" class="navbar-nav">
+      <li class="toctree-l1 current active nav-item">
+ <a class="current reference internal nav-link" href="#">
+  Technical Reference
+ </a>
+</li>
+
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="further_links.html">
+  Further Links
+ </a>
+</li>
+
+      
+    </ul>
+  </div>
+
+  <a class="navbar-brand" href="https://www.deltares.nl/en/">
+    <img src="_static/deltares-white.svg" class="logo" alt="logo" />
+  </a>
+
+</div>
+  </nav>
+
+
+    <div class="container-xl">
+      <div class="row">
+          
+            
+            <!-- Only show if we have sidebars configured, else just a small margin  -->
+            <div class="col-12 col-md-3 bd-sidebar">
+              <div class="sidebar-start-items"><form class="bd-search d-flex align-items-center" action="search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form><nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+  <div class="bd-toc-item active">
+    
+  </div>
+</nav>
+              </div>
+              <div class="sidebar-end-items">
+              </div>
+            </div>
+            
+          
+
+          
+          <div class="d-none d-xl-block col-xl-2 bd-toc">
+            
+              
+              <div class="toc-item">
+                
+<div class="tocsection onthispage pt-5 pb-3">
+    <i class="fas fa-list"></i> On this page
+</div>
+
+<nav id="bd-toc-nav">
+    <ul class="visible nav section-nav flex-column">
+ <li class="toc-h1 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#">
+   Technical Reference
+  </a>
+  <ul class="visible nav section-nav flex-column">
+   <li class="toc-h2 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#general-description">
+     General description
+    </a>
+   </li>
+  </ul>
+ </li>
+ <li class="toc-h1 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#files">
+   Files
+  </a>
+  <ul class="visible nav section-nav flex-column">
+   <li class="toc-h2 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#metaswap">
+     MetaSWAP
+    </a>
+    <ul class="nav section-nav flex-column">
+     <li class="toc-h3 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#mod2svat-inp">
+       mod2svat.inp
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toc-h2 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#modflow6">
+     Modflow6
+    </a>
+    <ul class="nav section-nav flex-column">
+     <li class="toc-h3 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#filename-rch">
+       [filename].rch
+      </a>
+     </li>
+     <li class="toc-h3 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#filename-wel">
+       [filename].wel
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toc-h2 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#coupler">
+     Coupler
+    </a>
+    <ul class="nav section-nav flex-column">
+     <li class="toc-h3 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#nodenr2svat-dxc">
+       nodenr2svat.dxc
+      </a>
+     </li>
+     <li class="toc-h3 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#rchindex2svat-dxc">
+       rchindex2svat.dxc
+      </a>
+     </li>
+     <li class="toc-h3 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#wellindex2svat-dxc">
+       wellindex2svat.dxc
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toc-h2 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#how-to-define-a-second-stress-package-for-modflow6">
+     How to define a second stress package for Modflow6
+    </a>
+   </li>
+  </ul>
+ </li>
+</ul>
+
+</nav>
+              </div>
+              
+              <div class="toc-item">
+                
+              </div>
+              
+            
+          </div>
+          
+
+          
+          
+            
+          
+          <main class="col-12 col-md-9 col-xl-7 py-md-5 pl-md-5 pr-md-4 bd-content" role="main">
+              
+              <div>
+                
+  <section id="technical-reference">
+<h1>Technical Reference<a class="headerlink" href="#technical-reference" title="Permalink to this headline">¶</a></h1>
+<section id="general-description">
+<h2>General description<a class="headerlink" href="#general-description" title="Permalink to this headline">¶</a></h2>
+<p>This document describes how MetaSWAP and MODFLOW6 are coupled. It is
+intended for groundwater modellers, who need to know which variables are
+exchanged between computational kernels and at which moment. For details
+of the inner workings of the code, we refer to the docstrings in the
+code.</p>
+<p>Below is a flowchart showing the order in which one timestep is
+iteratively solved and when data is exchanged between MetaSWAP and
+MODFLOW6. The data exchange is done as follows.</p>
+<ul class="simple">
+<li><p>When data is exchanged from MODFLOW to MetaSWAP, MODFLOW sets the
+head (i.e. “<code class="docutils literal notranslate"><span class="pre">hgwmodf</span></code>”) in MetaSWAP.</p></li>
+<li><p>When data is exhanged from MetaSWAP to MODFLOW, MetaSWAP provides a
+recharge, sets the storage coefficient, and extracts groundwater from
+deeper layers for sprinkling (if switched on). Currently it sets the
+specific storage (for confined flow), to conform to the previous
+implementation of a MetaSWAP-MODFLOW coupling. A recharge package
+(RCH) is required in the MODFLOW6 model to facilitate the recharge
+flux of MetaSWAP. Furthermore, a well package (WEL) is required to
+facilitate the extraction of groundwater for MetaSWAP’s sprinkling.</p></li>
+</ul>
+<img alt="_images/MF6BMI_coupling.png" class="align-center" src="_images/MF6BMI_coupling.png" />
+</section>
+</section>
+<section id="files">
+<h1>Files<a class="headerlink" href="#files" title="Permalink to this headline">¶</a></h1>
+<p>The following files are required to couple the two model codes. These
+files provide the mappings from MODFLOW indices to the MetaSWAP svats.</p>
+<p>MetaSWAP requires the file:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">mod2svat.inp</span></code></p></li>
+</ul>
+<p>Modflow6 requires the files:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">[filename].rch</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[filename].wel</span></code> (optional)</p></li>
+</ul>
+<p>The coupler itself requires the following files:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">nodenr2svat.dxc</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">rchindex2svat.dxc</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">wellindex2svat.dxc</span></code> (optional)</p></li>
+</ul>
+<p>Below we will describe the format for each file.</p>
+<section id="metaswap">
+<h2>MetaSWAP<a class="headerlink" href="#metaswap" title="Permalink to this headline">¶</a></h2>
+<section id="mod2svat-inp">
+<h3>mod2svat.inp<a class="headerlink" href="#mod2svat-inp" title="Permalink to this headline">¶</a></h3>
+<p>The file format for this file is also described in the <a class="reference external" href="ftp://ftp.wur.nl/simgro/doc/Report_913_3_V8_0_0_7.pdf">SIMGRO IO
+manual</a>. It is
+as follows:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">node_nr</span> <span class="n">svat</span> <span class="n">ly</span>
+<span class="o">...</span>
+</pre></div>
+</div>
+<p>Were <code class="docutils literal notranslate"><span class="pre">node_nr</span></code> is the MODFLOW6 node number (to be specific: the user
+node number), which which replaces the MODFLOW 2005 CellID. <code class="docutils literal notranslate"><span class="pre">svat</span></code> is
+the MetaSWAP svat number and <code class="docutils literal notranslate"><span class="pre">ly</span></code> is the Modflow layer number. Note
+that the format for this file should be fixed to</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">nodenr</span><span class="si">:</span><span class="s2">10d</span><span class="si">}</span><span class="s2">  </span><span class="si">{</span><span class="n">svat</span><span class="si">:</span><span class="s2">10d</span><span class="si">}{</span><span class="n">ly</span><span class="si">:</span><span class="s2">2d</span><span class="si">}</span><span class="s2">&quot;</span>
+</pre></div>
+</div>
+<p>where the number behind the colon indicates the number of characters,
+padded with whitespace. Note the two whitespaces between <code class="docutils literal notranslate"><span class="pre">nodenr</span></code> and
+<code class="docutils literal notranslate"><span class="pre">svat</span></code>.</p>
+</section>
+</section>
+<section id="modflow6">
+<h2>Modflow6<a class="headerlink" href="#modflow6" title="Permalink to this headline">¶</a></h2>
+<section id="filename-rch">
+<h3>[filename].rch<a class="headerlink" href="#filename-rch" title="Permalink to this headline">¶</a></h3>
+<p>A dummy recharge file, of which the fluxes will be overrided. The
+location of the recharge cells is used to assign an recharge index by
+Modflow6. The file format of the .rch file is described
+<a class="reference external" href="https://modflow6.readthedocs.io/en/latest/_mf6io/gwf-rch.html">here</a>.
+To specify an uncoupled recharge as well, a second RCH package should be
+defined. How to define a second stress package is explained
+<a class="reference external" href="#how-to-define-a-second-stress-package-for-modflow6">here</a>. Please
+note that in the model name file the <a class="reference external" href="https://modflow6.readthedocs.io/en/latest/_mf6io/gwf-nam.html#block-packages">package
+name</a>
+has to be defined as “RCH_MSW”.</p>
+</section>
+<section id="filename-wel">
+<h3>[filename].wel<a class="headerlink" href="#filename-wel" title="Permalink to this headline">¶</a></h3>
+<p>A dummy well file, of which the fluxes will be overrided. The location
+of the wells is used to assign an well index by Modflow6. The file
+format of the .wel file is described
+<a class="reference external" href="https://modflow6.readthedocs.io/en/latest/_mf6io/gwf-wel.html">here</a>.
+To specify uncoupled extractions/injections as well, a second WEL
+package should be defined. How to define a second stress package is
+explained
+<a class="reference external" href="#how-to-define-a-second-stress-package-for-modflow6">here</a>. Please
+note that in the model name file the <a class="reference external" href="https://modflow6.readthedocs.io/en/latest/_mf6io/gwf-nam.html#block-packages">package
+name</a>
+has to be defined as “WELLS_MSW”.</p>
+</section>
+</section>
+<section id="coupler">
+<h2>Coupler<a class="headerlink" href="#coupler" title="Permalink to this headline">¶</a></h2>
+<section id="nodenr2svat-dxc">
+<h3>nodenr2svat.dxc<a class="headerlink" href="#nodenr2svat-dxc" title="Permalink to this headline">¶</a></h3>
+<p>This file takes care of mapping the MODFLOW node numbers to the MetaSWAP
+svats, which is required for coupling the heads and storages of both
+kernels, it thus excludes nodes connected where wells are for
+sprinkling. The file format is as follows:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">node_nr</span> <span class="n">svat</span> <span class="n">ly</span>
+<span class="o">...</span>
+</pre></div>
+</div>
+<p>Where <code class="docutils literal notranslate"><span class="pre">node_nr</span></code> is the MODFLOW6 node number (to be specific: the user
+node number), which replaces the MODFLOW 2005 CellID. <code class="docutils literal notranslate"><span class="pre">svat</span></code> is the
+MetaSWAP svat number and <code class="docutils literal notranslate"><span class="pre">ly</span></code> is the Modflow layer number.</p>
+</section>
+<section id="rchindex2svat-dxc">
+<h3>rchindex2svat.dxc<a class="headerlink" href="#rchindex2svat-dxc" title="Permalink to this headline">¶</a></h3>
+<p>This file takes care of mapping the recharge cells to the MetaSWAP
+svats. The file format is as follows:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">rch_index</span> <span class="n">svat</span> <span class="n">ly</span>
+<span class="o">...</span>
+</pre></div>
+</div>
+<p>Where <code class="docutils literal notranslate"><span class="pre">rch_index</span></code> is the MODFLOW6 RCH index number, which equals the
+row number of the data specified under <code class="docutils literal notranslate"><span class="pre">period</span></code> in the <code class="docutils literal notranslate"><span class="pre">.rch</span></code> file.
+<code class="docutils literal notranslate"><span class="pre">svat</span></code> is the MetaSWAP svat number and <code class="docutils literal notranslate"><span class="pre">ly</span></code> is the Modflow layer
+number.</p>
+</section>
+<section id="wellindex2svat-dxc">
+<h3>wellindex2svat.dxc<a class="headerlink" href="#wellindex2svat-dxc" title="Permalink to this headline">¶</a></h3>
+<p>This file takes care of mapping MODFLOW wells to the MetaSWAP svats for
+sprinkling. The file format is as follows:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">well_index</span> <span class="n">svat</span> <span class="n">ly</span>
+<span class="o">...</span>
+</pre></div>
+</div>
+<p>Where <code class="docutils literal notranslate"><span class="pre">well_index</span></code> is the MODFLOW6 WEL index number, which equals the
+row number of the data specified under <code class="docutils literal notranslate"><span class="pre">period</span></code> in the <code class="docutils literal notranslate"><span class="pre">.wel</span></code> file.
+<code class="docutils literal notranslate"><span class="pre">svat</span></code> is the MetaSWAP svat number and <code class="docutils literal notranslate"><span class="pre">ly</span></code> is the Modflow layer
+number.</p>
+</section>
+</section>
+<section id="how-to-define-a-second-stress-package-for-modflow6">
+<h2>How to define a second stress package for Modflow6<a class="headerlink" href="#how-to-define-a-second-stress-package-for-modflow6" title="Permalink to this headline">¶</a></h2>
+<p>A second stress package (in our case named <code class="docutils literal notranslate"><span class="pre">WELL2</span></code>) can be defined in
+the flow model’s <code class="docutils literal notranslate"><span class="pre">.nam</span></code> file (GWF_1.nam).</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">begin</span> <span class="n">options</span>
+<span class="n">end</span> <span class="n">options</span>
+
+<span class="n">begin</span> <span class="n">packages</span>
+  <span class="n">dis6</span> <span class="n">GWF_1</span><span class="o">/</span><span class="n">dis</span><span class="o">.</span><span class="n">dis</span>
+  <span class="n">chd6</span> <span class="n">GWF_1</span><span class="o">/</span><span class="n">chd</span><span class="o">.</span><span class="n">chd</span>
+  <span class="n">npf6</span> <span class="n">GWF_1</span><span class="o">/</span><span class="n">npf</span><span class="o">.</span><span class="n">npf</span>
+  <span class="n">ic6</span> <span class="n">GWF_1</span><span class="o">/</span><span class="n">ic</span><span class="o">.</span><span class="n">ic</span>
+  <span class="n">wel6</span> <span class="n">GWF_1</span><span class="o">/</span><span class="n">wel</span><span class="o">.</span><span class="n">wel</span> <span class="n">WELLS_MSW</span>
+  <span class="n">wel6</span> <span class="n">GWF_1</span><span class="o">/</span><span class="n">wel2</span><span class="o">.</span><span class="n">wel</span> <span class="n">WELL2</span>
+  <span class="n">sto6</span> <span class="n">GWF_1</span><span class="o">/</span><span class="n">sto</span><span class="o">.</span><span class="n">sto</span>
+  <span class="n">oc6</span> <span class="n">GWF_1</span><span class="o">/</span><span class="n">oc</span><span class="o">.</span><span class="n">oc</span>
+<span class="n">end</span> <span class="n">packages</span>
+</pre></div>
+</div>
+<p>The argument values <code class="docutils literal notranslate"><span class="pre">WELLS_MSW</span></code> and <code class="docutils literal notranslate"><span class="pre">WELL2</span></code>, specify the
+packagenames to be printed in the water budget .lst file. In the case of
+<code class="docutils literal notranslate"><span class="pre">WELLS_MSW</span></code>, this specific name additionally allows <code class="docutils literal notranslate"><span class="pre">imod_coupler</span></code>
+to detect which well package to use for sprinkling.</p>
+</section>
+</section>
+
+
+              </div>
+              
+              
+              <!-- Previous / next buttons -->
+<div class='prev-next-area'>
+    <a class='left-prev' id="prev-link" href="index.html" title="previous page">
+        <i class="fas fa-angle-left"></i>
+        <div class="prev-next-info">
+            <p class="prev-next-subtitle">previous</p>
+            <p class="prev-next-title">iMOD Coupler</p>
+        </div>
+    </a>
+    <a class='right-next' id="next-link" href="further_links.html" title="next page">
+    <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Further Links</p>
+    </div>
+    <i class="fas fa-angle-right"></i>
+    </a>
+</div>
+              
+          </main>
+          
+
+      </div>
+    </div>
+  
+    <script src="_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf"></script>
+  <footer class="footer mt-5 mt-md-0">
+  <div class="container">
+    
+    <div class="footer-item">
+      <p class="copyright">
+    &copy; Copyright Deltares.<br>
+</p>
+    </div>
+    
+    <div class="footer-item">
+      <p class="sphinx-version">
+Created using <a href="http://sphinx-doc.org/">Sphinx</a> 4.4.0.<br>
+</p>
+    </div>
+    
+  </div>
+</footer>
+  </body>
+</html>
