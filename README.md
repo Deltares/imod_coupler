@@ -51,10 +51,6 @@ kernels = ['modflow6', 'metaswap']
 
 ```
 
-## Technical Reference
-
-A technical explanation can be found [here](TECHNICAL.md).
-
 # Contributing
 
 In order to develop on `imod_coupler` locally, execute the following line inside your virtual environment
