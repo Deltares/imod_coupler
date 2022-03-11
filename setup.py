@@ -31,7 +31,7 @@ setup(
     description="The imod_coupler can be used to couple hydrological kernels.",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    author="Deltares",
+    author="Hofer Julian, Martijn Russcher, Robert Leander, Joeri van Engelen",
     url="https://github.com/Deltares/imod-coupler",
     license="LGPL",
     platforms="Windows, Mac OS-X, Linux",
