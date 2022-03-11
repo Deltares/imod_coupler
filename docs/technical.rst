@@ -43,7 +43,7 @@ Modflow6 requires the files:
 -  ``[filename].rch``
 -  ``[filename].wel`` (optional)
 
-The coupler itsself requires the following files:
+The coupler itself requires the following files:
 
 -  ``nodenr2svat.dxc``
 -  ``rchindex2svat.dxc``
@@ -53,8 +53,6 @@ Below we will describe the format for each file.
 
 MetaSWAP
 --------
-
-.. _mod2svatinp:
 
 mod2svat.inp
 ~~~~~~~~~~~~
@@ -84,8 +82,6 @@ padded with whitespace. Note the two whitespaces between ``nodenr`` and
 Modflow6
 --------
 
-.. _filenamerch:
-
 [filename].rch
 ~~~~~~~~~~~~~~
 
@@ -99,8 +95,6 @@ defined. How to define a second stress package is explained
 note that in the model name file the `package
 name <https://modflow6.readthedocs.io/en/latest/_mf6io/gwf-nam.html#block-packages>`__
 has to be defined as "RCH_MSW".
-
-.. _filenamewel:
 
 [filename].wel
 ~~~~~~~~~~~~~~
@@ -120,8 +114,6 @@ has to be defined as "WELLS_MSW".
 Coupler
 -------
 
-.. _nodenr2svatdxc:
-
 nodenr2svat.dxc
 ~~~~~~~~~~~~~~~
 
@@ -139,8 +131,6 @@ Where ``node_nr`` is the MODFLOW6 node number (to be specific: the user
 node number), which replaces the MODFLOW 2005 CellID. ``svat`` is the
 MetaSWAP svat number and ``ly`` is the Modflow layer number.
 
-.. _rchindex2svatdxc:
-
 rchindex2svat.dxc
 ~~~~~~~~~~~~~~~~~
 
@@ -156,8 +146,6 @@ Where ``rch_index`` is the MODFLOW6 RCH index number, which equals the
 row number of the data specified under ``period`` in the ``.rch`` file.
 ``svat`` is the MetaSWAP svat number and ``ly`` is the Modflow layer
 number.
-
-.. _wellindex2svatdxc:
 
 wellindex2svat.dxc
 ~~~~~~~~~~~~~~~~~~
