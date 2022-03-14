@@ -1,0 +1,144 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "type": "object",
+    "properties": {
+        "log_level": {
+            "type": "string"
+        },
+        "log_file": {
+            "type": "string"
+        },
+        "timing": {
+            "type": "boolean"
+        },
+        "driver_type": {
+            "type": "string"
+        },
+        "driver": {
+            "type": "object",
+            "properties": {
+                "kernels": {
+                    "type": "object",
+                    "properties": {
+                        "modflow6": {
+                            "type": "object",
+                            "properties": {
+                                "dll": {
+                                    "type": "string"
+                                },
+                                "work_dir": {
+                                    "type": "string"
+                                }
+                            },
+                            "required": [
+                                "dll",
+                                "work_dir"
+                            ]
+                        },
+                        "metaswap": {
+                            "type": "object",
+                            "properties": {
+                                "dll": {
+                                    "type": "string"
+                                },
+                                "dll_dependency_dir": {
+                                    "type": "string"
+                                },
+                                "work_dir": {
+                                    "type": "string"
+                                }
+                            },
+                            "required": [
+                                "dll",
+                                "dll_dependency_dir",
+                                "work_dir"
+                            ]
+                        }
+                    },
+                    "required": [
+                        "modflow6",
+                        "metaswap"
+                    ]
+                },
+                "coupling": {
+                    "type": "array",
+                    "items": [
+                        {
+                            "type": "object",
+                            "properties": {
+                                "enable_sprinkling": {
+                                    "type": "boolean"
+                                },
+                                "mf6_model": {
+                                    "type": "string"
+                                },
+                                "mf6_msw_recharge_pkg": {
+                                    "type": "string"
+                                },
+                                "mf6_msw_well_pkg": {
+                                    "type": "string"
+                                },
+                                "mf6_msw_node_map": {
+                                    "type": "string"
+                                },
+                                "mf6_msw_recharge_map": {
+                                    "type": "string"
+                                },
+                                "mf6_msw_sprinkling_map": {
+                                    "type": "string"
+                                }
+                            },
+                            "required": [
+                                "enable_sprinkling",
+                                "mf6_model",
+                                "mf6_msw_recharge_pkg",
+                                "mf6_msw_well_pkg",
+                                "mf6_msw_node_map",
+                                "mf6_msw_recharge_map",
+                                "mf6_msw_sprinkling_map"
+                            ]
+                        },
+                        {
+                            "type": "object",
+                            "properties": {
+                                "enable_sprinkling": {
+                                    "type": "boolean"
+                                },
+                                "mf6_model": {
+                                    "type": "string"
+                                },
+                                "mf6_msw_recharge_pkg": {
+                                    "type": "string"
+                                },
+                                "mf6_msw_node_map": {
+                                    "type": "string"
+                                },
+                                "mf6_msw_recharge_map": {
+                                    "type": "string"
+                                }
+                            },
+                            "required": [
+                                "enable_sprinkling",
+                                "mf6_model",
+                                "mf6_msw_recharge_pkg",
+                                "mf6_msw_node_map",
+                                "mf6_msw_recharge_map"
+                            ]
+                        }
+                    ]
+                }
+            },
+            "required": [
+                "kernels",
+                "coupling"
+            ]
+        }
+    },
+    "required": [
+        "log_level",
+        "log_file",
+        "timing",
+        "driver_type",
+        "driver"
+    ]
+}
