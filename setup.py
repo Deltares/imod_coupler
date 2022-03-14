@@ -31,11 +31,11 @@ setup(
     description="The imod_coupler can be used to couple hydrological kernels.",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    author="Hofer Julian, Martijn Russcher, Robert Leander, Joeri van Engelen",
+    author="Julian Hofer, Martijn Russcher, Robert Leander, Joeri van Engelen",
     url="https://github.com/Deltares/imod-coupler",
     license="LGPL",
     platforms="Windows, Mac OS-X, Linux",
-    install_requires=["numpy", "scipy", "xmipy>=1.0", "toml"],
+    install_requires=["numpy", "scipy", "xmipy>=1.0", "toml", "jsonschema"],
     extras_require={
         "tests": ["pytest", "pytest-cov"],
         "lint": [

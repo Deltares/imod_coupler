@@ -17,7 +17,7 @@
 
 project = "iMOD Coupler"
 copyright = "Deltares"
-author = "Hofer Julian, Martijn Russcher, Robert Leander, Joeri van Engelen"
+author = "Julian Hofer, Martijn Russcher, Robert Leander, Joeri van Engelen"
 
 
 # -- General configuration ---------------------------------------------------
