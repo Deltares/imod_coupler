@@ -91,17 +91,6 @@ class Config(object):
                 (and there is no default value provided), this error will be raised
         """
 
-        # Create the environment variable string
-        # e.g. IMODC__KERNELS__MODFLOW6__DLL
-        env_variable = "IMODC"
-        for name in path:
-            env_variable = env_variable + "__" + str(name)
-
-        # Check if an environment variable is set to override the config file
-        value = os.environ.get(env_variable)
-        if value:
-            return value
-
         value = self.data
         # Sift through the the config until we reach our option
         for name in path:
