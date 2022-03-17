@@ -39,7 +39,7 @@ setup(
     extras_require={
         "tests": ["pytest", "pytest-cov"],
         "lint": [
-            "flake8",
+            "mypy",
             "black",
             "isort",
         ],
