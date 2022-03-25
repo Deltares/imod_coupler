@@ -1,6 +1,7 @@
 import argparse
 import logging
 import os
+import sys
 import time
 from pathlib import Path
 
@@ -71,4 +72,8 @@ def main() -> None:
 
 if __name__ == "__main__":
     # execute only if run as a script
-    main()
+    try:
+        main()
+    except:
+        logging.exception("iMOD Coupler run failed with: ")
+        sys.exit(1)
