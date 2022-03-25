@@ -13,7 +13,7 @@ from imod_coupler.drivers.metamod.metamod import MetaMod
 logger = logging.getLogger(__name__)
 
 
-def main() -> None:
+def try_main() -> None:
     parser = argparse.ArgumentParser()
 
     parser.add_argument(
@@ -70,10 +70,14 @@ def main() -> None:
         logger.info(f"Total elapsed time: {end-start:0.4f} seconds")
 
 
-if __name__ == "__main__":
-    # execute only if run as a script
+def main() -> None:
     try:
-        main()
+        try_main()
     except:
         logging.exception("iMOD Coupler run failed with: ")
         sys.exit(1)
+
+
+if __name__ == "__main__":
+    # execute only if run as a script
+    main()
