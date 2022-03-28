@@ -5,5 +5,5 @@ class ConfigError(RuntimeError):
         msg (str): The message displayed to the user on error
     """
 
-    def __init__(self, msg):
+    def __init__(self, msg: str):
         super().__init__("%s" % (msg,))

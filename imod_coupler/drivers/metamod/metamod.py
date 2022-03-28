@@ -174,7 +174,6 @@ class MetaMod:
         self.msw_head = self.msw.get_value_ptr("dhgwmod")
         self.msw_volume = self.msw.get_value_ptr("dvsim")
         self.msw_storage = self.msw.get_value_ptr("dsc1sim")
-        self.msw_time = self.msw.get_value_ptr("currenttime")
 
         # create a lookup, with the svat tuples (id, lay) as keys and the
         # metaswap internal indexes as values
