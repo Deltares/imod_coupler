@@ -8,27 +8,24 @@
 
     <title>Technical Reference &#8212; iMOD Coupler  documentation</title>
     
-    <link href="_static/styles/theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
+  <!-- Loaded before other Sphinx assets -->
+  <link href="_static/styles/theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
 <link href="_static/styles/pydata-sphinx-theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
-  
+
     
-    <link rel="stylesheet"
-      href="_static/vendor/fontawesome/5.13.0/css/all.min.css">
-    <link rel="preload" as="font" type="font/woff2" crossorigin
-      href="_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
-    <link rel="preload" as="font" type="font/woff2" crossorigin
-      href="_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
-  
-    
-      
-  
-    
+  <link rel="stylesheet"
+    href="_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="_static/styles/pydata-sphinx-theme.css" />
     <link rel="stylesheet" type="text/css" href="_static/theme-deltares.css" />
     
-    <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf">
-  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf">
+
     <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
     <script src="_static/jquery.js"></script>
     <script src="_static/underscore.js"></script>
@@ -44,7 +41,7 @@
     <!-- Google Analytics -->
     
   </head>
-  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="60">
     
     <div class="container-fluid" id="banner"></div>
 
@@ -132,7 +129,7 @@
               
               <div class="toc-item">
                 
-<div class="tocsection onthispage pt-5 pb-3">
+<div class="tocsection onthispage mt-5 pt-1 pb-3">
     <i class="fas fa-list"></i> On this page
 </div>
 
@@ -235,9 +232,9 @@
               <div>
                 
   <section id="technical-reference">
-<h1>Technical Reference<a class="headerlink" href="#technical-reference" title="Permalink to this headline">¶</a></h1>
+<h1>Technical Reference<a class="headerlink" href="#technical-reference" title="Permalink to this headline">#</a></h1>
 <section id="general-description">
-<h2>General description<a class="headerlink" href="#general-description" title="Permalink to this headline">¶</a></h2>
+<h2>General description<a class="headerlink" href="#general-description" title="Permalink to this headline">#</a></h2>
 <p>This document describes how MetaSWAP and MODFLOW6 are coupled. It is
 intended for groundwater modellers, who need to know which variables are
 exchanged between computational kernels and at which moment. For details
@@ -262,7 +259,7 @@ facilitate the extraction of groundwater for MetaSWAP’s sprinkling.</p></li>
 </section>
 </section>
 <section id="files">
-<h1>Files<a class="headerlink" href="#files" title="Permalink to this headline">¶</a></h1>
+<h1>Files<a class="headerlink" href="#files" title="Permalink to this headline">#</a></h1>
 <p>The following files are required to couple the two model codes. These
 files provide the mappings from MODFLOW indices to the MetaSWAP svats.</p>
 <p>MetaSWAP requires the file:</p>
@@ -282,9 +279,9 @@ files provide the mappings from MODFLOW indices to the MetaSWAP svats.</p>
 </ul>
 <p>Below we will describe the format for each file.</p>
 <section id="metaswap">
-<h2>MetaSWAP<a class="headerlink" href="#metaswap" title="Permalink to this headline">¶</a></h2>
+<h2>MetaSWAP<a class="headerlink" href="#metaswap" title="Permalink to this headline">#</a></h2>
 <section id="mod2svat-inp">
-<h3>mod2svat.inp<a class="headerlink" href="#mod2svat-inp" title="Permalink to this headline">¶</a></h3>
+<h3>mod2svat.inp<a class="headerlink" href="#mod2svat-inp" title="Permalink to this headline">#</a></h3>
 <p>The file format for this file is also described in the <a class="reference external" href="ftp://ftp.wur.nl/simgro/doc/Report_913_3_V8_0_0_7.pdf">SIMGRO IO
 manual</a>. It is
 as follows:</p>
@@ -305,9 +302,9 @@ padded with whitespace. Note the two whitespaces between <code class="docutils l
 </section>
 </section>
 <section id="modflow6">
-<h2>Modflow6<a class="headerlink" href="#modflow6" title="Permalink to this headline">¶</a></h2>
+<h2>Modflow6<a class="headerlink" href="#modflow6" title="Permalink to this headline">#</a></h2>
 <section id="filename-rch">
-<h3>[filename].rch<a class="headerlink" href="#filename-rch" title="Permalink to this headline">¶</a></h3>
+<h3>[filename].rch<a class="headerlink" href="#filename-rch" title="Permalink to this headline">#</a></h3>
 <p>A dummy recharge file, of which the fluxes will be overrided. The
 location of the recharge cells is used to assign an recharge index by
 Modflow6. The file format of the .rch file is described
@@ -320,7 +317,7 @@ name</a>
 has to be defined as “RCH_MSW”.</p>
 </section>
 <section id="filename-wel">
-<h3>[filename].wel<a class="headerlink" href="#filename-wel" title="Permalink to this headline">¶</a></h3>
+<h3>[filename].wel<a class="headerlink" href="#filename-wel" title="Permalink to this headline">#</a></h3>
 <p>A dummy well file, of which the fluxes will be overrided. The location
 of the wells is used to assign an well index by Modflow6. The file
 format of the .wel file is described
@@ -335,9 +332,9 @@ has to be defined as “WELLS_MSW”.</p>
 </section>
 </section>
 <section id="coupler">
-<h2>Coupler<a class="headerlink" href="#coupler" title="Permalink to this headline">¶</a></h2>
+<h2>Coupler<a class="headerlink" href="#coupler" title="Permalink to this headline">#</a></h2>
 <section id="nodenr2svat-dxc">
-<h3>nodenr2svat.dxc<a class="headerlink" href="#nodenr2svat-dxc" title="Permalink to this headline">¶</a></h3>
+<h3>nodenr2svat.dxc<a class="headerlink" href="#nodenr2svat-dxc" title="Permalink to this headline">#</a></h3>
 <p>This file takes care of mapping the MODFLOW node numbers to the MetaSWAP
 svats, which is required for coupling the heads and storages of both
 kernels, it thus excludes nodes connected where wells are for
@@ -351,7 +348,7 @@ node number), which replaces the MODFLOW 2005 CellID. <code class="docutils lite
 MetaSWAP svat number and <code class="docutils literal notranslate"><span class="pre">ly</span></code> is the Modflow layer number.</p>
 </section>
 <section id="rchindex2svat-dxc">
-<h3>rchindex2svat.dxc<a class="headerlink" href="#rchindex2svat-dxc" title="Permalink to this headline">¶</a></h3>
+<h3>rchindex2svat.dxc<a class="headerlink" href="#rchindex2svat-dxc" title="Permalink to this headline">#</a></h3>
 <p>This file takes care of mapping the recharge cells to the MetaSWAP
 svats. The file format is as follows:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">rch_index</span> <span class="n">svat</span> <span class="n">ly</span>
@@ -364,7 +361,7 @@ row number of the data specified under <code class="docutils literal notranslate
 number.</p>
 </section>
 <section id="wellindex2svat-dxc">
-<h3>wellindex2svat.dxc<a class="headerlink" href="#wellindex2svat-dxc" title="Permalink to this headline">¶</a></h3>
+<h3>wellindex2svat.dxc<a class="headerlink" href="#wellindex2svat-dxc" title="Permalink to this headline">#</a></h3>
 <p>This file takes care of mapping MODFLOW wells to the MetaSWAP svats for
 sprinkling. The file format is as follows:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">well_index</span> <span class="n">svat</span> <span class="n">ly</span>
@@ -378,7 +375,7 @@ number.</p>
 </section>
 </section>
 <section id="how-to-define-a-second-stress-package-for-modflow6">
-<h2>How to define a second stress package for Modflow6<a class="headerlink" href="#how-to-define-a-second-stress-package-for-modflow6" title="Permalink to this headline">¶</a></h2>
+<h2>How to define a second stress package for Modflow6<a class="headerlink" href="#how-to-define-a-second-stress-package-for-modflow6" title="Permalink to this headline">#</a></h2>
 <p>A second stress package (in our case named <code class="docutils literal notranslate"><span class="pre">WELL2</span></code>) can be defined in
 the flow model’s <code class="docutils literal notranslate"><span class="pre">.nam</span></code> file (GWF_1.nam).</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">begin</span> <span class="n">options</span>
@@ -431,8 +428,9 @@ to detect which well package to use for sprinkling.</p>
       </div>
     </div>
   
-    <script src="_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf"></script>
-  <footer class="footer mt-5 mt-md-0">
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf"></script>
+<footer class="footer mt-5 mt-md-0">
   <div class="container">
     
     <div class="footer-item">
@@ -443,7 +441,7 @@ to detect which well package to use for sprinkling.</p>
     
     <div class="footer-item">
       <p class="sphinx-version">
-Created using <a href="http://sphinx-doc.org/">Sphinx</a> 4.4.0.<br>
+Created using <a href="http://sphinx-doc.org/">Sphinx</a> 4.5.0.<br>
 </p>
     </div>
     
