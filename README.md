@@ -23,6 +23,10 @@ In order to receive help for its usage, run
 imodc --help
 ```
 
+# Issues
+
+Deltares colleagues can find the issue tracker at [Jira](https://issuetracker.deltares.nl/secure/RapidBoard.jspa?rapidView=469&projectKey=IMOD6&view=planning&selectedIssue=IMOD6-840)
+
 # Contributing
 
 In order to develop on `imod_coupler` locally, execute the following line inside your virtual environment
