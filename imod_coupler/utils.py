@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import os
 from contextlib import contextmanager
 from pathlib import Path
@@ -6,7 +8,6 @@ from typing import Any, Generator
 import numpy as np
 from numpy.typing import NDArray
 from scipy.sparse import csr_matrix
-
 
 def create_mapping(
     src_idx: Any, tgt_idx: Any, nsrc: int, ntgt: int, operator: str

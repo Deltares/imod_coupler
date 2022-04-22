@@ -3,6 +3,8 @@
 description:
 
 """
+from __future__ import annotations
+
 import logging
 from pathlib import Path
 from typing import Any
@@ -123,6 +125,7 @@ class MetaMod:
             raise ValueError(
                 f"'{dll}' for '{kernel_name}' is not a valid path to a file."
             )
+        dll = str(dll) # Force to string for ctypes
 
         work_dir_str = self.config["driver"]["kernels"][kernel_name]["work_dir"]
         work_dir = self.get_absolute_path(work_dir_str)
@@ -139,6 +142,7 @@ class MetaMod:
                 raise ValueError(
                     f"'{dll_dep_dir}' for '{kernel_name}' is not a valid path to a directory."
                 )
+            dll_dep_dir = str(dll_dep_dir) # Force to string for ctypes
         else:
             dll_dep_dir = None
 
