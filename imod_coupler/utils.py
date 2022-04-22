@@ -9,6 +9,7 @@ import numpy as np
 from numpy.typing import NDArray
 from scipy.sparse import csr_matrix
 
+
 def create_mapping(
     src_idx: Any, tgt_idx: Any, nsrc: int, ntgt: int, operator: str
 ) -> tuple[csr_matrix, NDArray[np.int_]]:
