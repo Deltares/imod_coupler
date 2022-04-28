@@ -14,12 +14,13 @@ from numpy.typing import NDArray
 from scipy.sparse import csr_matrix, dia_matrix
 from xmipy import XmiWrapper
 
+from imod_coupler.drivers.driver import Driver
 from imod_coupler.utils import create_mapping
 
 logger = logging.getLogger(__name__)
 
 
-class MetaMod:
+class MetaMod(Driver):
     config_path: Path  # the parsed information from the configuration file
     config: dict[str, Any]
 
@@ -60,12 +61,11 @@ class MetaMod:
     mask_msw2mod: dict[str, NDArray[Any]] = {}
 
     def __init__(self, config: dict[str, Any], config_path: Path):
-        """Constructs the simulation object coupling MetaSWAP and MODFLOW 6"""
+        """Constructs the `MetaMod` object"""
         self.config = config
         self.config_path = config_path
 
     def initialize(self) -> None:
-        """Initialize the coupled models"""
         self.set_vars_from_config()
 
         # Print output to stdout
@@ -274,7 +274,6 @@ class MetaMod:
             )
 
     def update(self) -> float:
-        """Perform a single time step"""
         # heads to MetaSWAP
         self.exchange_mod2msw()
 
@@ -302,12 +301,10 @@ class MetaMod:
         return current_time
 
     def finalize(self) -> None:
-        """Cleanup the resources"""
         self.mf6.finalize()
         self.msw.finalize()
 
     def get_times(self) -> tuple[float, float, float]:
-        """Return times"""
         return (
             self.mf6.get_start_time(),
             self.mf6.get_current_time(),
