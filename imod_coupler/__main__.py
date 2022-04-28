@@ -5,7 +5,7 @@ import sys
 import time
 from pathlib import Path
 
-import toml
+import tomli as tomllib
 
 from imod_coupler import __version__
 from imod_coupler.drivers.metamod.metamod import MetaMod
@@ -36,9 +36,11 @@ def try_main() -> None:
 
     args = parser.parse_args()
     config_path = Path(args.config_path).resolve()
-    config = toml.load(config_path)
 
-    # TODO: validate with generic json schema
+    with open(config_path, "rb") as f:
+        config = tomllib.load(f)
+
+    # TODO: validate configuration
 
     logging.basicConfig(level=config["log_level"])
 
