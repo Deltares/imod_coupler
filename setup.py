@@ -5,13 +5,13 @@ import sys
 from setuptools import find_namespace_packages, setup
 
 
-def read(rel_path):
+def read(rel_path: str) -> str:
     here = os.path.abspath(os.path.dirname(__file__))
     with codecs.open(os.path.join(here, rel_path), "r") as fp:
         return fp.read()
 
 
-def get_version(rel_path):
+def get_version(rel_path: str) -> str:
     for line in read(rel_path).splitlines():
         if line.startswith("__version__"):
             delim = '"' if '"' in line else "'"
@@ -35,7 +35,12 @@ setup(
     url="https://github.com/Deltares/imod-coupler",
     license="LGPL",
     platforms="Windows, Mac OS-X, Linux",
-    install_requires=["numpy", "scipy", "xmipy>=1.0", "toml", "jsonschema"],
+    install_requires=[
+        "numpy",
+        "scipy",
+        "xmipy >= 1.0",
+        'tomli >= 1.1.0',
+    ],
     extras_require={
         "tests": ["pytest", "pytest-cov"],
         "lint": [
