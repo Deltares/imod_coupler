@@ -39,7 +39,7 @@ setup(
         "numpy",
         "scipy",
         "xmipy >= 1.0",
-        'tomli >= 1.1.0',
+        "tomli >= 1.1.0",
     ],
     extras_require={
         "tests": ["pytest", "pytest-cov"],
