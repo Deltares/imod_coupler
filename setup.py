@@ -42,7 +42,7 @@ setup(
         "tomli >= 1.1.0",
     ],
     extras_require={
-        "tests": ["pytest", "pytest-cov"],
+        "tests": ["pytest", "pytest-cov", "python-dotenv"],
         "lint": [
             "mypy",
             "black",
