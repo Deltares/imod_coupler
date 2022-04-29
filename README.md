@@ -34,3 +34,18 @@ In order to develop on `imod_coupler` locally, execute the following line inside
 ```bash
 pip install -e ".[tests, lint, docs]"
 ```
+
+To run the tests it is advisable to have a `.env` file at the root of the project directory instead of modifying global environment variables.
+
+The content of `.env` would then look similar to this:
+
+```bash
+METASWAP_LOOKUP_TABLE='D:\checkouts\DSCtestbench\cases\e150_metaswap\f00_common\c00_common\LHM2016_v01vrz'
+```
+
+The tests can then be run with:
+
+```powershell
+cd tests
+pytest
+```
