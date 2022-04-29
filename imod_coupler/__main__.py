@@ -11,14 +11,6 @@ from imod_coupler.parser import parse_args
 
 
 def main() -> None:
-    try:
-        try_main()
-    except:
-        logging.exception("iMOD Coupler run failed with: ")
-        sys.exit(1)
-
-
-def try_main() -> None:
     args = parse_args()
 
     if args.enable_debug_native:
@@ -26,7 +18,12 @@ def try_main() -> None:
         input(f"PID: {os.getpid()}, press any key to continue ....")
 
     config_path = Path(args.config_path).resolve()
-    run_coupler(config_path)
+
+    try:
+        run_coupler(config_path)
+    except:
+        logging.exception("iMOD Coupler run failed with: ")
+        sys.exit(1)
 
 
 def run_coupler(config_path: Path) -> None:
