@@ -47,5 +47,5 @@ The tests can then be run with:
 
 ```powershell
 cd tests
-pytest
+pytest -n=auto
 ```
