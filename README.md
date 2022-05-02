@@ -50,5 +50,5 @@ IMOD_COUPLER_EXECUTABLE='imodc' # Specify an absolute path here to use a package
 The tests can then be run with:
 
 ```powershell
-pytest tests -n=auto --basetemp=temp
+pytest tests -n=auto --basetemp=tests/temp
 ```
