@@ -9,6 +9,6 @@ def test_get_version(imodc_path: Path) -> None:
         [imodc_path, "--version"], capture_output=True, text=True
     ).stdout.strip("\n")
 
-    expected_version = f"imodc {__version__}"
+    expected_version = f"{imodc_path.name} {__version__}"
 
     assert output_version == expected_version
