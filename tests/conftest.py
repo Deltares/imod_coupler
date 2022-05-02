@@ -1,19 +1,35 @@
 import os
 from pathlib import Path
 
+import dotenv
 import pytest
-from dotenv import load_dotenv
 
 
 @pytest.fixture(scope="session")
-def database_path() -> Path:
-    load_dotenv()
-    database_path = Path(os.environ["METASWAP_LOOKUP_TABLE"])
-    return database_path
+def load_dotenv() -> None:
+    dotenv.load_dotenv()
 
 
 @pytest.fixture(scope="session")
-def imodc_path() -> Path:
-    load_dotenv()
-    imodc_path = Path(os.environ["IMOD_COUPLER_EXECUTABLE"])
-    return imodc_path
+def metaswap_lookup_table(load_dotenv) -> Path:
+    return Path(os.environ["METASWAP_LOOKUP_TABLE"])
+
+
+@pytest.fixture(scope="session")
+def metaswap_dll(load_dotenv) -> Path:
+    return Path(os.environ["METASWAP_DLL"])
+
+
+@pytest.fixture(scope="session")
+def metaswap_dll_dep_dir(load_dotenv) -> Path:
+    return Path(os.environ["METASWAP_DLL_DEP_DIR"])
+
+
+@pytest.fixture(scope="session")
+def modflow_dll(load_dotenv) -> Path:
+    return Path(os.environ["MODFLOW_DLL"])
+
+
+@pytest.fixture(scope="session")
+def imodc(load_dotenv) -> Path:
+    return Path(os.environ["IMOD_COUPLER_EXECUTABLE"])

@@ -41,6 +41,9 @@ The content of `.env` would then look similar to this:
 
 ```bash
 METASWAP_LOOKUP_TABLE='D:\checkouts\DSCtestbench\cases\e150_metaswap\f00_common\c00_common\LHM2016_v01vrz'
+METASWAP_DLL='D:\checkouts\imod_coupler\MetaSWAP.dll'
+METASWAP_DLL_DEP_DIR='D:\checkouts\imod_coupler'
+MODFLOW_DLL='D:\checkouts\imod_coupler\libmf6.dll'
 IMOD_COUPLER_EXECUTABLE='imodc' # Specify an absolute path here to use a packaged version of iMOD Couplers
 ```
 
