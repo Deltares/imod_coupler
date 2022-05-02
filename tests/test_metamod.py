@@ -20,9 +20,7 @@ def test_metaswap_dll_dep_dir_contains_dependencies(metaswap_dll_dep_dir: Path) 
     )
 
     for dependency in expected_dependencies:
-        assert (
-            dependency in dep_dir_content
-        ), f"{dependency} is not in metaswap_dll_dep_dir."
+        assert dependency in dep_dir_content
 
 
 def test_modflow_dll_present(modflow_dll: Path) -> None:
