@@ -1,8 +1,3 @@
-""" MetaMod: the coupling between MetaSWAP and MODFLOW 6
-
-description:
-
-"""
 from __future__ import annotations
 
 import logging
