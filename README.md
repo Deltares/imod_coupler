@@ -41,11 +41,11 @@ The content of `.env` would then look similar to this:
 
 ```bash
 METASWAP_LOOKUP_TABLE='D:\checkouts\DSCtestbench\cases\e150_metaswap\f00_common\c00_common\LHM2016_v01vrz'
+IMOD_COUPLER_EXECUTABLE='imodc' # Specify an absolute path here to use a packaged version of iMOD Couplers
 ```
 
 The tests can then be run with:
 
 ```powershell
-cd tests
-pytest -n=auto
+pytest tests -n=auto --basetemp=temp
 ```
