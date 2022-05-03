@@ -2,7 +2,11 @@
 
 - Remove the `-dev` suffix from the version number in `imod_coupler/__init__.py`
 
+For example: `__version__ = "0.10.0-dev"` -> `__version__ = "0.10.0"`
+
 - Increase the version number in `imod_coupler/__init__.py`
+
+For example: `__version__ = "0.10.0"` -> `__version__ = "0.11.0"`
 
 - Create a new commit with the updated version number,
 and push to remote
@@ -36,3 +40,5 @@ twine upload dist/*
 ```
 
 - Add the `-dev` suffix to the version number in `imod_coupler/__init__.py`
+
+For example: `__version__ = "0.11.0"` -> `__version__ = "0.11.0-dev"`
