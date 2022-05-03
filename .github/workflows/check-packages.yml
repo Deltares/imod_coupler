@@ -1,0 +1,21 @@
+name: Lint
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v1
+      - name: Install lint dependencies
+        run: |
+          pip install -e ".[check-packages]"
+      - name: Build and check packages
+        run: |
+          python -m build
+          twine check --strict dist/*

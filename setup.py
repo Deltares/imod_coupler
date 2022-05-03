@@ -49,6 +49,7 @@ setup(
             "isort",
         ],
         "docs": ["sphinx", "pydata-sphinx-theme"],
+        "check-packages": ["build", "twine"],
     },
     packages=find_namespace_packages(exclude=("tests", "examples")),
     version=get_version("imod_coupler/__init__.py"),

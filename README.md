@@ -32,7 +32,7 @@ Deltares colleagues can find the issue tracker at [Jira](https://issuetracker.de
 In order to develop on `imod_coupler` locally, execute the following line inside your virtual environment
 
 ```bash
-pip install -e ".[tests, lint, docs]"
+pip install -e ".[tests, lint, docs, check-packages]"
 ```
 
 To run the tests it is advisable to have a `.env` file at the root of the project directory instead of modifying global environment variables.
@@ -49,6 +49,6 @@ IMOD_COUPLER_EXECUTABLE='imodc' # Specify an absolute path here to use a package
 
 The tests can then be run with:
 
-```powershell
+```bash
 pytest tests -n=auto --basetemp=tests/temp
 ```
