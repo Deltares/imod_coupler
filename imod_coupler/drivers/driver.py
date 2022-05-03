@@ -9,6 +9,11 @@ logger = logging.getLogger(__name__)
 
 
 class Driver(ABC):
+    """Driver base class
+
+    Inherit from this class when creating a new driver
+    """
+
     def execute(self) -> None:
         """Execute the driver"""
 

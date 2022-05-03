@@ -21,6 +21,8 @@ logger = logging.getLogger(__name__)
 
 
 class MetaMod(Driver):
+    """The driver coupling MetaSWAP and MODFLOW 6"""
+
     config_path: Path  # the parsed information from the configuration file
     config: dict[str, Any]
 
