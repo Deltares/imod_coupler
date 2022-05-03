@@ -6,12 +6,14 @@ from pathlib import Path
 
 import tomli as tomllib
 
+from imod_coupler import __version__
 from imod_coupler.drivers.metamod.metamod import MetaMod
 from imod_coupler.parser import parse_args
 
 
 def main() -> None:
     args = parse_args()
+    logging.info(f"iMOD Coupler {__version__}")
 
     if args.enable_debug_native:
         # wait for native debugging
