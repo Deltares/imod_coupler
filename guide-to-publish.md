@@ -1,28 +1,38 @@
-# How to release in github and publish to PyPi
+# How to release in Github and publish to PyPi
 
-1) Update the version number in the `__init__.py` file
+- Remove the `-dev` suffix from the version number in `imod_coupler/__init__.py`
 
-2) Make a new commit with the updated version number,
+- Increase the version number in `imod_coupler/__init__.py`
+
+- Create a new commit with the updated version number,
 and push to remote
 
-3) Make a new github release
+- Create a new Github release
  
-4) If present remove build and dist folder
+- If present remove build and dist folder
 
-5) Recursively remove all .egg-info files
+- Recursively remove all .egg-info files
 On powershell you can do this with
 ```
 rm -r *.egg-info
 ```
-6) If not done yet, install twine via
+- If not done yet, install twine via
 ```
-pip install twine
+pip install build twine
 ```
-7) Re-create the wheels:
+- Re-create the wheels:
 ```
-python setup.py sdist bdist_wheel
+python -m build
 ```
-8) Re-upload the new files:
+
+- Check the package files:
+```
+twine check dist/*
+```
+
+- Re-upload the new files:
 ```
 twine upload dist/*
 ```
+
+- Add the `-dev` suffix to the version number in `imod_coupler/__init__.py`
