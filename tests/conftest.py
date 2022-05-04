@@ -4,6 +4,8 @@ from pathlib import Path
 import dotenv
 import pytest
 
+pytest_plugins = ["imod_msw_mf6"]
+
 
 @pytest.fixture(scope="session")
 def load_dotenv() -> None:
