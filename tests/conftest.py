@@ -11,25 +11,45 @@ def load_dotenv() -> None:
 
 
 @pytest.fixture(scope="session")
+def imod_coupler_exec_devel(load_dotenv) -> Path:
+    return Path(os.environ["IMOD_COUPLER_EXEC_DEVEL"])
+
+
+@pytest.fixture(scope="session")
+def imod_coupler_exec_regression(load_dotenv) -> Path:
+    return Path(os.environ["IMOD_COUPLER_EXEC_REGRESSION"])
+
+
+@pytest.fixture(scope="session")
+def metaswap_dll_dep_dir_devel(load_dotenv) -> Path:
+    return Path(os.environ["METASWAP_DLL_DEP_DIR_DEVEL"])
+
+
+@pytest.fixture(scope="session")
+def metaswap_dll_dep_dir_regression(load_dotenv) -> Path:
+    return Path(os.environ["METASWAP_DLL_DEP_DIR_REGRESSION"])
+
+
+@pytest.fixture(scope="session")
+def metaswap_dll_devel(load_dotenv) -> Path:
+    return Path(os.environ["METASWAP_DLL_DEVEL"])
+
+
+@pytest.fixture(scope="session")
+def metaswap_dll_regression(load_dotenv) -> Path:
+    return Path(os.environ["METASWAP_DLL_REGRESSION"])
+
+
+@pytest.fixture(scope="session")
 def metaswap_lookup_table(load_dotenv) -> Path:
     return Path(os.environ["METASWAP_LOOKUP_TABLE"])
 
 
 @pytest.fixture(scope="session")
-def metaswap_dll(load_dotenv) -> Path:
-    return Path(os.environ["METASWAP_DLL"])
+def modflow_dll_devel(load_dotenv) -> Path:
+    return Path(os.environ["MODFLOW_DLL_DEVEL"])
 
 
 @pytest.fixture(scope="session")
-def metaswap_dll_dep_dir(load_dotenv) -> Path:
-    return Path(os.environ["METASWAP_DLL_DEP_DIR"])
-
-
-@pytest.fixture(scope="session")
-def modflow_dll(load_dotenv) -> Path:
-    return Path(os.environ["MODFLOW_DLL"])
-
-
-@pytest.fixture(scope="session")
-def imodc(load_dotenv) -> Path:
-    return Path(os.environ["IMOD_COUPLER_EXECUTABLE"])
+def modflow_dll_regression(load_dotenv) -> Path:
+    return Path(os.environ["MODFLOW_DLL_REGRESSION"])
