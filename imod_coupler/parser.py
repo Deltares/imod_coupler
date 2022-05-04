@@ -19,10 +19,6 @@ def parse_args() -> Any:
         help="stop the script to wait for the native debugger",
     )
 
-    parser.add_argument(
-        "--version",
-        action="version",
-        version=__version__
-    )
+    parser.add_argument("--version", action="version", version=__version__)
 
     return parser.parse_args()
