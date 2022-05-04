@@ -40,11 +40,18 @@ To run the tests it is advisable to have a `.env` file at the root of the projec
 The content of `.env` would then look similar to this:
 
 ```bash
+IMOD_COLLECTOR_DEVEL='D:\checkouts\imod_collector_devel'
+IMOD_COLLECTOR_REGRESSION='D:\checkouts\imod_collector_regression'
 METASWAP_LOOKUP_TABLE='D:\checkouts\DSCtestbench\cases\e150_metaswap\f00_common\c00_common\LHM2016_v01vrz'
-METASWAP_DLL='D:\checkouts\imod_coupler\MetaSWAP.dll'
-METASWAP_DLL_DEP_DIR='D:\checkouts\imod_coupler'
-MODFLOW_DLL='D:\checkouts\imod_coupler\libmf6.dll'
-IMOD_COUPLER_EXECUTABLE='imodc' # Specify an absolute path here to use a packaged version of iMOD Couplers
+
+IMOD_COUPLER_EXEC_DEVEL='imodc' # Specify an absolute path here to use a packaged version of iMOD Coupler
+IMOD_COUPLER_EXEC_REGRESSION='${IMOD_COLLECTOR_REGRESSION}/imodc.exe'
+METASWAP_DLL_DEP_DIR_DEVEL='${IMOD_COLLECTOR_DEVEL}'
+METASWAP_DLL_DEP_DIR_REGRESSION='${IMOD_COLLECTOR_REGRESSION}'
+METASWAP_DLL_DEVEL='${IMOD_COLLECTOR_DEVEL}/MetaSWAP.dll'
+METASWAP_DLL_REGRESSION='${IMOD_COLLECTOR_REGRESSION}/MetaSWAP.dll'
+MODFLOW_DLL_DEVEL='${IMOD_COLLECTOR_REGRESSION}/libmf6.dll'
+MODFLOW_DLL_REGRESSION='${IMOD_COLLECTOR_REGRESSION}/libmf6.dll'
 ```
 
 The tests can then be run with:
