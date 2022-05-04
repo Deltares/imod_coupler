@@ -17,13 +17,13 @@ class DriverType(str, Enum):
     METAMOD = "metamod"
 
 
-class Config(BaseModel):
+class BaseConfig(BaseModel):
     config_file: Path
     log_level: Log = Log.INFO
     log_file: Path
     timing: bool = False
     driver_type: DriverType
-    driver: Any
+    driver: Any = ...
 
     @validator("log_file")
     def resolve_log_file(cls, log_file: Any) -> Any:

@@ -14,7 +14,9 @@ from numpy.typing import NDArray
 from scipy.sparse import csr_matrix, dia_matrix
 from xmipy import XmiWrapper
 
+from imod_coupler.config import BaseConfig
 from imod_coupler.drivers.driver import Driver
+from imod_coupler.drivers.metamod.config import Coupling, MetaModConfig
 from imod_coupler.utils import create_mapping
 
 logger = logging.getLogger(__name__)
@@ -23,8 +25,9 @@ logger = logging.getLogger(__name__)
 class MetaMod(Driver):
     """The driver coupling MetaSWAP and MODFLOW 6"""
 
-    config_path: Path  # the parsed information from the configuration file
-    config: dict[str, Any]
+    base_config: BaseConfig  # the parsed information from the configuration file
+    metamod_config: MetaModConfig  # the parsed information from the configuration file specific to MetaMod
+    coupling: Coupling  # the coupling information
 
     timing: bool  # true, when timing is enabled
     mf6: XmiWrapper  # the MODFLOW 6 XMI kernel
@@ -39,13 +42,6 @@ class MetaMod(Driver):
     mf6_area: NDArray[Any]  # cell area (size:nodes)
     mf6_top: NDArray[Any]  # top of cell (size:nodes)
     mf6_bot: NDArray[Any]  # bottom of cell (size:nodes)
-
-    is_sprinkling_active: bool  # true whemn sprinkling is active
-    mf6_model: str  # the MODFLOW 6 model that will be coupled
-    mf6_msw_recharge_pkg: str  # the recharge package that will be used for coupling
-    mf6_msw_well_pkg: str  # the well package that will be used for coupling when sprinkling is active
-    mf6_msw_node_map: Path  # the path to the node map file
-    mf6_msw_recharge_map: Path  # the pach to the recharge map file
 
     mf6_sprinkling_wells: NDArray[Any]  # the well data for coupled extractions
     msw_head: NDArray[Any]  # internal MetaSWAP groundwater head
@@ -62,108 +58,41 @@ class MetaMod(Driver):
     # dict. with mask arrays for msw=>mod coupling
     mask_msw2mod: dict[str, NDArray[Any]] = {}
 
-    def __init__(self, config: dict[str, Any], config_path: Path):
+    def __init__(self, base_config: BaseConfig, metamod_config: MetaModConfig):
         """Constructs the `MetaMod` object"""
-        self.config = config
-        self.config_path = config_path
+        self.base_config = base_config
+        self.metamod_config = metamod_config
 
     def initialize(self) -> None:
-        self.set_vars_from_config()
-
+        self.mf6 = XmiWrapper(
+            lib_path=self.metamod_config.kernels.modflow6.dll,
+            lib_dependency=self.metamod_config.kernels.modflow6.dll_dep_dir,
+            working_directory=self.metamod_config.kernels.modflow6.work_dir,
+            timing=self.base_config.timing,
+        )
+        self.msw = XmiWrapper(
+            lib_path=self.metamod_config.kernels.metaswap.dll,
+            lib_dependency=self.metamod_config.kernels.metaswap.dll_dep_dir,
+            working_directory=self.metamod_config.kernels.metaswap.work_dir,
+            timing=self.base_config.timing,
+        )
         # Print output to stdout
         self.mf6.set_int("ISTDOUTTOFILE", 0)
         self.mf6.initialize()
         self.msw.initialize()
         self.couple()
 
-    def set_vars_from_config(self) -> None:
-        self.mf6 = self.initialize_kernel_from_config("modflow6")
-        self.msw = self.initialize_kernel_from_config("metaswap")
-
-        # TODO: Relax this requirement as soon as we support multiple models
-        assert len(self.config["driver"]["coupling"]) == 1
-        coupling_config = self.config["driver"]["coupling"][0]
-
-        self.mf6_model = coupling_config["mf6_model"]
-        self.mf6_msw_recharge_pkg = coupling_config["mf6_msw_recharge_pkg"]
-        self.mf6_msw_node_map = self.get_absolute_path(
-            coupling_config["mf6_msw_node_map"]
-        )
-        if not self.mf6_msw_node_map.is_file():
-            raise ValueError(
-                f"'{self.mf6_msw_node_map=}' is not a valid path to a file."
-            )
-        self.mf6_msw_recharge_map = self.get_absolute_path(
-            coupling_config["mf6_msw_recharge_map"]
-        )
-        if not self.mf6_msw_recharge_map.is_file():
-            raise ValueError(
-                f"'{self.mf6_msw_recharge_map=}' is not a valid path to a file."
-            )
-
-        self.is_sprinkling_active = coupling_config["enable_sprinkling"]
-        if self.is_sprinkling_active:
-            self.mf6_msw_sprinkling_map = self.get_absolute_path(
-                coupling_config["mf6_msw_sprinkling_map"]
-            )
-            if not self.mf6_msw_sprinkling_map.is_file():
-                raise ValueError(
-                    f"'{self.mf6_msw_sprinkling_map=}' is not a valid path to a file."
-                )
-            self.mf6_msw_well_pkg = coupling_config["mf6_msw_well_pkg"]
-
-    def get_absolute_path(self, path: str | Path) -> Path:
-        path = Path(path)
-        if path.is_absolute():
-            return path
-        else:
-            return self.config_path.parent / path
-
-    def initialize_kernel_from_config(self, kernel_name: str) -> XmiWrapper:
-        # Validate paths
-        dll_str = self.config["driver"]["kernels"][kernel_name]["dll"]
-        dll = self.get_absolute_path(dll_str)
-        if not dll.is_file():
-            raise ValueError(
-                f"'{dll}' for '{kernel_name}' is not a valid path to a file."
-            )
-
-        work_dir_str = self.config["driver"]["kernels"][kernel_name]["work_dir"]
-        work_dir = self.get_absolute_path(work_dir_str)
-        if not work_dir.is_dir():
-            raise ValueError(
-                f"'{work_dir}' for '{kernel_name}' is not a valid path to a directory."
-            )
-
-        if dll_dep_dir_str := self.config["driver"]["kernels"][kernel_name].get(
-            "dll_dep_dir"
-        ):
-            dll_dep_dir = self.get_absolute_path(dll_dep_dir_str)
-            if not dll_dep_dir.is_dir():
-                raise ValueError(
-                    f"'{dll_dep_dir}' for '{kernel_name}' is not a valid path to a directory."
-                )
-        else:
-            dll_dep_dir = None
-
-        return XmiWrapper(
-            lib_path=dll,
-            lib_dependency=dll_dep_dir,
-            working_directory=work_dir,
-            timing=self.config["timing"],
-        )
-
     def couple(self) -> None:
         """Couple Modflow and Metaswap"""
         # get some 'pointers' to MF6 and MSW internal data
-        mf6_head_tag = self.mf6.get_var_address("X", self.mf6_model)
+        mf6_head_tag = self.mf6.get_var_address("X", self.coupling.mf6_model)
         mf6_recharge_tag = self.mf6.get_var_address(
-            "BOUND", self.mf6_model, self.mf6_msw_recharge_pkg
+            "BOUND", self.coupling.mf6_model, self.coupling.mf6_msw_recharge_pkg
         )
-        mf6_storage_tag = self.mf6.get_var_address("SS", self.mf6_model, "STO")
-        mf6_area_tag = self.mf6.get_var_address("AREA", self.mf6_model, "DIS")
-        mf6_top_tag = self.mf6.get_var_address("TOP", self.mf6_model, "DIS")
-        mf6_bot_tag = self.mf6.get_var_address("BOT", self.mf6_model, "DIS")
+        mf6_storage_tag = self.mf6.get_var_address("SS", self.coupling.mf6_model, "STO")
+        mf6_area_tag = self.mf6.get_var_address("AREA", self.coupling.mf6_model, "DIS")
+        mf6_top_tag = self.mf6.get_var_address("TOP", self.coupling.mf6_model, "DIS")
+        mf6_bot_tag = self.mf6.get_var_address("BOT", self.coupling.mf6_model, "DIS")
         mf6_max_iter_tag = self.mf6.get_var_address("MXITER", "SLN_1")
 
         self.mf6_head = self.mf6.get_value_ptr(mf6_head_tag)
@@ -196,7 +125,7 @@ class MetaMod(Driver):
 
         # create mappings
         table_node2svat: NDArray[np.int32] = np.loadtxt(
-            self.mf6_msw_node_map, dtype=np.int32, ndmin=2
+            self.coupling.mf6_msw_node_map, dtype=np.int32, ndmin=2
         )
         node_idx = table_node2svat[:, 0] - 1
         msw_idx = [
@@ -232,7 +161,7 @@ class MetaMod(Driver):
         )
 
         table_rch2svat: NDArray[np.int32] = np.loadtxt(
-            self.mf6_msw_recharge_map, dtype=np.int32, ndmin=2
+            self.coupling.mf6_msw_recharge_map, dtype=np.int32, ndmin=2
         )
         rch_idx = table_rch2svat[:, 0] - 1
         msw_idx = [
@@ -248,15 +177,15 @@ class MetaMod(Driver):
             "sum",
         )
 
-        if self.is_sprinkling_active:
+        if self.coupling.enable_sprinkling:
             # in this case we have a sprinkling demand from MetaSWAP
             mf6_sprinkling_tag = self.mf6.get_var_address(
-                "BOUND", self.mf6_model, self.mf6_msw_well_pkg
+                "BOUND", self.coupling.mf6_model, self.coupling.mf6_msw_well_pkg
             )
             self.mf6_sprinkling_wells = self.mf6.get_value_ptr(mf6_sprinkling_tag)[:, 0]
 
             table_well2svat: NDArray[np.int32] = np.loadtxt(
-                self.mf6_msw_sprinkling_map, dtype=np.int32, ndmin=2
+                self.coupling.mf6_msw_sprinkling_map, dtype=np.int32, ndmin=2
             )
             well_idx = table_well2svat[:, 0] - 1
             msw_idx = [
@@ -323,7 +252,7 @@ class MetaMod(Driver):
             + tled * self.map_msw2mod["recharge"].dot(self.msw_volume)[:]
         )
 
-        if self.is_sprinkling_active:
+        if self.coupling.enable_sprinkling:
             self.mf6_sprinkling_wells[:] = (
                 self.mask_msw2mod["sprinkling"][:] * self.mf6_sprinkling_wells[:]
                 + tled * self.map_msw2mod["sprinkling"].dot(self.msw_volume)[:]

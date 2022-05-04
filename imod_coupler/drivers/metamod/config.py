@@ -27,13 +27,15 @@ class Kernels(BaseModel):
 
 
 class Coupling(BaseModel):
-    enable_sprinkling: bool
-    mf6_model: str
-    mf6_msw_recharge_pkg: str
-    mf6_msw_well_pkg: Optional[str]
-    mf6_msw_node_map: FilePath
-    mf6_msw_recharge_map: FilePath
-    mf6_msw_sprinkling_map = Optional[FilePath]
+    enable_sprinkling: bool  # true whemn sprinkling is active
+    mf6_model: str  # the MODFLOW 6 model that will be coupled
+    mf6_msw_recharge_pkg: str  # the recharge package that will be used for coupling
+    mf6_msw_well_pkg: Optional[
+        str
+    ]  # the well package that will be used for coupling when sprinkling is active
+    mf6_msw_node_map: FilePath  # the path to the node map file
+    mf6_msw_recharge_map: FilePath  # the pach to the recharge map file
+    mf6_msw_sprinkling_map = Optional[FilePath]  # the pach to the sprinkling map file
 
     @validator("mf6_msw_well_pkg")
     def validate_mf6_msw_well_pkg(
@@ -66,6 +68,14 @@ class Coupling(BaseModel):
         return mf6_msw_sprinkling_map
 
 
-class Config(BaseModel):
+class MetaModConfig(BaseModel):
     kernels: Kernels
-    coupling: Coupling
+    coupling: list[Coupling]
+
+    @validator("coupling")
+    def restrict_coupling_count(cls, coupling: list[Coupling]) -> list[Coupling]:
+        if len(coupling) == 0:
+            raise ValueError("At least one coupling has to be defined.")
+        if len(coupling) > 1:
+            raise ValueError("Multi-model coupling is not yet supported.")
+        return coupling
