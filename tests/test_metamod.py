@@ -67,9 +67,9 @@ def test_metamod_sprinkling(
     coupled_mf6_model: Modflow6Simulation,
     msw_model: MetaSwapModel,
     metaswap_lookup_table: Path,
-    metaswap_dll: Path,
-    metaswap_dll_dep_dir: Path,
-    modflow_dll: Path,
+    metaswap_dll_devel: Path,
+    metaswap_dll_dep_dir_devel: Path,
+    modflow_dll_devel: Path,
 ):
     # Override unsat_svat_path with path from .env
     msw_model.simulation_settings[
@@ -85,9 +85,9 @@ def test_metamod_sprinkling(
 
     metamod.write(
         tmp_path,
-        modflow6_dll=modflow_dll,
-        metaswap_dll=metaswap_dll,
-        metaswap_dll_dependency=metaswap_dll_dep_dir,
+        modflow6_dll=modflow_dll_devel,
+        metaswap_dll=metaswap_dll_devel,
+        metaswap_dll_dependency=metaswap_dll_dep_dir_devel,
     )
 
     os.chdir(tmp_path)
