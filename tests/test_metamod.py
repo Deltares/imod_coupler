@@ -1,14 +1,12 @@
 import os
-from pathlib import Path
-import pytest
-
-from imod.mf6 import Modflow6Simulation, open_hds, open_cbc
-from imod.msw import MetaSwapModel
-from imod.couplers.metamod import MetaMod
-
-from numpy.testing import assert_array_almost_equal
-
 import subprocess
+from pathlib import Path
+
+import pytest
+from imod.couplers.metamod import MetaMod
+from imod.mf6 import Modflow6Simulation, open_cbc, open_hds
+from imod.msw import MetaSwapModel
+from numpy.testing import assert_array_almost_equal
 
 
 @pytest.fixture
