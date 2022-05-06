@@ -43,17 +43,17 @@ def tmp_path_reg(
     return tmp_path / "regression"
 
 
-def read_log_for_succes(logfile_path):
+def read_log_for_success(logfile_path):
     with open(logfile_path, "r") as logfile:
-        has_mf6_succes_message = False
-        has_msw_succes_message = False
+        has_mf6_success_message = False
+        has_msw_success_message = False
         for line in logfile:
             if "Normal termination of simulation." in line:
-                has_mf6_succes_message = True
+                has_mf6_success_message = True
             if "E N D   O F   M E T A S W A P" in line:
-                has_msw_succes_message = True
+                has_msw_success_message = True
 
-    return has_mf6_succes_message, has_msw_succes_message
+    return has_mf6_success_message, has_msw_success_message
 
 
 def run_model(path: Path, imod_coupler_exec: Path):
@@ -143,12 +143,12 @@ def test_metamod_develop_sprinkling(
     # debugging purposes
     run_model(tmp_path_dev, imod_coupler_exec_devel)
 
-    has_mf6_succes_message, has_msw_succes_message = read_log_for_succes(
+    has_mf6_success_message, has_msw_success_message = read_log_for_success(
         tmp_path_dev / "metamod.log"
     )
 
-    assert has_mf6_succes_message
-    assert has_msw_succes_message
+    assert has_mf6_success_message
+    assert has_msw_success_message
 
     # Test if MetaSWAP output written
     assert len(list((tmp_path_dev / "MetaSWAP").glob("*/*.idf"))) == 24
@@ -189,11 +189,11 @@ def test_metamod_regression_sprinkling(
     # debugging purposes
     run_model(tmp_path_dev, imod_coupler_exec_devel)
 
-    has_mf6_succes_message, has_msw_succes_message = read_log_for_succes(
+    has_mf6_success_message, has_msw_success_message = read_log_for_success(
         tmp_path_dev / "metamod.log"
     )
-    assert has_mf6_succes_message
-    assert has_msw_succes_message
+    assert has_mf6_success_message
+    assert has_msw_success_message
 
     # Read Modflow 6 output
     headfile_dev = tmp_path_dev / "Modflow6" / "GWF_1" / "GWF_1.hds"
@@ -215,11 +215,11 @@ def test_metamod_regression_sprinkling(
     # debugging purposes
     run_model(tmp_path_reg, imod_coupler_exec_regression)
 
-    has_mf6_succes_message, has_msw_succes_message = read_log_for_succes(
+    has_mf6_success_message, has_msw_success_message = read_log_for_success(
         tmp_path_reg / "metamod.log"
     )
-    assert has_mf6_succes_message
-    assert has_msw_succes_message
+    assert has_mf6_success_message
+    assert has_msw_success_message
 
     # Read Modflow 6 output
     headfile_reg = tmp_path_reg / "Modflow6" / "GWF_1" / "GWF_1.hds"
