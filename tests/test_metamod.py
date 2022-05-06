@@ -6,8 +6,8 @@ import pytest
 from imod.couplers.metamod import MetaMod
 from imod.mf6 import Modflow6Simulation, open_cbc, open_hds
 from imod.msw import MetaSwapModel
-from pytest_cases import parametrize_with_cases
 from numpy.testing import assert_array_almost_equal
+from pytest_cases import parametrize_with_cases
 
 
 def case_metamod_model_sprinkling(
