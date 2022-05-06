@@ -21,9 +21,9 @@ class Driver(ABC):
         self.initialize()
 
         # Run the time loop
-        _, current_time, end_time = self.get_times()
-        while current_time < end_time:
-            current_time = self.update()
+        while self.get_current_time() < self.get_end_time():
+            self.update()
+
         logger.info("New simulation terminated normally")
 
         self.finalize()
@@ -34,7 +34,7 @@ class Driver(ABC):
         ...
 
     @abstractmethod
-    def update(self) -> float:
+    def update(self) -> None:
         """Perform a single time step"""
         ...
 
@@ -44,8 +44,13 @@ class Driver(ABC):
         ...
 
     @abstractmethod
-    def get_times(self) -> tuple[float, float, float]:
-        """Return times"""
+    def get_current_time(self) -> float:
+        """Return current time"""
+        ...
+
+    @abstractmethod
+    def get_end_time(self) -> float:
+        """Return end time"""
         ...
 
     @abstractmethod

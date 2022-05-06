@@ -275,7 +275,7 @@ class MetaMod(Driver):
                 "sum",
             )
 
-    def update(self) -> float:
+    def update(self) -> None:
         # heads to MetaSWAP
         self.exchange_mod2msw()
 
@@ -296,22 +296,18 @@ class MetaMod(Driver):
         self.mf6.finalize_solve(1)
 
         self.mf6.finalize_time_step()
-        current_time = self.mf6.get_current_time()
-        self.msw_time = current_time
+        self.msw_time = self.mf6.get_current_time()
         self.msw.finalize_time_step()
-
-        return current_time
 
     def finalize(self) -> None:
         self.mf6.finalize()
         self.msw.finalize()
 
-    def get_times(self) -> tuple[float, float, float]:
-        return (
-            self.mf6.get_start_time(),
-            self.mf6.get_current_time(),
-            self.mf6.get_end_time(),
-        )
+    def get_current_time(self) -> float:
+        return self.mf6.get_current_time()
+
+    def get_end_time(self) -> float:
+        return self.mf6.get_end_time()
 
     def exchange_msw2mod(self) -> None:
         """Exchange Metaswap to Modflow"""
