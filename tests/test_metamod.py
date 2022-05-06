@@ -6,11 +6,11 @@ import pytest
 from imod.couplers.metamod import MetaMod
 from imod.mf6 import Modflow6Simulation, open_cbc, open_hds
 from imod.msw import MetaSwapModel
+from pytest_cases import parametrize_with_cases
 from numpy.testing import assert_array_almost_equal
 
 
-@pytest.fixture
-def metamod_model_sprinkling(
+def case_metamod_model_sprinkling(
     coupled_mf6_model: Modflow6Simulation,
     msw_model: MetaSwapModel,
     metaswap_lookup_table: Path,
@@ -26,6 +26,28 @@ def metamod_model_sprinkling(
         coupled_mf6_model,
         mf6_rch_pkgkey="rch_msw",
         mf6_wel_pkgkey="wells_msw",
+    )
+
+
+def case_metamod_model_no_sprinkling(
+    coupled_mf6_model: Modflow6Simulation,
+    msw_model: MetaSwapModel,
+    metaswap_lookup_table: Path,
+) -> MetaMod:
+
+    # Override unsat_svat_path with path from environment
+    msw_model.simulation_settings[
+        "unsa_svat_path"
+    ] = msw_model._render_unsaturated_database_path(metaswap_lookup_table)
+
+    # Remove sprinkling package
+    msw_model.pop("sprinkling")
+
+    return MetaMod(
+        msw_model,
+        coupled_mf6_model,
+        mf6_rch_pkgkey="rch_msw",
+        mf6_wel_pkgkey=None,  # Do not couple to Modflow wel
     )
 
 
@@ -124,15 +146,16 @@ def test_modflow_dll_present(modflow_dll_devel: Path) -> None:
     assert modflow_dll_devel.is_file()
 
 
-def test_metamod_develop_sprinkling(
+@parametrize_with_cases("metamod_model", cases=".")
+def test_metamod_develop(
     tmp_path_dev: Path,
-    metamod_model_sprinkling: MetaMod,
+    metamod_model: MetaMod,
     metaswap_dll_devel: Path,
     metaswap_dll_dep_dir_devel: Path,
     modflow_dll_devel: Path,
     imod_coupler_exec_devel: Path,
 ):
-    metamod_model_sprinkling.write(
+    metamod_model.write(
         tmp_path_dev,
         modflow6_dll=modflow_dll_devel,
         metaswap_dll=metaswap_dll_devel,
@@ -165,10 +188,11 @@ def test_metamod_develop_sprinkling(
     assert cbcfile.stat().st_size > 0
 
 
+@parametrize_with_cases("metamod_model", cases=".")
 def test_metamod_regression_sprinkling(
+    metamod_model: MetaMod,
     tmp_path_dev: Path,
     tmp_path_reg: Path,
-    metamod_model_sprinkling: MetaMod,
     metaswap_dll_devel: Path,
     metaswap_dll_dep_dir_devel: Path,
     modflow_dll_devel: Path,
@@ -178,7 +202,7 @@ def test_metamod_regression_sprinkling(
     imod_coupler_exec_devel: Path,
     imod_coupler_exec_regression: Path,
 ):
-    metamod_model_sprinkling.write(
+    metamod_model.write(
         tmp_path_dev,
         modflow6_dll=modflow_dll_devel,
         metaswap_dll=metaswap_dll_devel,
@@ -204,7 +228,7 @@ def test_metamod_regression_sprinkling(
     budgets_dev = open_cbc(cbcfile_dev, grbfile_dev)
 
     # Write model again, but now with paths to regression dll
-    metamod_model_sprinkling.write(
+    metamod_model.write(
         tmp_path_reg,
         modflow6_dll=modflow_dll_regression,
         metaswap_dll=metaswap_dll_regression,
