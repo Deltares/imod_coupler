@@ -229,9 +229,11 @@ def test_metamod_regression_sprinkling(
     heads_reg = open_hds(headfile_reg, grbfile_reg)
     budgets_reg = open_cbc(cbcfile_reg, grbfile_reg)
 
-    assert_array_almost_equal(heads_dev, heads_reg, decimal=8)
+    assert_array_almost_equal(heads_dev.compute(), heads_reg.compute(), decimal=8)
 
     assert budgets_dev.keys() == budgets_reg.keys()
 
-    for varname in budgets_dev.keys():
-        assert_array_almost_equal(budgets_dev[varname], budgets_reg[varname], decimal=8)
+    ## FUTURE: Activate when issue is fixed:
+    ## https://gitlab.com/deltares/imod/imod-python/-/issues/238
+    # for varname in budgets_dev.keys():
+    #     assert_array_almost_equal(budgets_dev[varname], budgets_reg[varname], decimal=8)
