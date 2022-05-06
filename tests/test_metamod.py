@@ -16,7 +16,7 @@ def metamod_model_sprinkling(
     metaswap_lookup_table: Path,
 ) -> MetaMod:
 
-    # Override unsat_svat_path with path from .env
+    # Override unsat_svat_path with path from environment
     msw_model.simulation_settings[
         "unsa_svat_path"
     ] = msw_model._render_unsaturated_database_path(metaswap_lookup_table)
