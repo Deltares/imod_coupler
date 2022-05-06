@@ -60,7 +60,7 @@ def run_model(path: Path, imod_coupler_exec: Path):
     logfile_path = path / "metamod.log"
     with open(logfile_path, "w") as logfile:
         subprocess.run(
-            [str(imod_coupler_exec), path / "metamod.toml"],
+            [str(imod_coupler_exec), path / "imod_coupler.toml"],
             stdout=logfile,
             stderr=logfile,
         )
