@@ -11,6 +11,7 @@ from typing import Any
 
 import numpy as np
 from numpy.typing import NDArray
+from pydantic import FilePath
 from scipy.sparse import csr_matrix, dia_matrix
 from xmipy import XmiWrapper
 
@@ -178,12 +179,14 @@ class MetaMod(Driver):
         )
 
         if self.coupling.enable_sprinkling:
+            assert isinstance(self.coupling.mf6_msw_well_pkg, FilePath)
+            assert isinstance(self.coupling.mf6_msw_sprinkling_map, FilePath)
+
             # in this case we have a sprinkling demand from MetaSWAP
             mf6_sprinkling_tag = self.mf6.get_var_address(
                 "BOUND", self.coupling.mf6_model, self.coupling.mf6_msw_well_pkg
             )
             self.mf6_sprinkling_wells = self.mf6.get_value_ptr(mf6_sprinkling_tag)[:, 0]
-
             table_well2svat: NDArray[np.int32] = np.loadtxt(
                 self.coupling.mf6_msw_sprinkling_map, dtype=np.int32, ndmin=2
             )
