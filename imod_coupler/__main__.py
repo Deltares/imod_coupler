@@ -32,6 +32,8 @@ def run_coupler(config_path: Path) -> None:
     with open(config_path, "rb") as f:
         config = tomllib.load(f)
 
+    # Validation expects current working directory at config file level
+    os.chdir(config_path.parent)
     # TODO: validate configuration
 
     logging.basicConfig(level=config["log_level"])
