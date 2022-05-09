@@ -47,12 +47,12 @@ def run_coupler(config_path: Path) -> None:
         metamod_config = MetaModConfig(**config_dict["driver"])
         driver = MetaMod(base_config, metamod_config)
     else:
-        raise ValueError(f"Driver type {base_config['driver_type']} is not supported.")
+        raise ValueError(f"Driver type {base_config.driver_type} is not supported.")
 
     driver.execute()
 
     # Report timing
-    if base_config["timing"]:
+    if base_config.timing:
         driver.report_timing_totals()
         end = time.perf_counter()
         logging.info(f"Total elapsed time: {end-start:0.4f} seconds")
