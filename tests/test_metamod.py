@@ -258,4 +258,6 @@ def test_metamod_regression_sprinkling(
     assert budgets_dev.keys() == budgets_reg.keys()
 
     for varname in budgets_dev.keys():
-        assert_array_almost_equal(budgets_dev[varname].compute(), budgets_reg[varname].compute(), decimal=8)
+        assert_array_almost_equal(
+            budgets_dev[varname].compute(), budgets_reg[varname].compute(), decimal=8
+        )
