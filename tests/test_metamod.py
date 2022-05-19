@@ -257,7 +257,5 @@ def test_metamod_regression_sprinkling(
 
     assert budgets_dev.keys() == budgets_reg.keys()
 
-    ## FUTURE: Activate when issue is fixed:
-    ## https://gitlab.com/deltares/imod/imod-python/-/issues/238
-    # for varname in budgets_dev.keys():
-    #     assert_array_almost_equal(budgets_dev[varname], budgets_reg[varname], decimal=8)
+    for varname in budgets_dev.keys():
+        assert_array_almost_equal(budgets_dev[varname].compute(), budgets_reg[varname].compute(), decimal=8)
