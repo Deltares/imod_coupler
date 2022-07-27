@@ -194,8 +194,8 @@ def test_metaswap_dll_devel_present(modflow_dll_devel: Path) -> None:
     assert modflow_dll_devel.is_file()
 
 
-def test_metaswap_dll_devel_present(modflow_dll_devel: Path) -> None:
-    assert modflow_dll_devel.is_file()
+def test_metaswap_dll_devel_present(modflow_dll_regression: Path) -> None:
+    assert modflow_dll_regression.is_file()
 
 
 def test_modflow_dll_devel_present(modflow_dll_devel: Path) -> None:
