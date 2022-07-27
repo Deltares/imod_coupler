@@ -32,10 +32,12 @@ class Coupling(BaseModel):
     mf6_msw_recharge_pkg: str  # the recharge package that will be used for coupling
     mf6_msw_well_pkg: Optional[
         str
-    ]  # the well package that will be used for coupling when sprinkling is active
+    ] = None  # the well package that will be used for coupling when sprinkling is active
     mf6_msw_node_map: FilePath  # the path to the node map file
     mf6_msw_recharge_map: FilePath  # the pach to the recharge map file
-    mf6_msw_sprinkling_map = Optional[FilePath]  # the pach to the sprinkling map file
+    mf6_msw_sprinkling_map: Optional[
+        FilePath
+    ] = None  # the pach to the sprinkling map file
 
     class Config:
         arbitrary_types_allowed = True  # Needed for `mf6_msw_sprinkling_map`
