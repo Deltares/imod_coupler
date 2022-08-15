@@ -18,7 +18,6 @@ class DriverType(str, Enum):
 
 
 class BaseConfig(BaseModel):
-    config_file: Path
     log_level: Log = Log.INFO
     log_file: Path
     timing: bool = False
