@@ -7,47 +7,40 @@ from imod.couplers.metamod import MetaMod
 from imod.mf6 import Modflow6Simulation, open_cbc, open_hds
 from imod.msw import MetaSwapModel
 from numpy.testing import assert_array_almost_equal
-from pytest_cases import parametrize_with_cases
+from pytest_cases import parametrize_with_cases, parametrize, fixture
 
 
-def case_metamod_model_sprinkling(
-    coupled_mf6_model: Modflow6Simulation,
+@fixture(scope="function")
+def prepared_msw_model(
     msw_model: MetaSwapModel,
     metaswap_lookup_table: Path,
-) -> MetaMod:
-
+) -> MetaSwapModel:
     # Override unsat_svat_path with path from environment
     msw_model.simulation_settings[
         "unsa_svat_path"
     ] = msw_model._render_unsaturated_database_path(metaswap_lookup_table)
 
-    return MetaMod(
-        msw_model,
-        coupled_mf6_model,
-        mf6_rch_pkgkey="rch_msw",
-        mf6_wel_pkgkey="wells_msw",
-    )
+    return msw_model
 
 
-def case_metamod_model_no_sprinkling(
+@parametrize("use_sprinkling", [True, False], idstyle="explicit")
+def case_metamod_sprinkling(
     coupled_mf6_model: Modflow6Simulation,
-    msw_model: MetaSwapModel,
-    metaswap_lookup_table: Path,
+    prepared_msw_model: MetaSwapModel,
+    use_sprinkling: bool,
 ) -> MetaMod:
 
-    # Override unsat_svat_path with path from environment
-    msw_model.simulation_settings[
-        "unsa_svat_path"
-    ] = msw_model._render_unsaturated_database_path(metaswap_lookup_table)
-
-    # Remove sprinkling package
-    msw_model.pop("sprinkling")
+    if not use_sprinkling:
+        prepared_msw_model.pop("sprinkling")
+        mf6_wel_pkgkey = None
+    else:
+        mf6_wel_pkgkey = "wells_msw"
 
     return MetaMod(
-        msw_model,
+        prepared_msw_model,
         coupled_mf6_model,
         mf6_rch_pkgkey="rch_msw",
-        mf6_wel_pkgkey=None,  # Do not couple to Modflow wel
+        mf6_wel_pkgkey=mf6_wel_pkgkey,
     )
 
 
@@ -123,7 +116,7 @@ def test_modflow_dll_present(modflow_dll_devel: Path) -> None:
     assert modflow_dll_devel.is_file()
 
 
-@parametrize_with_cases("metamod_model", cases=".")
+@parametrize_with_cases("metamod_model", cases=".", prefix="case_metamod_")
 def test_metamod_develop(
     tmp_path_dev: Path,
     metamod_model: MetaMod,
@@ -158,8 +151,8 @@ def test_metamod_develop(
     assert cbcfile.stat().st_size > 0
 
 
-@parametrize_with_cases("metamod_model", cases=".")
-def test_metamod_regression_sprinkling(
+@parametrize_with_cases("metamod_model", cases=".", prefix="case_metamod_")
+def test_metamod_regression(
     metamod_model: MetaMod,
     tmp_path_dev: Path,
     tmp_path_reg: Path,
