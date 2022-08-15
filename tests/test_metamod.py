@@ -23,7 +23,7 @@ def prepared_msw_model(
     return msw_model
 
 
-@parametrize("use_sprinkling", [True, False], idstyle="explicit")
+@parametrize("use_sprinkling", [True, False])
 def case_metamod_sprinkling(
     coupled_mf6_model: Modflow6Simulation,
     prepared_msw_model: MetaSwapModel,
