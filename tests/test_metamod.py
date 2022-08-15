@@ -4,10 +4,10 @@ from pathlib import Path
 
 import pytest
 from imod.couplers.metamod import MetaMod
-from imod.mf6 import Modflow6Simulation, open_cbc, open_hds, StorageCoefficient
+from imod.mf6 import Modflow6Simulation, StorageCoefficient, open_cbc, open_hds
 from imod.msw import MetaSwapModel
 from numpy.testing import assert_array_almost_equal
-from pytest_cases import parametrize_with_cases, parametrize, fixture
+from pytest_cases import fixture, parametrize, parametrize_with_cases
 
 
 @fixture(scope="function")
