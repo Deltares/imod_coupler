@@ -23,24 +23,31 @@ def prepared_msw_model(
     return msw_model
 
 
-@parametrize("use_sprinkling", [True, False])
 def case_metamod_sprinkling(
     coupled_mf6_model: Modflow6Simulation,
     prepared_msw_model: MetaSwapModel,
-    use_sprinkling: bool,
 ) -> MetaMod:
-
-    if not use_sprinkling:
-        prepared_msw_model.pop("sprinkling")
-        mf6_wel_pkgkey = None
-    else:
-        mf6_wel_pkgkey = "wells_msw"
 
     return MetaMod(
         prepared_msw_model,
         coupled_mf6_model,
         mf6_rch_pkgkey="rch_msw",
-        mf6_wel_pkgkey=mf6_wel_pkgkey,
+        mf6_wel_pkgkey="wells_msw",
+    )
+
+
+def case_metamod_no_sprinkling(
+    coupled_mf6_model: Modflow6Simulation,
+    prepared_msw_model: MetaSwapModel,
+) -> MetaMod:
+
+    prepared_msw_model.pop("sprinkling")
+
+    return MetaMod(
+        prepared_msw_model,
+        coupled_mf6_model,
+        mf6_rch_pkgkey="rch_msw",
+        mf6_wel_pkgkey=None,
     )
 
 
@@ -248,4 +255,79 @@ def test_metamod_regression(
     for varname in budgets_dev.keys():
         assert_array_almost_equal(
             budgets_dev[varname].compute(), budgets_reg[varname].compute(), decimal=8
+        )
+
+
+@parametrize_with_cases("metamod_ss", cases=case_metamod_sprinkling)
+@parametrize_with_cases("metamod_sc", cases=case_metamod_storage_coefficient)
+def test_metamodel_storage_options(
+    tmp_path: Path,
+    metamod_ss: MetaMod,
+    metamod_sc: MetaMod,
+    metaswap_dll_devel: Path,
+    metaswap_dll_dep_dir_devel: Path,
+    modflow_dll_devel: Path,
+    imod_coupler_exec_devel: Path,
+):
+
+    tmp_path_sc = tmp_path / "storage_coefficient"
+    tmp_path_ss = tmp_path / "specific_storage"
+
+    metamod_ss.write(
+        tmp_path_ss,
+        modflow6_dll=modflow_dll_devel,
+        metaswap_dll=metaswap_dll_devel,
+        metaswap_dll_dependency=metaswap_dll_dep_dir_devel,
+    )
+
+    # Capture standard output and error in file (instead of StringIO) for
+    # debugging purposes
+    run_model(tmp_path_ss, imod_coupler_exec_devel)
+
+    has_mf6_success_message, has_msw_success_message = read_log_for_success(
+        tmp_path_ss / "metamod.log"
+    )
+    assert has_mf6_success_message
+    assert has_msw_success_message
+
+    # Read Modflow 6 output
+    headfile_ss = tmp_path_ss / "Modflow6" / "GWF_1" / "GWF_1.hds"
+    cbcfile_ss = tmp_path_ss / "Modflow6" / "GWF_1" / "GWF_1.cbc"
+    grbfile_ss = tmp_path_ss / "Modflow6" / "GWF_1" / "dis.dis.grb"
+
+    heads_ss = open_hds(headfile_ss, grbfile_ss)
+    budgets_ss = open_cbc(cbcfile_ss, grbfile_ss)
+
+    metamod_sc.write(
+        tmp_path_sc,
+        modflow6_dll=modflow_dll_devel,
+        metaswap_dll=metaswap_dll_devel,
+        metaswap_dll_dependency=metaswap_dll_dep_dir_devel,
+    )
+
+    # Capture standard output and error in file (instead of StringIO) for
+    # debugging purposes
+    run_model(tmp_path_sc, imod_coupler_exec_devel)
+
+    has_mf6_success_message, has_msw_success_message = read_log_for_success(
+        tmp_path_sc / "metamod.log"
+    )
+    assert has_mf6_success_message
+    assert has_msw_success_message
+
+    # Read Modflow 6 output
+    headfile_sc = tmp_path_sc / "Modflow6" / "GWF_1" / "GWF_1.hds"
+    cbcfile_sc = tmp_path_sc / "Modflow6" / "GWF_1" / "GWF_1.cbc"
+    grbfile_sc = tmp_path_sc / "Modflow6" / "GWF_1" / "dis.dis.grb"
+
+    heads_sc = open_hds(headfile_sc, grbfile_sc)
+    budgets_sc = open_cbc(cbcfile_sc, grbfile_sc)
+
+    assert_array_almost_equal(heads_ss.compute(), heads_ss.compute(), decimal=8)
+
+    assert budgets_sc.keys() == budgets_ss.keys()
+
+    for varname in budgets_sc.keys():
+        assert_array_almost_equal(
+            budgets_sc[varname].compute(), budgets_ss[varname].compute(), decimal=8
         )
