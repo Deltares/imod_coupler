@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 from imod.couplers.metamod import MetaMod
-from imod.mf6 import Modflow6Simulation, open_cbc, open_hds
+from imod.mf6 import Modflow6Simulation, open_cbc, open_hds, StorageCoefficient
 from imod.msw import MetaSwapModel
 from numpy.testing import assert_array_almost_equal
 from pytest_cases import parametrize_with_cases, parametrize, fixture
@@ -41,6 +41,42 @@ def case_metamod_sprinkling(
         coupled_mf6_model,
         mf6_rch_pkgkey="rch_msw",
         mf6_wel_pkgkey=mf6_wel_pkgkey,
+    )
+
+
+def case_metamod_storage_coefficient(
+    coupled_mf6_model: Modflow6Simulation,
+    prepared_msw_model: MetaSwapModel,
+) -> MetaMod:
+
+    gwf_model = coupled_mf6_model["GWF_1"]
+
+    # Specific storage package
+    # gwf_model["sto"] = mf6.SpecificStorage(1e-3, 0.1, True, 0)
+    sto_ds = gwf_model.pop("sto").dataset
+
+    # Confined: S = Ss * b
+    # Where 'S' is storage coefficient, 'Ss' specific
+    # storage, and 'b' thickness.
+    # https://en.wikipedia.org/wiki/Specific_storage
+
+    dis_ds = gwf_model["dis"].dataset
+    top = dis_ds["bottom"].shift(layer=1)
+    top[0] = dis_ds["top"]
+    b = top - dis_ds["bottom"]
+
+    sto_ds["storage_coefficient"] = sto_ds["specific_storage"] * b
+    sto_ds = sto_ds.drop_vars("specific_storage")
+
+    gwf_model["sto"] = StorageCoefficient(**sto_ds)
+    # reassign gwf model
+    coupled_mf6_model["GWF_1"] = gwf_model
+
+    return MetaMod(
+        prepared_msw_model,
+        coupled_mf6_model,
+        mf6_rch_pkgkey="rch_msw",
+        mf6_wel_pkgkey="wells_msw",
     )
 
 
