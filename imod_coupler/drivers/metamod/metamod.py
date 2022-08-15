@@ -63,6 +63,9 @@ class MetaMod(Driver):
         """Constructs the `MetaMod` object"""
         self.base_config = base_config
         self.metamod_config = metamod_config
+        self.coupling = metamod_config.coupling[
+            0
+        ]  # Adapt as soon as we have multimodel support
 
     def initialize(self) -> None:
         self.mf6 = XmiWrapper(
@@ -179,8 +182,8 @@ class MetaMod(Driver):
         )
 
         if self.coupling.enable_sprinkling:
-            assert isinstance(self.coupling.mf6_msw_well_pkg, FilePath)
-            assert isinstance(self.coupling.mf6_msw_sprinkling_map, FilePath)
+            assert isinstance(self.coupling.mf6_msw_well_pkg, str)
+            assert isinstance(self.coupling.mf6_msw_sprinkling_map, Path)
 
             # in this case we have a sprinkling demand from MetaSWAP
             mf6_sprinkling_tag = self.mf6.get_var_address(
