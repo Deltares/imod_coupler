@@ -171,6 +171,13 @@ def tmp_path_reg(
     return tmp_path / "regression"
 
 
+def mf6_output_files(path: Path) -> Tuple[Path]:
+    """return paths to"""
+    path_mf6 = path / "Modflow6" / "GWF_1"
+
+    return path_mf6 / "GWF_1.hds", path_mf6 / "GWF_1.cbc", path_mf6 / "dis.dis.grb"
+
+
 def test_lookup_table_present(metaswap_lookup_table: Path) -> None:
     assert metaswap_lookup_table.is_dir()
 
@@ -253,8 +260,7 @@ def test_metamod_develop(
     assert len(list((tmp_path_dev / "MetaSWAP").glob("*/*.idf"))) == 24
 
     # Test if Modflow6 output written
-    headfile = tmp_path_dev / "Modflow6" / "GWF_1" / "GWF_1.hds"
-    cbcfile = tmp_path_dev / "Modflow6" / "GWF_1" / "GWF_1.cbc"
+    headfile, cbcfile, _ = mf6_output_files(tmp_path_dev)
 
     assert headfile.exists()
     assert cbcfile.exists()
@@ -290,9 +296,7 @@ def test_metamod_regression(
     )
 
     # Read Modflow 6 output
-    headfile_dev = tmp_path_dev / "Modflow6" / "GWF_1" / "GWF_1.hds"
-    cbcfile_dev = tmp_path_dev / "Modflow6" / "GWF_1" / "GWF_1.cbc"
-    grbfile_dev = tmp_path_dev / "Modflow6" / "GWF_1" / "dis.dis.grb"
+    headfile_dev, cbcfile_dev, grbfile_dev = mf6_output_files(tmp_path_dev)
 
     heads_dev = open_hds(headfile_dev, grbfile_dev)
     budgets_dev = open_cbc(cbcfile_dev, grbfile_dev)
@@ -311,9 +315,7 @@ def test_metamod_regression(
     )
 
     # Read Modflow 6 output
-    headfile_reg = tmp_path_reg / "Modflow6" / "GWF_1" / "GWF_1.hds"
-    cbcfile_reg = tmp_path_reg / "Modflow6" / "GWF_1" / "GWF_1.cbc"
-    grbfile_reg = tmp_path_reg / "Modflow6" / "GWF_1" / "dis.dis.grb"
+    headfile_reg, cbcfile_reg, grbfile_reg = mf6_output_files(tmp_path_reg)
 
     heads_reg = open_hds(headfile_reg, grbfile_reg)
     budgets_reg = open_cbc(cbcfile_reg, grbfile_reg)
@@ -355,9 +357,7 @@ def test_metamodel_storage_options(
     )
 
     # Read Modflow 6 output
-    headfile_ss = tmp_path_ss / "Modflow6" / "GWF_1" / "GWF_1.hds"
-    cbcfile_ss = tmp_path_ss / "Modflow6" / "GWF_1" / "GWF_1.cbc"
-    grbfile_ss = tmp_path_ss / "Modflow6" / "GWF_1" / "dis.dis.grb"
+    headfile_ss, cbcfile_ss, grbfile_ss = mf6_output_files(tmp_path_ss)
 
     heads_ss = open_hds(headfile_ss, grbfile_ss)
     budgets_ss = open_cbc(cbcfile_ss, grbfile_ss)
@@ -374,9 +374,7 @@ def test_metamodel_storage_options(
     )
 
     # Read Modflow 6 output
-    headfile_sc = tmp_path_sc / "Modflow6" / "GWF_1" / "GWF_1.hds"
-    cbcfile_sc = tmp_path_sc / "Modflow6" / "GWF_1" / "GWF_1.cbc"
-    grbfile_sc = tmp_path_sc / "Modflow6" / "GWF_1" / "dis.dis.grb"
+    headfile_sc, cbcfile_sc, grbfile_sc = mf6_output_files(tmp_path_sc)
 
     heads_sc = open_hds(headfile_sc, grbfile_sc)
     budgets_sc = open_cbc(cbcfile_sc, grbfile_sc)
