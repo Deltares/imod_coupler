@@ -350,15 +350,9 @@ def test_metamodel_storage_options(
         metaswap_dll_dependency=metaswap_dll_dep_dir_devel,
     )
 
-    # Capture standard output and error in file (instead of StringIO) for
-    # debugging purposes
-    run_model(tmp_path_ss, imod_coupler_exec_devel)
-
-    has_mf6_success_message, has_msw_success_message = read_log_for_success(
-        tmp_path_ss / "metamod.log"
+    subprocess.run(
+        [imod_coupler_exec_devel, tmp_path_ss / metamod_ss._toml_name], check=True
     )
-    assert has_mf6_success_message
-    assert has_msw_success_message
 
     # Read Modflow 6 output
     headfile_ss = tmp_path_ss / "Modflow6" / "GWF_1" / "GWF_1.hds"
@@ -375,15 +369,9 @@ def test_metamodel_storage_options(
         metaswap_dll_dependency=metaswap_dll_dep_dir_devel,
     )
 
-    # Capture standard output and error in file (instead of StringIO) for
-    # debugging purposes
-    run_model(tmp_path_sc, imod_coupler_exec_devel)
-
-    has_mf6_success_message, has_msw_success_message = read_log_for_success(
-        tmp_path_sc / "metamod.log"
+    subprocess.run(
+        [imod_coupler_exec_devel, tmp_path_sc / metamod_sc._toml_name], check=True
     )
-    assert has_mf6_success_message
-    assert has_msw_success_message
 
     # Read Modflow 6 output
     headfile_sc = tmp_path_sc / "Modflow6" / "GWF_1" / "GWF_1.hds"
