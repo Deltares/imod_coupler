@@ -8,6 +8,7 @@ from imod.mf6 import Modflow6Simulation, StorageCoefficient, open_cbc, open_hds
 from imod.msw import MetaSwapModel
 from numpy.testing import assert_array_almost_equal
 from pytest_cases import fixture, parametrize, parametrize_with_cases
+from typing import List
 
 
 @fixture(scope="function")
@@ -23,43 +24,14 @@ def prepared_msw_model(
     return msw_model
 
 
-def case_metamod_sprinkling(
+@fixture(scope="function")
+def coupled_mf6_model_storage_coefficient(
     coupled_mf6_model: Modflow6Simulation,
-    prepared_msw_model: MetaSwapModel,
-) -> MetaMod:
-
-    return MetaMod(
-        prepared_msw_model,
-        coupled_mf6_model,
-        mf6_rch_pkgkey="rch_msw",
-        mf6_wel_pkgkey="wells_msw",
-    )
-
-
-def case_metamod_no_sprinkling(
-    coupled_mf6_model: Modflow6Simulation,
-    prepared_msw_model: MetaSwapModel,
-) -> MetaMod:
-
-    prepared_msw_model.pop("sprinkling")
-
-    return MetaMod(
-        prepared_msw_model,
-        coupled_mf6_model,
-        mf6_rch_pkgkey="rch_msw",
-        mf6_wel_pkgkey=None,
-    )
-
-
-def case_metamod_storage_coefficient(
-    coupled_mf6_model: Modflow6Simulation,
-    prepared_msw_model: MetaSwapModel,
-) -> MetaMod:
+) -> Modflow6Simulation:
 
     gwf_model = coupled_mf6_model["GWF_1"]
 
     # Specific storage package
-    # gwf_model["sto"] = mf6.SpecificStorage(1e-3, 0.1, True, 0)
     sto_ds = gwf_model.pop("sto").dataset
 
     # Confined: S = Ss * b
@@ -79,12 +51,110 @@ def case_metamod_storage_coefficient(
     # reassign gwf model
     coupled_mf6_model["GWF_1"] = gwf_model
 
+    return coupled_mf6_model
+
+
+def case_sprinkling(
+    coupled_mf6_model: Modflow6Simulation,
+    prepared_msw_model: MetaSwapModel,
+) -> MetaMod:
+
     return MetaMod(
         prepared_msw_model,
         coupled_mf6_model,
         mf6_rch_pkgkey="rch_msw",
         mf6_wel_pkgkey="wells_msw",
     )
+
+
+def case_no_sprinkling(
+    coupled_mf6_model: Modflow6Simulation,
+    prepared_msw_model: MetaSwapModel,
+) -> MetaMod:
+
+    prepared_msw_model.pop("sprinkling")
+
+    return MetaMod(
+        prepared_msw_model,
+        coupled_mf6_model,
+        mf6_rch_pkgkey="rch_msw",
+        mf6_wel_pkgkey=None,
+    )
+
+
+def case_storage_coefficient(
+    coupled_mf6_model_storage_coefficient: Modflow6Simulation,
+    prepared_msw_model: MetaSwapModel,
+) -> MetaMod:
+
+    return MetaMod(
+        prepared_msw_model,
+        coupled_mf6_model_storage_coefficient,
+        mf6_rch_pkgkey="rch_msw",
+        mf6_wel_pkgkey="wells_msw",
+    )
+
+
+def case_storage_coefficient_no_sprinkling(
+    coupled_mf6_model_storage_coefficient: Modflow6Simulation,
+    prepared_msw_model: MetaSwapModel,
+) -> MetaMod:
+
+    prepared_msw_model.pop("sprinkling")
+
+    return MetaMod(
+        prepared_msw_model,
+        coupled_mf6_model_storage_coefficient,
+        mf6_rch_pkgkey="rch_msw",
+        mf6_wel_pkgkey=None,
+    )
+
+
+def storage_comparison_no_sprinkling(
+    prepared_msw_model: MetaSwapModel,
+    coupled_mf6_model: Modflow6Simulation,
+    coupled_mf6_model_storage_coefficient: Modflow6Simulation,
+) -> List[MetaMod]:
+
+    prepared_msw_model.pop("sprinkling")
+    kwargs = dict(
+        mf6_rch_pkgkey="rch_msw",
+        mf6_wel_pkgkey=None,
+    )
+
+    metamod_ss = MetaMod(prepared_msw_model, coupled_mf6_model, **kwargs)
+
+    metamod_sc = MetaMod(
+        prepared_msw_model, coupled_mf6_model_storage_coefficient, **kwargs
+    )
+
+    return metamod_ss, metamod_sc
+
+
+def storage_comparison_sprinkling(
+    prepared_msw_model: MetaSwapModel,
+    coupled_mf6_model: Modflow6Simulation,
+    coupled_mf6_model_storage_coefficient: Modflow6Simulation,
+) -> List[MetaMod]:
+
+    kwargs = dict(
+        mf6_rch_pkgkey="rch_msw",
+        mf6_wel_pkgkey="wells_msw",
+    )
+
+    metamod_ss = MetaMod(
+        prepared_msw_model,
+        coupled_mf6_model,
+        **kwargs,
+    )
+
+    metamod_sc = MetaMod(
+        prepared_msw_model,
+        coupled_mf6_model_storage_coefficient,
+        **kwargs,
+    )
+
+    return metamod_ss, metamod_sc
 
 
 @pytest.fixture
@@ -159,7 +229,7 @@ def test_modflow_dll_present(modflow_dll_devel: Path) -> None:
     assert modflow_dll_devel.is_file()
 
 
-@parametrize_with_cases("metamod_model", cases=".", prefix="case_metamod_")
+@parametrize_with_cases("metamod_model", cases=".", prefix="case_")
 def test_metamod_develop(
     tmp_path_dev: Path,
     metamod_model: MetaMod,
@@ -194,7 +264,7 @@ def test_metamod_develop(
     assert cbcfile.stat().st_size > 0
 
 
-@parametrize_with_cases("metamod_model", cases=".", prefix="case_metamod_")
+@parametrize_with_cases("metamod_model", cases=".", prefix="case_")
 def test_metamod_regression(
     metamod_model: MetaMod,
     tmp_path_dev: Path,
@@ -258,17 +328,17 @@ def test_metamod_regression(
         )
 
 
-@parametrize_with_cases("metamod_ss", cases=case_metamod_sprinkling)
-@parametrize_with_cases("metamod_sc", cases=case_metamod_storage_coefficient)
+@parametrize_with_cases("metamods", cases=".", prefix="storage_comparison_")
 def test_metamodel_storage_options(
     tmp_path: Path,
-    metamod_ss: MetaMod,
-    metamod_sc: MetaMod,
+    metamods: List[MetaMod],
     metaswap_dll_devel: Path,
     metaswap_dll_dep_dir_devel: Path,
     modflow_dll_devel: Path,
     imod_coupler_exec_devel: Path,
 ):
+
+    metamod_ss, metamod_sc = metamods
 
     tmp_path_sc = tmp_path / "storage_coefficient"
     tmp_path_ss = tmp_path / "specific_storage"
@@ -323,7 +393,7 @@ def test_metamodel_storage_options(
     heads_sc = open_hds(headfile_sc, grbfile_sc)
     budgets_sc = open_cbc(cbcfile_sc, grbfile_sc)
 
-    assert_array_almost_equal(heads_ss.compute(), heads_ss.compute(), decimal=8)
+    assert_array_almost_equal(heads_sc.compute(), heads_ss.compute(), decimal=8)
 
     assert budgets_sc.keys() == budgets_ss.keys()
 
