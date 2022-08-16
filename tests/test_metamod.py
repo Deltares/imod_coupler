@@ -65,29 +65,6 @@ def tmp_path_reg(
     return tmp_path / "regression"
 
 
-def read_log_for_success(logfile_path):
-    with open(logfile_path, "r") as logfile:
-        has_mf6_success_message = False
-        has_msw_success_message = False
-        for line in logfile:
-            if "Normal termination of simulation." in line:
-                has_mf6_success_message = True
-            if "E N D   O F   M E T A S W A P" in line:
-                has_msw_success_message = True
-
-    return has_mf6_success_message, has_msw_success_message
-
-
-def run_model(path: Path, imod_coupler_exec: Path):
-    logfile_path = path / "metamod.log"
-    with open(logfile_path, "w") as logfile:
-        subprocess.run(
-            [imod_coupler_exec, path / "imod_coupler.toml"],
-            stdout=logfile,
-            stderr=logfile,
-        )
-
-
 def test_lookup_table_present(metaswap_lookup_table: Path) -> None:
     assert metaswap_lookup_table.is_dir()
 
@@ -162,16 +139,9 @@ def test_metamod_develop(
         metaswap_dll_dependency=metaswap_dll_dep_dir_devel,
     )
 
-    # Capture standard output and error in file (instead of StringIO) for
-    # debugging purposes
-    run_model(tmp_path_dev, imod_coupler_exec_devel)
-
-    has_mf6_success_message, has_msw_success_message = read_log_for_success(
-        tmp_path_dev / "metamod.log"
+    subprocess.run(
+        [imod_coupler_exec_devel, tmp_path_dev / metamod_model._toml_name], check=True
     )
-
-    assert has_mf6_success_message
-    assert has_msw_success_message
 
     # Test if MetaSWAP output written
     assert len(list((tmp_path_dev / "MetaSWAP").glob("*/*.idf"))) == 24
@@ -209,15 +179,9 @@ def test_metamod_regression_sprinkling(
         metaswap_dll_dependency=metaswap_dll_dep_dir_devel,
     )
 
-    # Capture standard output and error in file (instead of StringIO) for
-    # debugging purposes
-    run_model(tmp_path_dev, imod_coupler_exec_devel)
-
-    has_mf6_success_message, has_msw_success_message = read_log_for_success(
-        tmp_path_dev / "metamod.log"
+    subprocess.run(
+        [imod_coupler_exec_devel, tmp_path_dev / metamod_model._toml_name], check=True
     )
-    assert has_mf6_success_message
-    assert has_msw_success_message
 
     # Read Modflow 6 output
     headfile_dev = tmp_path_dev / "Modflow6" / "GWF_1" / "GWF_1.hds"
@@ -235,15 +199,10 @@ def test_metamod_regression_sprinkling(
         metaswap_dll_dependency=metaswap_dll_dep_dir_regression,
     )
 
-    # Capture standard output and error in file (instead of StringIO) for
-    # debugging purposes
-    run_model(tmp_path_reg, imod_coupler_exec_regression)
-
-    has_mf6_success_message, has_msw_success_message = read_log_for_success(
-        tmp_path_reg / "metamod.log"
+    subprocess.run(
+        [imod_coupler_exec_regression, tmp_path_reg / metamod_model._toml_name],
+        check=True,
     )
-    assert has_mf6_success_message
-    assert has_msw_success_message
 
     # Read Modflow 6 output
     headfile_reg = tmp_path_reg / "Modflow6" / "GWF_1" / "GWF_1.hds"
