@@ -1,7 +1,7 @@
 import os
 import subprocess
 from pathlib import Path
-from typing import List
+from typing import Tuple
 
 import pytest
 from imod.couplers.metamod import MetaMod
@@ -114,7 +114,7 @@ def storage_comparison_no_sprinkling(
     prepared_msw_model: MetaSwapModel,
     coupled_mf6_model: Modflow6Simulation,
     coupled_mf6_model_storage_coefficient: Modflow6Simulation,
-) -> List[MetaMod]:
+) -> Tuple[MetaMod]:
 
     prepared_msw_model.pop("sprinkling")
     kwargs = dict(
@@ -135,7 +135,7 @@ def storage_comparison_sprinkling(
     prepared_msw_model: MetaSwapModel,
     coupled_mf6_model: Modflow6Simulation,
     coupled_mf6_model_storage_coefficient: Modflow6Simulation,
-) -> List[MetaMod]:
+) -> Tuple[MetaMod]:
 
     kwargs = dict(
         mf6_rch_pkgkey="rch_msw",
@@ -331,7 +331,7 @@ def test_metamod_regression(
 @parametrize_with_cases("metamods", cases=".", prefix="storage_comparison_")
 def test_metamodel_storage_options(
     tmp_path: Path,
-    metamods: List[MetaMod],
+    metamods: Tuple[MetaMod],
     metaswap_dll_devel: Path,
     metaswap_dll_dep_dir_devel: Path,
     modflow_dll_devel: Path,
