@@ -4,6 +4,7 @@ from pathlib import Path
 import dotenv
 import pytest
 
+# This imports fixtures from iMOD Python
 pytest_plugins = ["imod_msw_mf6"]
 
 
