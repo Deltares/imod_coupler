@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import Tuple
 
 import pytest
+import xarray as xr
 from imod.couplers.metamod import MetaMod
 from imod.mf6 import Modflow6Simulation, StorageCoefficient, open_cbc, open_hds
 from imod.msw import MetaSwapModel
@@ -107,6 +108,70 @@ def case_storage_coefficient_no_sprinkling(
         coupled_mf6_model_storage_coefficient,
         mf6_rch_pkgkey="rch_msw",
         mf6_wel_pkgkey=None,
+    )
+
+
+def failure_msw_input(
+    coupled_mf6_model: Modflow6Simulation,
+    prepared_msw_model: MetaSwapModel,
+) -> MetaMod:
+    """
+    Force an input error in MetaSWAP by providing a initial condition with the
+    wrong type value
+    """
+
+    from imod.msw.fixed_format import VariableMetaData
+
+    prepared_msw_model["ic"]._metadata_dict["initial_pF"] = VariableMetaData(
+        6, None, None, str
+    )
+    prepared_msw_model["ic"].dataset["initial_pF"] = "a"
+
+    return MetaMod(
+        prepared_msw_model,
+        coupled_mf6_model,
+        mf6_rch_pkgkey="rch_msw",
+        mf6_wel_pkgkey="wells_msw",
+    )
+
+
+def failure_mf6_input(
+    coupled_mf6_model: Modflow6Simulation,
+    prepared_msw_model: MetaSwapModel,
+) -> MetaMod:
+    """
+    Force an input error in Modflow 6 by providing a k value of 0.0
+    """
+
+    coupled_mf6_model["GWF_1"]["npf"]["k"] *= 0.0
+
+    return MetaMod(
+        prepared_msw_model,
+        coupled_mf6_model,
+        mf6_rch_pkgkey="rch_msw",
+        mf6_wel_pkgkey="wells_msw",
+    )
+
+
+def failure_mf6_convergence(
+    coupled_mf6_model: Modflow6Simulation,
+    prepared_msw_model: MetaSwapModel,
+) -> MetaMod:
+    """
+    Force a non-convergencent solution, by providing extreme differences in the
+    k values.
+    """
+
+    k = xr.ones_like(coupled_mf6_model["GWF_1"]["npf"]["k"])
+
+    k[:] = [1e32, 1e-32, 1e32]
+    coupled_mf6_model["GWF_1"]["npf"]["k"] = k
+
+    return MetaMod(
+        prepared_msw_model,
+        coupled_mf6_model,
+        mf6_rch_pkgkey="rch_msw",
+        mf6_wel_pkgkey="wells_msw",
     )
 
 
@@ -242,6 +307,32 @@ def test_modflow_dll_present(modflow_dll: Path) -> None:
 
 def test_modflow_dll_present(modflow_dll_devel: Path) -> None:
     assert modflow_dll_devel.is_file()
+
+
+@parametrize_with_cases("metamod_model", cases=".", prefix="failure_")
+def test_metamod_failure(
+    tmp_path_dev: Path,
+    metamod_model: MetaMod,
+    metaswap_dll_devel: Path,
+    metaswap_dll_dep_dir_devel: Path,
+    modflow_dll_devel: Path,
+    imod_coupler_exec_devel: Path,
+):
+    """
+    Test if coupled models run fail with the iMOD Coupler development version.
+    """
+    metamod_model.write(
+        tmp_path_dev,
+        modflow6_dll=modflow_dll_devel,
+        metaswap_dll=metaswap_dll_devel,
+        metaswap_dll_dependency=metaswap_dll_dep_dir_devel,
+    )
+
+    with pytest.raises(subprocess.CalledProcessError):
+        subprocess.run(
+            [imod_coupler_exec_devel, tmp_path_dev / metamod_model._toml_name],
+            check=True,
+        )
 
 
 @parametrize_with_cases("metamod_model", cases=".", prefix="case_")
