@@ -110,11 +110,15 @@ def case_storage_coefficient_no_sprinkling(
     )
 
 
-def storage_comparison_no_sprinkling(
+def cases_no_sprinkling(
     prepared_msw_model: MetaSwapModel,
     coupled_mf6_model: Modflow6Simulation,
     coupled_mf6_model_storage_coefficient: Modflow6Simulation,
 ) -> Tuple[MetaMod]:
+    """
+    Two MetaMod objects, both without sprinkling. One with specific storage, one
+    with storage coefficient.
+    """
 
     prepared_msw_model.pop("sprinkling")
     kwargs = dict(
@@ -131,11 +135,15 @@ def storage_comparison_no_sprinkling(
     return metamod_ss, metamod_sc
 
 
-def storage_comparison_sprinkling(
+def cases_sprinkling(
     prepared_msw_model: MetaSwapModel,
     coupled_mf6_model: Modflow6Simulation,
     coupled_mf6_model_storage_coefficient: Modflow6Simulation,
 ) -> Tuple[MetaMod]:
+    """
+    Two MetaMod objects, both with sprinkling. One with specific storage, one
+    with storage coefficient.
+    """
 
     kwargs = dict(
         mf6_rch_pkgkey="rch_msw",
@@ -172,7 +180,7 @@ def tmp_path_reg(
 
 
 def mf6_output_files(path: Path) -> Tuple[Path]:
-    """return paths to"""
+    """return paths to Modflow 6 output files"""
     path_mf6 = path / "Modflow6" / "GWF_1"
 
     return path_mf6 / "GWF_1.hds", path_mf6 / "GWF_1.cbc", path_mf6 / "dis.dis.grb"
@@ -245,6 +253,9 @@ def test_metamod_develop(
     modflow_dll_devel: Path,
     imod_coupler_exec_devel: Path,
 ):
+    """
+    Test if coupled models run with the iMOD Coupler development version.
+    """
     metamod_model.write(
         tmp_path_dev,
         modflow6_dll=modflow_dll_devel,
@@ -284,6 +295,11 @@ def test_metamod_regression(
     imod_coupler_exec_devel: Path,
     imod_coupler_exec_regression: Path,
 ):
+    """
+    Regression test if coupled models run with the iMOD Coupler development and
+    regression version. Test if results are near equal.
+    """
+
     metamod_model.write(
         tmp_path_dev,
         modflow6_dll=modflow_dll_devel,
@@ -330,7 +346,7 @@ def test_metamod_regression(
         )
 
 
-@parametrize_with_cases("metamods", cases=".", prefix="storage_comparison_")
+@parametrize_with_cases("metamods", cases=".", prefix="cases_")
 def test_metamodel_storage_options(
     tmp_path: Path,
     metamods: Tuple[MetaMod],
@@ -339,6 +355,10 @@ def test_metamodel_storage_options(
     modflow_dll_devel: Path,
     imod_coupler_exec_devel: Path,
 ):
+    """
+    Test and compare two coupled models with the Modflow 6 storage specified as
+    storage coefficient and as specific storage. Test if results are near equal.
+    """
 
     metamod_ss, metamod_sc = metamods
 
