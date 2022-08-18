@@ -8,6 +8,7 @@ import xarray as xr
 from imod.couplers.metamod import MetaMod
 from imod.mf6 import Modflow6Simulation, StorageCoefficient, open_cbc, open_hds
 from imod.msw import MetaSwapModel
+from imod.msw.fixed_format import VariableMetaData
 from numpy.testing import assert_array_almost_equal
 from pytest_cases import fixture, parametrize, parametrize_with_cases
 
@@ -116,11 +117,9 @@ def failure_msw_input(
     prepared_msw_model: MetaSwapModel,
 ) -> MetaMod:
     """
-    Force an input error in MetaSWAP by providing an initial condition with the
-    wrong type value
+    Force an input error in MetaSWAP by providing an initial condition with
+    a value of the wrong type.
     """
-
-    from imod.msw.fixed_format import VariableMetaData
 
     prepared_msw_model["ic"]._metadata_dict["initial_pF"] = VariableMetaData(
         6, None, None, str
@@ -158,8 +157,8 @@ def failure_mf6_convergence(
     prepared_msw_model: MetaSwapModel,
 ) -> MetaMod:
     """
-    Creates a MetaMod object which will result in a non-convergencent MODFLOW 6 solution, by providing extreme differences in the
-    k values.
+    Creates a MetaMod object which will result in a non-convergencent MODFLOW 6
+    solution, by providing extreme differences in the k values.
     """
 
     k = xr.ones_like(coupled_mf6_model["GWF_1"]["npf"]["k"])
@@ -319,7 +318,7 @@ def test_metamod_failure(
     imod_coupler_exec_devel: Path,
 ):
     """
-    Test if coupled models run faild with the iMOD Coupler development version.
+    Test if coupled models run failed with the iMOD Coupler development version.
     """
     metamod_model.write(
         tmp_path_dev,
