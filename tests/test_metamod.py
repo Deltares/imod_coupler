@@ -12,19 +12,6 @@ from pytest_cases import fixture, parametrize, parametrize_with_cases
 
 
 @fixture(scope="function")
-def prepared_msw_model(
-    msw_model: MetaSwapModel,
-    metaswap_lookup_table: Path,
-) -> MetaSwapModel:
-    # Override unsat_svat_path with path from environment
-    msw_model.simulation_settings[
-        "unsa_svat_path"
-    ] = msw_model._render_unsaturated_database_path(metaswap_lookup_table)
-
-    return msw_model
-
-
-@fixture(scope="function")
 def coupled_mf6_model_storage_coefficient(
     coupled_mf6_model: Modflow6Simulation,
 ) -> Modflow6Simulation:
@@ -194,7 +181,7 @@ def test_metaswap_dll_devel_present(modflow_dll_devel: Path) -> None:
     assert modflow_dll_devel.is_file()
 
 
-def test_metaswap_dll_devel_present(modflow_dll_regression: Path) -> None:
+def test_metaswap_dll_regression_present(modflow_dll_regression: Path) -> None:
     assert modflow_dll_regression.is_file()
 
 

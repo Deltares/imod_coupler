@@ -3,6 +3,7 @@ from pathlib import Path
 
 import dotenv
 import pytest
+from imod.msw import MetaSwapModel
 
 # This imports fixtures from iMOD Python
 pytest_plugins = ["imod_msw_mf6"]
@@ -56,3 +57,16 @@ def modflow_dll_devel(load_dotenv) -> Path:
 @pytest.fixture(scope="session")
 def modflow_dll_regression(load_dotenv) -> Path:
     return Path(os.environ["MODFLOW_DLL_REGRESSION"])
+
+
+@pytest.fixture(scope="function")
+def prepared_msw_model(
+    msw_model: MetaSwapModel,
+    metaswap_lookup_table: Path,
+) -> MetaSwapModel:
+    # Override unsat_svat_path with path from environment
+    msw_model.simulation_settings[
+        "unsa_svat_path"
+    ] = msw_model._render_unsaturated_database_path(metaswap_lookup_table)
+
+    return msw_model
