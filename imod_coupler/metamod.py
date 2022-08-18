@@ -30,6 +30,7 @@ class MetaMod:
         self.mf6_head = None  # the hydraulic head array in the coupled model
         self.mf6_recharge = None  # the coupled recharge array from the RCH package
         self.mf6_storage = None  # the specific storage array (ss)
+        self.mf6_has_sc1 = None  # when true, specific storage in mf6 is given as a storage coefficient (sc1)
         self.mf6_area = None  # cell area (size:nodes)
         self.mf6_top = None  # top of cell (size:nodes)
         self.mf6_bot = None  # bottom of cell (size:nodes)
@@ -138,6 +139,7 @@ class MetaMod:
         mf6_head_tag = self.mf6.get_var_address("X", mf6_modelname)
         mf6_recharge_tag = self.mf6.get_var_address("BOUND", mf6_modelname, "RCH_MSW")
         mf6_storage_tag = self.mf6.get_var_address("SS", mf6_modelname, "STO")
+        mf6_is_sc1_tag = self.mf6.get_var_address("ISTOR_COEF", mf6_modelname, "STO")
         mf6_area_tag = self.mf6.get_var_address("AREA", mf6_modelname, "DIS")
         mf6_top_tag = self.mf6.get_var_address("TOP", mf6_modelname, "DIS")
         mf6_bot_tag = self.mf6.get_var_address("BOT", mf6_modelname, "DIS")
@@ -150,6 +152,7 @@ class MetaMod:
         # NB: recharge is set to first column in BOUND
         self.mf6_recharge = self.mf6.get_value_ptr(mf6_recharge_tag)[:, 0]
         self.mf6_storage = self.mf6.get_value_ptr(mf6_storage_tag)
+        self.mf6_has_sc1 = self.mf6.get_value_ptr(mf6_is_sc1_tag)[0] != 0
         self.mf6_area = self.mf6.get_value_ptr(mf6_area_tag)
         self.mf6_top = self.mf6.get_value_ptr(mf6_top_tag)
         self.mf6_bot = self.mf6.get_value_ptr(mf6_bot_tag)
@@ -205,16 +208,22 @@ class MetaMod:
                 "sum",
             )
 
-            # MetaSWAP gives SC1, MODFLOW needs SS, temporarily convert here,
-            # following the definition on specific storage in chapter 5 of
-            # the MODFLOW manual, but, this needs to be solved in MetaSWAP!!
-            sc1_to_ss = 1.0 / np.multiply(self.mf6_area, self.mf6_top - self.mf6_bot)
-            area_conversion = dia_matrix(
-                (sc1_to_ss, [0]),
+            # MetaSWAP gives SC1*area, MODFLOW by default needs SS, convert here.
+            # When MODFLOW is configured to use SC1 explicitly via the
+            # STORAGECOEFFICIENT option in the STO package, only the multiplication
+            # by area needs to be undone
+            conversion_terms = None
+            if self.mf6_has_sc1:
+                conversion_terms = 1.0 / self.mf6_area
+            else:
+                conversion_terms = 1.0 / np.multiply(self.mf6_area, self.mf6_top - self.mf6_bot)
+
+            conversion_matrix = dia_matrix(
+                (conversion_terms, [0]),
                 shape=(self.mf6_area.size, self.mf6_area.size),
                 dtype=self.mf6_area.dtype,
             )
-            map_msw2mod["storage"] = area_conversion * map_msw2mod["storage"]
+            map_msw2mod["storage"] = conversion_matrix * map_msw2mod["storage"]
 
             map_mod2msw["head"], mask_mod2msw["head"] = create_mapping(
                 node_idx,
