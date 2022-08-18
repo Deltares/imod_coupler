@@ -223,7 +223,6 @@ class MetaMod(Driver):
             conversion_terms = 1.0 / self.mf6_area
         else:
             conversion_terms = 1.0 / self.mf6_area * (self.mf6_top - self.mf6_bot)
-            )
 
         conversion_matrix = dia_matrix(
             (conversion_terms, [0]),
