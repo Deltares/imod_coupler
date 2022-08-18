@@ -116,7 +116,7 @@ def failure_msw_input(
     prepared_msw_model: MetaSwapModel,
 ) -> MetaMod:
     """
-    Force an input error in MetaSWAP by providing a initial condition with the
+    Force an input error in MetaSWAP by providing an initial condition with the
     wrong type value
     """
 
@@ -140,7 +140,7 @@ def failure_mf6_input(
     prepared_msw_model: MetaSwapModel,
 ) -> MetaMod:
     """
-    Force an input error in Modflow 6 by providing a k value of 0.0
+    Creates a MetaMod object which will result in a MODFLOW 6 input error.
     """
 
     coupled_mf6_model["GWF_1"]["npf"]["k"] *= 0.0
@@ -158,7 +158,7 @@ def failure_mf6_convergence(
     prepared_msw_model: MetaSwapModel,
 ) -> MetaMod:
     """
-    Force a non-convergencent solution, by providing extreme differences in the
+    Creates a MetaMod object which will result in a non-convergencent MODFLOW 6 solution, by providing extreme differences in the
     k values.
     """
 
@@ -319,7 +319,7 @@ def test_metamod_failure(
     imod_coupler_exec_devel: Path,
 ):
     """
-    Test if coupled models run fail with the iMOD Coupler development version.
+    Test if coupled models run faild with the iMOD Coupler development version.
     """
     metamod_model.write(
         tmp_path_dev,
