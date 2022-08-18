@@ -3,10 +3,10 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 import pytest
+import pytest_cases
 import xarray as xr
 from imod import mf6, msw
 from numpy import nan
-import pytest_cases
 
 
 @pytest.fixture(scope="function")
