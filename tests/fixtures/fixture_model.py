@@ -6,13 +6,14 @@ import pytest
 import xarray as xr
 from imod import mf6, msw
 from numpy import nan
-from pytest_cases import fixture
+import pytest_cases
 
 
-def make_coupled_mf6_model():
+@pytest.fixture(scope="function")
+def coupled_mf6_model():
     x = [1.0, 2.0, 3.0]
     y = [3.0, 2.0, 1.0]
-    dz = np.array([1, 10, 100])
+    dz = np.array([1.0, 10.0, 100.0])
     layer = [1, 2, 3]
     dx = 1.0
     dy = -1.0
@@ -111,7 +112,8 @@ def make_coupled_mf6_model():
     return simulation
 
 
-def make_msw_model():
+@pytest.fixture(scope="function")
+def msw_model():
     unsaturated_database = "./unsat_database"
 
     x = [1.0, 2.0, 3.0]
@@ -157,7 +159,7 @@ def make_msw_model():
     precipitation = msw_grid.expand_dims(time=times[:-1])
     evapotranspiration = msw_grid.expand_dims(time=times[:-1]) * 1.2
 
-    # %% Vegetation
+    # Vegetation
     day_of_year = np.arange(1, 367)
     vegetation_index = np.arange(1, 4)
 
@@ -179,7 +181,7 @@ def make_msw_model():
     vegetation_factor[192:244, :] = 1.1
     vegetation_factor[244:254, :] = 0.7
 
-    # %% Landuse
+    # Landuse
     landuse_index = np.arange(1, 4)
     names = ["grassland", "maize", "potatoes"]
 
@@ -191,7 +193,7 @@ def make_msw_model():
     )
     lu = xr.ones_like(vegetation_index_da, dtype=float)
 
-    # %% Well
+    # Well
 
     wel_layer = 3
 
@@ -202,12 +204,12 @@ def make_msw_model():
 
     well = mf6.WellDisStructured(layer=layer, row=iy, column=ix, rate=rate)
 
-    # %% Modflow 6
+    # Modflow 6
     idomain = xr.full_like(msw_grid, 1, dtype=int).expand_dims(layer=[1, 2, 3])
 
     dis = mf6.StructuredDiscretization(top=1.0, bottom=0.0, idomain=idomain)
 
-    # %% Initiate model
+    # Initiate model
     msw_model = msw.MetaSwapModel(unsaturated_database=unsaturated_database)
     msw_model["grid"] = msw.GridData(
         area,
@@ -220,26 +222,26 @@ def make_msw_model():
 
     msw_model["ic"] = msw.InitialConditionsRootzonePressureHead(initial_pF=2.2)
 
-    # %% Meteo
+    # Meteo
     msw_model["meteo_grid"] = msw.MeteoGrid(precipitation, evapotranspiration)
     msw_model["mapping_prec"] = msw.PrecipitationMapping(precipitation)
     msw_model["mapping_evt"] = msw.EvapotranspirationMapping(precipitation * 1.5)
 
-    # %% Sprinkling
+    # Sprinkling
     msw_model["sprinkling"] = msw.Sprinkling(
         max_abstraction_groundwater=xr.full_like(msw_grid, 100.0),
         max_abstraction_surfacewater=xr.full_like(msw_grid, 100.0),
         well=well,
     )
 
-    # %% Ponding
+    # Ponding
     msw_model["ponding"] = msw.Ponding(
         ponding_depth=xr.full_like(area, 0.0),
         runon_resistance=xr.full_like(area, 1.0),
         runoff_resistance=xr.full_like(area, 1.0),
     )
 
-    # %% Scaling Factors
+    # Scaling Factors
     msw_model["scaling"] = msw.ScalingFactors(
         scale_soil_moisture=xr.full_like(area, 1.0),
         scale_hydraulic_conductivity=xr.full_like(area, 1.0),
@@ -247,7 +249,7 @@ def make_msw_model():
         depth_perched_water_table=xr.full_like(msw_grid, 1.0),
     )
 
-    # %% Infiltration
+    # Infiltration
     msw_model["infiltration"] = msw.Infiltration(
         infiltration_capacity=xr.full_like(area, 1.0),
         downward_resistance=xr.full_like(msw_grid, -9999.0),
@@ -256,7 +258,7 @@ def make_msw_model():
         extra_storage_coefficient=xr.full_like(msw_grid, 0.1),
     )
 
-    # %% Vegetation
+    # Vegetation
     msw_model["crop_factors"] = msw.AnnualCropFactors(
         soil_cover=soil_cover,
         leaf_area_index=leaf_area_index,
@@ -267,7 +269,7 @@ def make_msw_model():
         ponding_factor=xr.ones_like(soil_cover),
     )
 
-    # %% Landuse options
+    # Landuse options
     msw_model["landuse_options"] = msw.LanduseOptions(
         landuse_name=landuse_names,
         vegetation_index=vegetation_index_da,
@@ -292,10 +294,10 @@ def make_msw_model():
         interception_intercept=xr.ones_like(lu),
     )
 
-    # %% Metaswap Mappings
+    # Metaswap Mappings
     msw_model["mod2svat"] = msw.CouplerMapping(modflow_dis=dis, well=well)
 
-    # %% Output Control
+    # Output Control
     msw_model["oc_idf"] = msw.IdfMapping(area, -9999.0)
     msw_model["oc_var"] = msw.VariableOutputControl()
     msw_model["oc_time"] = msw.TimeOutputControl(time=times)
@@ -303,18 +305,8 @@ def make_msw_model():
     return msw_model
 
 
-#%% Fixtures
-@pytest.fixture(scope="function")
-def coupled_mf6_model():
-    return make_coupled_mf6_model()
-
-
-@pytest.fixture(scope="function")
-def msw_model():
-    return make_msw_model()
-
-
-@fixture(scope="function")
+#%% Case fixtures
+@pytest_cases.fixture(scope="function")
 def prepared_msw_model(
     msw_model: msw.MetaSwapModel,
     metaswap_lookup_table: Path,
@@ -327,7 +319,7 @@ def prepared_msw_model(
     return msw_model
 
 
-@fixture(scope="function")
+@pytest_cases.fixture(scope="function")
 def coupled_mf6_model_storage_coefficient(
     coupled_mf6_model: mf6.Modflow6Simulation,
 ) -> mf6.Modflow6Simulation:
