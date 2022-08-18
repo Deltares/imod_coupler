@@ -5,67 +5,9 @@ from typing import Tuple
 
 import pytest
 from imod.couplers.metamod import MetaMod
-from imod.mf6 import Modflow6Simulation, StorageCoefficient, open_cbc, open_hds
-from imod.msw import MetaSwapModel
+from imod.mf6 import open_cbc, open_hds
 from numpy.testing import assert_array_almost_equal
-from pytest_cases import fixture, parametrize_with_cases
-
-
-@fixture(scope="function")
-def prepared_msw_model(
-    msw_model: MetaSwapModel,
-    metaswap_lookup_table: Path,
-) -> MetaSwapModel:
-    # Override unsat_svat_path with path from environment
-    msw_model.simulation_settings[
-        "unsa_svat_path"
-    ] = msw_model._render_unsaturated_database_path(metaswap_lookup_table)
-
-    return msw_model
-
-
-@fixture(scope="function")
-def coupled_mf6_model_storage_coefficient(
-    coupled_mf6_model: Modflow6Simulation,
-) -> Modflow6Simulation:
-
-    gwf_model = coupled_mf6_model["GWF_1"]
-
-    # Specific storage package
-    sto_ds = gwf_model.pop("sto").dataset
-
-    # Confined: S = Ss * b
-    # Where 'S' is storage coefficient, 'Ss' specific
-    # storage, and 'b' thickness.
-    # https://en.wikipedia.org/wiki/Specific_storage
-
-    dis_ds = gwf_model["dis"].dataset
-    top = dis_ds["bottom"].shift(layer=1)
-    top[0] = dis_ds["top"]
-    b = top - dis_ds["bottom"]
-
-    sto_ds["storage_coefficient"] = sto_ds["specific_storage"] * b
-    sto_ds = sto_ds.drop_vars("specific_storage")
-
-    gwf_model["sto"] = StorageCoefficient(**sto_ds)
-    # reassign gwf model
-    coupled_mf6_model["GWF_1"] = gwf_model
-
-    return coupled_mf6_model
-
-
-@pytest.fixture
-def tmp_path_dev(
-    tmp_path: Path,
-) -> Path:
-    return tmp_path / "develop"
-
-
-@pytest.fixture
-def tmp_path_reg(
-    tmp_path: Path,
-) -> Path:
-    return tmp_path / "regression"
+from pytest_cases import parametrize_with_cases
 
 
 def mf6_output_files(path: Path) -> Tuple[Path]:
