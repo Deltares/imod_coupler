@@ -219,7 +219,6 @@ class MetaMod(Driver):
         # When MODFLOW is configured to use SC1 explicitly via the
         # STORAGECOEFFICIENT option in the STO package, only the multiplication
         # by area needs to be undone
-        conversion_terms = None
         if self.mf6_has_sc1:
             conversion_terms = 1.0 / self.mf6_area
         else:
