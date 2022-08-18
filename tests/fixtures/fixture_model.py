@@ -92,6 +92,7 @@ def coupled_mf6_model():
     simulation["GWF_1"] = gwf_model
     # Define solver settings
     simulation["solver"] = mf6.Solution(
+        modelnames=["GWF_1"],
         print_option="summary",
         csv_output=False,
         no_ptc=True,
