@@ -13,7 +13,7 @@ import pytest_cases
 def coupled_mf6_model():
     x = [1.0, 2.0, 3.0]
     y = [3.0, 2.0, 1.0]
-    dz = np.array([1.0, 10.0, 100.0])
+    dz = np.array([2.0, 10.0, 100.0])
     layer = [1, 2, 3]
     dx = 1.0
     dy = -1.0
