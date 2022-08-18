@@ -9,21 +9,27 @@ from imod import mf6, msw
 from numpy import nan
 
 
-@pytest.fixture(scope="function")
-def coupled_mf6_model():
-    x = [1.0, 2.0, 3.0]
-    y = [3.0, 2.0, 1.0]
-    dz = np.array([2.0, 10.0, 100.0])
-    layer = [1, 2, 3]
-    dx = 1.0
-    dy = -1.0
+def grid_sizes():
+    x = [100.0, 200.0, 300.0, 400.0, 500.0]
+    y = [300.0, 200.0, 100.0]
+    dz = np.array([0.2, 10.0, 100.0])
+
+    layer = np.arange(len(dz)) + 1
+    dx = x[1] - x[0]
+    dy = y[1] - y[0]
+
+    freq = "D"
+    times = pd.date_range(start="1/1/1971", end="1/1/1972", freq=freq)
+
+    return x, y, layer, times, dx, dy, dz
+
+
+def make_coupled_mf6_model():
+    x, y, layer, times, dx, dy, dz = grid_sizes()
 
     nlay = len(layer)
     nrow = len(y)
     ncol = len(x)
-
-    freq = "D"
-    times = pd.date_range(start="1/1/1971", end="1/3/1971", freq=freq)
 
     like = xr.DataArray(
         data=np.ones((nlay, nrow, ncol)),
@@ -33,13 +39,10 @@ def coupled_mf6_model():
     idomain = like.astype(np.int32)
 
     top = 0.0
-    bottom = top - xr.DataArray(
-        np.cumsum(layer * dz), coords={"layer": layer}, dims="layer"
-    )
+    bottom = top - xr.DataArray(np.cumsum(dz), coords={"layer": layer}, dims="layer")
 
     head = xr.full_like(like, np.nan)
-    head[..., 0] = -1.0
-    head[..., -1] = -1.0
+    head[0, :, 0] = -2.0
 
     head = head.expand_dims(time=times)
 
@@ -52,8 +55,11 @@ def coupled_mf6_model():
     )
 
     icelltype = xr.full_like(bottom, 0, dtype=int)
-    k = xr.DataArray(np.ones((nlay)), {"layer": layer}, ("layer",))
-    k33 = xr.DataArray(np.ones((nlay)), {"layer": layer}, ("layer",))
+    k_values = np.ones((nlay))
+    k_values[1, ...] = 0.001
+
+    k = xr.DataArray(k_values, {"layer": layer}, ("layer",))
+    k33 = xr.DataArray(k_values / 10.0, {"layer": layer}, ("layer",))
     gwf_model["npf"] = mf6.NodePropertyFlow(
         icelltype=icelltype,
         k=k,
@@ -64,12 +70,11 @@ def coupled_mf6_model():
         save_flows=True,
     )
 
-    gwf_model["ic"] = mf6.InitialConditions(head=0.5)
+    gwf_model["ic"] = mf6.InitialConditions(head=-2.0)
     gwf_model["sto"] = mf6.SpecificStorage(1e-3, 0.1, True, 0)
 
     recharge = xr.zeros_like(idomain.sel(layer=1), dtype=float)
     recharge[:, 0] = np.nan
-    recharge[:, -1] = np.nan
 
     gwf_model["rch_msw"] = mf6.Recharge(recharge)
 
@@ -117,40 +122,36 @@ def coupled_mf6_model():
 def msw_model():
     unsaturated_database = "./unsat_database"
 
-    x = [1.0, 2.0, 3.0]
-    y = [3.0, 2.0, 1.0]
+    x, y, _, times, dx, dy, _ = grid_sizes()
     subunit = [0, 1]
-    dx = 1.0
-    dy = -1.0
 
     nrow = len(y)
     ncol = len(x)
 
-    freq = "D"
-    times = pd.date_range(start="1/1/1971", end="1/3/1971", freq=freq)
-
     # fmt: off
-    area = xr.DataArray(
+    relative_area = xr.DataArray(
         np.array(
             [
-                [[0.5, 0.5, 0.5],
-                 [nan, nan, nan],
-                 [1.0, 1.0, 1.0]],
+                [[0.5, 0.5, 0.5, 0.5, 0.5],
+                 [nan, nan, nan, nan, nan],
+                 [1.0, 1.0, 1.0, 1.0, 1.0]],
 
-                [[0.5, 0.5, 0.5],
-                 [1.0, 1.0, 1.0],
-                 [nan, nan, nan]],
+                [[0.5, 0.5, 0.5, 0.5, 0.5],
+                 [1.0, 1.0, 1.0, 1.0, 1.0],
+                 [nan, nan, nan, nan, nan]],
             ]
         ),
         dims=("subunit", "y", "x"),
         coords={"subunit": subunit, "y": y, "x": x, "dx": dx, "dy": dy}
     )
 
+    area = relative_area * dx * -dy
+
     active = xr.DataArray(
         np.array(
-            [[False, True, False],
-             [False, True, False],
-             [False, True, False]]),
+            [[False, True, True, True, True],
+             [False, True, True, True, True],
+             [False, True, True, True, True]]),
         dims=("y", "x"),
         coords={"y": y, "x": x}
     )
@@ -158,7 +159,7 @@ def msw_model():
     msw_grid = xr.ones_like(active, dtype=float)
 
     precipitation = msw_grid.expand_dims(time=times[:-1])
-    evapotranspiration = msw_grid.expand_dims(time=times[:-1]) * 1.2
+    evapotranspiration = msw_grid.expand_dims(time=times[:-1]) * 10.0
 
     # Vegetation
     day_of_year = np.arange(1, 367)
@@ -308,6 +309,11 @@ def msw_model():
 
 #%% Case fixtures
 @pytest_cases.fixture(scope="function")
+def coupled_mf6_model() -> mf6.Modflow6Simulation:
+    return make_coupled_mf6_model()
+
+
+@pytest_cases.fixture(scope="function")
 def prepared_msw_model(
     msw_model: msw.MetaSwapModel,
     metaswap_lookup_table: Path,
@@ -321,9 +327,9 @@ def prepared_msw_model(
 
 
 @pytest_cases.fixture(scope="function")
-def coupled_mf6_model_storage_coefficient(
-    coupled_mf6_model: mf6.Modflow6Simulation,
-) -> mf6.Modflow6Simulation:
+def coupled_mf6_model_storage_coefficient() -> mf6.Modflow6Simulation:
+
+    coupled_mf6_model = make_coupled_mf6_model()
 
     gwf_model = coupled_mf6_model["GWF_1"]
 
