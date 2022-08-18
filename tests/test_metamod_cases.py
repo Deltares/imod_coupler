@@ -1,12 +1,10 @@
-from pathlib import Path
 from typing import Tuple
 
 import xarray as xr
 from imod.couplers.metamod import MetaMod
-from imod.mf6 import Modflow6Simulation, StorageCoefficient
+from imod.mf6 import Modflow6Simulation
 from imod.msw import MetaSwapModel
 from imod.msw.fixed_format import VariableMetaData
-from pytest_cases import fixture
 
 
 def case_sprinkling(
