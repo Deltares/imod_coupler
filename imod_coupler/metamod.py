@@ -98,28 +98,28 @@ class MetaMod:
     def xchg_msw2mod(self):
         """Exchange Metaswap to Modflow"""
         self.mf6_storage[:] = (
-            self.mask_msw2mod["storage"][:] * self.mf6_storage[:]
-            + self.map_msw2mod["storage"].dot(self.msw_storage)[:]
+                self.mask_msw2mod["storage"][:] * self.mf6_storage[:]
+                + self.map_msw2mod["storage"].dot(self.msw_storage)[:]
         )
 
         # Divide recharge and extraction by delta time
         tled = 1 / self.delt
         self.mf6_recharge[:] = (
-            self.mask_msw2mod["recharge"][:] * self.mf6_recharge[:]
-            + tled * self.map_msw2mod["recharge"].dot(self.msw_volume)[:]
+                self.mask_msw2mod["recharge"][:] * self.mf6_recharge[:]
+                + tled * self.map_msw2mod["recharge"].dot(self.msw_volume)[:]
         )
 
         if self.is_sprinkling_active:
             self.mf6_sprinkling_wells[:] = (
-                self.mask_msw2mod["sprinkling"][:] * self.mf6_sprinkling_wells[:]
-                + tled * self.map_msw2mod["sprinkling"].dot(self.msw_volume)[:]
+                    self.mask_msw2mod["sprinkling"][:] * self.mf6_sprinkling_wells[:]
+                    + tled * self.map_msw2mod["sprinkling"].dot(self.msw_volume)[:]
             )
 
     def xchg_mod2msw(self):
         """Exchange Modflow to Metaswap"""
         self.msw_head[:] = (
-            self.mask_mod2msw["head"][:] * self.msw_head[:]
-            + self.map_mod2msw["head"].dot(self.mf6_head)[:]
+                self.mask_mod2msw["head"][:] * self.msw_head[:]
+                + self.map_mod2msw["head"].dot(self.mf6_head)[:]
         )
 
     def do_iter(self, sol_id: int) -> bool:
