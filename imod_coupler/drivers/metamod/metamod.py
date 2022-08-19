@@ -95,7 +95,9 @@ class MetaMod(Driver):
             "BOUND", self.coupling.mf6_model, self.coupling.mf6_msw_recharge_pkg
         )
         mf6_storage_tag = self.mf6.get_var_address("SS", self.coupling.mf6_model, "STO")
-        mf6_is_sc1_tag = self.mf6.get_var_address("ISTOR_COEF", self.coupling.mf6_model, "STO")
+        mf6_is_sc1_tag = self.mf6.get_var_address(
+            "ISTOR_COEF", self.coupling.mf6_model, "STO"
+        )
         mf6_area_tag = self.mf6.get_var_address("AREA", self.coupling.mf6_model, "DIS")
         mf6_top_tag = self.mf6.get_var_address("TOP", self.coupling.mf6_model, "DIS")
         mf6_bot_tag = self.mf6.get_var_address("BOT", self.coupling.mf6_model, "DIS")
