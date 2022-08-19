@@ -5,7 +5,7 @@ import pandas as pd
 import pytest
 import pytest_cases
 import xarray as xr
-from imod import MetaSwapModel, Modflow6Simulation, mf6, msw
+from imod import mf6, msw
 from numpy import float_, int_, nan
 from numpy.typing import NDArray
 
@@ -33,7 +33,7 @@ def grid_sizes() -> tuple[
     return x, y, layer, times, dx, dy, dz
 
 
-def make_coupled_mf6_model() -> Modflow6Simulation:
+def make_coupled_mf6_model() -> mf6.Modflow6Simulation:
     x, y, layer, times, dx, dy, dz = grid_sizes()
 
     nlay = len(layer)
@@ -128,7 +128,7 @@ def make_coupled_mf6_model() -> Modflow6Simulation:
 
 
 @pytest.fixture(scope="function")
-def msw_model() -> MetaSwapModel:
+def msw_model() -> msw.MetaSwapModel:
     unsaturated_database = "./unsat_database"
 
     x, y, _, times, dx, dy, _ = grid_sizes()
