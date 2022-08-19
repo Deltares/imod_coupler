@@ -129,7 +129,7 @@ def cases_no_sprinkling(
     prepared_msw_model: MetaSwapModel,
     coupled_mf6_model: Modflow6Simulation,
     coupled_mf6_model_storage_coefficient: Modflow6Simulation,
-) -> Tuple[MetaMod]:
+) -> Tuple[MetaMod, MetaMod]:
     """
     Two MetaMod objects, both without sprinkling. One with specific storage, one
     with storage coefficient.
@@ -154,7 +154,7 @@ def cases_sprinkling(
     prepared_msw_model: MetaSwapModel,
     coupled_mf6_model: Modflow6Simulation,
     coupled_mf6_model_storage_coefficient: Modflow6Simulation,
-) -> Tuple[MetaMod]:
+) -> Tuple[MetaMod, MetaMod]:
     """
     Two MetaMod objects, both with sprinkling. One with specific storage, one
     with storage coefficient.
