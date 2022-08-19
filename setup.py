@@ -40,6 +40,7 @@ setup(
         "scipy ~= 1.8",
         "xmipy ~= 1.0",
         "tomli ~= 1.1",
+        "tomli-w ~= 1.0",
         "pydantic ~= 1.9",
     ],
     extras_require={
