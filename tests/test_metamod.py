@@ -10,7 +10,7 @@ from numpy.testing import assert_array_almost_equal
 from pytest_cases import parametrize_with_cases
 
 
-def mf6_output_files(path: Path) -> Tuple[Path]:
+def mf6_output_files(path: Path) -> Tuple[Path, Path, Path]:
     """return paths to Modflow 6 output files"""
     path_mf6 = path / "Modflow6" / "GWF_1"
 
@@ -25,8 +25,8 @@ def test_metaswap_dll_devel_present(modflow_dll_devel: Path) -> None:
     assert modflow_dll_devel.is_file()
 
 
-def test_metaswap_dll_devel_present(modflow_dll_devel: Path) -> None:
-    assert modflow_dll_devel.is_file()
+def test_metaswap_dll_regression_present(modflow_dll_regression: Path) -> None:
+    assert modflow_dll_regression.is_file()
 
 
 def test_modflow_dll_devel_present(modflow_dll_devel: Path) -> None:
@@ -67,14 +67,6 @@ def test_metaswap_dll_dep_dir_regression_contains_dependencies(
         assert dependency in dep_dir_content
 
 
-def test_modflow_dll_present(modflow_dll: Path) -> None:
-    assert modflow_dll.is_file()
-
-
-def test_modflow_dll_present(modflow_dll_devel: Path) -> None:
-    assert modflow_dll_devel.is_file()
-
-
 @parametrize_with_cases("metamod_model", prefix="failure_")
 def test_metamod_failure(
     tmp_path_dev: Path,
@@ -83,7 +75,7 @@ def test_metamod_failure(
     metaswap_dll_dep_dir_devel: Path,
     modflow_dll_devel: Path,
     imod_coupler_exec_devel: Path,
-):
+) -> None:
     """
     Test if coupled models run failed with the iMOD Coupler development version.
     """
@@ -109,7 +101,7 @@ def test_metamod_develop(
     metaswap_dll_dep_dir_devel: Path,
     modflow_dll_devel: Path,
     imod_coupler_exec_devel: Path,
-):
+) -> None:
     """
     Test if coupled models run with the iMOD Coupler development version.
     """
@@ -151,7 +143,7 @@ def test_metamod_regression(
     modflow_dll_regression: Path,
     imod_coupler_exec_devel: Path,
     imod_coupler_exec_regression: Path,
-):
+) -> None:
     """
     Regression test if coupled models run with the iMOD Coupler development and
     regression version. Test if results are near equal.
@@ -203,21 +195,20 @@ def test_metamod_regression(
         )
 
 
-@parametrize_with_cases("metamods", prefix="cases_")
+@parametrize_with_cases("metamod_ss,metamod_sc", prefix="cases_")
 def test_metamodel_storage_options(
+    metamod_ss: MetaMod,
+    metamod_sc: MetaMod,
     tmp_path: Path,
-    metamods: Tuple[MetaMod],
     metaswap_dll_devel: Path,
     metaswap_dll_dep_dir_devel: Path,
     modflow_dll_devel: Path,
     imod_coupler_exec_devel: Path,
-):
+) -> None:
     """
     Test and compare two coupled models with the Modflow 6 storage specified as
     storage coefficient and as specific storage. Test if results are near equal.
     """
-
-    metamod_ss, metamod_sc = metamods
 
     tmp_path_sc = tmp_path / "storage_coefficient"
     tmp_path_ss = tmp_path / "specific_storage"
