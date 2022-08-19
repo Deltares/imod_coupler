@@ -23,4 +23,4 @@ jobs:
           isort --check .
       - name: Run mypy
         run: |
-          mypy --install-types --non-interactive --ignore-missing-imports --strict .
+          mypy --install-types --non-interactive --ignore-missing-imports --strict imod_coupler
