@@ -125,7 +125,7 @@ def test_metamod_develop(
     )
 
     # Test if MetaSWAP output written
-    assert len(list((tmp_path_dev / "MetaSWAP").glob("*/*.idf"))) == 1216
+    assert len(list((tmp_path_dev / "MetaSWAP").glob("*/*.idf"))) == 1704
 
     # Test if Modflow6 output written
     headfile, cbcfile, _ = mf6_output_files(tmp_path_dev)

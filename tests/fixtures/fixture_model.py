@@ -19,7 +19,7 @@ def grid_sizes():
     dy = y[1] - y[0]
 
     freq = "D"
-    times = pd.date_range(start="1/1/1971", end="1/1/1972", freq=freq)
+    times = pd.date_range(start="1/1/1971", end="8/1/1971", freq=freq)
 
     return x, y, layer, times, dx, dy, dz
 
