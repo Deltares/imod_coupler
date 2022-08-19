@@ -4,243 +4,10 @@ from pathlib import Path
 from typing import Tuple
 
 import pytest
-import xarray as xr
 from imod.couplers.metamod import MetaMod
-from imod.mf6 import Modflow6Simulation, StorageCoefficient, open_cbc, open_hds
-from imod.msw import MetaSwapModel
-from imod.msw.fixed_format import VariableMetaData
+from imod.mf6 import open_cbc, open_hds
 from numpy.testing import assert_array_almost_equal
-from pytest_cases import fixture, parametrize, parametrize_with_cases
-
-
-@fixture(scope="function")
-def prepared_msw_model(
-    msw_model: MetaSwapModel,
-    metaswap_lookup_table: Path,
-) -> MetaSwapModel:
-    # Override unsat_svat_path with path from environment
-    msw_model.simulation_settings[
-        "unsa_svat_path"
-    ] = msw_model._render_unsaturated_database_path(metaswap_lookup_table)
-
-    return msw_model
-
-
-@fixture(scope="function")
-def coupled_mf6_model_storage_coefficient(
-    coupled_mf6_model: Modflow6Simulation,
-) -> Modflow6Simulation:
-
-    gwf_model = coupled_mf6_model["GWF_1"]
-
-    # Specific storage package
-    sto_ds = gwf_model.pop("sto").dataset
-
-    # Confined: S = Ss * b
-    # Where 'S' is storage coefficient, 'Ss' specific
-    # storage, and 'b' thickness.
-    # https://en.wikipedia.org/wiki/Specific_storage
-
-    dis_ds = gwf_model["dis"].dataset
-    top = dis_ds["bottom"].shift(layer=1)
-    top[0] = dis_ds["top"]
-    b = top - dis_ds["bottom"]
-
-    sto_ds["storage_coefficient"] = sto_ds["specific_storage"] * b
-    sto_ds = sto_ds.drop_vars("specific_storage")
-
-    gwf_model["sto"] = StorageCoefficient(**sto_ds)
-    # reassign gwf model
-    coupled_mf6_model["GWF_1"] = gwf_model
-
-    return coupled_mf6_model
-
-
-def case_sprinkling(
-    coupled_mf6_model: Modflow6Simulation,
-    prepared_msw_model: MetaSwapModel,
-) -> MetaMod:
-
-    return MetaMod(
-        prepared_msw_model,
-        coupled_mf6_model,
-        mf6_rch_pkgkey="rch_msw",
-        mf6_wel_pkgkey="wells_msw",
-    )
-
-
-def case_no_sprinkling(
-    coupled_mf6_model: Modflow6Simulation,
-    prepared_msw_model: MetaSwapModel,
-) -> MetaMod:
-
-    prepared_msw_model.pop("sprinkling")
-
-    return MetaMod(
-        prepared_msw_model,
-        coupled_mf6_model,
-        mf6_rch_pkgkey="rch_msw",
-        mf6_wel_pkgkey=None,
-    )
-
-
-def case_storage_coefficient(
-    coupled_mf6_model_storage_coefficient: Modflow6Simulation,
-    prepared_msw_model: MetaSwapModel,
-) -> MetaMod:
-
-    return MetaMod(
-        prepared_msw_model,
-        coupled_mf6_model_storage_coefficient,
-        mf6_rch_pkgkey="rch_msw",
-        mf6_wel_pkgkey="wells_msw",
-    )
-
-
-def case_storage_coefficient_no_sprinkling(
-    coupled_mf6_model_storage_coefficient: Modflow6Simulation,
-    prepared_msw_model: MetaSwapModel,
-) -> MetaMod:
-
-    prepared_msw_model.pop("sprinkling")
-
-    return MetaMod(
-        prepared_msw_model,
-        coupled_mf6_model_storage_coefficient,
-        mf6_rch_pkgkey="rch_msw",
-        mf6_wel_pkgkey=None,
-    )
-
-
-def failure_msw_input(
-    coupled_mf6_model: Modflow6Simulation,
-    prepared_msw_model: MetaSwapModel,
-) -> MetaMod:
-    """
-    Force an input error in MetaSWAP by providing an initial condition with
-    a value of the wrong type.
-    """
-
-    prepared_msw_model["ic"]._metadata_dict["initial_pF"] = VariableMetaData(
-        6, None, None, str
-    )
-    prepared_msw_model["ic"].dataset["initial_pF"] = "a"
-
-    return MetaMod(
-        prepared_msw_model,
-        coupled_mf6_model,
-        mf6_rch_pkgkey="rch_msw",
-        mf6_wel_pkgkey="wells_msw",
-    )
-
-
-def failure_mf6_input(
-    coupled_mf6_model: Modflow6Simulation,
-    prepared_msw_model: MetaSwapModel,
-) -> MetaMod:
-    """
-    Creates a MetaMod object which will result in a MODFLOW 6 input error.
-    """
-
-    coupled_mf6_model["GWF_1"]["npf"]["k"] *= 0.0
-
-    return MetaMod(
-        prepared_msw_model,
-        coupled_mf6_model,
-        mf6_rch_pkgkey="rch_msw",
-        mf6_wel_pkgkey="wells_msw",
-    )
-
-
-def failure_mf6_convergence(
-    coupled_mf6_model: Modflow6Simulation,
-    prepared_msw_model: MetaSwapModel,
-) -> MetaMod:
-    """
-    Creates a MetaMod object which will result in a non-convergencent MODFLOW 6
-    solution, by providing extreme differences in the k values.
-    """
-
-    k = xr.ones_like(coupled_mf6_model["GWF_1"]["npf"]["k"])
-
-    k[:] = [1e32, 1e-32, 1e32]
-    coupled_mf6_model["GWF_1"]["npf"]["k"] = k
-
-    return MetaMod(
-        prepared_msw_model,
-        coupled_mf6_model,
-        mf6_rch_pkgkey="rch_msw",
-        mf6_wel_pkgkey="wells_msw",
-    )
-
-
-def cases_no_sprinkling(
-    prepared_msw_model: MetaSwapModel,
-    coupled_mf6_model: Modflow6Simulation,
-    coupled_mf6_model_storage_coefficient: Modflow6Simulation,
-) -> Tuple[MetaMod]:
-    """
-    Two MetaMod objects, both without sprinkling. One with specific storage, one
-    with storage coefficient.
-    """
-
-    prepared_msw_model.pop("sprinkling")
-    kwargs = dict(
-        mf6_rch_pkgkey="rch_msw",
-        mf6_wel_pkgkey=None,
-    )
-
-    metamod_ss = MetaMod(prepared_msw_model, coupled_mf6_model, **kwargs)
-
-    metamod_sc = MetaMod(
-        prepared_msw_model, coupled_mf6_model_storage_coefficient, **kwargs
-    )
-
-    return metamod_ss, metamod_sc
-
-
-def cases_sprinkling(
-    prepared_msw_model: MetaSwapModel,
-    coupled_mf6_model: Modflow6Simulation,
-    coupled_mf6_model_storage_coefficient: Modflow6Simulation,
-) -> Tuple[MetaMod]:
-    """
-    Two MetaMod objects, both with sprinkling. One with specific storage, one
-    with storage coefficient.
-    """
-
-    kwargs = dict(
-        mf6_rch_pkgkey="rch_msw",
-        mf6_wel_pkgkey="wells_msw",
-    )
-
-    metamod_ss = MetaMod(
-        prepared_msw_model,
-        coupled_mf6_model,
-        **kwargs,
-    )
-
-    metamod_sc = MetaMod(
-        prepared_msw_model,
-        coupled_mf6_model_storage_coefficient,
-        **kwargs,
-    )
-
-    return metamod_ss, metamod_sc
-
-
-@pytest.fixture
-def tmp_path_dev(
-    tmp_path: Path,
-) -> Path:
-    return tmp_path / "develop"
-
-
-@pytest.fixture
-def tmp_path_reg(
-    tmp_path: Path,
-) -> Path:
-    return tmp_path / "regression"
+from pytest_cases import parametrize_with_cases
 
 
 def mf6_output_files(path: Path) -> Tuple[Path]:
@@ -308,7 +75,7 @@ def test_modflow_dll_present(modflow_dll_devel: Path) -> None:
     assert modflow_dll_devel.is_file()
 
 
-@parametrize_with_cases("metamod_model", cases=".", prefix="failure_")
+@parametrize_with_cases("metamod_model", prefix="failure_")
 def test_metamod_failure(
     tmp_path_dev: Path,
     metamod_model: MetaMod,
@@ -334,7 +101,7 @@ def test_metamod_failure(
         )
 
 
-@parametrize_with_cases("metamod_model", cases=".", prefix="case_")
+@parametrize_with_cases("metamod_model", prefix="case_")
 def test_metamod_develop(
     tmp_path_dev: Path,
     metamod_model: MetaMod,
@@ -358,7 +125,7 @@ def test_metamod_develop(
     )
 
     # Test if MetaSWAP output written
-    assert len(list((tmp_path_dev / "MetaSWAP").glob("*/*.idf"))) == 24
+    assert len(list((tmp_path_dev / "MetaSWAP").glob("*/*.idf"))) == 1704
 
     # Test if Modflow6 output written
     headfile, cbcfile, _ = mf6_output_files(tmp_path_dev)
@@ -371,7 +138,7 @@ def test_metamod_develop(
     assert cbcfile.stat().st_size > 0
 
 
-@parametrize_with_cases("metamod_model", cases=".", prefix="case_")
+@parametrize_with_cases("metamod_model", prefix="case_")
 def test_metamod_regression(
     metamod_model: MetaMod,
     tmp_path_dev: Path,
@@ -436,7 +203,7 @@ def test_metamod_regression(
         )
 
 
-@parametrize_with_cases("metamods", cases=".", prefix="cases_")
+@parametrize_with_cases("metamods", prefix="cases_")
 def test_metamodel_storage_options(
     tmp_path: Path,
     metamods: Tuple[MetaMod],
