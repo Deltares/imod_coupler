@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import List, Tuple
 
 import numpy as np
 import pandas as pd
@@ -8,7 +9,6 @@ import xarray as xr
 from imod import mf6, msw
 from numpy import float_, int_, nan
 from numpy.typing import NDArray
-from typing import List, Tuple
 
 
 def grid_sizes() -> Tuple[
