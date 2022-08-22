@@ -39,7 +39,7 @@ cases_missing_files = [
     "map_list",
     cases_missing_files,
 )
-@parametrize_with_cases("metamod_sprinkling", prefix="case_no_sprinkling")
+@parametrize_with_cases("metamod_sprinkling", prefix="case_sprinkling")
 def test_missing_files(
     metamod_sprinkling: MetaMod,
     map_list: list[Any],
@@ -80,6 +80,7 @@ def test_missing_files(
         run_coupler(config_path)
 
 
+@parametrize_with_cases("metamod_sprinkling", prefix="case_sprinkling")
 def test_sprinkling_requires_files(
     metamod_sprinkling: MetaMod,
     tmp_path: Path,
