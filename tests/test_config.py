@@ -1,5 +1,4 @@
 import operator
-import os
 from functools import reduce
 from pathlib import Path
 from typing import Any
@@ -9,9 +8,7 @@ import pytest
 import tomli
 import tomli_w
 from imod.couplers.metamod import MetaMod
-from imod.mf6 import Modflow6Simulation
-from imod.msw import MetaSwapModel
-from pytest_cases import fixture, parametrize, parametrize_with_cases
+from pytest_cases import parametrize_with_cases
 
 from imod_coupler.__main__ import run_coupler
 
@@ -29,20 +26,6 @@ def set_container(data_dict: dict[Any, Any], map_list: list[Any], value: Any) ->
     get_from_container(data_dict, map_list[:-1])[map_list[-1]] = value
 
 
-@pytest.fixture(scope="function")
-def metamod_sprinkling(
-    coupled_mf6_model: Modflow6Simulation,
-    prepared_msw_model: MetaSwapModel,
-) -> MetaMod:
-
-    return MetaMod(
-        prepared_msw_model,
-        coupled_mf6_model,
-        mf6_rch_pkgkey="rch_msw",
-        mf6_wel_pkgkey="wells_msw",
-    )
-
-
 cases_missing_files = [
     ["driver", "kernels", "modflow6", "dll"],
     ["driver", "kernels", "metaswap", "dll"],
@@ -56,6 +39,7 @@ cases_missing_files = [
     "map_list",
     cases_missing_files,
 )
+@parametrize_with_cases("metamod_sprinkling", prefix="case_no_sprinkling")
 def test_missing_files(
     metamod_sprinkling: MetaMod,
     map_list: list[Any],
