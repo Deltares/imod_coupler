@@ -1,0 +1,20 @@
+timing = false
+log_level = "INFO"
+log_file = "imod_coupler.log"
+driver_type = "metamod"
+
+[driver.kernels.modflow6]
+dll = "c:\\Users\\engelen\\software\\iMOD_Coupler\\imod_collector_devel\\libmf6.dll"
+work_dir = "."
+
+[driver.kernels.metaswap]
+dll = "c:\\Users\\engelen\\software\\iMOD_Coupler\\imod_collector_devel\\MetaSWAP.dll"
+work_dir = ".\\msw"
+dll_dep_dir = "c:\\Users\\engelen\\software\\iMOD_Coupler\\imod_collector_devel"
+
+[[driver.coupling]]
+mf6_model = "GWF_1"
+mf6_msw_node_map = "./NODENR2SVAT.DXC"
+mf6_msw_recharge_pkg = "rch_msw"
+mf6_msw_recharge_map = "./RCHINDEX2SVAT.DXC"
+enable_sprinkling = false
