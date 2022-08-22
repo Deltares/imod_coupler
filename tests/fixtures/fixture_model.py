@@ -8,11 +8,12 @@ import xarray as xr
 from imod import mf6, msw
 from numpy import float_, int_, nan
 from numpy.typing import NDArray
+from typing import List, Tuple
 
 
-def grid_sizes() -> tuple[
-    list[float],
-    list[float],
+def grid_sizes() -> Tuple[
+    List[float],
+    List[float],
     NDArray[int_],
     pd.DatetimeIndex,
     float,
