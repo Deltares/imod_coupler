@@ -36,10 +36,12 @@ setup(
     license="LGPL",
     platforms="Windows, Mac OS-X, Linux",
     install_requires=[
-        "numpy",
-        "scipy",
-        "xmipy >= 1.0",
-        "tomli >= 1.1.0",
+        "numpy ~= 1.22",
+        "scipy ~= 1.8",
+        "xmipy ~= 1.0",
+        "tomli ~= 1.1",
+        "tomli-w ~= 1.0",
+        "pydantic ~= 1.9",
     ],
     extras_require={
         "tests": ["pytest", "pytest-xdist", "pytest-cases", "python-dotenv"],

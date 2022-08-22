@@ -1,9 +1,6 @@
 from __future__ import annotations
 
-import os
-from contextlib import contextmanager
-from pathlib import Path
-from typing import Any, Generator
+from typing import Any, Tuple
 
 import numpy as np
 from numpy.typing import NDArray
@@ -12,7 +9,7 @@ from scipy.sparse import csr_matrix
 
 def create_mapping(
     src_idx: Any, tgt_idx: Any, nsrc: int, ntgt: int, operator: str
-) -> tuple[csr_matrix, NDArray[np.int_]]:
+) -> Tuple[csr_matrix, NDArray[np.int_]]:
     """
     Create a mapping from source indexes to target indexes by constructing
     a sparse matrix of size (ntgt x nsrc) and creates a mask array with 0
@@ -53,15 +50,3 @@ def create_mapping(
     map_out = csr_matrix((dat, (tgt_idx, src_idx)), shape=(ntgt, nsrc))
     mask: NDArray[Any] = np.array([0 if i > 0 else 1 for i in map_out.getnnz(axis=1)])
     return map_out, mask
-
-
-@contextmanager
-def cd(path: Path) -> Generator[None, None, None]:
-    """Changes working directory and returns to previous on exit."""
-    prev_cwd = Path.cwd()
-    path = Path(path)
-    os.chdir(path)
-    try:
-        yield
-    finally:
-        os.chdir(prev_cwd)
