@@ -53,15 +53,3 @@ def create_mapping(
     map_out = csr_matrix((dat, (tgt_idx, src_idx)), shape=(ntgt, nsrc))
     mask: NDArray[Any] = np.array([0 if i > 0 else 1 for i in map_out.getnnz(axis=1)])
     return map_out, mask
-
-
-@contextmanager
-def cd(path: Path) -> Generator[None, None, None]:
-    """Changes working directory and returns to previous on exit."""
-    prev_cwd = Path.cwd()
-    path = Path(path)
-    os.chdir(path)
-    try:
-        yield
-    finally:
-        os.chdir(prev_cwd)
