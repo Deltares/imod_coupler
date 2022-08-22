@@ -1,4 +1,4 @@
-from typing import Any, Optional
+from typing import Any, List, Optional
 
 from pydantic import BaseModel, DirectoryPath, FilePath, validator
 
@@ -75,10 +75,10 @@ class Coupling(BaseModel):
 
 class MetaModConfig(BaseModel):
     kernels: Kernels
-    coupling: list[Coupling]
+    coupling: List[Coupling]
 
     @validator("coupling")
-    def restrict_coupling_count(cls, coupling: list[Coupling]) -> list[Coupling]:
+    def restrict_coupling_count(cls, coupling: List[Coupling]) -> List[Coupling]:
         if len(coupling) == 0:
             raise ValueError("At least one coupling has to be defined.")
         if len(coupling) > 1:

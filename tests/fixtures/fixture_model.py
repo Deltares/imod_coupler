@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import List, Tuple
 
 import numpy as np
 import pandas as pd
@@ -10,9 +11,9 @@ from numpy import float_, int_, nan
 from numpy.typing import NDArray
 
 
-def grid_sizes() -> tuple[
-    list[float],
-    list[float],
+def grid_sizes() -> Tuple[
+    List[float],
+    List[float],
     NDArray[int_],
     pd.DatetimeIndex,
     float,

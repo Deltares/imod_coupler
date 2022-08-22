@@ -1,9 +1,6 @@
 from __future__ import annotations
 
-import os
-from contextlib import contextmanager
-from pathlib import Path
-from typing import Any, Generator
+from typing import Any, Tuple
 
 import numpy as np
 from numpy.typing import NDArray
@@ -12,7 +9,7 @@ from scipy.sparse import csr_matrix
 
 def create_mapping(
     src_idx: Any, tgt_idx: Any, nsrc: int, ntgt: int, operator: str
-) -> tuple[csr_matrix, NDArray[np.int_]]:
+) -> Tuple[csr_matrix, NDArray[np.int_]]:
     """
     Create a mapping from source indexes to target indexes by constructing
     a sparse matrix of size (ntgt x nsrc) and creates a mask array with 0

@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import logging
 from pathlib import Path
-from typing import Any
+from typing import Any, Dict
 
 import numpy as np
 from numpy.typing import NDArray
@@ -52,13 +52,13 @@ class MetaMod(Driver):
     msw_time: float  # MetaSWAP current time
 
     # dictionary with mapping tables for mod=>msw coupling
-    map_mod2msw: dict[str, csr_matrix] = {}
+    map_mod2msw: Dict[str, csr_matrix] = {}
     # dictionary with mapping tables for msw=>mod coupling
-    map_msw2mod: dict[str, csr_matrix] = {}
+    map_msw2mod: Dict[str, csr_matrix] = {}
     # dict. with mask arrays for mod=>msw coupling
-    mask_mod2msw: dict[str, NDArray[Any]] = {}
+    mask_mod2msw: Dict[str, NDArray[Any]] = {}
     # dict. with mask arrays for msw=>mod coupling
-    mask_msw2mod: dict[str, NDArray[Any]] = {}
+    mask_msw2mod: Dict[str, NDArray[Any]] = {}
 
     def __init__(self, base_config: BaseConfig, metamod_config: MetaModConfig):
         """Constructs the `MetaMod` object"""
