@@ -19,11 +19,13 @@ def fill_para_sim_template(msw_folder, path_unsat_dbase):
     with open(msw_folder / "para_sim.inp", mode="w") as f:
         f.write(para_sim_text)
 
+
 def total_wbal_error(q_test, q_ref):
     """
     Computes total water balance error
     """
     return np.abs((q_test - q_ref)).sum() / np.abs(q_ref).sum()
+
 
 def test_modstrip_data_present(modstrip_loc):
     """
@@ -97,4 +99,3 @@ def test_modstrip_model(
     assert_allclose(lvgw_original, lvgw_2020_regression, atol=criterion_h)
     assert_allclose(lvgw, lvgw_original, atol=criterion_h)
     assert_allclose(lvgw, lvgw_2020_regression, atol=criterion_h)
-    
