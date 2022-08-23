@@ -23,7 +23,7 @@ def test_modstrip_model(
     Run modstrip model
     """
 
-    shutil.copytree(modstrip_loc, tmp_path, dirs_exist_ok=True)
+    shutil.copytree(modstrip_loc / "input", tmp_path, dirs_exist_ok=True)
 
     fill_para_sim_template(tmp_path / "msw", metaswap_lookup_table)
 
@@ -32,7 +32,7 @@ def test_modstrip_model(
     )
 
     headfile = tmp_path / "GWF_1" / "MODELOUTPUT" / "HEAD" / "HEAD.HED"
-    cbcfile = tmp_path / "GWF_1" / "MODELOUTPUT" / "BUDGETS" / "BUDGET.CBC"
+    cbcfile = tmp_path / "GWF_1" / "MODELOUTPUT" / "BUDGET" / "BUDGET.CBC"
 
     assert headfile.exists()
     assert cbcfile.exists()
