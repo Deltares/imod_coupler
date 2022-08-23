@@ -1,24 +1,32 @@
-from pathlib import Path
+import shutil
+import subprocess
 
-import pytest
 
-
-@pytest.fixture(scope="function")
-def data_loc(request):
+def fill_para_sim_template(msw_folder, path_unsat_dbase):
     """
-    Return the directory of the test data
+    Fill para_sim.inp template in the folder with the path to the unsaturated
+    zone database.
+    """
+    with open(msw_folder / "para_sim_template.inp") as f:
+        para_sim_text = f.read()
 
-    Based on: https://stackoverflow.com/a/44935451
+    para_sim_text = para_sim_text.replace("{{unsat_path}}", f"{path_unsat_dbase}\\")
 
+    with open(msw_folder / "para_sim.inp", mode="w") as f:
+        f.write(para_sim_text)
+
+
+def test_modstrip_model(
+    modstrip_loc, tmp_path, metaswap_lookup_table, imod_coupler_exec_devel
+):
+    """
+    Run modstrip model
     """
 
-    return Path(request.fspath).parent / "data"
+    shutil.copytree(modstrip_loc, tmp_path, dirs_exist_ok=True)
 
+    fill_para_sim_template(tmp_path / "msw", metaswap_lookup_table)
 
-@pytest.fixture(scope="function")
-def modstrip_loc(data_loc):
-    """
-    Return the directory of the modstrip data
-    """
-
-    return data_loc / "modstrip"
+    subprocess.run(
+        [imod_coupler_exec_devel, tmp_path / "imod_coupler.toml"], check=True
+    )

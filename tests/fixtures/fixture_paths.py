@@ -67,3 +67,15 @@ def modflow_dll_devel() -> Path:
 @pytest.fixture(scope="session")
 def modflow_dll_regression() -> Path:
     return Path(os.environ["MODFLOW_DLL_REGRESSION"])
+
+
+@pytest.fixture(scope="function")
+def modstrip_loc(request):
+    """
+    Return the directory of the modstrip data
+
+    Based on: https://stackoverflow.com/a/44935451
+
+    """
+
+    return Path(request.fspath).parent / "data" / "modstrip"
