@@ -30,3 +30,16 @@ def test_modstrip_model(
     subprocess.run(
         [imod_coupler_exec_devel, tmp_path / "imod_coupler.toml"], check=True
     )
+
+    headfile = tmp_path / "GWF_1" / "MODELOUTPUT" / "HEAD" / "HEAD.HED"
+    cbcfile = tmp_path / "GWF_1" / "MODELOUTPUT" / "BUDGETS" / "BUDGET.CBC"
+
+    assert headfile.exists()
+    assert cbcfile.exists()
+
+    # If computation failed, Modflow6 usually writes a headfile and cbcfile of 0
+    # bytes.
+    assert headfile.stat().st_size > 0
+    assert cbcfile.stat().st_size > 0
+
+    
