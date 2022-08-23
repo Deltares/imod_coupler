@@ -1,3 +1,5 @@
+import os
+from pathlib import Path
 from typing import Any, List, Optional
 
 from pydantic import BaseModel, DirectoryPath, FilePath, validator
@@ -76,6 +78,11 @@ class Coupling(BaseModel):
 class MetaModConfig(BaseModel):
     kernels: Kernels
     coupling: List[Coupling]
+
+    def __init__(self, config_dir: Path, **data: Any) -> None:
+        # Validation expects current working directory at config file level
+        os.chdir(config_dir)
+        super().__init__(**data)
 
     @validator("coupling")
     def restrict_coupling_count(cls, coupling: List[Coupling]) -> List[Coupling]:
