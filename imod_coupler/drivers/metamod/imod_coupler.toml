@@ -1,6 +1,5 @@
 # this is an example toml file
 log_level = 'INFO'
-log_file = 'imod_coupler.log'
 timing = false
 
 driver_type = 'metamod'
