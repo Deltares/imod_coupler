@@ -16,17 +16,23 @@ MODFLOW6. The data exchange is done as follows.
 
 -  When data is exchanged from MODFLOW to MetaSWAP, MODFLOW sets the
    head (i.e. "``hgwmodf``") in MetaSWAP.
--  When data is exhanged from MetaSWAP to MODFLOW, MetaSWAP provides a
-   recharge, sets the storage coefficient, and extracts groundwater from
-   deeper layers for sprinkling (if switched on). Currently it sets the
-   specific storage (for confined flow), to conform to the previous
-   implementation of a MetaSWAP-MODFLOW coupling. A recharge package
-   (RCH) is required in the MODFLOW6 model to facilitate the recharge
-   flux of MetaSWAP. Furthermore, a well package (WEL) is required to
-   facilitate the extraction of groundwater for MetaSWAP's sprinkling.
+-  When data is exhanged from MetaSWAP to MODFLOW, MetaSWAP provides a recharge,
+   sets the storage, and extracts groundwater from deeper layers for sprinkling
+   (if switched on). 
 
 .. image:: ./figures/MF6BMI_coupling.png
    :align: center
+
+
+Requirements
+------------
+
+Currently only confined flow is supported, similar to a previous implementation
+of MetaSWAP-MODFLOW coupling. Both the specific storage and the storage
+coefficient option of Modflow 6 are supported. A recharge package (RCH) is
+required in the MODFLOW6 model to facilitate the recharge flux of MetaSWAP.
+Furthermore, a well package (WEL) is required to facilitate the extraction of
+groundwater for MetaSWAP's sprinkling.
 
 Files
 =====
