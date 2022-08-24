@@ -1,9 +1,51 @@
 import shutil
 import subprocess
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
+import tomli_w
 from numpy.testing import assert_allclose
+
+
+def write_toml(
+    toml_path: Path,
+    metaswap_dll_devel: Path,
+    metaswap_dll_dep_dir_devel: Path,
+    modflow_dll_devel: Path,
+):
+
+    coupling_dict = dict(
+        mf6_model="GWF_1",
+        mf6_msw_node_map="./NODENR2SVAT.DXC",
+        mf6_msw_recharge_pkg="rch_msw",
+        mf6_msw_recharge_map="./RCHINDEX2SVAT.DXC",
+        enable_sprinkling=False,
+    )
+
+    coupler_toml = {
+        "timing": False,
+        "log_level": "INFO",
+        "log_file": "imod_coupler.log",
+        "driver_type": "metamod",
+        "driver": {
+            "kernels": {
+                "modflow6": {
+                    "dll": str(modflow_dll_devel),
+                    "work_dir": ".",
+                },
+                "metaswap": {
+                    "dll": str(metaswap_dll_devel),
+                    "work_dir": f".\\msw",
+                    "dll_dep_dir": str(metaswap_dll_dep_dir_devel),
+                },
+            },
+            "coupling": [coupling_dict],
+        },
+    }
+
+    with open(toml_path, "wb") as f:
+        tomli_w.dump(coupler_toml, f)
 
 
 def fill_para_sim_template(msw_folder, path_unsat_dbase):
@@ -39,7 +81,13 @@ def test_modstrip_data_present(modstrip_loc):
 
 
 def test_modstrip_model(
-    modstrip_loc, tmp_path, metaswap_lookup_table, imod_coupler_exec_devel
+    modstrip_loc,
+    tmp_path,
+    metaswap_lookup_table,
+    imod_coupler_exec_devel,
+    metaswap_dll_devel: Path,
+    metaswap_dll_dep_dir_devel: Path,
+    modflow_dll_devel: Path,
 ):
     """
     Run modstrip model and test output, compare with results of previous
@@ -50,9 +98,16 @@ def test_modstrip_model(
 
     fill_para_sim_template(tmp_path / "msw", metaswap_lookup_table)
 
-    subprocess.run(
-        [imod_coupler_exec_devel, tmp_path / "imod_coupler.toml"], check=True
+    toml_path = tmp_path / "imod_coupler.toml"
+
+    write_toml(
+        toml_path,
+        metaswap_dll_devel,
+        metaswap_dll_dep_dir_devel,
+        modflow_dll_devel,
     )
+
+    subprocess.run([imod_coupler_exec_devel, toml_path], check=True)
 
     headfile = tmp_path / "GWF_1" / "MODELOUTPUT" / "HEAD" / "HEAD.HED"
     cbcfile = tmp_path / "GWF_1" / "MODELOUTPUT" / "BUDGET" / "BUDGET.CBC"
