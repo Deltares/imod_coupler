@@ -42,6 +42,7 @@ setup(
         "tomli ~= 1.1",
         "tomli-w ~= 1.0",
         "pydantic ~= 1.9",
+        "loguru ~= 0.6",
     ],
     extras_require={
         "tests": ["pytest", "pytest-xdist", "pytest-cases", "python-dotenv"],

@@ -6,7 +6,7 @@ from typing import Any
 from pydantic import BaseModel, FilePath, validator
 
 
-class Log(str, Enum):
+class LogLevel(str, Enum):
     DEBUG = "DEBUG"
     INFO = "INFO"
     WARNING = "WARNING"
@@ -19,7 +19,7 @@ class DriverType(str, Enum):
 
 
 class BaseConfig(BaseModel):
-    log_level: Log = Log.INFO
+    log_level: LogLevel = LogLevel.INFO
     log_file: Path
     timing: bool = False
     driver_type: DriverType

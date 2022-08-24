@@ -1,21 +1,21 @@
-import logging
 import os
 import sys
 import time
 from pathlib import Path
 
 import tomli as tomllib
+from loguru import logger
 
 from imod_coupler import __version__
 from imod_coupler.config import BaseConfig
 from imod_coupler.drivers.metamod.config import MetaModConfig
 from imod_coupler.drivers.metamod.metamod import MetaMod
 from imod_coupler.parser import parse_args
+from imod_coupler.utils import setup_logger
 
 
 def main() -> None:
     args = parse_args()
-    logging.info(f"iMOD Coupler {__version__}")
 
     if args.enable_debug_native:
         # wait for native debugging
@@ -26,7 +26,7 @@ def main() -> None:
     try:
         run_coupler(config_path)
     except:
-        logging.exception("iMOD Coupler run failed with: ")
+        logger.exception("iMOD Coupler run failed with: ")
         sys.exit(1)
 
 
@@ -37,7 +37,8 @@ def run_coupler(config_path: Path) -> None:
     config_dir = config_path.parent
     base_config = BaseConfig(config_dir=config_dir, **config_dict)
 
-    logging.basicConfig(level=base_config.log_level)
+    setup_logger(base_config.log_level, base_config.log_file)
+    logger.info(f"iMOD Coupler {__version__}")
 
     if base_config.timing:
         start = time.perf_counter()
@@ -54,7 +55,7 @@ def run_coupler(config_path: Path) -> None:
     if base_config.timing:
         driver.report_timing_totals()
         end = time.perf_counter()
-        logging.info(f"Total elapsed time: {end-start:0.4f} seconds")
+        logger.info(f"Total elapsed time: {end-start:0.4f} seconds")
 
 
 if __name__ == "__main__":
