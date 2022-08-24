@@ -5,13 +5,12 @@ description:
 """
 from __future__ import annotations
 
-import logging
 from pathlib import Path
 from typing import Any, Dict
 
 import numpy as np
+from loguru import logger
 from numpy.typing import NDArray
-from pydantic import FilePath
 from scipy.sparse import csr_matrix, dia_matrix
 from xmipy import XmiWrapper
 
@@ -19,8 +18,6 @@ from imod_coupler.config import BaseConfig
 from imod_coupler.drivers.driver import Driver
 from imod_coupler.drivers.metamod.config import Coupling, MetaModConfig
 from imod_coupler.utils import create_mapping
-
-logger = logging.getLogger(__name__)
 
 
 class MetaMod(Driver):

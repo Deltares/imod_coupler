@@ -1,10 +1,15 @@
 from __future__ import annotations
 
+from pathlib import Path
+from sys import stderr
 from typing import Any, Tuple
 
 import numpy as np
+from loguru import logger
 from numpy.typing import NDArray
 from scipy.sparse import csr_matrix
+
+from imod_coupler.config import LogLevel
 
 
 def create_mapping(
@@ -50,3 +55,20 @@ def create_mapping(
     map_out = csr_matrix((dat, (tgt_idx, src_idx)), shape=(ntgt, nsrc))
     mask: NDArray[Any] = np.array([0 if i > 0 else 1 for i in map_out.getnnz(axis=1)])
     return map_out, mask
+
+
+def setup_logger(log_level: LogLevel, log_file: Path) -> None:
+    # Remove default handler
+    logger.remove()
+
+    # Add handler for stderr
+    logger.add(
+        stderr,
+        colorize=True,
+        format="iMOD Coupler: <level>{message}</level>",
+        level=log_level,
+    )
+
+    # Add handler for file
+    log_file.unlink(missing_ok=True)
+    logger.add(log_file, level=log_level)
