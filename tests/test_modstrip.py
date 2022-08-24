@@ -62,11 +62,11 @@ def fill_para_sim_template(msw_folder, path_unsat_dbase):
         f.write(para_sim_text)
 
 
-def total_wbal_error(q_test, q_ref):
+def total_flux_error(q_test, q_ref):
     """
-    Computes total water balance error
+    Computes total relative flux error compared to a reference flux.
     """
-    return np.abs((q_test - q_ref)).sum() / np.abs(q_ref).sum()
+    return np.abs(q_test - q_ref).sum() / np.abs(q_ref).sum()
 
 
 def test_modstrip_data_present(modstrip_loc):
@@ -143,12 +143,12 @@ def test_modstrip_model(
     vsim = data_develop["qsim(mm)"] / 1.0e3 * svat_area
 
     # Compare fluxes exchanged between modflow and metaswap
-    criterion_q = 0.045
-    criterion_h = 0.001
+    criterion_q = 0.045  # 4.5%
+    criterion_h = 0.001  # 1 mm
 
-    assert total_wbal_error(vsim_2020_regression, vsim_original) < criterion_q
-    assert total_wbal_error(vsim, vsim_2020_regression) < criterion_q
-    assert total_wbal_error(vsim, vsim_original) < criterion_q
+    assert total_flux_error(vsim_2020_regression, vsim_original) < criterion_q
+    assert total_flux_error(vsim, vsim_2020_regression) < criterion_q
+    assert total_flux_error(vsim, vsim_original) < criterion_q
 
     # Compare heads computed by MetaSWAP
     assert_allclose(lvgw_original, lvgw_2020_regression, atol=criterion_h)
