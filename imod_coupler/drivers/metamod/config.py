@@ -80,7 +80,14 @@ class MetaModConfig(BaseModel):
     coupling: List[Coupling]
 
     def __init__(self, config_dir: Path, **data: Any) -> None:
-        # Validation expects current working directory at config file level
+        """Model for the MetaMod config validated by pydantic
+
+        The validation expects current working directory at config file level
+        so it is changed during initialization
+
+        Args:
+            config_dir (Path): Directory where the config file resides
+        """
         os.chdir(config_dir)
         super().__init__(**data)
 
