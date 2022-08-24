@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-import sys
 from pathlib import Path
+from sys import stderr
 from typing import Any, Tuple
 
 import numpy as np
@@ -60,10 +60,15 @@ def create_mapping(
 def setup_logger(log_level: LogLevel, log_file: Path) -> None:
     # Remove default handler
     logger.remove()
+
+    # Add handler for stderr
     logger.add(
-        sys.stderr,
+        stderr,
         colorize=True,
         format="iMOD Coupler: <level>{message}</level>",
         level=log_level,
     )
-    logger.add(log_file, retention=1, level=log_level)
+
+    # Add handler for file
+    log_file.unlink(missing_ok=True)
+    logger.add(log_file, level=log_level)

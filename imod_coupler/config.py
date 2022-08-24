@@ -20,7 +20,7 @@ class DriverType(str, Enum):
 
 class BaseConfig(BaseModel):
     log_level: LogLevel = LogLevel.INFO
-    log_file: Path
+    log_file: Path = Path("imod_coupler.log")
     timing: bool = False
     driver_type: DriverType
     driver: BaseModel
