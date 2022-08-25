@@ -17,14 +17,16 @@ we advice to use single quotes.
 .. literalinclude:: config/metamod.toml
     :language: toml
 
-Base Config
------------
+Config schema
+-------------
 
 
 +------------+----------------------------------------+
 | log_level  |                                        |
 +============+========================================+
 | type       | string                                 |
++------------+----------------------------------------+
+| required   | false                                  |
 +------------+----------------------------------------+
 | default    | INFO                                   |
 +------------+----------------------------------------+
@@ -33,22 +35,22 @@ Base Config
 
 
 
- =========== ========== 
-  timing                
- =========== ========== 
-  type        boolean   
-  required    false     
-  default     false     
- =========== ========== 
+=========== ========== 
+timing                
+=========== ========== 
+type        boolean   
+required    false     
+default     false     
+=========== ========== 
 
  
- ============== ========= 
-  driver_type             
- ============== ========= 
-  type           string   
-  required       true     
-  enum           metamod  
- ============== ========= 
+============== ========= 
+driver_type             
+============== ========= 
+type           string   
+required       true     
+enum           metamod  
+============== ========= 
 
 driver
 ------
@@ -59,60 +61,102 @@ kernels
 modflow6
 """"""""
 
- =========== ========= 
-  dll                  
- =========== ========= 
-  type        string   
-  required    true                           
- =========== ========= 
+=========== ========= 
+dll                  
+=========== ========= 
+type        string   
+required    true                           
+=========== ========= 
 
- ============== ========= 
-  dll_dep_dir             
- ============== ========= 
-  type           string   
-  required       false    
- ============== ========= 
+============== ========= 
+dll_dep_dir             
+============== ========= 
+type           string   
+required       false    
+============== ========= 
 
- =========== ========= 
-  work_dir             
- =========== ========= 
-  type        string   
-  required    true     
- =========== ========= 
+=========== ========= 
+work_dir             
+=========== ========= 
+type        string   
+required    true     
+=========== ========= 
 
 
 
 metaswap
 """"""""
 
- =========== ========= 
-  dll                  
- =========== ========= 
-  type        string   
-  required    true                           
- =========== ========= 
+=========== ========= 
+dll                  
+=========== ========= 
+type        string   
+required    true                           
+=========== ========= 
 
- ============== ========= 
-  dll_dep_dir             
- ============== ========= 
-  type           string   
-  required       false    
- ============== ========= 
+============== ========= 
+dll_dep_dir             
+============== ========= 
+type           string   
+required       false    
+============== ========= 
 
- =========== ========= 
-  work_dir             
- =========== ========= 
-  type        string   
-  required    true     
- =========== ========= 
-
-
+=========== ========= 
+work_dir             
+=========== ========= 
+type        string   
+required    true     
+=========== ========= 
 
 
-.. ## log_level
+coupling
+^^^^^^^^
 
-.. ## timing
+==================== ========== 
+enable_sprinkling              
+==================== ========== 
+type                 boolean   
+required             true      
+==================== ========== 
 
-.. ## driver_type
+============ ========= 
+mf6_model             
+============ ========= 
+type         string   
+required     true     
+============ ========= 
 
-.. ## driver
+======================= ========= 
+mf6_msw_recharge_pkg             
+======================= ========= 
+type                    string   
+required                true     
+======================= ========= 
+
+=================== ========= 
+mf6_msw_well_pkg             
+=================== ========= 
+type                string   
+required            false    
+=================== ========= 
+
+=================== ========= 
+mf6_msw_node_map             
+=================== ========= 
+type                string   
+required            true     
+=================== ========= 
+
+========================= ========= 
+mf6_msw_recharge_map             
+========================= ========= 
+type                      string   
+required                  true     
+========================= ========= 
+
+========================= ========= 
+mf6_msw_sprinkling_map             
+========================= ========= 
+type                      string   
+required                  false    
+========================= ========= 
