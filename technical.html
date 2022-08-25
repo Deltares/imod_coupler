@@ -172,6 +172,11 @@
      General description
     </a>
    </li>
+   <li class="toc-h2 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#requirements">
+     Requirements
+    </a>
+   </li>
   </ul>
  </li>
  <li class="toc-h1 nav-item toc-entry">
@@ -271,16 +276,20 @@ MODFLOW6. The data exchange is done as follows.</p>
 <ul class="simple">
 <li><p>When data is exchanged from MODFLOW to MetaSWAP, MODFLOW sets the
 head (i.e. “<code class="docutils literal notranslate"><span class="pre">hgwmodf</span></code>”) in MetaSWAP.</p></li>
-<li><p>When data is exhanged from MetaSWAP to MODFLOW, MetaSWAP provides a
-recharge, sets the storage coefficient, and extracts groundwater from
-deeper layers for sprinkling (if switched on). Currently it sets the
-specific storage (for confined flow), to conform to the previous
-implementation of a MetaSWAP-MODFLOW coupling. A recharge package
-(RCH) is required in the MODFLOW6 model to facilitate the recharge
-flux of MetaSWAP. Furthermore, a well package (WEL) is required to
-facilitate the extraction of groundwater for MetaSWAP’s sprinkling.</p></li>
+<li><p>When data is exhanged from MetaSWAP to MODFLOW, MetaSWAP provides a recharge,
+sets the storage, and extracts groundwater from deeper layers for sprinkling
+(if switched on).</p></li>
 </ul>
 <img alt="_images/MF6BMI_coupling.png" class="align-center" src="_images/MF6BMI_coupling.png" />
+</section>
+<section id="requirements">
+<h2>Requirements<a class="headerlink" href="#requirements" title="Permalink to this heading">#</a></h2>
+<p>Currently only confined flow is supported, similar to a previous implementation
+of MetaSWAP-MODFLOW coupling. Both the specific storage and the storage
+coefficient option of Modflow 6 are supported. A recharge package (RCH) is
+required in the MODFLOW6 model to facilitate the recharge flux of MetaSWAP.
+Furthermore, a well package (WEL) is required to facilitate the extraction of
+groundwater for MetaSWAP’s sprinkling.</p>
 </section>
 </section>
 <section id="files">
@@ -339,21 +348,17 @@ defined. How to define a second stress package is explained
 <a class="reference external" href="#how-to-define-a-second-stress-package-for-modflow6">here</a>. Please
 note that in the model name file the <a class="reference external" href="https://modflow6.readthedocs.io/en/latest/_mf6io/gwf-nam.html#block-packages">package
 name</a>
-has to be defined as “RCH_MSW”.</p>
+should correspond to the package name specified <a class="reference internal" href="configuration.html#configuration-file"><span class="std std-ref">in the configuration file</span></a>.</p>
 </section>
 <section id="filename-wel">
 <h3>[filename].wel<a class="headerlink" href="#filename-wel" title="Permalink to this heading">#</a></h3>
-<p>A dummy well file, of which the fluxes will be overrided. The location
-of the wells is used to assign an well index by Modflow6. The file
-format of the .wel file is described
-<a class="reference external" href="https://modflow6.readthedocs.io/en/latest/_mf6io/gwf-wel.html">here</a>.
-To specify uncoupled extractions/injections as well, a second WEL
-package should be defined. How to define a second stress package is
-explained
-<a class="reference external" href="#how-to-define-a-second-stress-package-for-modflow6">here</a>. Please
-note that in the model name file the <a class="reference external" href="https://modflow6.readthedocs.io/en/latest/_mf6io/gwf-nam.html#block-packages">package
-name</a>
-has to be defined as “WELLS_MSW”.</p>
+<p>A dummy well file, of which the fluxes will be overrided. The location of the
+wells is used to assign a well index by Modflow6. The file format of the .wel
+file is described <a class="reference external" href="https://modflow6.readthedocs.io/en/latest/_mf6io/gwf-wel.html">here</a>. To specify
+uncoupled extractions/injections as well, a second WEL package should be
+defined. How to define a second stress package is explained <a class="reference external" href="#how-to-define-a-second-stress-package-for-modflow6">here</a>. Please note that the
+<a class="reference external" href="https://modflow6.readthedocs.io/en/latest/_mf6io/gwf-nam.html#block-packages">package name in the model name file</a>
+should correspond to the package name specified <a class="reference internal" href="configuration.html#configuration-file"><span class="std std-ref">in the configuration file</span></a>.</p>
 </section>
 </section>
 <section id="coupler">
@@ -418,10 +423,9 @@ the flow model’s <code class="docutils literal notranslate"><span class="pre">
 <span class="n">end</span> <span class="n">packages</span>
 </pre></div>
 </div>
-<p>The argument values <code class="docutils literal notranslate"><span class="pre">WELLS_MSW</span></code> and <code class="docutils literal notranslate"><span class="pre">WELL2</span></code>, specify the
-packagenames to be printed in the water budget .lst file. In the case of
-<code class="docutils literal notranslate"><span class="pre">WELLS_MSW</span></code>, this specific name additionally allows <code class="docutils literal notranslate"><span class="pre">imod_coupler</span></code>
-to detect which well package to use for sprinkling.</p>
+<p>The argument values <code class="docutils literal notranslate"><span class="pre">WELLS_MSW</span></code> and <code class="docutils literal notranslate"><span class="pre">WELL2</span></code>, specify the packagenames to be
+printed in the water budget .lst file. <a class="reference internal" href="configuration.html#configuration-file"><span class="std std-ref">In the configuration file</span></a> you have to specify which packagename is used for the
+coupling.</p>
 </section>
 </section>
 
