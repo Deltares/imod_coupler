@@ -107,7 +107,7 @@ should correspond to the package name specified :ref:`in the configuration file
 ~~~~~~~~~~~~~~
 
 A dummy well file, of which the fluxes will be overrided. The location of the
-wells is used to assign an well index by Modflow6. The file format of the .wel
+wells is used to assign a well index by Modflow6. The file format of the .wel
 file is described `here
 <https://modflow6.readthedocs.io/en/latest/_mf6io/gwf-wel.html>`__. To specify
 uncoupled extractions/injections as well, a second WEL package should be
