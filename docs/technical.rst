@@ -34,6 +34,16 @@ required in the MODFLOW6 model to facilitate the recharge flux of MetaSWAP.
 Furthermore, a well package (WEL) is required to facilitate the extraction of
 groundwater for MetaSWAP's sprinkling.
 
+Exchanges
+=========
+
+Modflow to MetaSWAP
+-------------------
+
+Modflow sets the heads in MetaSWAP, to be specific the ``hgwmodf`` variable.
+When multiple svats are coupled to 1 Modflow cell, each svat is given Modflow's head.
+When multiple Modflow cells are coupled to 1 svat, heads are averaged
+
 Files
 =====
 
