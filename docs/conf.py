@@ -78,6 +78,9 @@ html_theme = "pydata_sphinx_theme"
 html_static_path = ["_static"]
 html_css_files = ["theme-deltares.css"]
 
+# Set
+html_context = {"default_mode": "light"}
+
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
@@ -90,6 +93,12 @@ html_theme_options = {
             "url": "https://deltares.nl/en/",
             "icon": "_static/deltares-white.svg",
             "type": "local",
+        },
+        {
+            "name": "Github",
+            "url": "https://github.com/Deltares/imod_coupler",
+            "icon": "fab fa-github",
+            "type": "fontawesome",
         },
     ],
 }
@@ -106,7 +115,7 @@ html_theme_options = {
 
 # The name of an image file (relative to this directory) to place at the top
 # of the sidebar.
-html_logo = "_static/imod-python-logo.svg"
+html_logo = "_static/imod-coupler-logo.svg"
 
 # -- Options for HTMLHelp output ---------------------------------------------
 
