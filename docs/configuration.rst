@@ -1,7 +1,7 @@
 .. _configuration_file:
 
 Configuration file
-------------------
+==================
 
 The configuration file is necessary to describe the model and its
 dependencies. It is in the `toml <https://toml.io/en/>`__ format and
@@ -14,22 +14,105 @@ interpret a rawstring (``r''`` or ``r""``), whereas double quotes
 python (``""`` or ``''``). This matters for paths on Windows, for which
 we advice to use single quotes.
 
-.. code:: toml
+.. literalinclude:: config/metamod.toml
+    :language: toml
 
-   # This is a configuration file for the imod_coupler
-   # Relative paths are interpreted as relative to the configuration file path
-
-   [kernels]
-       [kernels.modflow6]
-       dll = '/path/to/libmf6.dll'
-       model = '.'
-
-       [kernels.metaswap]
-       dll = '/path/to/MetaSWAP.dll'
-       model = './GWF_1/MSWAPINPUT'
-       dll_dependency = '/path/to/MPICHDLL'
+Base Config
+-----------
 
 
-   [[exchanges]]
-   # Two kernels per exchange
-   kernels = ['modflow6', 'metaswap']
++------------+----------------------------------------+
+| log_level  |                                        |
++============+========================================+
+| type       | string                                 |
++------------+----------------------------------------+
+| default    | INFO                                   |
++------------+----------------------------------------+
+| enum       | DEBUG, INFO, WARNING, ERROR, CRITICAL  |
++------------+----------------------------------------+
+
+
+
+ =========== ========== 
+  timing                
+ =========== ========== 
+  type        boolean   
+  required    false     
+  default     false     
+ =========== ========== 
+
+ 
+ ============== ========= 
+  driver_type             
+ ============== ========= 
+  type           string   
+  required       true     
+  enum           metamod  
+ ============== ========= 
+
+driver
+------
+
+kernels
+^^^^^^^
+
+modflow6
+""""""""
+
+ =========== ========= 
+  dll                  
+ =========== ========= 
+  type        string   
+  required    true                           
+ =========== ========= 
+
+ ============== ========= 
+  dll_dep_dir             
+ ============== ========= 
+  type           string   
+  required       false    
+ ============== ========= 
+
+ =========== ========= 
+  work_dir             
+ =========== ========= 
+  type        string   
+  required    true     
+ =========== ========= 
+
+
+
+metaswap
+""""""""
+
+ =========== ========= 
+  dll                  
+ =========== ========= 
+  type        string   
+  required    true                           
+ =========== ========= 
+
+ ============== ========= 
+  dll_dep_dir             
+ ============== ========= 
+  type           string   
+  required       false    
+ ============== ========= 
+
+ =========== ========= 
+  work_dir             
+ =========== ========= 
+  type        string   
+  required    true     
+ =========== ========= 
+
+
+
+
+.. ## log_level
+
+.. ## timing
+
+.. ## driver_type
+
+.. ## driver

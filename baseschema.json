@@ -1,0 +1,57 @@
+{
+    "title": "BaseConfig",
+    "description": "Model for the base config validated by pydantic",
+    "type": "object",
+    "properties": {
+        "log_level": {
+            "default": "INFO",
+            "allOf": [
+                {
+                    "$ref": "#/definitions/LogLevel"
+                }
+            ]
+        },
+        "timing": {
+            "title": "Timing",
+            "default": false,
+            "type": "boolean"
+        },
+        "driver_type": {
+            "$ref": "#/definitions/DriverType"
+        },
+        "driver": {
+            "$ref": "#/definitions/BaseModel"
+        }
+    },
+    "required": [
+        "driver_type",
+        "driver"
+    ],
+    "definitions": {
+        "LogLevel": {
+            "title": "LogLevel",
+            "description": "An enumeration.",
+            "enum": [
+                "DEBUG",
+                "INFO",
+                "WARNING",
+                "ERROR",
+                "CRITICAL"
+            ],
+            "type": "string"
+        },
+        "DriverType": {
+            "title": "DriverType",
+            "description": "An enumeration.",
+            "enum": [
+                "metamod"
+            ],
+            "type": "string"
+        },
+        "BaseModel": {
+            "title": "BaseModel",
+            "type": "object",
+            "properties": {}
+        }
+    }
+}
