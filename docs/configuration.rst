@@ -20,37 +20,31 @@ we advice to use single quotes.
 Config schema
 -------------
 
+.. csv-table:: log_level
+    :widths: 3, 7
 
-+------------+----------------------------------------+
-| log_level  |                                        |
-+============+========================================+
-| type       | string                                 |
-+------------+----------------------------------------+
-| required   | false                                  |
-+------------+----------------------------------------+
-| default    | INFO                                   |
-+------------+----------------------------------------+
-| enum       | DEBUG, INFO, WARNING, ERROR, CRITICAL  |
-+------------+----------------------------------------+
+    description, "This setting determines the severity and therefore the verbosity of the log messages."
+    type, string
+    required, false
+    default, INFO
+    enum, "DEBUG, INFO, WARNING, ERROR, CRITICAL"
 
+.. csv-table:: timing
+    :widths: 3, 7
 
+    description, "Specifies whether the coupling should be timed. This option requires the log level to at least include INFO."
+    type, boolean
+    required, false
+    default, false
 
-=========== ========== 
-timing                
-=========== ========== 
-type        boolean   
-required    false     
-default     false     
-=========== ========== 
+.. csv-table:: driver_type
+    :widths: 3, 7
 
- 
-============== ========= 
-driver_type             
-============== ========= 
-type           string   
-required       true     
-enum           metamod  
-============== ========= 
+    description, "Specifies which driver should be used. Typically, this determines which hydrological kernels are coupled."
+    type, string
+    required, true
+    enum, metamod
+
 
 driver
 ------
@@ -61,102 +55,101 @@ kernels
 modflow6
 """"""""
 
-=========== ========= 
-dll                  
-=========== ========= 
-type        string   
-required    true                           
-=========== ========= 
+.. csv-table:: dll
+    :widths: 3, 7
 
-============== ========= 
-dll_dep_dir             
-============== ========= 
-type           string   
-required       false    
-============== ========= 
+    description, "The path to the MODFLOW 6 library."
+    type, string
+    required, true
 
-=========== ========= 
-work_dir             
-=========== ========= 
-type        string   
-required    true     
-=========== ========= 
+.. csv-table:: dll_dep_dir
+    :widths: 3, 7
 
+    description, "The path to the dependencies of MODFLOW 6."
+    type, string
+    required, false
+
+.. csv-table:: work_dir
+    :widths: 3, 7
+
+    description, "The working directory MODFLOW 6 expects. This is the directory where the simulation name file resides."
+    type, string
+    required, true
 
 
 metaswap
 """"""""
 
-=========== ========= 
-dll                  
-=========== ========= 
-type        string   
-required    true                           
-=========== ========= 
+.. csv-table:: dll
+    :widths: 3, 7
 
-============== ========= 
-dll_dep_dir             
-============== ========= 
-type           string   
-required       false    
-============== ========= 
+    description, "The path to the MetaSWAP library."
+    type, string
+    required, true
 
-=========== ========= 
-work_dir             
-=========== ========= 
-type        string   
-required    true     
-=========== ========= 
+.. csv-table:: dll_dep_dir
+    :widths: 3, 7
 
+    description, "The path to the dependencies of MetaSWAP."
+    type, string
+    required, false
+
+.. csv-table:: work_dir
+    :widths: 3, 7
+
+    description, "The working directory MetaSWAP expects."
+    type, string
+    required, true
 
 coupling
 ^^^^^^^^
 
-==================== ========== 
-enable_sprinkling              
-==================== ========== 
-type                 boolean   
-required             true      
-==================== ========== 
+.. csv-table:: enable_sprinkling
+    :widths: 3, 7
 
-============ ========= 
-mf6_model             
-============ ========= 
-type         string   
-required     true     
-============ ========= 
+    description, "Whether to enable_sprinkling."
+    type, boolean
+    required, true
 
-======================= ========= 
-mf6_msw_recharge_pkg             
-======================= ========= 
-type                    string   
-required                true     
-======================= ========= 
+.. csv-table:: mf6_model
+    :widths: 3, 7
 
-=================== ========= 
-mf6_msw_well_pkg             
-=================== ========= 
-type                string   
-required            false    
-=================== ========= 
+    description, "Specifies the MODFLOW 6 model name to which MetaSWAP will be coupled."
+    type, string
+    required, true
 
-=================== ========= 
-mf6_msw_node_map             
-=================== ========= 
-type                string   
-required            true     
-=================== ========= 
 
-========================= ========= 
-mf6_msw_recharge_map             
-========================= ========= 
-type                      string   
-required                  true     
-========================= ========= 
+.. csv-table:: mf6_msw_recharge_pkg
+    :widths: 3, 7
 
-========================= ========= 
-mf6_msw_sprinkling_map             
-========================= ========= 
-type                      string   
-required                  false    
-========================= ========= 
+    description, "Specifies the package name (specified in the Modflow 6 simulation name file) of the recharge package to which MetaSWAP will be coupled."
+    type, string
+    required, true
+
+.. csv-table:: mf6_msw_well_pkg
+    :widths: 3, 7
+
+    description, "Specifies the package name (specified in the Modflow 6 simulation name file) of the recharge package to which MetaSWAP will be coupled. This setting is only required if ``enable_sprinkling`` is set to ``true``."
+    type, string
+    required, false
+
+.. csv-table:: mf6_msw_node_map
+    :widths: 3, 7
+
+    description, "Path to the file specifying the mapping between MODFLOW 6 cells and MetaSWAP svats."
+    type, string
+    required, true
+
+.. csv-table:: mf6_msw_recharge_map
+    :widths: 3, 7
+
+    description, "Path to the file specifying the mapping between MODFLOW 6 recharge cells and MetaSWAP svats."
+    type, string
+    required, true
+
+.. csv-table:: mf6_msw_recharge_map
+    :widths: 3, 7
+
+    description, "Path to the file specifying the mapping between MODFLOW 6 wells and MetaSWAP svats. This setting is only required if ``enable_sprinkling`` is set to ``true``."
+    type, string
+    required, false
