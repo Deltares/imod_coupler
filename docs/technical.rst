@@ -28,11 +28,12 @@ Requirements
 * A recharge package (RCH) is required in the Modflow 6 model to facilitate the
   recharge flux of MetaSWAP.
 * A well package (WEL) is required in the Modflow 6 to facilitate the extraction of
-  groundwater for MetaSWAP's sprinkling. 
-* The sum of svat areas should be equivalent to the area of the Modflow cell
+  groundwater for MetaSWAP's sprinkling.
+* The sum of svat areas should not exceed the area of the Modflow cell
   they are coupled to.
-* Currently only multiple svats can be coupled to 1 Modflow cell, and not the
-  other way around.
+* Currently only multiple svats can be coupled to one Modflow cell, and not the
+  other way around. It is not possible to couple multiple Modflow cells to one
+  svat.
 
 Data exchanges
 ==============
@@ -44,8 +45,8 @@ Heads
 ~~~~~
 
 Modflow sets the heads in MetaSWAP, to be specific the ``hgwmodf`` variable.
-When multiple svats are coupled to 1 Modflow cell, each svat is given Modflow's head.
-When multiple Modflow cells are coupled to 1 svat, the arithmatic average is taken.
+When multiple svats are coupled to one Modflow cell, each svat is given Modflow's head.
+When multiple Modflow cells are coupled to one svat, the arithmatic average is taken.
 
 MetaSWAP to Modflow
 -------------------
@@ -57,9 +58,9 @@ Storage
 ~~~~~~~
 
 MetaSWAP sets the storage in coupled Modflow cells. When multiple svats are
-coupled to one Modflow cell, storages are summed. It is assumed in the
-computation of the storage that the sum of the svat areas equals the modflow
-cell area.
+coupled to one Modflow cell, storages are summed. Note that, in case the summed
+area of the svats is less than the Modflow cell area, the total storage of the
+remaining area is assumed zero.
 
 Recharge
 ~~~~~~~~
