@@ -1,21 +1,20 @@
-# this is an example toml file
 log_level = 'INFO'
 timing = false
 
 driver_type = 'metamod'
 
-# modflow 6
+# MODFLOW 6
 [driver.kernels.modflow6]
 dll = './kernels/libmf6.dll'
 work_dir = './mf6_data'
 
-# metaswap
+# MetaSWAP
 [driver.kernels.metaswap]
 dll = './kernels/MetaSWAP.dll'
 dll_dep_dir = './kernels/3rdparty'
 work_dir = './msw_data'
 
-# inner model with sprinkling
+# Inner model with sprinkling
 [[driver.coupling]]
 enable_sprinkling = true
 mf6_model = 'inner_model'
@@ -25,7 +24,7 @@ mf6_msw_node_map = 'mappings_inner/nodenr2svat.dxc'
 mf6_msw_recharge_map = 'mappings_inner/rchindex2svat.dxc'
 mf6_msw_sprinkling_map = 'mappings_inner/wellindex2svat.dxc'
 
-# outer model, without sprinkling
+# Outer model, without sprinkling
 [[driver.coupling]]
 enable_sprinkling = false
 mf6_model = 'outer_model'
