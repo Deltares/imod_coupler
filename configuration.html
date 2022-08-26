@@ -155,9 +155,48 @@
     
     <div class="toc-item">
       
+<div class="tocsection onthispage mt-5 pt-1 pb-3">
+    <i class="fas fa-list"></i> On this page
+</div>
 
 <nav id="bd-toc-nav">
-    
+    <ul class="visible nav section-nav flex-column">
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#config-schema">
+   Config schema
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#driver">
+   driver
+  </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#kernels">
+     kernels
+    </a>
+    <ul class="nav section-nav flex-column">
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#modflow6">
+       modflow6
+      </a>
+     </li>
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#metaswap">
+       metaswap
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#coupling">
+     coupling
+    </a>
+   </li>
+  </ul>
+ </li>
+</ul>
+
 </nav>
     </div>
     
@@ -186,25 +225,359 @@ interpret a rawstring (<code class="docutils literal notranslate"><span class="p
 (<code class="docutils literal notranslate"><span class="pre">&quot;&quot;</span></code>) are interpreted in a similar manner to regular strings in
 python (<code class="docutils literal notranslate"><span class="pre">&quot;&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">''</span></code>). This matters for paths on Windows, for which
 we advice to use single quotes.</p>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="c1"># This is a configuration file for the imod_coupler</span><span class="w"></span>
-<span class="c1"># Relative paths are interpreted as relative to the configuration file path</span><span class="w"></span>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">log_level</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&#39;INFO&#39;</span><span class="w"></span>
+<span class="n">timing</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">false</span><span class="w"></span>
 
-<span class="k">[kernels]</span><span class="w"></span>
-<span class="w">    </span><span class="k">[kernels.modflow6]</span><span class="w"></span>
-<span class="w">    </span><span class="n">dll</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&#39;/path/to/libmf6.dll&#39;</span><span class="w"></span>
-<span class="w">    </span><span class="n">model</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&#39;.&#39;</span><span class="w"></span>
+<span class="n">driver_type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&#39;metamod&#39;</span><span class="w"></span>
 
-<span class="w">    </span><span class="k">[kernels.metaswap]</span><span class="w"></span>
-<span class="w">    </span><span class="n">dll</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&#39;/path/to/MetaSWAP.dll&#39;</span><span class="w"></span>
-<span class="w">    </span><span class="n">model</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&#39;./GWF_1/MSWAPINPUT&#39;</span><span class="w"></span>
-<span class="w">    </span><span class="n">dll_dependency</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&#39;/path/to/MPICHDLL&#39;</span><span class="w"></span>
+<span class="c1"># MODFLOW 6</span><span class="w"></span>
+<span class="k">[driver.kernels.modflow6]</span><span class="w"></span>
+<span class="n">dll</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&#39;./kernels/libmf6.dll&#39;</span><span class="w"></span>
+<span class="n">work_dir</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&#39;./mf6_data&#39;</span><span class="w"></span>
 
+<span class="c1"># MetaSWAP</span><span class="w"></span>
+<span class="k">[driver.kernels.metaswap]</span><span class="w"></span>
+<span class="n">dll</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&#39;./kernels/MetaSWAP.dll&#39;</span><span class="w"></span>
+<span class="n">dll_dep_dir</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&#39;./kernels/3rdparty&#39;</span><span class="w"></span>
+<span class="n">work_dir</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&#39;./msw_data&#39;</span><span class="w"></span>
 
-<span class="k">[[exchanges]]</span><span class="w"></span>
-<span class="c1"># Two kernels per exchange</span><span class="w"></span>
-<span class="n">kernels</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s">&#39;modflow6&#39;</span><span class="p">,</span><span class="w"> </span><span class="s">&#39;metaswap&#39;</span><span class="p">]</span><span class="w"></span>
+<span class="c1"># Inner model with sprinkling</span><span class="w"></span>
+<span class="k">[[driver.coupling]]</span><span class="w"></span>
+<span class="n">enable_sprinkling</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span><span class="w"></span>
+<span class="n">mf6_model</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&#39;inner_model&#39;</span><span class="w"></span>
+<span class="n">mf6_msw_recharge_pkg</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&#39;RCH_MSW&#39;</span><span class="w"></span>
+<span class="n">mf6_msw_well_pkg</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&#39;WELLS_MSW&#39;</span><span class="w"></span>
+<span class="n">mf6_msw_node_map</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&#39;mappings_inner/nodenr2svat.dxc&#39;</span><span class="w"></span>
+<span class="n">mf6_msw_recharge_map</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&#39;mappings_inner/rchindex2svat.dxc&#39;</span><span class="w"></span>
+<span class="n">mf6_msw_sprinkling_map</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&#39;mappings_inner/wellindex2svat.dxc&#39;</span><span class="w"></span>
+
+<span class="c1"># Outer model, without sprinkling</span><span class="w"></span>
+<span class="k">[[driver.coupling]]</span><span class="w"></span>
+<span class="n">enable_sprinkling</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">false</span><span class="w"></span>
+<span class="n">mf6_model</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&#39;outer_model&#39;</span><span class="w"></span>
+<span class="n">mf6_msw_recharge_pkg</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&#39;RCH_MSW&#39;</span><span class="w"></span>
+<span class="n">mf6_msw_node_map</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&#39;mappings_outer/nodenr2svat.dxc&#39;</span><span class="w"></span>
+<span class="n">mf6_msw_recharge_map</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&#39;mappings_outer/rchindex2svat.dxc&#39;</span><span class="w"></span>
 </pre></div>
 </div>
+<section id="config-schema">
+<h2>Config schema<a class="headerlink" href="#config-schema" title="Permalink to this heading">#</a></h2>
+<table class="table" id="id2">
+<caption><span class="caption-text">log_level</span><a class="headerlink" href="#id2" title="Permalink to this table">#</a></caption>
+<colgroup>
+<col style="width: 30.0%" />
+<col style="width: 70.0%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p>description</p></td>
+<td><p>This setting determines the severity and therefore the verbosity of the log messages.</p></td>
+</tr>
+<tr class="row-even"><td><p>type</p></td>
+<td><p>string</p></td>
+</tr>
+<tr class="row-odd"><td><p>required</p></td>
+<td><p>false</p></td>
+</tr>
+<tr class="row-even"><td><p>default</p></td>
+<td><p>INFO</p></td>
+</tr>
+<tr class="row-odd"><td><p>enum</p></td>
+<td><p>DEBUG, INFO, WARNING, ERROR, CRITICAL</p></td>
+</tr>
+</tbody>
+</table>
+<table class="table" id="id3">
+<caption><span class="caption-text">timing</span><a class="headerlink" href="#id3" title="Permalink to this table">#</a></caption>
+<colgroup>
+<col style="width: 30.0%" />
+<col style="width: 70.0%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p>description</p></td>
+<td><p>Specifies whether the coupling should be timed. This option requires the log level to at least include INFO.</p></td>
+</tr>
+<tr class="row-even"><td><p>type</p></td>
+<td><p>boolean</p></td>
+</tr>
+<tr class="row-odd"><td><p>required</p></td>
+<td><p>false</p></td>
+</tr>
+<tr class="row-even"><td><p>default</p></td>
+<td><p>false</p></td>
+</tr>
+</tbody>
+</table>
+<table class="table" id="id4">
+<caption><span class="caption-text">driver_type</span><a class="headerlink" href="#id4" title="Permalink to this table">#</a></caption>
+<colgroup>
+<col style="width: 30.0%" />
+<col style="width: 70.0%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p>description</p></td>
+<td><p>Specifies which driver should be used. Typically, this determines which hydrological kernels are coupled.</p></td>
+</tr>
+<tr class="row-even"><td><p>type</p></td>
+<td><p>string</p></td>
+</tr>
+<tr class="row-odd"><td><p>required</p></td>
+<td><p>true</p></td>
+</tr>
+<tr class="row-even"><td><p>enum</p></td>
+<td><p>metamod</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="driver">
+<h2>driver<a class="headerlink" href="#driver" title="Permalink to this heading">#</a></h2>
+<section id="kernels">
+<h3>kernels<a class="headerlink" href="#kernels" title="Permalink to this heading">#</a></h3>
+<section id="modflow6">
+<h4>modflow6<a class="headerlink" href="#modflow6" title="Permalink to this heading">#</a></h4>
+<table class="table" id="id5">
+<caption><span class="caption-text">dll</span><a class="headerlink" href="#id5" title="Permalink to this table">#</a></caption>
+<colgroup>
+<col style="width: 30.0%" />
+<col style="width: 70.0%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p>description</p></td>
+<td><p>The path to the MODFLOW 6 library.</p></td>
+</tr>
+<tr class="row-even"><td><p>type</p></td>
+<td><p>string</p></td>
+</tr>
+<tr class="row-odd"><td><p>required</p></td>
+<td><p>true</p></td>
+</tr>
+</tbody>
+</table>
+<table class="table" id="id6">
+<caption><span class="caption-text">dll_dep_dir</span><a class="headerlink" href="#id6" title="Permalink to this table">#</a></caption>
+<colgroup>
+<col style="width: 30.0%" />
+<col style="width: 70.0%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p>description</p></td>
+<td><p>The path to the dependencies of MODFLOW 6.</p></td>
+</tr>
+<tr class="row-even"><td><p>type</p></td>
+<td><p>string</p></td>
+</tr>
+<tr class="row-odd"><td><p>required</p></td>
+<td><p>false</p></td>
+</tr>
+</tbody>
+</table>
+<table class="table" id="id7">
+<caption><span class="caption-text">work_dir</span><a class="headerlink" href="#id7" title="Permalink to this table">#</a></caption>
+<colgroup>
+<col style="width: 30.0%" />
+<col style="width: 70.0%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p>description</p></td>
+<td><p>The working directory MODFLOW 6 expects. This is the directory where the simulation name file resides.</p></td>
+</tr>
+<tr class="row-even"><td><p>type</p></td>
+<td><p>string</p></td>
+</tr>
+<tr class="row-odd"><td><p>required</p></td>
+<td><p>true</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="metaswap">
+<h4>metaswap<a class="headerlink" href="#metaswap" title="Permalink to this heading">#</a></h4>
+<table class="table" id="id8">
+<caption><span class="caption-text">dll</span><a class="headerlink" href="#id8" title="Permalink to this table">#</a></caption>
+<colgroup>
+<col style="width: 30.0%" />
+<col style="width: 70.0%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p>description</p></td>
+<td><p>The path to the MetaSWAP library.</p></td>
+</tr>
+<tr class="row-even"><td><p>type</p></td>
+<td><p>string</p></td>
+</tr>
+<tr class="row-odd"><td><p>required</p></td>
+<td><p>true</p></td>
+</tr>
+</tbody>
+</table>
+<table class="table" id="id9">
+<caption><span class="caption-text">dll_dep_dir</span><a class="headerlink" href="#id9" title="Permalink to this table">#</a></caption>
+<colgroup>
+<col style="width: 30.0%" />
+<col style="width: 70.0%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p>description</p></td>
+<td><p>The path to the dependencies of MetaSWAP.</p></td>
+</tr>
+<tr class="row-even"><td><p>type</p></td>
+<td><p>string</p></td>
+</tr>
+<tr class="row-odd"><td><p>required</p></td>
+<td><p>false</p></td>
+</tr>
+</tbody>
+</table>
+<table class="table" id="id10">
+<caption><span class="caption-text">work_dir</span><a class="headerlink" href="#id10" title="Permalink to this table">#</a></caption>
+<colgroup>
+<col style="width: 30.0%" />
+<col style="width: 70.0%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p>description</p></td>
+<td><p>The working directory MetaSWAP expects.</p></td>
+</tr>
+<tr class="row-even"><td><p>type</p></td>
+<td><p>string</p></td>
+</tr>
+<tr class="row-odd"><td><p>required</p></td>
+<td><p>true</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+</section>
+<section id="coupling">
+<h3>coupling<a class="headerlink" href="#coupling" title="Permalink to this heading">#</a></h3>
+<table class="table" id="id11">
+<caption><span class="caption-text">enable_sprinkling</span><a class="headerlink" href="#id11" title="Permalink to this table">#</a></caption>
+<colgroup>
+<col style="width: 30.0%" />
+<col style="width: 70.0%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p>description</p></td>
+<td><p>Whether to enable sprinkling, that is: enable extracting groundwater for irrigation.</p></td>
+</tr>
+<tr class="row-even"><td><p>type</p></td>
+<td><p>boolean</p></td>
+</tr>
+<tr class="row-odd"><td><p>required</p></td>
+<td><p>true</p></td>
+</tr>
+</tbody>
+</table>
+<table class="table" id="id12">
+<caption><span class="caption-text">mf6_model</span><a class="headerlink" href="#id12" title="Permalink to this table">#</a></caption>
+<colgroup>
+<col style="width: 30.0%" />
+<col style="width: 70.0%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p>description</p></td>
+<td><p>Specifies the MODFLOW 6 model name to which MetaSWAP will be coupled.</p></td>
+</tr>
+<tr class="row-even"><td><p>type</p></td>
+<td><p>string</p></td>
+</tr>
+<tr class="row-odd"><td><p>required</p></td>
+<td><p>true</p></td>
+</tr>
+</tbody>
+</table>
+<table class="table" id="id13">
+<caption><span class="caption-text">mf6_msw_recharge_pkg</span><a class="headerlink" href="#id13" title="Permalink to this table">#</a></caption>
+<colgroup>
+<col style="width: 30.0%" />
+<col style="width: 70.0%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p>description</p></td>
+<td><p>Specifies the package name (specified in the Modflow 6 simulation name file) of the recharge package to which MetaSWAP will be coupled.</p></td>
+</tr>
+<tr class="row-even"><td><p>type</p></td>
+<td><p>string</p></td>
+</tr>
+<tr class="row-odd"><td><p>required</p></td>
+<td><p>true</p></td>
+</tr>
+</tbody>
+</table>
+<table class="table" id="id14">
+<caption><span class="caption-text">mf6_msw_well_pkg</span><a class="headerlink" href="#id14" title="Permalink to this table">#</a></caption>
+<colgroup>
+<col style="width: 30.0%" />
+<col style="width: 70.0%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p>description</p></td>
+<td><p>Specifies the package name (specified in the Modflow 6 simulation name file) of the recharge package to which MetaSWAP will be coupled. This setting is only required if <code class="docutils literal notranslate"><span class="pre">enable_sprinkling</span></code> is set to <code class="docutils literal notranslate"><span class="pre">true</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p>type</p></td>
+<td><p>string</p></td>
+</tr>
+<tr class="row-odd"><td><p>required</p></td>
+<td><p>false</p></td>
+</tr>
+</tbody>
+</table>
+<table class="table" id="id15">
+<caption><span class="caption-text">mf6_msw_node_map</span><a class="headerlink" href="#id15" title="Permalink to this table">#</a></caption>
+<colgroup>
+<col style="width: 30.0%" />
+<col style="width: 70.0%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p>description</p></td>
+<td><p>Path to the file specifying the mapping between MODFLOW 6 cells and MetaSWAP svats.</p></td>
+</tr>
+<tr class="row-even"><td><p>type</p></td>
+<td><p>string</p></td>
+</tr>
+<tr class="row-odd"><td><p>required</p></td>
+<td><p>true</p></td>
+</tr>
+</tbody>
+</table>
+<table class="table" id="id16">
+<caption><span class="caption-text">mf6_msw_recharge_map</span><a class="headerlink" href="#id16" title="Permalink to this table">#</a></caption>
+<colgroup>
+<col style="width: 30.0%" />
+<col style="width: 70.0%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p>description</p></td>
+<td><p>Path to the file specifying the mapping between MODFLOW 6 recharge cells and MetaSWAP svats.</p></td>
+</tr>
+<tr class="row-even"><td><p>type</p></td>
+<td><p>string</p></td>
+</tr>
+<tr class="row-odd"><td><p>required</p></td>
+<td><p>true</p></td>
+</tr>
+</tbody>
+</table>
+<table class="table" id="id17">
+<caption><span class="caption-text">mf6_msw_recharge_map</span><a class="headerlink" href="#id17" title="Permalink to this table">#</a></caption>
+<colgroup>
+<col style="width: 30.0%" />
+<col style="width: 70.0%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p>description</p></td>
+<td><p>Path to the file specifying the mapping between MODFLOW 6 wells and MetaSWAP svats. This setting is only required if <code class="docutils literal notranslate"><span class="pre">enable_sprinkling</span></code> is set to <code class="docutils literal notranslate"><span class="pre">true</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p>type</p></td>
+<td><p>string</p></td>
+</tr>
+<tr class="row-odd"><td><p>required</p></td>
+<td><p>false</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+</section>
 </section>
 
 
