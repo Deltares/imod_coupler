@@ -12,13 +12,7 @@ code.
 
 Below is a flowchart showing the order in which one timestep is
 iteratively solved and when data is exchanged between MetaSWAP and
-MODFLOW6. The data exchange is done as follows.
-
--  When data is exchanged from MODFLOW to MetaSWAP, MODFLOW sets the
-   head (i.e. "``hgwmodf``") in MetaSWAP.
--  When data is exhanged from MetaSWAP to MODFLOW, MetaSWAP provides a recharge,
-   sets the storage, and extracts groundwater from deeper layers for sprinkling
-   (if switched on). 
+MODFLOW6. 
 
 .. image:: ./figures/MF6BMI_coupling.png
    :align: center
@@ -27,12 +21,62 @@ MODFLOW6. The data exchange is done as follows.
 Requirements
 ------------
 
-Currently only confined flow is supported, similar to a previous implementation
-of MetaSWAP-MODFLOW coupling. Both the specific storage and the storage
-coefficient option of Modflow 6 are supported. A recharge package (RCH) is
-required in the MODFLOW6 model to facilitate the recharge flux of MetaSWAP.
-Furthermore, a well package (WEL) is required to facilitate the extraction of
-groundwater for MetaSWAP's sprinkling.
+* Currently only confined flow is supported, similar to a previous
+  implementation of MetaSWAP-MODFLOW coupling.
+* Both the specific storage and the storage coefficient option of Modflow 6 are
+  supported. 
+* A recharge package (RCH) is required in the Modflow 6 model to facilitate the
+  recharge flux of MetaSWAP.
+* A well package (WEL) is required in the Modflow 6 to facilitate the extraction of
+  groundwater for MetaSWAP's sprinkling. 
+* The sum of svat areas should be equivalent to the area of the Modflow cell
+  they are coupled to.
+* Currently only multiple svats can be coupled to 1 Modflow cell, and not the
+  other way around.
+
+Data exchanges
+==============
+
+Modflow to MetaSWAP
+-------------------
+
+Heads
+~~~~~
+
+Modflow sets the heads in MetaSWAP, to be specific the ``hgwmodf`` variable.
+When multiple svats are coupled to 1 Modflow cell, each svat is given Modflow's head.
+When multiple Modflow cells are coupled to 1 svat, the arithmatic average is taken.
+
+MetaSWAP to Modflow
+-------------------
+
+MetaSWAP provides a recharge, sets the storage, and extracts groundwater from
+deeper layers for sprinkling (if switched on). 
+
+Storage
+~~~~~~~
+
+MetaSWAP sets the storage in coupled Modflow cells. When multiple svats are
+coupled to one Modflow cell, storages are summed. It is assumed in the
+computation of the storage that the sum of the svat areas equals the modflow
+cell area.
+
+Recharge
+~~~~~~~~
+
+Recharge is provided by MetaSWAP to Modflow. 
+MetaSWAP internally stores volumes that should be provided to Modflow,
+so these are converted to rates by dividing by the timestep length.
+When multiple svats are coupled to one Modflow cell, recharges rates are summed.
+
+Sprinkling
+~~~~~~~~~~
+
+Groundwater extraction rates to set sprinkling are computed by MetaSWAP based on
+irrigation requirements. MetaSWAP internally stores volumes that should be provided to Modflow,
+so these are converted to rates by dividing by the timestep length.
+When multiple svats are coupled to one Modflow cell, extraction rates are summed.
+
 
 Files
 =====

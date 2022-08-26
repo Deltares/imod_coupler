@@ -180,6 +180,47 @@
   </ul>
  </li>
  <li class="toc-h1 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#data-exchanges">
+   Data exchanges
+  </a>
+  <ul class="visible nav section-nav flex-column">
+   <li class="toc-h2 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#modflow-to-metaswap">
+     Modflow to MetaSWAP
+    </a>
+    <ul class="nav section-nav flex-column">
+     <li class="toc-h3 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#heads">
+       Heads
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toc-h2 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#metaswap-to-modflow">
+     MetaSWAP to Modflow
+    </a>
+    <ul class="nav section-nav flex-column">
+     <li class="toc-h3 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#storage">
+       Storage
+      </a>
+     </li>
+     <li class="toc-h3 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#recharge">
+       Recharge
+      </a>
+     </li>
+     <li class="toc-h3 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#sprinkling">
+       Sprinkling
+      </a>
+     </li>
+    </ul>
+   </li>
+  </ul>
+ </li>
+ <li class="toc-h1 nav-item toc-entry">
   <a class="reference internal nav-link" href="#files">
    Files
   </a>
@@ -272,24 +313,63 @@ of the inner workings of the code, we refer to the docstrings in the
 code.</p>
 <p>Below is a flowchart showing the order in which one timestep is
 iteratively solved and when data is exchanged between MetaSWAP and
-MODFLOW6. The data exchange is done as follows.</p>
-<ul class="simple">
-<li><p>When data is exchanged from MODFLOW to MetaSWAP, MODFLOW sets the
-head (i.e. “<code class="docutils literal notranslate"><span class="pre">hgwmodf</span></code>”) in MetaSWAP.</p></li>
-<li><p>When data is exhanged from MetaSWAP to MODFLOW, MetaSWAP provides a recharge,
-sets the storage, and extracts groundwater from deeper layers for sprinkling
-(if switched on).</p></li>
-</ul>
+MODFLOW6.</p>
 <img alt="_images/MF6BMI_coupling.png" class="align-center" src="_images/MF6BMI_coupling.png" />
 </section>
 <section id="requirements">
 <h2>Requirements<a class="headerlink" href="#requirements" title="Permalink to this heading">#</a></h2>
-<p>Currently only confined flow is supported, similar to a previous implementation
-of MetaSWAP-MODFLOW coupling. Both the specific storage and the storage
-coefficient option of Modflow 6 are supported. A recharge package (RCH) is
-required in the MODFLOW6 model to facilitate the recharge flux of MetaSWAP.
-Furthermore, a well package (WEL) is required to facilitate the extraction of
-groundwater for MetaSWAP’s sprinkling.</p>
+<ul class="simple">
+<li><p>Currently only confined flow is supported, similar to a previous
+implementation of MetaSWAP-MODFLOW coupling.</p></li>
+<li><p>Both the specific storage and the storage coefficient option of Modflow 6 are
+supported.</p></li>
+<li><p>A recharge package (RCH) is required in the Modflow 6 model to facilitate the
+recharge flux of MetaSWAP.</p></li>
+<li><p>A well package (WEL) is required in the Modflow 6 to facilitate the extraction of
+groundwater for MetaSWAP’s sprinkling.</p></li>
+<li><p>The sum of svat areas should be equivalent to the area of the Modflow cell
+they are coupled to.</p></li>
+<li><p>Currently only multiple svats can be coupled to 1 Modflow cell, and not the
+other way around.</p></li>
+</ul>
+</section>
+</section>
+<section id="data-exchanges">
+<h1>Data exchanges<a class="headerlink" href="#data-exchanges" title="Permalink to this heading">#</a></h1>
+<section id="modflow-to-metaswap">
+<h2>Modflow to MetaSWAP<a class="headerlink" href="#modflow-to-metaswap" title="Permalink to this heading">#</a></h2>
+<section id="heads">
+<h3>Heads<a class="headerlink" href="#heads" title="Permalink to this heading">#</a></h3>
+<p>Modflow sets the heads in MetaSWAP, to be specific the <code class="docutils literal notranslate"><span class="pre">hgwmodf</span></code> variable.
+When multiple svats are coupled to 1 Modflow cell, each svat is given Modflow’s head.
+When multiple Modflow cells are coupled to 1 svat, the arithmatic average is taken.</p>
+</section>
+</section>
+<section id="metaswap-to-modflow">
+<h2>MetaSWAP to Modflow<a class="headerlink" href="#metaswap-to-modflow" title="Permalink to this heading">#</a></h2>
+<p>MetaSWAP provides a recharge, sets the storage, and extracts groundwater from
+deeper layers for sprinkling (if switched on).</p>
+<section id="storage">
+<h3>Storage<a class="headerlink" href="#storage" title="Permalink to this heading">#</a></h3>
+<p>MetaSWAP sets the storage in coupled Modflow cells. When multiple svats are
+coupled to one Modflow cell, storages are summed. It is assumed in the
+computation of the storage that the sum of the svat areas equals the modflow
+cell area.</p>
+</section>
+<section id="recharge">
+<h3>Recharge<a class="headerlink" href="#recharge" title="Permalink to this heading">#</a></h3>
+<p>Recharge is provided by MetaSWAP to Modflow.
+MetaSWAP internally stores volumes that should be provided to Modflow,
+so these are converted to rates by dividing by the timestep length.
+When multiple svats are coupled to one Modflow cell, recharges rates are summed.</p>
+</section>
+<section id="sprinkling">
+<h3>Sprinkling<a class="headerlink" href="#sprinkling" title="Permalink to this heading">#</a></h3>
+<p>Groundwater extraction rates to set sprinkling are computed by MetaSWAP based on
+irrigation requirements. MetaSWAP internally stores volumes that should be provided to Modflow,
+so these are converted to rates by dividing by the timestep length.
+When multiple svats are coupled to one Modflow cell, extraction rates are summed.</p>
+</section>
 </section>
 </section>
 <section id="files">
