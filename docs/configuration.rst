@@ -107,7 +107,7 @@ coupling
 .. csv-table:: enable_sprinkling
     :widths: 3, 7
 
-    description, "Whether to enable_sprinkling."
+    description, "Whether to enable sprinkling, that is: enable extracting groundwater for irrigation."
     type, boolean
     required, true
 
