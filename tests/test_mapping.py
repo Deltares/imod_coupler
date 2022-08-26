@@ -14,6 +14,11 @@ from imod_coupler.utils import create_mapping
 def test_create_mapping(
     src_idx, tgt_idx, nsrc, ntgt, operator, expected_map_dense, expected_mask
 ):
+    """
+    Test create_mapping function. Argument names are equivalent to those in the
+    create_mapping function.
+    """
+
     map_out, mask = create_mapping(src_idx, tgt_idx, nsrc, ntgt, operator)
 
     assert issubclass(map_out.dtype.type, np.floating)
