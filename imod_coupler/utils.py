@@ -27,18 +27,17 @@ def create_mapping(
     Parameters
     ----------
     src_idx : int
-        the indexes in the source array, zero-based
+        The indexes in the source array, zero-based
     tgt_idx : int
-        the indexes in the target array, zero-based
+        The indexes in the target array, zero-based
     nsrc : int
-        the number of entries in the source array
+        The number of entries in the source array
     ntgt : int
-        the number of entries in the target array
+        The number of entries in the target array
     operator : str
-       indicating how n-1 mappings should be dealt
-       with: "avg" for average, "sum" for sum
-    swap : bool
-        when true, the columns and rows from the mapping file are reversed
+       Indicating how n-1 mappings should be dealt
+       with: "avg" for average, "sum" for sum.
+       Operator does not affect 1-n couplings.
 
     Returns
     -------
@@ -49,11 +48,13 @@ def create_mapping(
         cnt = np.zeros(max(tgt_idx) + 1)
         for i in range(len(tgt_idx)):
             cnt[tgt_idx[i]] += 1
-        dat: NDArray[Any] = np.array([1.0 / cnt[xx] for xx in tgt_idx])
-    if operator == "sum":
-        dat = np.array([1.0 for xx in tgt_idx])
+        dat = np.array([1.0 / cnt[xx] for xx in tgt_idx])
+    elif operator == "sum":
+        dat = np.ones(tgt_idx.shape)
+    else:
+        raise ValueError("`operator` should be either 'sum' or 'avg'")
     map_out = csr_matrix((dat, (tgt_idx, src_idx)), shape=(ntgt, nsrc))
-    mask: NDArray[Any] = np.array([0 if i > 0 else 1 for i in map_out.getnnz(axis=1)])
+    mask = np.array([0 if i > 0 else 1 for i in map_out.getnnz(axis=1)])
     return map_out, mask
 
 
