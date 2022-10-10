@@ -39,6 +39,12 @@ In order to develop on `imod_coupler` locally, please follow the following steps
 conda env create --file=environment.yml
 ```
 
+- Activate the environment
+
+```
+conda activate imod_coupler
+```
+
 - Install `imod_coupler` by executing (this will also put the executable `imodc` in your `PATH`):
 
 ```
