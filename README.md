@@ -29,15 +29,32 @@ Deltares colleagues can find the issue tracker at [Jira](https://issuetracker.de
 
 # Contributing
 
-In order to develop on `imod_coupler` locally, execute the following line inside your virtual environment
+In order to develop on `imod_coupler` locally, please follow the following steps:
 
-```bash
-pip install -e ".[tests, lint, docs, check-packages]"
+- Download and install [miniconda](https://docs.conda.io/en/latest/miniconda.html).
+
+- Create the environment by executing the following in your terminal:
+
+```
+conda env create --file=environment.yml
 ```
 
-To run the tests it is advisable to have a `.env` file at the root of the project directory instead of modifying global environment variables.
+- Install `imod_coupler` by executing (this will also put the executable `imodc` in your `PATH`):
 
-The content of `.env` would then look similar to this:
+```
+pip install -e .
+```
+
+- With your Deltares credentials download
+    - the [latest imod_collector](https://dpcbuild.deltares.nl/buildConfiguration/iMOD6_IMOD6collectorDaily_ReleaseX64?branch=%3Cdefault%3E&mode=builds), and 
+    - the [regression imod_collector](https://dpcbuild.deltares.nl/buildConfiguration/iMOD6_IMOD6collectorDaily_ReleaseX64?branch=%3Cdefault%3E&mode=builds&tag=regression).
+
+- Unpack the two zip files in a path of your choice and name the latest `imod_collector_devel` and the regression `imod_collector_regression`.
+
+- Check out the MetaSWAP lookup table with your Deltares credentials which resides at `https://repos.deltares.nl/repos/DSCTestbench/trunk/cases/e150_metaswap/f00_common/c00_common/LHM2016_v01vrz`
+
+ - To run the tests it is advisable to have a `.env` file at the root of the project directory instead of modifying global environment variables. 
+ The content of `.env` would then look similar to this with the variables `IMOD_COLLECTOR_DEVEL`, `IMOD_COLLECTOR_REGRESSION` and `METASWAP_LOOKUP_TABLE` adjusted to your local machine:
 
 ```bash
 IMOD_COLLECTOR_DEVEL='D:\checkouts\imod_collector_devel'
@@ -54,7 +71,7 @@ MODFLOW_DLL_DEVEL='${IMOD_COLLECTOR_REGRESSION}/libmf6.dll'
 MODFLOW_DLL_REGRESSION='${IMOD_COLLECTOR_REGRESSION}/libmf6.dll'
 ```
 
-The tests can then be run with:
+- The tests can then be run with:
 
 ```bash
 pytest tests -n=auto --basetemp=tests/temp
