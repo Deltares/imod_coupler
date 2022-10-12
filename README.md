@@ -33,6 +33,18 @@ In order to develop on `imod_coupler` locally, please follow the following steps
 
 - Download and install [miniconda](https://docs.conda.io/en/latest/miniconda.html).
 
+- Initialize `conda` by running the following in the `Miniconda prompt`:
+
+```
+conda init
+```
+
+- Depending on your company settings, you might also have to run the following in a Powershell terminal run as administrator:
+
+```
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned
+```
+
 - Create the environment by executing the following in your terminal:
 
 ```
