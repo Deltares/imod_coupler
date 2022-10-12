@@ -1,0 +1,31 @@
+name: imod_coupler
+
+channels:
+  - conda-forge
+  - defaults
+
+dependencies:
+  - black
+  - build
+  - geopandas
+  - isort
+  - loguru
+  - mypy
+  - numpy
+  - pip
+  - pip:
+      - xmipy
+      - git+https://gitlab.com/deltares/imod/imod-python.git
+  - pydantic
+  - pydata-sphinx-theme
+  - pytest
+  - pytest-xdist
+  - pytest-cases
+  - pytest-dotenv
+  - python
+  - rasterio>=1.0
+  - scipy
+  - sphinx
+  - tomli
+  - tomli-w
+  - twine
