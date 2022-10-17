@@ -2,6 +2,7 @@ from imod import mf6, util
 import xarray as xr
 import numpy as np
 
+
 def create_modflow_model(idomain, top, bottom, times, workdir):
 
     gwf_model = mf6.GroundwaterFlowModel()
@@ -11,16 +12,15 @@ def create_modflow_model(idomain, top, bottom, times, workdir):
 
     gwf_model["dis"] = mf6.StructuredDiscretization(
         idomain=idomain, top=top, bottom=bottom
-    )    
+    )
 
     head = xr.full_like(idomain, np.nan, dtype=np.floating)
-    head[:, :, 0] = 1.0  
+    head[:, :, 0] = 1.0
     head[:, :, -1] = 1.0
     head = head.expand_dims(time=times)
     gwf_model["chd"] = mf6.ConstantHead(
         head, print_input=True, print_flows=True, save_flows=True
     )
-
 
     k = xr.full_like(idomain, 1, dtype=np.floating)
     gwf_model["npf"] = mf6.NodePropertyFlow(
@@ -30,7 +30,7 @@ def create_modflow_model(idomain, top, bottom, times, workdir):
         dewatered=False,
         perched=False,
         save_flows=True,
-    )        
+    )
 
     gwf_model["oc"] = mf6.OutputControl(save_head="last", save_budget="last")
     # Attach it to a simulation
@@ -53,8 +53,6 @@ def create_modflow_model(idomain, top, bottom, times, workdir):
         reordering_method=None,
         relaxation_factor=0.97,
     )
-
-
 
     simulation.write(workdir)
     simulation.run()

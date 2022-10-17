@@ -7,9 +7,9 @@ def create_metaswap_model(idomain, top, bottom, times, workdir):
     unsaturated_database = "./unsat_database"
 
     x = idomain.coords["x"]
-    y = idomain.coords["y" ]   
+    y = idomain.coords["y"]
     dx = idomain.coords["dx"]
-    dy = idomain.coords["dy"]   
+    dy = idomain.coords["dy"]
 
     subunit = [0, 1]
 
@@ -99,12 +99,12 @@ def create_metaswap_model(idomain, top, bottom, times, workdir):
     # Initiate model
     msw_model = msw.MetaSwapModel(unsaturated_database=unsaturated_database)
     msw_model["grid"] = msw.GridData(
-        area,   #area:
+        area,  # area:
         xr.full_like(area, 1, dtype=int),  # landuse
         xr.full_like(area, 1.0, dtype=float),  # rootzone_depth
-        xr.full_like(active, 1.0, dtype=float), #surface_elevation
-        xr.full_like(active, 1, dtype=int),  #soil_physical_unit
-        active,  #active
+        xr.full_like(active, 1.0, dtype=float),  # surface_elevation
+        xr.full_like(active, 1, dtype=int),  # soil_physical_unit
+        active,  # active
     )
 
     msw_model["ic"] = msw.InitialConditionsRootzonePressureHead(initial_pF=2.2)
@@ -188,7 +188,6 @@ def create_metaswap_model(idomain, top, bottom, times, workdir):
     msw_model["oc_idf"] = msw.IdfMapping(area, -9999.0)
     msw_model["oc_var"] = msw.VariableOutputControl()
     msw_model["oc_time"] = msw.TimeOutputControl(time=times)
-
 
     msw_model.write(workdir)
     return msw_model

@@ -15,13 +15,13 @@ from distutils.dir_util import copy_tree
 from bmi.wrapper import BMIWrapper
 import matplotlib.pyplot as plt
 
-def create_dflowfm_model( idomain, top, times, workdir):
 
+def create_dflowfm_model(idomain, top, times, workdir):
 
     x = idomain.coords["x"].values
-    y = idomain.coords["y" ].values   
-    dx = idomain.coords["dx"].values   
-    dy = idomain.coords["dy"].values   
+    y = idomain.coords["y"].values
+    dx = idomain.coords["dx"].values
+    dy = idomain.coords["dy"].values
 
     # Initialize model dir
     modelname = "model"
@@ -38,13 +38,13 @@ def create_dflowfm_model( idomain, top, times, workdir):
     network = fm_model.geometry.netfile.network
     # This will can only be used as soon as https://github.com/Deltares/HYDROLIB-core/issues/290 is solved
 
-    extent=(x.min(), y.min(), x.max(), y.max())
-    print(f"extent {extent}")    
+    extent = (x.min(), y.min(), x.max(), y.max())
+    print(f"extent {extent}")
     network.mesh2d_create_rectilinear_within_extent(extent=extent, dx=dx, dy=-dy)
 
     # Create bed level
-    delta_x = (x.max() - x.min())/100
-    delta_y = (y.max() - y.min())/100
+    delta_x = (x.max() - x.min()) / 100
+    delta_y = (y.max() - y.min()) / 100
     xyz_model = XYZModel(points=[])
     xyz_model.points = [
         XYZPoint(x=x.min() + delta_x, y=y.min() + delta_y, z=top),
@@ -84,14 +84,14 @@ def create_dflowfm_model( idomain, top, times, workdir):
         datablock=[
             ["A0", "0", "0"],
             ["M2", "0", "0"],
-        ]
+        ],
     )
-    forcing_model = ForcingModel(
-        forcing=[forcing_1, forcing_2]
-    )
+    forcing_model = ForcingModel(forcing=[forcing_1, forcing_2])
     forcing_model.save(recurse=True)
     boundary = Boundary(
-        quantity="waterlevelbnd", locationfile="Boundary01.pli", forcingfile=forcing_model.filepath
+        quantity="waterlevelbnd",
+        locationfile="Boundary01.pli",
+        forcingfile=forcing_model.filepath,
     )
     external_forcing = ExtModel(boundary=[boundary])
     fm_model.external_forcing.extforcefilenew = external_forcing
@@ -101,13 +101,14 @@ def create_dflowfm_model( idomain, top, times, workdir):
     return fm_model
 
 
-
 def run_dflowfm_model(fm_model, workdir):
 
     script_dir = os.path.dirname(os.path.abspath(__file__))
 
     # Add dflowfm dll folder to PATH so that it can be found by the BMIWrapper
-    os.environ["PATH"] = script_dir +  os.sep +"dflowfm_dll" + os.pathsep + os.environ["PATH"]
+    os.environ["PATH"] = (
+        script_dir + os.sep + "dflowfm_dll" + os.pathsep + os.environ["PATH"]
+    )
 
     # We workaround
     # - https://github.com/Deltares/HYDROLIB-core/issues/295 and
@@ -119,7 +120,7 @@ def run_dflowfm_model(fm_model, workdir):
 
     # Initialize the BMI Wrapper
     with BMIWrapper(
-        engine="dflowfm", configfile=os.path.abspath( fm_model.filepath)
+        engine="dflowfm", configfile=os.path.abspath(fm_model.filepath)
     ) as dflowfm:
         dflowfm.initialize()
 
