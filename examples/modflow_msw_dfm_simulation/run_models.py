@@ -6,6 +6,9 @@ import os
 import tempfile
 import shutil
 
+#before running this file, copy and unpack N:\Deltabox\Postbox\Slooten, Luit Jan\voor_lumbricus\dflowfm_dll.7z
+#into ./dflowfm_dll
+
 
 workdir = tempfile.mkdtemp()
 try:    
