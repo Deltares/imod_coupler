@@ -1,6 +1,6 @@
-from imod import mf6, util
-import xarray as xr
 import numpy as np
+import xarray as xr
+from imod import mf6, util
 
 
 def create_modflow_model(idomain, top, bottom, times, workdir):

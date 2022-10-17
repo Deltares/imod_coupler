@@ -1,19 +1,20 @@
-from hydrolib.core.io.mdu.models import FMModel
-from pathlib import Path
 import os
-from hydrolib.core.io.xyz.models import XYZModel, XYZPoint
 import shutil
+from distutils.dir_util import copy_tree
+from pathlib import Path
+
+import matplotlib.pyplot as plt
+from bmi.wrapper import BMIWrapper
+from hydrolib.core.io.bc.models import Astronomic, ForcingModel, QuantityUnitPair
+from hydrolib.core.io.ext.models import Boundary, ExtModel
 from hydrolib.core.io.inifield.models import (
+    DataFileType,
     IniFieldModel,
     InitialField,
     InterpolationMethod,
-    DataFileType,
 )
-from hydrolib.core.io.bc.models import ForcingModel, Astronomic, QuantityUnitPair
-from hydrolib.core.io.ext.models import ExtModel, Boundary
-from distutils.dir_util import copy_tree
-from bmi.wrapper import BMIWrapper
-import matplotlib.pyplot as plt
+from hydrolib.core.io.mdu.models import FMModel
+from hydrolib.core.io.xyz.models import XYZModel, XYZPoint
 
 
 def create_dflowfm_model(idomain, top, times, workdir):

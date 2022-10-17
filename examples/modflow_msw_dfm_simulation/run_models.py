@@ -1,10 +1,11 @@
-from create_modflow_model import create_modflow_model
-from create_metaswap_model import create_metaswap_model
+import os
+import shutil
+import tempfile
+
 from create_dflowfm_model import create_dflowfm_model, run_dflowfm_model
 from create_discretization import create_discretization
-import os
-import tempfile
-import shutil
+from create_metaswap_model import create_metaswap_model
+from create_modflow_model import create_modflow_model
 
 # before running this file, copy and unpack N:\Deltabox\Postbox\Slooten, Luit Jan\voor_lumbricus\dflowfm_dll.7z
 # into ./dflowfm_dll

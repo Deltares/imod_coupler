@@ -1,6 +1,6 @@
-from imod import msw, mf6
-import xarray as xr
 import numpy as np
+import xarray as xr
+from imod import mf6, msw
 
 
 def create_metaswap_model(idomain, top, bottom, times, workdir):
