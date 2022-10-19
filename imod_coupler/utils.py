@@ -13,7 +13,7 @@ from imod_coupler.config import LogLevel
 
 
 def create_mapping(
-    src_idx: Any, tgt_idx: Any, nsrc: int, ntgt: int, operator: str
+    src_idx: Any, tgt_idx: Any, nsrc: int, ntgt: int, operator: str, weight: Any
 ) -> Tuple[csr_matrix, NDArray[np.int_]]:
     """
     Create a mapping from source indexes to target indexes by constructing
@@ -51,8 +51,10 @@ def create_mapping(
         dat = np.array([1.0 / cnt[xx] for xx in tgt_idx])
     elif operator == "sum":
         dat = np.ones(tgt_idx.shape)
+    elif operator == "weight":
+        dat=weight
     else:
-        raise ValueError("`operator` should be either 'sum' or 'avg'")
+        raise ValueError("`operator` should be either 'sum', 'avg' or 'weight'")
     map_out = csr_matrix((dat, (tgt_idx, src_idx)), shape=(ntgt, nsrc))
     mask = np.array([0 if i > 0 else 1 for i in map_out.getnnz(axis=1)])
     return map_out, mask
