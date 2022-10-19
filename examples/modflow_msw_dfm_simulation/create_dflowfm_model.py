@@ -37,8 +37,7 @@ def create_dflowfm_model(idomain, top, times, workdir):
     fm_model.filepath = Path(workdir + os.sep + f"{modelname}.mdu")
 
     network = fm_model.geometry.netfile.network
-    # This will can only be used as soon as https://github.com/Deltares/HYDROLIB-core/issues/290 is solved
-
+   
     extent = (x.min(), y.min(), x.max(), y.max())
     print(f"extent {extent}")
     network.mesh2d_create_rectilinear_within_extent(extent=extent, dx=dx, dy=-dy)
