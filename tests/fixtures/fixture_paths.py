@@ -68,9 +68,28 @@ def modflow_dll_devel() -> Path:
 def modflow_dll_regression() -> Path:
     return Path(os.environ["MODFLOW_DLL_REGRESSION"])
 
+@pytest.fixture(scope="session")
+def dflowfm_dll_dep_dir_devel() -> Path:
+    return Path(os.environ["DFLOWFM_DLL_DEP_DIR_DEVEL"])
+
+
+@pytest.fixture(scope="session")
+def dflowfm_dll_dep_dir_regression() -> Path:
+    return Path(os.environ["DFLOWFM_DLL_DEP_DIR_REGRESSION"])
+
+
+@pytest.fixture(scope="session")
+def dflowfm_dll_devel() -> Path:
+    return Path(os.environ["DFLOWFM_DLL_DEVEL"])
+
+
+@pytest.fixture(scope="session")
+def dflowfm_dll_regression() -> Path:
+    return Path(os.environ["DFLOWFM_DLL_REGRESSION"])
+
 
 @pytest.fixture(scope="function")
-def modstrip_loc(request):
+def modstrip_loc(request) -> Path:
     """
     Return the directory of the modstrip data
 
