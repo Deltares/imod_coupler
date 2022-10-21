@@ -68,6 +68,7 @@ def modflow_dll_devel() -> Path:
 def modflow_dll_regression() -> Path:
     return Path(os.environ["MODFLOW_DLL_REGRESSION"])
 
+
 @pytest.fixture(scope="session")
 def dflowfm_dll_dep_dir_devel() -> Path:
     return Path(os.environ["DFLOWFM_DLL_DEP_DIR_DEVEL"])
