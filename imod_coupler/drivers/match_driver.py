@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import Any, Dict
 
 from imod_coupler.config import BaseConfig
+from imod_coupler.drivers import Drivers
 from imod_coupler.drivers.dfm_metamod.config import DfmMetaModConfig
 from imod_coupler.drivers.dfm_metamod.dfm_metamod import DfmMetaMod
 from imod_coupler.drivers.driver import Driver
@@ -40,11 +41,9 @@ def match_driver(
     ValueError
         Raised if an invalid driver type is requested
     """
-    if driver_type == "metamod":
-        metamod_config = MetaModConfig(config_dir=config_dir, **driver_dict)
-        return MetaMod(base_config, metamod_config)
-    elif driver_type == "dfm_metamod":
-        dfm_metamod_config = DfmMetaModConfig(config_dir=config_dir, **driver_dict)
-        return DfmMetaMod(base_config, dfm_metamod_config)
-    else:
-        raise ValueError(f"Driver type {base_config.driver_type} is not supported.")
+
+    for Driver in Drivers:
+        if Driver.name == driver_type:
+            return Driver(base_config, config_dir, driver_dict)
+
+    raise ValueError(f"Driver type {base_config.driver_type} is not supported.")

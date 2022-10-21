@@ -23,6 +23,7 @@ from imod_coupler.utils import create_mapping
 class MetaMod(Driver):
     """The driver coupling MetaSWAP and MODFLOW 6"""
 
+    name: str = "metamod"  # name of the driver
     base_config: BaseConfig  # the parsed information from the configuration file
     metamod_config: MetaModConfig  # the parsed information from the configuration file specific to MetaMod
     coupling: Coupling  # the coupling information
@@ -57,11 +58,13 @@ class MetaMod(Driver):
     # dict. with mask arrays for msw=>mod coupling
     mask_msw2mod: Dict[str, NDArray[Any]] = {}
 
-    def __init__(self, base_config: BaseConfig, metamod_config: MetaModConfig):
+    def __init__(
+        self, base_config: BaseConfig, config_dir: Path, driver_dict: Dict[str, Any]
+    ):
         """Constructs the `MetaMod` object"""
         self.base_config = base_config
-        self.metamod_config = metamod_config
-        self.coupling = metamod_config.coupling[
+        self.metamod_config = MetaModConfig(config_dir, **driver_dict)
+        self.coupling = self.metamod_config.coupling[
             0
         ]  # Adapt as soon as we have multimodel support
 
