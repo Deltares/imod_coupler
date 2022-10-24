@@ -51,18 +51,20 @@ def mapping_active_MF_DFLOW1D(workdir, dflow1d_lookup, array: Optional[NDArray] 
         )
         # DFLOW 1D  -> MF RIV 1 (flux)
         # weight array is flux-array from previous MF-RIV1 -> dlfowfm exchange
-        weight = weight_from_flux_distribution(dflow_idx, mf_idx, array)
-        (
-            map_active_mod_dflow1d["dflow1d2mf-riv_flux"],
-            mask_active_mod_dflow1d["dflow1d2mf-riv_flux"],
-        ) = create_mapping(
-            dflow_idx,
-            mf_idx,
-            max(dflow_idx) + 1,
-            max(mf_idx) + 1,
-            "weight",
-            weight,
-        )
+        # if no weight array is provided, skip this exchange
+        if not array is None:
+            weight = weight_from_flux_distribution(dflow_idx, mf_idx, array)
+            (
+                map_active_mod_dflow1d["dflow1d2mf-riv_flux"],
+                mask_active_mod_dflow1d["dflow1d2mf-riv_flux"],
+            ) = create_mapping(
+                dflow_idx,
+                mf_idx,
+                max(dflow_idx) + 1,
+                max(mf_idx) + 1,
+                "weight",
+                weight,
+            )
     # DFLOW 1D -> MF RIV 1 (stage)
     mapping_file = workdir / "DFM1DWATLEVTOMFRIV_H.DMM"
     if mapping_file.is_file():
@@ -191,16 +193,17 @@ def mapping_MSW_DFLOW1D(workdir, dflow1d_lookup, array: Optional[NDArray] = None
             max(dflow_idx) + 1,
             "sum",
         )
-        # DFLOW 1D -> MSW (sprinkling)
-        weight = weight_from_flux_distribution(
-            msw_idx, dflow_idx, array
-        )  # array is flux-array from previous MSW-sprinkling -> dflowfm 1d
-        (
-            map_msw_dflow1d["dflow1d_flux2msw-sprinkling"],
-            mask_msw_dflow1d["dflow1d_flux2msw-sprinkling"],
-        ) = create_mapping(
-            dflow_idx, msw_idx, len(dflow_idx), len(msw_idx), "weight", weight
-        )
+        if not array is None:
+            # DFLOW 1D -> MSW (sprinkling)
+            weight = weight_from_flux_distribution(
+                msw_idx, dflow_idx, array
+            )  # array is flux-array from previous MSW-sprinkling -> dflowfm 1d
+            (
+                map_msw_dflow1d["dflow1d_flux2msw-sprinkling"],
+                mask_msw_dflow1d["dflow1d_flux2msw-sprinkling"],
+            ) = create_mapping(
+                dflow_idx, msw_idx, len(dflow_idx), len(msw_idx), "weight", weight
+            )
     # MSW -> DFLOW 1D (ponding)
     mapping_file = workdir / "MSWRUNOFFTODFM1D_Q.DMM"
     if mapping_file.is_file():

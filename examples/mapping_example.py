@@ -28,11 +28,13 @@ dflow1d_stage = np.array([4, 5, 6])
 dflow1d_lookup, ok_file = get_dflow1d_lookup(workdir)
 
 # create mapping for mf-dflow1d
+# there is no previous flux geven for weight distributed weights,
+# so DFLOW 1D stage -> MF RIV 1 exchange is not availble at this time
 map_active_mod_dflow1d, mask_active_mod_dflow1d = mapping_active_MF_DFLOW1D(
-    workdir, dflow1d_lookup, mf_riv1_flux_old
+    workdir, dflow1d_lookup
 )
 
-
+#%%
 # exchange in order of actual coupling
 
 # DFLOW 1D stage -> MF RIV 1 stage
@@ -78,7 +80,6 @@ dflow1d_flux_receive = (
 if not calculated_as_expected(dflow1d_flux_receive_expected, dflow1d_flux_receive):
     print("FOUT in exchange flux MF -> DFLOW 1D")
 
-#%%
 # DFLOW 1D flux -> MF RIV 1 flux
 # flux is always 1:n, decomposition based on previous Mf -> DFLOW flux distribution
 
@@ -100,8 +101,6 @@ mf_riv1_flux_receive = (
 if not calculated_as_expected(mf_riv1_flux_receive_expected, mf_riv1_flux_receive):
     print("FOUT in exchange flux DFLOW 1D -> MF")
 
-
-#%%
 # mapping from dflow 1d to mf riv1 (weight based on weights inputfile)
 def exchange_mod_dflow1d(self) -> None:
     """Exchange MODFLOW flux to DFLOW 1d"""
@@ -109,9 +108,6 @@ def exchange_mod_dflow1d(self) -> None:
         mask_active_mod_dflow1d["mf-riv2dflow1d_flux"][:] * self.mf6_riv_flux[:]
         + map_active_mod_dflow1d["mf-riv2dflow1d_flux"].dot(self.dflow1d_flux)[:]
     )
-
-
-#%%
 
 
 #%%
