@@ -133,7 +133,3 @@ dmypy.json
 
 # Tests
 tests/temp
-
-
-# dflow-fm dll's
-examples/modflow_msw_dfm_simulation/dflowfm_dll/*
