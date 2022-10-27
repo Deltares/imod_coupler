@@ -6,7 +6,6 @@ from typing import Any, Dict
 from imod_coupler.config import BaseConfig
 from imod_coupler.drivers import Drivers
 from imod_coupler.drivers.dfm_metamod.config import DfmMetaModConfig
-from imod_coupler.drivers.dfm_metamod.dfm_metamod import DfmMetaMod
 from imod_coupler.drivers.driver import Driver
 from imod_coupler.drivers.metamod.config import MetaModConfig
 from imod_coupler.drivers.metamod.metamod import MetaMod

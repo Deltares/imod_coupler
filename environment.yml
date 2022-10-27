@@ -12,10 +12,13 @@ dependencies:
   - loguru
   - mypy
   - numpy
+  - pandas  
   - pip
   - pip:
+      - bmi-python      
       - xmipy
       - git+https://gitlab.com/deltares/imod/imod-python.git
+      - git+https://github.com/Deltares/HYDROLIB-core.git            
   - pydantic
   - pydata-sphinx-theme
   - pytest
@@ -23,9 +26,11 @@ dependencies:
   - pytest-cases
   - pytest-dotenv
   - python
+  - pywin32  
   - rasterio>=1.0
   - scipy
   - sphinx
   - tomli
   - tomli-w
   - twine
+  - xarray
