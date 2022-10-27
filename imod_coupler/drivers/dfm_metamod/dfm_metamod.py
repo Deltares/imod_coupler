@@ -15,17 +15,17 @@ from scipy.sparse import csr_matrix, dia_matrix
 from xmipy import XmiWrapper
 
 from imod_coupler.config import BaseConfig
+from imod_coupler.drivers.dfm_metamod.config import Coupling, DfmMetaModConfig
 from imod_coupler.drivers.driver import Driver
-from imod_coupler.drivers.metamod.config import Coupling, MetaModConfig
 from imod_coupler.utils import create_mapping
 
 
-class MetaMod(Driver):
-    """The driver coupling MetaSWAP and MODFLOW 6"""
+class DfmMetaMod(Driver):
+    """The driver coupling DFLOW-FM, MetaSWAP and MODFLOW 6"""
 
     name: str = "metamod"  # name of the driver
     base_config: BaseConfig  # the parsed information from the configuration file
-    metamod_config: MetaModConfig  # the parsed information from the configuration file specific to MetaMod
+    dfm_metamod_config: DfmMetaModConfig  # the parsed information from the configuration file specific to MetaMod
     coupling: Coupling  # the coupling information
 
     timing: bool  # true, when timing is enabled
@@ -61,24 +61,24 @@ class MetaMod(Driver):
     def __init__(
         self, base_config: BaseConfig, config_dir: Path, driver_dict: Dict[str, Any]
     ):
-        """Constructs the `MetaMod` object"""
+        """Constructs the `DfmMetaMod` object"""
         self.base_config = base_config
-        self.metamod_config = MetaModConfig(config_dir, **driver_dict)
-        self.coupling = self.metamod_config.coupling[
+        self.dfm_metamod_config = DfmMetaModConfig(config_dir, **driver_dict)
+        self.coupling = self.dfm_metamod_config.coupling[
             0
         ]  # Adapt as soon as we have multimodel support
 
     def initialize(self) -> None:
         self.mf6 = XmiWrapper(
-            lib_path=self.metamod_config.kernels.modflow6.dll,
-            lib_dependency=self.metamod_config.kernels.modflow6.dll_dep_dir,
-            working_directory=self.metamod_config.kernels.modflow6.work_dir,
+            lib_path=self.dfm_metamod_config.kernels.modflow6.dll,
+            lib_dependency=self.dfm_metamod_config.kernels.modflow6.dll_dep_dir,
+            working_directory=self.dfm_metamod_config.kernels.modflow6.work_dir,
             timing=self.base_config.timing,
         )
         self.msw = XmiWrapper(
-            lib_path=self.metamod_config.kernels.metaswap.dll,
-            lib_dependency=self.metamod_config.kernels.metaswap.dll_dep_dir,
-            working_directory=self.metamod_config.kernels.metaswap.work_dir,
+            lib_path=self.dfm_metamod_config.kernels.metaswap.dll,
+            lib_dependency=self.dfm_metamod_config.kernels.metaswap.dll_dep_dir,
+            working_directory=self.dfm_metamod_config.kernels.metaswap.work_dir,
             timing=self.base_config.timing,
         )
         # Print output to stdout

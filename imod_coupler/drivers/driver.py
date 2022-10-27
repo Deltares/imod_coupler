@@ -1,8 +1,12 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+from pathlib import Path
+from typing import Any, Dict
 
 from loguru import logger
+
+from imod_coupler.config import BaseConfig
 
 
 class Driver(ABC):
@@ -10,6 +14,13 @@ class Driver(ABC):
 
     Inherit from this class when creating a new driver
     """
+
+    name: str  # name of the driver
+
+    def __init__(
+        self, base_config: BaseConfig, config_dir: Path, driver_dict: Dict[str, Any]
+    ):
+        pass
 
     def execute(self) -> None:
         """Execute the driver"""
