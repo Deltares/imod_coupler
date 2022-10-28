@@ -7,6 +7,7 @@ from pathlib import Path
 import shutil
 from imod_coupler import __main__
 from os import sep, listdir
+import pytest
 
 testdir = tempfile.mkdtemp()
 
@@ -40,10 +41,6 @@ def test_dfmmetamod_initialization(dfm_metamod: Dfm_MetaMod, modflow_dll_devel: 
     #at this stage, imod_coupler is unable to complete the run with these 3 models and kernels.
     #so we check we get an exception that originates in the "couple" method - getting there
     # means the initialization of the kernels went well.  
-    errmsg = "" 
-    try: 
-         # run the coupler given the toml configuration file
-        __main__ .run_coupler(inputpath)
-    except Exception as e:
-         errmsg = str(e)
-    assert( errmsg == "Can't find MetaSWAP\\mod2svat.inp.")
+    with pytest.raises(ValueError) as e:
+        __main__.run_coupler(inputpath)
+    assert (str(e.value) == "Can't find MetaSWAP\\mod2svat.inp.")
