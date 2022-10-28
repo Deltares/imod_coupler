@@ -101,10 +101,10 @@ class DfmMetaModConfig(BaseModel):
         os.chdir(config_dir)
         super().__init__(**data)
 
-    '''@validator("coupling")
+    @validator("coupling")
     def restrict_coupling_count(cls, coupling: List[Coupling]) -> List[Coupling]:
         if len(coupling) == 0:
             raise ValueError("At least one coupling has to be defined.")
         if len(coupling) > 1:
             raise ValueError("Multi-model coupling is not yet supported.")
-        return coupling'''
+        return coupling
