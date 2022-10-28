@@ -101,13 +101,4 @@ mf_riv1_flux_receive = (
 if not calculated_as_expected(mf_riv1_flux_receive_expected, mf_riv1_flux_receive):
     print("FOUT in exchange flux DFLOW 1D -> MF")
 
-# mapping from dflow 1d to mf riv1 (weight based on weights inputfile)
-def exchange_mod_dflow1d(self) -> None:
-    """Exchange MODFLOW flux to DFLOW 1d"""
-    self.mf_riv_flux[:] = (
-        mask_active_mod_dflow1d["mf-riv2dflow1d_flux"][:] * self.mf6_riv_flux[:]
-        + map_active_mod_dflow1d["mf-riv2dflow1d_flux"].dot(self.dflow1d_flux)[:]
-    )
-
-
 #%%

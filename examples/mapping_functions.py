@@ -9,11 +9,6 @@ from xmipy import XmiWrapper
 from imod_coupler.utils import create_mapping
 
 
-def unique_list(input):
-    output = np.unique(np.array(input))
-    return list(output)
-
-
 # mapping different types of exchanges within DFLOWMETMOD driver
 def mapping_active_MF_DFLOW1D(workdir, dflow1d_lookup, array: Optional[NDArray] = None):
     # function creates dictionary with mapping tables for mapping MF <-> dflow1d
