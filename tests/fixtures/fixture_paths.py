@@ -100,9 +100,14 @@ def modstrip_loc(request) -> Path:
 
     return Path(request.fspath).parent / "data" / "modstrip"
 
-@pytest.fixture(scope="session")
-def dflowfm_initial_inputfiles_folder() -> Path:
-    return Path(os.environ["DFLOW_FM_EXAMPLE_INITIAL_FILES"])
+@pytest.fixture(scope="function")
+def dflowfm_initial_inputfiles_folder(request) -> Path:
+    """
+    Return the directory of the DFLOW-FM example problem input data
+    """
+
+    return Path(request.fspath).parent / "data" / "dflowfm_example"
+
 
 
 

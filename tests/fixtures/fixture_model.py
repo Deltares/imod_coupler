@@ -376,7 +376,7 @@ def coupled_mf6_model_storage_coefficient() -> mf6.Modflow6Simulation:
     return coupled_mf6_model
 
 
-@pytest_cases.fixture(scope="session")
+@pytest_cases.fixture(scope="function")
 def prepared_dflowfm_model(dflowfm_initial_inputfiles_folder) -> FMModel:
     x, y, _, times, dx, dy, _ = grid_sizes()
 
