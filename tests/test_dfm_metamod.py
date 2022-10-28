@@ -32,7 +32,7 @@ def test_dfmmetamod_initialization(dfm_metamod: Dfm_MetaMod, modflow_dll_devel: 
     #so as a temporary hack we copy these files into the DfmMetamod output directory
     inifiles_dir =  dflowfm_initial_inputfiles_folder
     for f in listdir(inifiles_dir):
-            shutil.copy(inifiles_dir.joinpath(f), testdir + "/dflow-fm")
+        shutil.copy(inifiles_dir.joinpath(f), testdir + "/dflow-fm")
 
 
     inputpath  = Path(testdir  + sep + dfm_metamod._toml_name)

@@ -19,7 +19,7 @@ from hydrolib.core.io.inifield.models import (
 from hydrolib.core.io.mdu.models import FMModel
 from hydrolib.core.io.xyz.models import XYZModel, XYZPoint
 import tempfile
-from os import sep, getcwd, chdir
+from imod_coupler.utils import cd
 
 def grid_sizes() -> Tuple[
     np.array,
@@ -377,20 +377,14 @@ def coupled_mf6_model_storage_coefficient() -> mf6.Modflow6Simulation:
 
 
 @pytest_cases.fixture(scope="function")
-def prepared_dflowfm_model(dflowfm_initial_inputfiles_folder) -> FMModel:
-    x, y, _, times, dx, dy, _ = grid_sizes()
+def prepared_dflowfm_model(tmp_path_reg: Path) -> FMModel:
 
-    # create a temp directory and make it the working directory. Store the current working directory
-    # so that we can go back to it on leaving the function 
-    currdir = getcwd()
-    workdir = tempfile.mkdtemp()
-    chdir(workdir)
-
-    try:
-        modelname = "model"
+    x, y, _, _, dx, dy, _ = grid_sizes()
+    if not tmp_path_reg.exists():
+        Path.mkdir(tmp_path_reg)
+        
+    with cd(tmp_path_reg):
         top = 0.0
-
-
 
         # Create new model object
         fm_model = FMModel()
@@ -454,8 +448,5 @@ def prepared_dflowfm_model(dflowfm_initial_inputfiles_folder) -> FMModel:
         external_forcing = ExtModel(boundary=[boundary])
         fm_model.external_forcing.extforcefilenew = external_forcing
 
-
-        return fm_model
-    finally:
-        chdir(currdir)    
+        return fm_model  
    

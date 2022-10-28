@@ -1,4 +1,5 @@
 from __future__ import annotations
+from contextlib import contextmanager
 
 from pathlib import Path
 from sys import stderr
@@ -8,7 +9,7 @@ import numpy as np
 from loguru import logger
 from numpy.typing import NDArray
 from scipy.sparse import csr_matrix
-
+from os import chdir
 from imod_coupler.config import LogLevel
 
 
@@ -73,3 +74,12 @@ def setup_logger(log_level: LogLevel, log_file: Path) -> None:
     # Add handler for file
     log_file.unlink(missing_ok=True)
     logger.add(log_file, level=log_level)
+
+@contextmanager
+def cd(newdir: Path):
+    prevdir = Path().cwd()
+    chdir(newdir)
+    try:
+        yield
+    finally:
+        chdir(prevdir)
