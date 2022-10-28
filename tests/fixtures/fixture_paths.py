@@ -113,4 +113,4 @@ def dflowfm_initial_inputfiles_folder() -> Path:
 
 @pytest.fixture(scope="session")
 def dflowfm_dll() -> Path:
-    return Path(os.environ["DFLOW_FM_DLL"])
+    return Path(os.environ["DFLOWFM_DLL_DEVEL"])
