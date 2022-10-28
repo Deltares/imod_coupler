@@ -3,7 +3,7 @@
 ![Continuous integration](https://github.com/Deltares/imod_coupler/workflows/Continuous%20integration/badge.svg)
 
 The `imod_coupler` is used to couple hydrological kernels.
-It currently focuses on groundwater and supports coupling between MetaSWAP, Modflow6 and dflow-FM.
+It currently focuses on groundwater and supports coupling between MetaSWAP, MODFLOW 6 and DFLOW-FM.
 
 It can be installed by running
 
