@@ -8,6 +8,7 @@ from loguru import logger
 from numpy.typing import NDArray
 from scipy.sparse import csr_matrix, dia_matrix
 from xmipy import XmiWrapper
+
 workdir = Path(r"c:\src\lumbricus\lumbricustests\t-model\testA")
 
 
@@ -23,6 +24,7 @@ def weight_from_flux_distribution(tgt_idx, src_idx, values):
     for i in range(len(tgt_idx)):
         weight[i] = values[i] / cnt[tgt_idx[i]]
     return weight
+
 
 #%%
 # read file with all uniek coupled dflow 1d and 2d nodes (represented by xy pairs). After initialisation
@@ -95,7 +97,6 @@ mask_passive_mod_dflow1d: Dict[str, NDArray[Any]] = {}
 #   3 MSW ponding flux               -> DFLOW-FM 1D flux (optional)
 map_msw_dflow1d: Dict[str, csr_matrix] = {}
 mask_msw_dflow1d: Dict[str, NDArray[Any]] = {}
-
 
 
 # dictionary with mapping tables for msw-dflow-2d coupling
@@ -241,14 +242,7 @@ weight = weight_from_flux_distribution(
 (
     self.map_msw_dflow1d["dflow1d_flux2msw-sprinkling"],
     self.mask_msw_dflow1d["dflow1d_flux2msw-sprinkling"],
-) = create_mapping(
-    dflow_idx,
-    msw_idx,
-    len(dflow_idx),
-    len(mf_idx),
-    "weight",
-    weight
-)
+) = create_mapping(dflow_idx, msw_idx, len(dflow_idx), len(mf_idx), "weight", weight)
 # mapping of msw poning to dflow1d (optional if 2d network is not availble). In this case no return flux to msw
 table_mswponding2dflow1d: NDArray[np.int32] = np.loadtxt(
     workdir / "MSWRUNOFFTODFM1D_Q.DMM  ", dtype=np.int32, ndmin=3
@@ -256,9 +250,7 @@ table_mswponding2dflow1d: NDArray[np.int32] = np.loadtxt(
 if table_mswponding2dflow1d.is_file():
     msw_idx = table_mswponding2dflow1d[:, 2] - 1
     dflow_idx = [
-        dflow1d_lookup[
-            table_mswponding2dflow1d[ii, 0], table_mswponding2dflow1d[ii, 1]
-        ]
+        dflow1d_lookup[table_mswponding2dflow1d[ii, 0], table_mswponding2dflow1d[ii, 1]]
         for ii in range(len(table_mswponding2dflow1d))
     ]
     (
@@ -278,9 +270,7 @@ table_mswponding2dflow2d: NDArray[np.int32] = np.loadtxt(
 if table_mswponding2dflow2d.is_file():
     msw_idx = table_mswponding2dflow2d[:, 2] - 1
     dflow_idx = [
-        dflow2d_lookup[
-            table_mswponding2dflow2d[ii, 0], table_mswponding2dflow2d[ii, 1]
-        ]
+        dflow2d_lookup[table_mswponding2dflow2d[ii, 0], table_mswponding2dflow2d[ii, 1]]
         for ii in range(len(table_mswponding2dflow2d))
     ]
     (
@@ -302,10 +292,10 @@ if table_mswponding2dflow2d.is_file():
         msw_idx,
         len(dflow_idx),
         len(mf_idx),
-        "sum", # 1:1 connection, should be no other weight than 1
+        "sum",  # 1:1 connection, should be no other weight than 1
     )
     table_dflow2d_stage2mswponding: NDArray[np.int32] = np.loadtxt(
-    workdir / " DFM2DWATLEVTOMSW_H.DMM", dtype=np.int32, ndmin=3
+        workdir / " DFM2DWATLEVTOMSW_H.DMM", dtype=np.int32, ndmin=3
     )
     msw_idx = table_dflow2d_stage2mswponding[:, 0] - 1
     weight = table_dflow2d_stage2mswponding[:, 3]
@@ -319,12 +309,7 @@ if table_mswponding2dflow2d.is_file():
         self.map_msw_dflow2d["dflow2d_stage2msw-ponding"],
         self.mask_msw_dflow2d["dflow2d_stage2msw-ponding"],
     ) = create_mapping(
-        dflow_idx,
-        msw_idx,
-        len(dflow_idx),
-        len(mf_idx),
-        "weight",
-        weight
+        dflow_idx, msw_idx, len(dflow_idx), len(mf_idx), "weight", weight
     )
 
 # exmaple how actual exchange would look like
@@ -335,55 +320,59 @@ def exchange_mod2dflow1d(self) -> None:
         self.mask_active_mod_dflow1d["mf-riv2dflow1d_flux"][:] * self.mf6_riv_flux[:]
         + self.map_active_mod_dflow1d["mf-riv2dflow1d_flux"].dot(self.dflow1d_flux)[:]
     )
-    
+
+
 def exchange_dflow1d2mod(self) -> None:
     """Exchange DFLOW 1d to MODFLOW"""
     self.dflow1d_stage[:] = (
         self.mask_active_mod_dflow1d["dflow1d2mf-riv_stage"][:] * self.dflow1d_stage[:]
         + self.map_active_mod_dflow1d["dflow1d2mf-riv_stage"].dot(self.mf6_riv_stage)[:]
-    )   
+    )
     self.dflow1d_flux[:] = (
         self.mask_active_mod_dflow1d["dflow1d2mf-riv_flux"][:] * self.dflow1d_flux[:]
         + self.map_active_mod_dflow1d["dflow1d2mf-riv_flux"].dot(self.mf6_riv_flux)[:]
-    )   
-    
+    )
+
+
 #%%
- # unit-test calculated weights based on flux exchange 
- # mf-riv1 elements=5
- # dfow1d  elements=3
+# unit-test calculated weights based on flux exchange
+# mf-riv1 elements=5
+# dfow1d  elements=3
 
 # set dummy variables
 # previous flux from MF-RIV1 to DFLOW1d
-dummy_flux_mf2dflow1d=np.array([1,2,3,4,5])
+dummy_flux_mf2dflow1d = np.array([1, 2, 3, 4, 5])
 # set connection sparse array for DFLOW1d --> MF
 target_index = np.array([0, 0, 1, 1, 2])
 source_index = np.array([0, 1, 2, 3, 4])
 
 # evaluate weight distribution
-expected_weight   = np.array([1/3,2/3,3/7,4/7,5/5])
-calculated_weight = weight_from_flux_distribution(target_index,source_index, dummy_flux_mf2dflow1d)
+expected_weight = np.array([1 / 3, 2 / 3, 3 / 7, 4 / 7, 5 / 5])
+calculated_weight = weight_from_flux_distribution(
+    target_index, source_index, dummy_flux_mf2dflow1d
+)
 
-if(all(expected_weight==calculated_weight)):
-    print('unittest 1 passed')
+if all(expected_weight == calculated_weight):
+    print("unittest 1 passed")
 
-#unit-test exchange flux from dflow1d to mf based on flux distribution of previous mf -> dflow1d flux exchange
+# unit-test exchange flux from dflow1d to mf based on flux distribution of previous mf -> dflow1d flux exchange
 # use previously used connection
 target_index = np.array([0, 0, 1, 1, 2])
 source_index = np.array([0, 1, 2, 3, 4])
 
 # previous flux from MF-RIV1 to DFLOW1d
-dummy_flux_mf2dflow1d=np.array([1,2,3,4,5])
+dummy_flux_mf2dflow1d = np.array([1, 2, 3, 4, 5])
 # create dummy flux-file for exchange DFLOW1d to MF RIV1
-dummy_flux_flow1d2MF=np.array([1,2,3]) 
+dummy_flux_flow1d2MF = np.array([1, 2, 3])
 
-#calcluate weight distribution
-weight = weight_from_flux_distribution(target_index,source_index, dummy_flux_mf2dflow1d)
+# calcluate weight distribution
+weight = weight_from_flux_distribution(
+    target_index, source_index, dummy_flux_mf2dflow1d
+)
 
-#expected exchange flux at MF-RIV1 nodes
-expected_exchange_flux = np.array([1*weight[0],1*weight[1], 2*weight[2], 2*weight[3], 3*weight[4]])
+# expected exchange flux at MF-RIV1 nodes
+expected_exchange_flux = np.array(
+    [1 * weight[0], 1 * weight[1], 2 * weight[2], 2 * weight[3], 3 * weight[4]]
+)
 
 #%%
-
-
- 
-   

@@ -351,7 +351,7 @@ def get_dflow1d_lookup(workdir):
             if dflow1d_id[i] >= 0:
                 dflow1d_lookup[(dflow1d_x[i], dflow1d_y[i])] = dflow1d_id[i]
             else:
-                ValueError(
+                raise ValueError(
                     f"xy coordinate {dflow1d_x[i], dflow1d_y[i]} is not part of dflow's mesh"
                 )
     else:
@@ -378,7 +378,7 @@ def get_dflow2d_lookup(workdir):
             if id[i] > 0:
                 dflow2d_lookup[(dflow2d_x[i], dflow2d_y[i])] = id[i]
             else:
-                ValueError(
+                raise ValueError(
                     f"xy coordinate {dflow2d_x,dflow2d_y} is not part of dflow's mesh"
                 )
     else:
