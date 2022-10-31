@@ -9,12 +9,15 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - name: Set up Python
-        uses: actions/setup-python@v1
-      - name: Install lint dependencies
+      - uses: actions/checkout@v1
+      - name: Install Conda environment from environment.yml
+        uses: mamba-org/provision-with-micromamba@main
+        with:
+          cache-downloads: true
+          cache-env: true
+      - name: Install "check-packages" dependencies
         run: |
-          pip install -e ".[check-packages]"
+          pip install build twine
       - name: Build and check packages
         run: |
           python -m build
