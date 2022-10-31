@@ -16,10 +16,10 @@ dependencies:
   - pip
   - pip:
       - bmi-python
-      - xmipy
       - git+https://gitlab.com/deltares/imod/imod-python.git
       - HYDROLIB-core
-  - pydantic
+      - pydantic
+      - xmipy
   - pydata-sphinx-theme
   - pytest
   - pytest-xdist
