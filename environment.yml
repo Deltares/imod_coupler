@@ -10,7 +10,6 @@ dependencies:
   - geopandas
   - isort
   - loguru
-  - mypy
   - numpy
   - pandas
   - pip
@@ -18,6 +17,7 @@ dependencies:
       - bmi-python
       - git+https://gitlab.com/deltares/imod/imod-python.git
       - HYDROLIB-core
+      - mypy
       - pydantic
       - xmipy
   - pydata-sphinx-theme
