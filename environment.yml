@@ -18,7 +18,7 @@ dependencies:
       - bmi-python      
       - xmipy
       - git+https://gitlab.com/deltares/imod/imod-python.git
-      - git+https://github.com/Deltares/HYDROLIB-core.git            
+      - HYDROLIB-core
   - pydantic
   - pydata-sphinx-theme
   - pytest
