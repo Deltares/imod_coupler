@@ -249,7 +249,7 @@ class DfmMetaModModel:
             Dictionary with names of coupler packages and paths to mappings.
         """
 
-        coupling_dict = {}
+        coupling_dict = dict[str, Union[bool, str]]()
 
         gwf_names = self._get_gwf_modelnames()
 
