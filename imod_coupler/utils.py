@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from contextlib import contextmanager
+from email.generator import Generator
 from os import chdir
 from pathlib import Path
 from sys import stderr
@@ -78,7 +79,7 @@ def setup_logger(log_level: LogLevel, log_file: Path) -> None:
 
 
 @contextmanager
-def cd(newdir: Path) -> None:
+def cd(newdir: Path) -> Generator:
     prevdir = Path().cwd()
     chdir(newdir)
     try:

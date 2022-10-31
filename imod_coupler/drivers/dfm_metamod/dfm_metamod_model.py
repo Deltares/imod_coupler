@@ -154,7 +154,7 @@ class DfmMetaModModel:
         metaswap_dll: Union[str, Path],
         metaswap_dll_dependency: Union[str, Path],
         dflowfm_dll: Union[str, Path],
-        coupling_dict: dict,
+        coupling_dict: dict[str, Union[bool, str]],
     ) -> None:
         """
         Write .toml file which configures the imod coupler run.
@@ -229,7 +229,7 @@ class DfmMetaModModel:
         directory: Path,
         mf6_rch_pkgkey: str,
         mf6_wel_pkgkey: Optional[str],
-    ) -> dict[str, str]:
+    ) -> dict[str, Union[bool, str]]:
         """
         Get dictionary with names of coupler packages and paths to mappings.
 
