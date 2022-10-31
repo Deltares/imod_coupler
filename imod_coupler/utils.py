@@ -5,7 +5,7 @@ from email.generator import Generator
 from os import chdir
 from pathlib import Path
 from sys import stderr
-from typing import Any, Tuple
+from typing import Any, Iterator, Tuple
 
 import numpy as np
 from loguru import logger
@@ -79,7 +79,7 @@ def setup_logger(log_level: LogLevel, log_file: Path) -> None:
 
 
 @contextmanager
-def cd(newdir: Path) -> Generator:
+def cd(newdir: Path) -> Iterator[None]:
     prevdir = Path().cwd()
     chdir(newdir)
     try:

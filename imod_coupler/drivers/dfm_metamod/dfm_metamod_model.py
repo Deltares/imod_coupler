@@ -271,6 +271,8 @@ class DfmMetaModModel:
         coupling_dict["enable_sprinkling"] = self.is_sprinkling
 
         if self.is_sprinkling:
+            if mf6_wel_pkgkey is None:
+                raise ValueError("mf6_wel_pkgkey is required when using sprikling")
             coupling_dict["mf6_msw_well_pkg"] = mf6_wel_pkgkey
             coupling_dict[
                 "mf6_msw_sprinkling_map"
