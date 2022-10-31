@@ -77,7 +77,7 @@ class Coupling(BaseModel):
         return mf6_msw_sprinkling_map
 
     @validator("dfm_model")
-    def validate_dfm_model_is_mdu(cls, dfm_model: str) -> FilePath:
+    def validate_dfm_model_is_mdu(cls, dfm_model: str) -> str:
         if dfm_model[-3:].lower() != "mdu":
             raise ValueError("the dflow fm model name should end in mdu")
         return dfm_model

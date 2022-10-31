@@ -50,7 +50,7 @@ class DfmMetaModModel:
         self.dfm_model = dfm_model
         self.is_sprinkling = self._check_coupler_and_sprinkling()
 
-    def _check_coupler_and_sprinkling(self):
+    def _check_coupler_and_sprinkling(self) -> bool:
         mf6_rch_pkgkey = self.mf6_rch_pkgkey
         mf6_wel_pkgkey = self.mf6_wel_pkgkey
 
@@ -95,7 +95,7 @@ class DfmMetaModModel:
         metaswap_dll: Union[str, Path],
         metaswap_dll_dependency: Union[str, Path],
         dflowfm_dll: Union[str, Path],
-    ):
+    ) -> None:
         """
         Write MetaSWAP and Modflow 6 model with exchange files, as well as a
         ``.toml`` file which configures the imod coupler run.
@@ -155,7 +155,7 @@ class DfmMetaModModel:
         metaswap_dll_dependency: Union[str, Path],
         dflowfm_dll: Union[str, Path],
         coupling_dict: dict,
-    ):
+    ) -> None:
         """
         Write .toml file which configures the imod coupler run.
 
@@ -211,7 +211,7 @@ class DfmMetaModModel:
         with open(toml_path, "wb") as f:
             tomli_w.dump(coupler_toml, f)
 
-    def _get_gwf_modelnames(self):
+    def _get_gwf_modelnames(self) -> list:
         """
         Get names of gwf models in mf6 simulation
         """
@@ -221,7 +221,7 @@ class DfmMetaModModel:
             if value._pkg_id == "model"
         ]
 
-    def _get_dfm_modelname(self):
+    def _get_dfm_modelname(self) -> str:
         return "dfm.mdu"
 
     def _get_coupling_dict(
@@ -283,7 +283,7 @@ class DfmMetaModModel:
         directory: Union[str, Path],
         mf6_rch_pkgkey: str,
         mf6_wel_pkgkey: Optional[str],
-    ):
+    ) -> None:
         """
         Write exchange files (.dxc) which map MetaSWAP's svats to Modflow 6 node
         numbers, recharge ids, and well ids.

@@ -78,7 +78,7 @@ def setup_logger(log_level: LogLevel, log_file: Path) -> None:
 
 
 @contextmanager
-def cd(newdir: Path):
+def cd(newdir: Path) -> None:
     prevdir = Path().cwd()
     chdir(newdir)
     try:
