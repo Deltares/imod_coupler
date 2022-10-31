@@ -1,13 +1,12 @@
+import tempfile
 from pathlib import Path
 from typing import List, Tuple
+
 import numpy as np
 import pandas as pd
 import pytest
 import pytest_cases
 import xarray as xr
-from imod import mf6, msw
-from numpy import float_, int_, nan
-from numpy.typing import NDArray
 from hydrolib.core.io.bc.models import Astronomic, ForcingModel, QuantityUnitPair
 from hydrolib.core.io.ext.models import Boundary, ExtModel
 from hydrolib.core.io.inifield.models import (
@@ -18,8 +17,12 @@ from hydrolib.core.io.inifield.models import (
 )
 from hydrolib.core.io.mdu.models import FMModel
 from hydrolib.core.io.xyz.models import XYZModel, XYZPoint
-import tempfile
+from imod import mf6, msw
+from numpy import float_, int_, nan
+from numpy.typing import NDArray
+
 from imod_coupler.utils import cd
+
 
 def grid_sizes() -> Tuple[
     np.array,
@@ -382,7 +385,7 @@ def prepared_dflowfm_model(tmp_path_reg: Path) -> FMModel:
     x, y, _, _, dx, dy, _ = grid_sizes()
     if not tmp_path_reg.exists():
         Path.mkdir(tmp_path_reg)
-        
+
     with cd(tmp_path_reg):
         top = 0.0
 
@@ -390,7 +393,7 @@ def prepared_dflowfm_model(tmp_path_reg: Path) -> FMModel:
         fm_model = FMModel()
 
         network = fm_model.geometry.netfile.network
-    
+
         extent = (x.min(), y.min(), x.max(), y.max())
         network.mesh2d_create_rectilinear_within_extent(extent=extent, dx=dx, dy=-dy)
 
@@ -448,5 +451,4 @@ def prepared_dflowfm_model(tmp_path_reg: Path) -> FMModel:
         external_forcing = ExtModel(boundary=[boundary])
         fm_model.external_forcing.extforcefilenew = external_forcing
 
-        return fm_model  
-   
+        return fm_model

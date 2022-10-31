@@ -2,13 +2,13 @@ from pathlib import Path
 from typing import Optional, Union
 
 import tomli_w
-
+from hydrolib.core.io.mdu.models import FMModel
 from imod.couplers.metamod.node_svat_mapping import NodeSvatMapping
 from imod.couplers.metamod.rch_svat_mapping import RechargeSvatMapping
 from imod.couplers.metamod.wel_svat_mapping import WellSvatMapping
 from imod.mf6 import Modflow6Simulation
 from imod.msw import GridData, MetaSwapModel, Sprinkling
-from hydrolib.core.io.mdu.models import FMModel
+
 
 class DfmMetaModModel:
     """
@@ -21,7 +21,7 @@ class DfmMetaModModel:
         The MetaSWAP model that should be coupled.
     mf6_simulation : Modflow6Simulation
         The Modflow6 simulation that should be coupled.
-    dfm_model: 
+    dfm_model:
         DFlow-FM model that should be coupled
     mf6_rch_pkgkey: str
         Key of Modflow 6 recharge package to which MetaSWAP is coupled.
@@ -118,17 +118,16 @@ class DfmMetaModModel:
             can obtain these by downloading `the last iMOD5 release
             <https://oss.deltares.nl/web/imod/download-imod5>`_
         dflowfm_dll: str or Path
-            Directory with dflowfm.dll as well as all of its dependencies. 
+            Directory with dflowfm.dll as well as all of its dependencies.
         """
         # force to Path
         directory = Path(directory)
         # For some reason the Modflow 6 model has to be written before
         # writing the MetaSWAP model. Else we get an Access Violation Error when
         # running the coupler.
-        self.dfm_model.save(directory / self._dfm_model_dir/ "dfm.mdu", recurse=True)
+        self.dfm_model.save(directory / self._dfm_model_dir / "dfm.mdu", recurse=True)
         self.mf6_simulation.write(directory / self._modflow6_model_dir)
         self.msw_model.write(directory / self._metaswap_model_dir)
-
 
         # Write exchange files
         exchange_dir = directory / "exchanges"
@@ -154,7 +153,7 @@ class DfmMetaModModel:
         modflow6_dll: Union[str, Path],
         metaswap_dll: Union[str, Path],
         metaswap_dll_dependency: Union[str, Path],
-        dflowfm_dll: Union[str, Path],       
+        dflowfm_dll: Union[str, Path],
         coupling_dict: dict,
     ):
         """
@@ -203,7 +202,7 @@ class DfmMetaModModel:
                     "dflowfm": {
                         "dll": str(dflowfm_dll),
                         "work_dir": f".\\{self._dfm_model_dir}",
-                    },                    
+                    },
                 },
                 "coupling": [coupling_dict],
             },
@@ -222,8 +221,8 @@ class DfmMetaModModel:
             if value._pkg_id == "model"
         ]
 
-    def _get_dfm_modelname(self):    
-        return "dfm.mdu"    
+    def _get_dfm_modelname(self):
+        return "dfm.mdu"
 
     def _get_coupling_dict(
         self,

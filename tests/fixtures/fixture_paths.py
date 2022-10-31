@@ -100,6 +100,7 @@ def modstrip_loc(request) -> Path:
 
     return Path(request.fspath).parent / "data" / "modstrip"
 
+
 @pytest.fixture(scope="function")
 def dflowfm_initial_inputfiles_folder(request) -> Path:
     """
@@ -107,8 +108,6 @@ def dflowfm_initial_inputfiles_folder(request) -> Path:
     """
 
     return Path(request.fspath).parent / "data" / "dflowfm_example"
-
-
 
 
 @pytest.fixture(scope="session")
