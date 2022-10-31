@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 from sys import stderr
-from typing import Any, Tuple, Optional
+from typing import Any, Optional, Tuple
 
 import numpy as np
 from loguru import logger

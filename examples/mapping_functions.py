@@ -27,12 +27,7 @@ def mapping_active_MF_DFLOW1D(workdir, dflow1d_lookup, array: Optional[NDArray] 
         )
         mf_idx = table_active_mfriv2dflow1d[:, 2].astype(int) - 1
         dflow_idx = np.array(
-            [
-                dflow1d_lookup[
-                    table_active_mfriv2dflow1d[ii, 0], table_active_mfriv2dflow1d[ii, 1]
-                ]
-                for ii in range(len(table_active_mfriv2dflow1d))
-            ]
+            [dflow1d_lookup[row[0], row[1]] for row in table_active_mfriv2dflow1d]
         )
         (
             map_active_mod_dflow1d["mf-riv2dflow1d_flux"],
@@ -69,12 +64,7 @@ def mapping_active_MF_DFLOW1D(workdir, dflow1d_lookup, array: Optional[NDArray] 
         mf_idx = table_active_dflow1d2mfriv[:, 0].astype(int) - 1
         weight = table_active_dflow1d2mfriv[:, 3]
         dflow_idx = np.array(
-            [
-                dflow1d_lookup[
-                    table_active_dflow1d2mfriv[ii, 1], table_active_dflow1d2mfriv[ii, 2]
-                ]
-                for ii in range(len(table_active_dflow1d2mfriv))
-            ]
+            [dflow1d_lookup[row[0], row[1]] for row in table_active_dflow1d2mfriv]
         )
         (
             map_active_mod_dflow1d["dflow1d2mf-riv_stage"],
@@ -106,13 +96,7 @@ def mapping_passive_MF_DFLOW1D(workdir, dflow1d_lookup):
         )
         mf_idx = table_passive_mfriv2dflow1d[:, 2].astype(int) - 1
         dflow_idx = np.array(
-            [
-                dflow1d_lookup[
-                    table_passive_mfriv2dflow1d[ii, 0],
-                    table_passive_mfriv2dflow1d[ii, 1],
-                ]
-                for ii in range(len(table_passive_mfriv2dflow1d))
-            ]
+            [dflow1d_lookup[row[0], row[1]] for row in table_passive_mfriv2dflow1d]
         )
         (
             map_passive_mod_dflow1d["mf-riv2dflow1d_flux"],
@@ -132,13 +116,7 @@ def mapping_passive_MF_DFLOW1D(workdir, dflow1d_lookup):
         )
         mf_idx = table_passive_mfdrn2dflow1d[:, 2].astype(int) - 1
         dflow_idx = np.array(
-            [
-                dflow1d_lookup[
-                    table_passive_mfdrn2dflow1d[ii, 0],
-                    table_passive_mfdrn2dflow1d[ii, 1],
-                ]
-                for ii in range(len(table_passive_mfdrn2dflow1d))
-            ]
+            [dflow1d_lookup[row[0], row[1]] for row in table_passive_mfdrn2dflow1d]
         )
         (
             map_passive_mod_dflow1d["mf-drn2dflow1d_flux"],
@@ -170,13 +148,9 @@ def mapping_MSW_DFLOW1D(workdir, dflow1d_lookup, array: Optional[NDArray] = None
         )
         msw_idx = table_mswsprinkling2dflow1d[:, 2].astype(int) - 1
         dflow_idx = np.array(
-            [
-                dflow1d_lookup[
-                    table_mswsprinkling2dflow1d[ii, 0],
-                    table_mswsprinkling2dflow1d[ii, 1],
-                ]
-                for ii in range(len(table_mswsprinkling2dflow1d))
-            ]
+            dflow_idx=np.array(
+                [dflow1d_lookup[row[0], row[1]] for row in table_mswsprinkling2dflow1d]
+            )
         )
         (
             map_msw_dflow1d["msw-sprinkling2dflow1d_flux"],
@@ -207,12 +181,9 @@ def mapping_MSW_DFLOW1D(workdir, dflow1d_lookup, array: Optional[NDArray] = None
         )
         msw_idx = table_mswponding2dflow1d[:, 2].astype(int) - 1
         dflow_idx = np.array(
-            [
-                dflow1d_lookup[
-                    table_mswponding2dflow1d[ii, 0], table_mswponding2dflow1d[ii, 1]
-                ]
-                for ii in range(len(table_mswponding2dflow1d))
-            ]
+            dflow_idx=np.array(
+                [dflow1d_lookup[row[0], row[1]] for row in table_mswponding2dflow1d]
+            )
         )
         (
             map_msw_dflow1d["msw-sprinkling2dflow1d_flux"],
@@ -244,12 +215,11 @@ def mapping_MSW_DFLOW2D(workdir, dflow2d_lookup, array: Optional[NDArray] = None
             mapping_file, dtype=np.single, ndmin=2, skiprows=1
         )
         msw_idx = table_mswponding2dflow2d[:, 2].astype(int) - 1
-        dflow_idx = [
-            dflow2d_lookup[
-                table_mswponding2dflow2d[ii, 0], table_mswponding2dflow2d[ii, 1]
-            ]
-            for ii in range(len(table_mswponding2dflow2d))
-        ]
+        dflow_idx = np.array(
+            dflow_idx=np.array(
+                [dflow2d_lookup[row[0], row[1]] for row in table_mswponding2dflow2d]
+            )
+        )
         (
             map_msw_dflow2d["msw-ponding2dflow2d_flux"],
             mask_msw_dflow2d["msw-ponding2dflow2d_flux"],

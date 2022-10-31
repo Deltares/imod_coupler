@@ -9,8 +9,9 @@ from mapping_functions import *
 def calculated_as_expected(expected, calculated):
     ok = []
     for i in range(len(expected)):
-        ok.append(isclose(expected[i], calculated[i], rel_tol=0.001, abs_tol=0.0))
-    return all(ok)
+        if not isclose(expected[i], calculated[i], rel_tol=0.001, abs_tol=0.0):
+            return False
+    return True
 
 
 workdir = Path(r"c:\src\imod_coupler\examples\input_example_mapping")
@@ -25,7 +26,7 @@ dflow1d_flux = np.array([6, 7, 8])
 dflow1d_stage = np.array([4, 5, 6])
 
 # get dflow-id based on xy-coordinates after initialisation (now as test from file)
-dflow1d_lookup, ok_file = get_dflow1d_lookup(workdir)
+dflow1d_lookup, _ = get_dflow1d_lookup(workdir)
 
 # create mapping for mf-dflow1d
 # there is no previous flux geven for weight distributed weights,
@@ -34,7 +35,6 @@ map_active_mod_dflow1d, mask_active_mod_dflow1d = mapping_active_MF_DFLOW1D(
     workdir, dflow1d_lookup
 )
 
-#%%
 # exchange in order of actual coupling
 
 # DFLOW 1D stage -> MF RIV 1 stage
@@ -67,7 +67,7 @@ mf_riv1_stage_receive = (
     + map_active_mod_dflow1d["dflow1d2mf-riv_stage"].dot(dflow1d_stage)[:]
 )
 if not calculated_as_expected(mf_riv1_stage_receive_expected, mf_riv1_stage_receive):
-    print("FOUT in exchange stage DFLOW 1D -> MF")
+    raise ValueError(f"FOUT in exchange stage DFLOW 1D  -> MF")
 
 # MF RIV 1 -> DFLOW 1D flux
 # flux is always n:1, so values are summed
@@ -78,7 +78,7 @@ dflow1d_flux_receive = (
     + map_active_mod_dflow1d["mf-riv2dflow1d_flux"].dot(mf_riv1_flux)[:]
 )
 if not calculated_as_expected(dflow1d_flux_receive_expected, dflow1d_flux_receive):
-    print("FOUT in exchange flux MF -> DFLOW 1D")
+    raise ValueError(f"FOUT in exchange flux MF -> DFLOW 1D")
 
 # DFLOW 1D flux -> MF RIV 1 flux
 # flux is always 1:n, decomposition based on previous Mf -> DFLOW flux distribution
@@ -99,6 +99,4 @@ mf_riv1_flux_receive = (
     + map_active_mod_dflow1d["dflow1d2mf-riv_flux"].dot(dflow1d_flux)[:]
 )
 if not calculated_as_expected(mf_riv1_flux_receive_expected, mf_riv1_flux_receive):
-    print("FOUT in exchange flux DFLOW 1D -> MF")
-
-#%%
+    raise ValueError("FOUT in exchange flux DFLOW 1D -> MF")
