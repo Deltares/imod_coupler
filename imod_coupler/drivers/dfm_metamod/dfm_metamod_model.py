@@ -211,7 +211,7 @@ class DfmMetaModModel:
         with open(toml_path, "wb") as f:
             tomli_w.dump(coupler_toml, f)
 
-    def _get_gwf_modelnames(self) -> list:
+    def _get_gwf_modelnames(self) -> list[str]:
         """
         Get names of gwf models in mf6 simulation
         """
@@ -226,10 +226,10 @@ class DfmMetaModModel:
 
     def _get_coupling_dict(
         self,
-        directory: Union[str, Path],
+        directory: Path,
         mf6_rch_pkgkey: str,
         mf6_wel_pkgkey: Optional[str],
-    ) -> dict:
+    ) -> dict[str, str]:
         """
         Get dictionary with names of coupler packages and paths to mappings.
 
