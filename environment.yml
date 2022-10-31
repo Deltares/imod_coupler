@@ -6,6 +6,7 @@ channels:
 
 dependencies:
   - black
+  - build
   - geopandas
   - isort
   - loguru
@@ -31,4 +32,5 @@ dependencies:
   - sphinx
   - tomli
   - tomli-w
+  - twine
   - xarray
