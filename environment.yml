@@ -6,16 +6,15 @@ channels:
 
 dependencies:
   - black
-  - build
   - geopandas
   - isort
   - loguru
   - mypy
   - numpy
-  - pandas  
+  - pandas
   - pip
   - pip:
-      - bmi-python      
+      - bmi-python
       - xmipy
       - git+https://gitlab.com/deltares/imod/imod-python.git
       - HYDROLIB-core
@@ -26,11 +25,10 @@ dependencies:
   - pytest-cases
   - pytest-dotenv
   - python
-  - pywin32  
+  - pywin32
   - rasterio>=1.0
   - scipy
   - sphinx
   - tomli
   - tomli-w
-  - twine
   - xarray
