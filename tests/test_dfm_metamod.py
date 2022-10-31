@@ -2,7 +2,7 @@
 from tempfile import tempdir
 import tempfile
 from pytest_cases import parametrize_with_cases
-from imod_coupler.drivers.dfm_metamod.dfm_metamod import Dfm_MetaMod
+from imod_coupler.drivers.dfm_metamod.dfm_metamod_model import DfmMetaModModel
 from pathlib import Path
 import shutil
 from imod_coupler import __main__
@@ -12,7 +12,7 @@ import pytest
 testdir = tempfile.mkdtemp()
 
 @parametrize_with_cases("dfm_metamod", prefix="case_default")
-def test_dfmmetamod_initialization(dfm_metamod: Dfm_MetaMod, modflow_dll_devel: Path,
+def test_dfmmetamod_initialization(dfm_metamod: DfmMetaModModel, modflow_dll_devel: Path,
  metaswap_dll_devel: Path, metaswap_dll_dep_dir_devel: Path, dflowfm_dll :Path, dflowfm_initial_inputfiles_folder: Path):
 
     #write input for the simulators and a toml configuration file containing the paths of these 
