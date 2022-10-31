@@ -17,7 +17,7 @@ jobs:
           cache-env: true
       - name: Install "check-packages" dependencies
         run: |
-          pip install -e ".[check-packages]"
+          pip install build twine
       - name: Build and check packages
         run: |
           python -m build
