@@ -15,6 +15,9 @@ jobs:
         with:
           cache-downloads: true
           cache-env: true
+      - name: Install "check-packages" dependencies
+        run: |
+          pip install -e ".[check-packages]"
       - name: Build and check packages
         run: |
           python -m build
