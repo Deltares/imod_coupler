@@ -3,7 +3,7 @@
 ![Continuous integration](https://github.com/Deltares/imod_coupler/workflows/Continuous%20integration/badge.svg)
 
 The `imod_coupler` is used to couple hydrological kernels.
-It currently focuses on groundwater and supports coupling between MetaSWAP and Modflow6.
+It currently focuses on groundwater and supports coupling between MetaSWAP, MODFLOW 6 and DFLOW-FM.
 
 It can be installed by running
 
@@ -72,7 +72,8 @@ pip install -e .
 - Check out the MetaSWAP lookup table with your Deltares credentials which resides at `https://repos.deltares.nl/repos/DSCTestbench/trunk/cases/e150_metaswap/f00_common/c00_common/LHM2016_v01vrz`
 
  - To run the tests it is advisable to have a `.env` file at the root of the project directory instead of modifying global environment variables. 
- The content of `.env` would then look similar to this with the variables `IMOD_COLLECTOR_DEVEL`, `IMOD_COLLECTOR_REGRESSION` and `METASWAP_LOOKUP_TABLE` adjusted to your local machine:
+ The content of `.env` would then look similar to this with the variables `IMOD_COLLECTOR_DEVEL`, `IMOD_COLLECTOR_REGRESSION` and `METASWAP_LOOKUP_TABLE` adjusted to your local machine 
+ (here we assume the imod_coupler_tests project was checked out in d:\checkouts ):
 
 ```bash
 IMOD_COLLECTOR_DEVEL='D:\checkouts\imod_collector_devel'

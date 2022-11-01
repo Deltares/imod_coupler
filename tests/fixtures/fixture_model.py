@@ -1,3 +1,4 @@
+import tempfile
 from pathlib import Path
 from typing import List, Tuple
 
@@ -6,22 +7,34 @@ import pandas as pd
 import pytest
 import pytest_cases
 import xarray as xr
+from hydrolib.core.io.bc.models import Astronomic, ForcingModel, QuantityUnitPair
+from hydrolib.core.io.ext.models import Boundary, ExtModel
+from hydrolib.core.io.inifield.models import (
+    DataFileType,
+    IniFieldModel,
+    InitialField,
+    InterpolationMethod,
+)
+from hydrolib.core.io.mdu.models import FMModel
+from hydrolib.core.io.xyz.models import XYZModel, XYZPoint
 from imod import mf6, msw
 from numpy import float_, int_, nan
 from numpy.typing import NDArray
 
+from imod_coupler.utils import cd
+
 
 def grid_sizes() -> Tuple[
-    List[float],
-    List[float],
+    NDArray[float_],
+    NDArray[float_],
     NDArray[int_],
     pd.DatetimeIndex,
     float,
     float,
     NDArray[float_],
 ]:
-    x = [100.0, 200.0, 300.0, 400.0, 500.0]
-    y = [300.0, 200.0, 100.0]
+    x = np.array([100.0, 200.0, 300.0, 400.0, 500.0])
+    y = np.array([300.0, 200.0, 100.0])
     dz = np.array([0.2, 10.0, 100.0])
 
     layer = np.arange(len(dz)) + 1
@@ -364,3 +377,78 @@ def coupled_mf6_model_storage_coefficient() -> mf6.Modflow6Simulation:
     coupled_mf6_model["GWF_1"] = gwf_model
 
     return coupled_mf6_model
+
+
+@pytest_cases.fixture(scope="function")
+def prepared_dflowfm_model(tmp_path_reg: Path) -> FMModel:
+
+    x, y, _, _, dx, dy, _ = grid_sizes()
+    if not tmp_path_reg.exists():
+        Path.mkdir(tmp_path_reg)
+
+    with cd(tmp_path_reg):
+        top = 0.0
+
+        # Create new model object
+        fm_model = FMModel()
+
+        network = fm_model.geometry.netfile.network
+
+        extent = (x.min(), y.min(), x.max(), y.max())
+        network.mesh2d_create_rectilinear_within_extent(extent=extent, dx=dx, dy=-dy)
+
+        # Create bed level
+        delta_x = (x.max() - x.min()) / 100
+        delta_y = (y.max() - y.min()) / 100
+        xyz_model = XYZModel(points=[])
+        xyz_model.points = [
+            XYZPoint(x=x.min() + delta_x, y=y.min() + delta_y, z=top),
+            XYZPoint(x=x.min() + delta_x, y=y.max() - delta_y, z=top),
+            XYZPoint(x=x.max() - delta_x, y=y.min() + delta_y, z=top),
+            XYZPoint(x=x.max() - delta_x, y=y.max() - delta_y, z=top),
+        ]
+        xyz_model.save()
+        bed_level = InitialField(
+            quantity="bedlevel",
+            datafile=xyz_model.filepath,
+            datafiletype=DataFileType.sample,
+            interpolationmethod=InterpolationMethod.triangulation,
+        )
+        fm_model.geometry.inifieldfile = IniFieldModel(initial=[bed_level])
+
+        # Create boundary
+        forcing_1 = Astronomic(
+            name="Boundary01_0001",
+            quantityunitpair=[
+                QuantityUnitPair(quantity="astronomic component", unit="-"),
+                QuantityUnitPair(quantity="waterlevelbnd amplitude", unit="m"),
+                QuantityUnitPair(quantity="waterlevelbnd phase", unit="deg"),
+            ],
+            datablock=[
+                ["A0", "0", "0"],
+                ["M2", "0", "0"],
+            ],
+        )
+        forcing_2 = Astronomic(
+            name="Boundary01_0002",
+            quantityunitpair=[
+                QuantityUnitPair(quantity="astronomic component", unit="-"),
+                QuantityUnitPair(quantity="waterlevelbnd amplitude", unit="m"),
+                QuantityUnitPair(quantity="waterlevelbnd phase", unit="deg"),
+            ],
+            datablock=[
+                ["A0", "0", "0"],
+                ["M2", "0", "0"],
+            ],
+        )
+        forcing_model = ForcingModel(forcing=[forcing_1, forcing_2])
+        forcing_model.save(recurse=True)
+        boundary = Boundary(
+            quantity="waterlevelbnd",
+            locationfile="Boundary01.pli",
+            forcingfile=forcing_model.filepath,
+        )
+        external_forcing = ExtModel(boundary=[boundary])
+        fm_model.external_forcing.extforcefilenew = external_forcing
+
+        return fm_model

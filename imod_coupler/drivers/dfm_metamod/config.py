@@ -32,6 +32,7 @@ class Kernels(BaseModel):
 class Coupling(BaseModel):
     enable_sprinkling: bool  # true whemn sprinkling is active
     mf6_model: str  # the MODFLOW 6 model that will be coupled
+    dfm_model: str  # the dflow-fm model that will be coupled
     mf6_msw_recharge_pkg: str  # the recharge package that will be used for coupling
     mf6_msw_well_pkg: Optional[
         str
@@ -74,6 +75,12 @@ class Coupling(BaseModel):
                 "If `enable_sprinkling` is True, then `mf6_msw_sprinkling_map` needs to be set."
             )
         return mf6_msw_sprinkling_map
+
+    @validator("dfm_model")
+    def validate_dfm_model_is_mdu(cls, dfm_model: str) -> str:
+        if dfm_model[-3:].lower() != "mdu":
+            raise ValueError("the dflow fm model name should end in mdu")
+        return dfm_model
 
 
 class DfmMetaModConfig(BaseModel):
