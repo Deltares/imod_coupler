@@ -68,7 +68,7 @@ class DfmMetaMod(Driver):
     ):
         """Constructs the `DfmMetaMod` object"""
         self.base_config = base_config
-        self.dfm_metamod_config = DfmMetaModConfig(config_dir, **driver_dict)
+        self.dfm_metamod_config = DfmMetaModConfig(config_dir, **driver_dict)  # type: ignore
         self.coupling = self.dfm_metamod_config.coupling[
             0
         ]  # Adapt as soon as we have multimodel support
