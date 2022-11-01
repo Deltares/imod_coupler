@@ -10,7 +10,7 @@ dependencies:
   - geopandas
   - isort
   - loguru
-  - mypy<0.920
+  - mypy
   - numpy
   - pandas
   - pip

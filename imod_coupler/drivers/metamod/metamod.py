@@ -63,7 +63,7 @@ class MetaMod(Driver):
     ):
         """Constructs the `MetaMod` object"""
         self.base_config = base_config
-        self.metamod_config = MetaModConfig(config_dir, **driver_dict)  # type: ignore
+        self.metamod_config = MetaModConfig(config_dir, **driver_dict)
         self.coupling = self.metamod_config.coupling[
             0
         ]  # Adapt as soon as we have multimodel support

@@ -25,8 +25,8 @@ from imod_coupler.utils import cd
 
 
 def grid_sizes() -> Tuple[
-    np.array,
-    np.array,
+    NDArray[float_],
+    NDArray[float_],
     NDArray[int_],
     pd.DatetimeIndex,
     float,
