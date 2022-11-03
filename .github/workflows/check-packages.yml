@@ -8,13 +8,16 @@ on:
 jobs:
   lint:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash -l {0}
     steps:
-      - uses: actions/checkout@v2
-      - name: Set up Python
-        uses: actions/setup-python@v1
-      - name: Install lint dependencies
-        run: |
-          pip install -e ".[check-packages]"
+      - uses: actions/checkout@v1
+      - name: Install Conda environment from environment.yml
+        uses: mamba-org/provision-with-micromamba@main
+        with:
+          cache-downloads: true
+          cache-env: true
       - name: Build and check packages
         run: |
           python -m build

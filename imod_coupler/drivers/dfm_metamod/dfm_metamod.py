@@ -5,32 +5,35 @@ description:
 """
 from __future__ import annotations
 
+import os
 from pathlib import Path
 from typing import Any, Dict
 
 import numpy as np
+from bmi.wrapper import BMIWrapper
 from loguru import logger
 from numpy.typing import NDArray
 from scipy.sparse import csr_matrix, dia_matrix
 from xmipy import XmiWrapper
 
 from imod_coupler.config import BaseConfig
+from imod_coupler.drivers.dfm_metamod.config import Coupling, DfmMetaModConfig
 from imod_coupler.drivers.driver import Driver
-from imod_coupler.drivers.metamod.config import Coupling, MetaModConfig
 from imod_coupler.utils import create_mapping
 
 
-class MetaMod(Driver):
-    """The driver coupling MetaSWAP and MODFLOW 6"""
+class DfmMetaMod(Driver):
+    """The driver coupling DFLOW-FM, MetaSWAP and MODFLOW 6"""
 
-    name: str = "metamod"  # name of the driver
+    name: str = "dfm_metamod"  # name of the driver
     base_config: BaseConfig  # the parsed information from the configuration file
-    metamod_config: MetaModConfig  # the parsed information from the configuration file specific to MetaMod
+    dfm_metamod_config: DfmMetaModConfig  # the parsed information from the configuration file specific to MetaMod
     coupling: Coupling  # the coupling information
 
     timing: bool  # true, when timing is enabled
     mf6: XmiWrapper  # the MODFLOW 6 XMI kernel
     msw: XmiWrapper  # the MetaSWAP XMI kernel
+    dfm: BMIWrapper  # the dflow-fm BMI kernel
 
     max_iter: NDArray[Any]  # max. nr outer iterations in MODFLOW kernel
     delt: float  # time step from MODFLOW 6 (leading)
@@ -49,6 +52,8 @@ class MetaMod(Driver):
     msw_storage: NDArray[Any]  # MetaSWAP storage coefficients (MODFLOW's sc1)
     msw_time: float  # MetaSWAP current time
 
+    dflowfm_stage: NDArray[Any]
+
     # dictionary with mapping tables for mod=>msw coupling
     map_mod2msw: Dict[str, csr_matrix] = {}
     # dictionary with mapping tables for msw=>mod coupling
@@ -61,36 +66,53 @@ class MetaMod(Driver):
     def __init__(
         self, base_config: BaseConfig, config_dir: Path, driver_dict: Dict[str, Any]
     ):
-        """Constructs the `MetaMod` object"""
+        """Constructs the `DfmMetaMod` object"""
         self.base_config = base_config
-        self.metamod_config = MetaModConfig(config_dir, **driver_dict)
-        self.coupling = self.metamod_config.coupling[
+        self.dfm_metamod_config = DfmMetaModConfig(config_dir, **driver_dict)
+        self.coupling = self.dfm_metamod_config.coupling[
             0
         ]  # Adapt as soon as we have multimodel support
 
     def initialize(self) -> None:
         self.mf6 = XmiWrapper(
-            lib_path=self.metamod_config.kernels.modflow6.dll,
-            lib_dependency=self.metamod_config.kernels.modflow6.dll_dep_dir,
-            working_directory=self.metamod_config.kernels.modflow6.work_dir,
+            lib_path=self.dfm_metamod_config.kernels.modflow6.dll,
+            lib_dependency=self.dfm_metamod_config.kernels.modflow6.dll_dep_dir,
+            working_directory=self.dfm_metamod_config.kernels.modflow6.work_dir,
             timing=self.base_config.timing,
         )
         self.msw = XmiWrapper(
-            lib_path=self.metamod_config.kernels.metaswap.dll,
-            lib_dependency=self.metamod_config.kernels.metaswap.dll_dep_dir,
-            working_directory=self.metamod_config.kernels.metaswap.work_dir,
+            lib_path=self.dfm_metamod_config.kernels.metaswap.dll,
+            lib_dependency=self.dfm_metamod_config.kernels.metaswap.dll_dep_dir,
+            working_directory=self.dfm_metamod_config.kernels.metaswap.work_dir,
             timing=self.base_config.timing,
         )
+
+        # ================
+        # modifying the path here should not be necessary
+        os.environ["PATH"] = (
+            os.path.dirname(self.dfm_metamod_config.kernels.dflowfm.dll)
+            + os.pathsep
+            + os.environ["PATH"]
+        )
+        # ================
+        mdu_name = self.coupling.dict()["dfm_model"]
+        dflowfm_input = self.dfm_metamod_config.kernels.dflowfm.work_dir.joinpath(
+            mdu_name
+        )
+        self.dfm = BMIWrapper(engine="dflowfm", configfile=dflowfm_input)
+
         # Print output to stdout
         self.mf6.set_int("ISTDOUTTOFILE", 0)
         self.mf6.initialize()
         self.msw.initialize()
+        self.dfm.initialize()
         self.log_version()
         self.couple()
 
     def log_version(self) -> None:
         logger.info(f"MODFLOW version: {self.mf6.get_version()}")
         logger.info(f"MetaSWAP version: {self.msw.get_version()}")
+        logger.info(f"Dflow FM version: version fetching not implemented in BMI")
 
     def couple(self) -> None:
         """Couple Modflow and Metaswap"""

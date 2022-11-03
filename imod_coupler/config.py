@@ -16,6 +16,7 @@ class LogLevel(str, Enum):
 
 class DriverType(str, Enum):
     METAMOD = "metamod"
+    DFM_METAMOD = "dfm_metamod"
 
 
 class BaseConfig(BaseModel):

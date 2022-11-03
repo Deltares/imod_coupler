@@ -3,7 +3,7 @@
 ![Continuous integration](https://github.com/Deltares/imod_coupler/workflows/Continuous%20integration/badge.svg)
 
 The `imod_coupler` is used to couple hydrological kernels.
-It currently focuses on groundwater and supports coupling between MetaSWAP and Modflow6.
+It currently focuses on groundwater and supports coupling between MetaSWAP, MODFLOW 6 and DFLOW-FM.
 
 It can be installed by running
 
@@ -72,7 +72,8 @@ pip install -e .
 - Check out the MetaSWAP lookup table with your Deltares credentials which resides at `https://repos.deltares.nl/repos/DSCTestbench/trunk/cases/e150_metaswap/f00_common/c00_common/LHM2016_v01vrz`
 
  - To run the tests it is advisable to have a `.env` file at the root of the project directory instead of modifying global environment variables. 
- The content of `.env` would then look similar to this with the variables `IMOD_COLLECTOR_DEVEL`, `IMOD_COLLECTOR_REGRESSION` and `METASWAP_LOOKUP_TABLE` adjusted to your local machine:
+ The content of `.env` would then look similar to this with the variables `IMOD_COLLECTOR_DEVEL`, `IMOD_COLLECTOR_REGRESSION` and `METASWAP_LOOKUP_TABLE` adjusted to your local machine 
+ (here we assume the imod_coupler_tests project was checked out in d:\checkouts ):
 
 ```bash
 IMOD_COLLECTOR_DEVEL='D:\checkouts\imod_collector_devel'
@@ -80,13 +81,17 @@ IMOD_COLLECTOR_REGRESSION='D:\checkouts\imod_collector_regression'
 METASWAP_LOOKUP_TABLE='D:\checkouts\DSCtestbench\cases\e150_metaswap\f00_common\c00_common\LHM2016_v01vrz'
 
 IMOD_COUPLER_EXEC_DEVEL='imodc' # Specify an absolute path here to use a packaged version of iMOD Coupler
-IMOD_COUPLER_EXEC_REGRESSION='${IMOD_COLLECTOR_REGRESSION}/imodc.exe'
-METASWAP_DLL_DEP_DIR_DEVEL='${IMOD_COLLECTOR_DEVEL}'
-METASWAP_DLL_DEP_DIR_REGRESSION='${IMOD_COLLECTOR_REGRESSION}'
-METASWAP_DLL_DEVEL='${IMOD_COLLECTOR_DEVEL}/MetaSWAP.dll'
-METASWAP_DLL_REGRESSION='${IMOD_COLLECTOR_REGRESSION}/MetaSWAP.dll'
-MODFLOW_DLL_DEVEL='${IMOD_COLLECTOR_REGRESSION}/libmf6.dll'
-MODFLOW_DLL_REGRESSION='${IMOD_COLLECTOR_REGRESSION}/libmf6.dll'
+IMOD_COUPLER_EXEC_REGRESSION='${IMOD_COLLECTOR_REGRESSION}/imod_coupler/imodc.exe'
+METASWAP_DLL_DEP_DIR_DEVEL='${IMOD_COLLECTOR_DEVEL}/metaswap'
+METASWAP_DLL_DEP_DIR_REGRESSION='${IMOD_COLLECTOR_REGRESSION}/metaswap'
+METASWAP_DLL_DEVEL='${IMOD_COLLECTOR_DEVEL}/metaswap/MetaSWAP.dll'
+METASWAP_DLL_REGRESSION='${IMOD_COLLECTOR_REGRESSION}/metaswap/MetaSWAP.dll'
+MODFLOW_DLL_DEVEL='${IMOD_COLLECTOR_REGRESSION}/modflow6/libmf6.dll'
+MODFLOW_DLL_REGRESSION='${IMOD_COLLECTOR_REGRESSION}/modflow6/libmf6.dll'
+DFLOWFM_DLL_DEP_DIR_DEVEL='${IMOD_COLLECTOR_DEVEL}/dflowfm'
+DFLOWFM_DLL_DEP_DIR_REGRESSION='${IMOD_COLLECTOR_REGRESSION}/dflowfm'
+DFLOWFM_DLL_DEVEL='${IMOD_COLLECTOR_DEVEL}/dflowfm/dflowfm.dll'
+DFLOWFM_DLL_REGRESSION='${IMOD_COLLECTOR_REGRESSION}/dflowfm/dflowfm.dll'
 ```
 
 - The tests can then be run with:

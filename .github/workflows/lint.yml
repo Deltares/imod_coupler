@@ -8,13 +8,16 @@ on:
 jobs:
   lint:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash -l {0}
     steps:
-      - uses: actions/checkout@v2
-      - name: Set up Python
-        uses: actions/setup-python@v1
-      - name: Install lint dependencies
-        run: |
-          pip install -e ".[lint]"
+      - uses: actions/checkout@v1
+      - name: Install Conda environment from environment.yml
+        uses: mamba-org/provision-with-micromamba@main
+        with:
+          cache-downloads: true
+          cache-env: true
       - name: Run black
         run: |
           black --check .
@@ -23,8 +26,8 @@ jobs:
           isort --check .
       - name: Run mypy (strict) on imod_coupler
         run: |
-          mypy --install-types --non-interactive --ignore-missing-imports --strict imod_coupler
+          mypy --ignore-missing-imports --strict imod_coupler
 
       - name: Run mypy on tests
         run: |
-          mypy --install-types --non-interactive --ignore-missing-imports tests
+          mypy --ignore-missing-imports tests
