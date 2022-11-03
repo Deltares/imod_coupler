@@ -11,6 +11,7 @@ import numpy as np
 from loguru import logger
 from numpy.typing import NDArray
 from scipy.sparse import csr_matrix
+from imod.mf6 import Modflow6Simulation
 
 from imod_coupler.config import LogLevel
 

@@ -49,4 +49,4 @@ def test_dfmmetamod_initialization(
     # means the initialization of the kernels went well.
     with pytest.raises(ValueError) as e:
         __main__.run_coupler(inputpath)
-    assert str(e.value) == "Can't find MetaSWAP\\mod2svat.inp."
+    assert str(e.value) == "survived initialization and did some stuff"
