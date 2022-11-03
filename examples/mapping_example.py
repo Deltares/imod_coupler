@@ -4,10 +4,13 @@ from pathlib import Path
 
 import numpy as np
 from mapping_functions import *
+from numpy import float_
+from numpy.typing import NDArray
 
 
-def calculated_as_expected(expected, calculated):
-    ok = []
+def calculated_as_expected(
+    expected: NDArray[float_], calculated: NDArray[float_]
+) -> bool:
     for i in range(len(expected)):
         if not isclose(expected[i], calculated[i], rel_tol=0.001, abs_tol=0.0):
             return False

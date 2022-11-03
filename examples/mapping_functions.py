@@ -1,7 +1,9 @@
+from pathlib import Path
 from typing import Any, Dict, Optional, Tuple
 
 import numpy as np
 from loguru import logger
+from numpy import float_, int_
 from numpy.typing import NDArray
 from scipy.sparse import csr_matrix, dia_matrix
 from xmipy import XmiWrapper
@@ -10,7 +12,11 @@ from imod_coupler.utils import create_mapping
 
 
 # mapping different types of exchanges within DFLOWMETMOD driver
-def mapping_active_MF_DFLOW1D(workdir, dflow1d_lookup, array: Optional[NDArray] = None):
+def mapping_active_MF_DFLOW1D(
+    workdir: Path,
+    dflow1d_lookup: dict[tuple[float, float], int],
+    array: Optional[NDArray[float_]] = None,
+) -> tuple[dict[str, csr_matrix], dict[str, NDArray[int_]]]:
     # function creates dictionary with mapping tables for mapping MF <-> dflow1d
     # mapping includes active MF coupling:
     #   1 MF RIV 1                      -> DFLOW-FM 1D flux
@@ -80,7 +86,9 @@ def mapping_active_MF_DFLOW1D(workdir, dflow1d_lookup, array: Optional[NDArray] 
     return map_active_mod_dflow1d, mask_active_mod_dflow1d
 
 
-def mapping_passive_MF_DFLOW1D(workdir, dflow1d_lookup):
+def mapping_passive_MF_DFLOW1D(
+    workdir: Path, dflow1d_lookup: dict[tuple[float, float], int]
+) -> tuple[dict[str, csr_matrix], dict[str, NDArray[int_]]]:
     # function creates dictionary with mapping tables for mapping MF <-> dflow1d
     # mapping includes passive MF coupling:
     #   1 MF RIV 2                      -> DFLOW-FM 1D flux
@@ -131,14 +139,18 @@ def mapping_passive_MF_DFLOW1D(workdir, dflow1d_lookup):
     return map_passive_mod_dflow1d, mask_passive_mod_dflow1d
 
 
-def mapping_MSW_DFLOW1D(workdir, dflow1d_lookup, array: Optional[NDArray] = None):
+def mapping_MSW_DFLOW1D(
+    workdir: Path,
+    dflow1d_lookup: dict[tuple[float, float], int],
+    array: Optional[NDArray[float_]] = None,
+) -> tuple[dict[str, csr_matrix], dict[str, NDArray[int_]]]:
     # function creates dictionary with mapping tables for mapping MSW -> dflow1d
     # mapping includes MSW 1D coupling:
     #   1 MSW sprinkling flux            -> DFLOW-FM 1D flux
     #   2 DFLOW-FM 1D flux               -> MSW sprinkling flux
     #   3 MSW ponding flux               -> DFLOW-FM 1D flux (optional if no 2D network is availble)
     map_msw_dflow1d: Dict[str, csr_matrix] = {}
-    mask_msw_dflow1d: Dict[str, NDArray[Any]] = {}
+    mask_msw_dflow1d: Dict[str, NDArray[int_]] = {}
 
     # MSW -> DFLOW 1D (sprinkling)
     mapping_file = workdir / "MSWSPRINKTODFM1D_Q.DMM"
@@ -147,10 +159,9 @@ def mapping_MSW_DFLOW1D(workdir, dflow1d_lookup, array: Optional[NDArray] = None
             mapping_file, dtype=np.single, ndmin=2, skiprows=1
         )
         msw_idx = table_mswsprinkling2dflow1d[:, 2].astype(int) - 1
+
         dflow_idx = np.array(
-            dflow_idx=np.array(
-                [dflow1d_lookup[row[0], row[1]] for row in table_mswsprinkling2dflow1d]
-            )
+            [dflow1d_lookup[row[0], row[1]] for row in table_mswsprinkling2dflow1d]
         )
         (
             map_msw_dflow1d["msw-sprinkling2dflow1d_flux"],
@@ -180,10 +191,9 @@ def mapping_MSW_DFLOW1D(workdir, dflow1d_lookup, array: Optional[NDArray] = None
             mapping_file, dtype=np.single, ndmin=2, skiprows=1
         )
         msw_idx = table_mswponding2dflow1d[:, 2].astype(int) - 1
+
         dflow_idx = np.array(
-            dflow_idx=np.array(
-                [dflow1d_lookup[row[0], row[1]] for row in table_mswponding2dflow1d]
-            )
+            [dflow1d_lookup[row[0], row[1]] for row in table_mswponding2dflow1d]
         )
         (
             map_msw_dflow1d["msw-sprinkling2dflow1d_flux"],
@@ -198,7 +208,11 @@ def mapping_MSW_DFLOW1D(workdir, dflow1d_lookup, array: Optional[NDArray] = None
     return map_msw_dflow1d, mask_msw_dflow1d
 
 
-def mapping_MSW_DFLOW2D(workdir, dflow2d_lookup, array: Optional[NDArray] = None):
+def mapping_MSW_DFLOW2D(
+    workdir: Path,
+    dflow2d_lookup: dict[tuple[float, float], int],
+    array: Optional[NDArray[float_]] = None,
+) -> tuple[dict[str, csr_matrix], dict[str, NDArray[int_]]]:
     # dictionary with mapping tables for msw-dflow-2d coupling
     # mapping includes MSW 2D coupling:
     #   1 MSW ponding flux               -> DFLOW-FM 2D flux (optional)
@@ -216,10 +230,9 @@ def mapping_MSW_DFLOW2D(workdir, dflow2d_lookup, array: Optional[NDArray] = None
         )
         msw_idx = table_mswponding2dflow2d[:, 2].astype(int) - 1
         dflow_idx = np.array(
-            dflow_idx=np.array(
-                [dflow2d_lookup[row[0], row[1]] for row in table_mswponding2dflow2d]
-            )
+            [dflow2d_lookup[row[0], row[1]] for row in table_mswponding2dflow2d]
         )
+
         (
             map_msw_dflow2d["msw-ponding2dflow2d_flux"],
             mask_msw_dflow2d["msw-ponding2dflow2d_flux"],
@@ -248,28 +261,33 @@ def mapping_MSW_DFLOW2D(workdir, dflow2d_lookup, array: Optional[NDArray] = None
         table_dflow2d_stage2mswponding: NDArray[np.single] = np.loadtxt(
             mapping_file, dtype=np.single, ndmin=2, skiprows=1
         )
-        msw_idx = table_dflow2d_stage2mswponding[:, 0] - 1
+        msw_idx = (table_dflow2d_stage2mswponding[:, 0] - 1).astype(int)
         weight = table_dflow2d_stage2mswponding[:, 3]
-        dflow_idx = [
-            dflow2d_lookup[
-                table_dflow2d_stage2mswponding[ii, 1],
-                table_dflow2d_stage2mswponding[ii, 2],
+        dflow_idx = np.array(
+            [
+                dflow2d_lookup[
+                    table_dflow2d_stage2mswponding[ii, 1],
+                    table_dflow2d_stage2mswponding[ii, 2],
+                ]
+                for ii in range(len(table_dflow2d_stage2mswponding))
             ]
-            for ii in range(len(table_dflow2d_stage2mswponding))
-        ]
+        )
         (
             map_msw_dflow2d["dflow2d_stage2msw-ponding"],
             mask_msw_dflow2d["dflow2d_stage2msw-ponding"],
         ) = create_mapping(
             dflow_idx, msw_idx, len(dflow_idx), len(msw_idx), "weight", weight
         )
+    return map_msw_dflow2d, mask_msw_dflow2d
 
 
 # this function calculates the weight based on the flux distribution of a n:1 connection,
 # so it can be used in the 1:n redistribution of an correction flux or volume.
 # Input is the target and source index of the mapings sparse array, and previouse flux array at n
 # Output is weight-array for inversed mapping
-def weight_from_flux_distribution(tgt_idx, src_idx, values):
+def weight_from_flux_distribution(
+    tgt_idx: NDArray[int_], src_idx: NDArray[int_], values: NDArray[float_]
+) -> NDArray[float_]:
     cnt = np.zeros(max(tgt_idx) + 1)
     weight = np.zeros(max(src_idx) + 1)
     for i in range(len(tgt_idx)):
@@ -279,7 +297,7 @@ def weight_from_flux_distribution(tgt_idx, src_idx, values):
     return weight
 
 
-def test_weight_from_flux_distribution():
+def test_weight_from_flux_distribution() -> bool:
     # test calculated weights based on flux exchange
     # mf-riv1 elements=5
     # dfow1d  elements=3
@@ -302,7 +320,7 @@ def test_weight_from_flux_distribution():
 # read file with all uniek coupled dflow 1d and 2d nodes (represented by xy pairs). After initialisation
 # of dflow, dict is filled with node-id's corresponding tot xy-pairs.
 # this functions should be called after initialisation of dflow-fm.
-def get_dflow1d_lookup(workdir):
+def get_dflow1d_lookup(workdir: Path) -> tuple[dict[tuple[float, float], int], bool]:
     ok = True
     dflow1d_lookup = {}
     dflow1d_file = workdir / "DFLOWFM1D_POINTS.DAT"
@@ -330,7 +348,7 @@ def get_dflow1d_lookup(workdir):
     return dflow1d_lookup, ok
 
 
-def get_dflow2d_lookup(workdir):
+def get_dflow2d_lookup(workdir: Path) -> tuple[dict[tuple[float, float], int], bool]:
     ok = True
     dflow2d_lookup = {}
     dflow2d_file = workdir / "DFLOWFM2D_POINTS.DAT"
@@ -344,7 +362,7 @@ def get_dflow2d_lookup(workdir):
         # dflowfm_MapCoordinateTo2DCellId(x, y, id) -> id
         id = np.array([0])  # dummy array, check 0-indexing
         ii = id.shape[0]
-        for i in ii:
+        for i in range(ii):
             if id[i] > 0:
                 dflow2d_lookup[(dflow2d_x[i], dflow2d_y[i])] = id[i]
             else:
@@ -354,57 +372,3 @@ def get_dflow2d_lookup(workdir):
     else:
         ok = False
     return dflow2d_lookup, ok
-
-
-# temporary store mapper in this file
-def create_mapping(
-    src_idx: Any,
-    tgt_idx: Any,
-    nsrc: int,
-    ntgt: int,
-    operator: str,
-    weight: Optional[NDArray] = None,
-) -> Tuple[csr_matrix, NDArray[np.int_]]:
-    """
-    Create a mapping from source indexes to target indexes by constructing
-    a sparse matrix of size (ntgt x nsrc) and creates a mask array with 0
-    for mapped entries and 1 otherwise.
-    The mask allows to update the target array without overwriting the unmapped
-    entries with zeroes:
-
-    target = mask * target + mapping * source
-
-    Parameters
-    ----------
-    src_idx : int
-        The indexes in the source array, zero-based
-    tgt_idx : int
-        The indexes in the target array, zero-based
-    nsrc : int
-        The number of entries in the source array
-    ntgt : int
-        The number of entries in the target array
-    operator : str
-       Indicating how n-1 mappings should be dealt
-       with: "avg" for average, "sum" for sum.
-       Operator does not affect 1-n couplings.
-
-    Returns
-    -------
-    Tuple
-        containing the mapping (csr_matrix) and a mask (numpy array)
-    """
-    if operator == "avg":
-        cnt = np.zeros(max(tgt_idx) + 1)
-        for i in range(len(tgt_idx)):
-            cnt[tgt_idx[i]] += 1
-        dat = np.array([1.0 / cnt[xx] for xx in tgt_idx])
-    elif operator == "sum":
-        dat = np.ones(tgt_idx.shape)
-    elif operator == "weight":
-        dat = weight
-    else:
-        raise ValueError("`operator` should be either 'sum', 'avg' or 'weight'")
-    map_out = csr_matrix((dat, (tgt_idx, src_idx)), shape=(ntgt, nsrc))
-    mask = np.array([0 if i > 0 else 1 for i in map_out.getnnz(axis=1)])
-    return map_out, mask

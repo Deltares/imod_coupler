@@ -9,6 +9,7 @@ from typing import Any, Iterator, Optional, Tuple
 
 import numpy as np
 from loguru import logger
+from numpy import float_, int_
 from numpy.typing import NDArray
 from scipy.sparse import csr_matrix
 
@@ -21,8 +22,8 @@ def create_mapping(
     nsrc: int,
     ntgt: int,
     operator: str,
-    weight: Optional[NDArray] = None,
-) -> Tuple[csr_matrix, NDArray[np.int_]]:
+    weight: Optional[NDArray[float_]] = None,
+) -> Tuple[csr_matrix, NDArray[int_]]:
     """
     Create a mapping from source indexes to target indexes by constructing
     a sparse matrix of size (ntgt x nsrc) and creates a mask array with 0
@@ -60,6 +61,7 @@ def create_mapping(
     elif operator == "sum":
         dat = np.ones(tgt_idx.shape)
     elif operator == "weight":
+        assert weight is not None
         dat = weight
     else:
         raise ValueError("`operator` should be either 'sum', 'avg' or 'weight'")
