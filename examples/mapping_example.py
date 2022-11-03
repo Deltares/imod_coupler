@@ -3,9 +3,10 @@ from math import isclose
 from pathlib import Path
 
 import numpy as np
-from mapping_functions import *
 from numpy import float_
 from numpy.typing import NDArray
+
+from examples.mapping_functions import get_dflow1d_lookup, mapping_active_mf_dflow1d
 
 
 def calculated_as_expected(
@@ -34,7 +35,7 @@ dflow1d_lookup, _ = get_dflow1d_lookup(workdir)
 # create mapping for mf-dflow1d
 # there is no previous flux geven for weight distributed weights,
 # so DFLOW 1D stage -> MF RIV 1 exchange is not availble at this time
-map_active_mod_dflow1d, mask_active_mod_dflow1d = mapping_active_MF_DFLOW1D(
+map_active_mod_dflow1d, mask_active_mod_dflow1d = mapping_active_mf_dflow1d(
     workdir, dflow1d_lookup
 )
 
@@ -88,7 +89,7 @@ if not calculated_as_expected(dflow1d_flux_receive_expected, dflow1d_flux_receiv
 
 # create new mapping based on  previous MF -> dflow flux exchange distribution
 # for now, all mappingfiles are read in again, this could be optimised in the future
-map_active_mod_dflow1d, mask_active_mod_dflow1d = mapping_active_MF_DFLOW1D(
+map_active_mod_dflow1d, mask_active_mod_dflow1d = mapping_active_mf_dflow1d(
     workdir, dflow1d_lookup, mf_riv1_flux
 )
 # expected results

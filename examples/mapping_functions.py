@@ -12,7 +12,7 @@ from imod_coupler.utils import create_mapping
 
 
 # mapping different types of exchanges within DFLOWMETMOD driver
-def mapping_active_MF_DFLOW1D(
+def mapping_active_mf_dflow1d(
     workdir: Path,
     dflow1d_lookup: dict[tuple[float, float], int],
     array: Optional[NDArray[float_]] = None,
@@ -48,7 +48,7 @@ def mapping_active_MF_DFLOW1D(
         # DFLOW 1D  -> MF RIV 1 (flux)
         # weight array is flux-array from previous MF-RIV1 -> dlfowfm exchange
         # if no weight array is provided, skip this exchange
-        if not array is None:
+        if array is not None:
             weight = weight_from_flux_distribution(dflow_idx, mf_idx, array)
             (
                 map_active_mod_dflow1d["dflow1d2mf-riv_flux"],
@@ -86,7 +86,7 @@ def mapping_active_MF_DFLOW1D(
     return map_active_mod_dflow1d, mask_active_mod_dflow1d
 
 
-def mapping_passive_MF_DFLOW1D(
+def mapping_passive_mf_dflow1d(
     workdir: Path, dflow1d_lookup: dict[tuple[float, float], int]
 ) -> tuple[dict[str, csr_matrix], dict[str, NDArray[int_]]]:
     # function creates dictionary with mapping tables for mapping MF <-> dflow1d
@@ -139,7 +139,7 @@ def mapping_passive_MF_DFLOW1D(
     return map_passive_mod_dflow1d, mask_passive_mod_dflow1d
 
 
-def mapping_MSW_DFLOW1D(
+def mapping_msw_dflow1d(
     workdir: Path,
     dflow1d_lookup: dict[tuple[float, float], int],
     array: Optional[NDArray[float_]] = None,
@@ -173,7 +173,7 @@ def mapping_MSW_DFLOW1D(
             max(dflow_idx) + 1,
             "sum",
         )
-        if not array is None:
+        if array is not None:
             # DFLOW 1D -> MSW (sprinkling)
             weight = weight_from_flux_distribution(
                 msw_idx, dflow_idx, array
@@ -208,10 +208,9 @@ def mapping_MSW_DFLOW1D(
     return map_msw_dflow1d, mask_msw_dflow1d
 
 
-def mapping_MSW_DFLOW2D(
+def mapping_msw_dflow2d(
     workdir: Path,
     dflow2d_lookup: dict[tuple[float, float], int],
-    array: Optional[NDArray[float_]] = None,
 ) -> tuple[dict[str, csr_matrix], dict[str, NDArray[int_]]]:
     # dictionary with mapping tables for msw-dflow-2d coupling
     # mapping includes MSW 2D coupling:
@@ -360,11 +359,11 @@ def get_dflow2d_lookup(workdir: Path) -> tuple[dict[tuple[float, float], int], b
         dflow2d_y = dflow2d_data[:, 4]
         # XMI/BMI call to dflow-fm with x and y list, returns id list with node numbers
         # dflowfm_MapCoordinateTo2DCellId(x, y, id) -> id
-        id = np.array([0])  # dummy array, check 0-indexing
-        ii = id.shape[0]
+        id_ = np.array([0])  # dummy array, check 0-indexing
+        ii = id_.shape[0]
         for i in range(ii):
-            if id[i] > 0:
-                dflow2d_lookup[(dflow2d_x[i], dflow2d_y[i])] = id[i]
+            if id_[i] > 0:
+                dflow2d_lookup[(dflow2d_x[i], dflow2d_y[i])] = id_[i]
             else:
                 raise ValueError(
                     f"xy coordinate {dflow2d_x,dflow2d_y} is not part of dflow's mesh"
