@@ -20,7 +20,7 @@ from xmipy import XmiWrapper
 from imod_coupler.config import BaseConfig
 from imod_coupler.drivers.dfm_metamod.config import Coupling, DfmMetaModConfig
 from imod_coupler.drivers.driver import Driver
-from imod_coupler.utils import create_mapping
+from imod_coupler.utils import Operator, create_mapping
 from imod_coupler.drivers.dfm_metamod.dfm_utilities import DfmUtilities
 from imod_coupler.drivers.dfm_metamod.mf6_utilities import MF6Utilities
 
