@@ -9,17 +9,17 @@ from imod_coupler.utils import create_mapping
 
 #%% Test
 @parametrize_with_cases(
-    "src_idx,tgt_idx,nsrc,ntgt,operator,expected_map_dense,expected_mask"
+    "src_idx,tgt_idx,nsrc,ntgt,operator,weight,expected_map_dense,expected_mask"
 )
 def test_create_mapping(
-    src_idx, tgt_idx, nsrc, ntgt, operator, expected_map_dense, expected_mask
+    src_idx, tgt_idx, nsrc, ntgt, operator, weight, expected_map_dense, expected_mask
 ):
     """
     Test create_mapping function. Argument names are equivalent to those in the
     create_mapping function.
     """
 
-    map_out, mask = create_mapping(src_idx, tgt_idx, nsrc, ntgt, operator)
+    map_out, mask = create_mapping(src_idx, tgt_idx, nsrc, ntgt, operator, weight)
 
     assert issubclass(map_out.dtype.type, np.floating)
     assert issubclass(mask.dtype.type, np.integer)
