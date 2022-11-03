@@ -10,6 +10,7 @@ def case_1_1_symmetric_sum():
     nsrc = 3
     ntgt = 3
     operator = Operator.SUM
+    weight = None
 
     expected_mask = np.array([0, 0, 0], dtype=int)
     expected_map_dense = np.array(
@@ -19,7 +20,16 @@ def case_1_1_symmetric_sum():
             [0.0, 0.0, 1.0],
         ]
     )
-    return src_idx, tgt_idx, nsrc, ntgt, operator, expected_map_dense, expected_mask
+    return (
+        src_idx,
+        tgt_idx,
+        nsrc,
+        ntgt,
+        operator,
+        weight,
+        expected_map_dense,
+        expected_mask,
+    )
 
 
 def case_1_1_symmetric_avg():
@@ -29,6 +39,7 @@ def case_1_1_symmetric_avg():
     nsrc = 3
     ntgt = 3
     operator = Operator.AVERAGE
+    weight = None
 
     expected_mask = np.array([0, 0, 0], dtype=int)
     expected_map_dense = np.array(
@@ -38,7 +49,16 @@ def case_1_1_symmetric_avg():
             [0.0, 0.0, 1.0],
         ]
     )
-    return src_idx, tgt_idx, nsrc, ntgt, operator, expected_map_dense, expected_mask
+    return (
+        src_idx,
+        tgt_idx,
+        nsrc,
+        ntgt,
+        operator,
+        weight,
+        expected_map_dense,
+        expected_mask,
+    )
 
 
 def case_1_1_asymmetric_sum():
@@ -48,6 +68,7 @@ def case_1_1_asymmetric_sum():
     nsrc = 3
     ntgt = 6
     operator = Operator.SUM
+    weight = None
 
     expected_mask = np.array([1, 1, 0, 0, 0, 1], dtype=int)
     expected_map_dense = np.array(
@@ -60,7 +81,16 @@ def case_1_1_asymmetric_sum():
             [0.0, 0.0, 0.0],
         ]
     )
-    return src_idx, tgt_idx, nsrc, ntgt, operator, expected_map_dense, expected_mask
+    return (
+        src_idx,
+        tgt_idx,
+        nsrc,
+        ntgt,
+        operator,
+        weight,
+        expected_map_dense,
+        expected_mask,
+    )
 
 
 def case_1_1_asymmetric_avg():
@@ -70,6 +100,7 @@ def case_1_1_asymmetric_avg():
     nsrc = 3
     ntgt = 6
     operator = Operator.AVERAGE
+    weight = None
 
     expected_mask = np.array([1, 1, 0, 0, 0, 1], dtype=int)
     expected_map_dense = np.array(
@@ -82,7 +113,16 @@ def case_1_1_asymmetric_avg():
             [0.0, 0.0, 0.0],
         ]
     )
-    return src_idx, tgt_idx, nsrc, ntgt, operator, expected_map_dense, expected_mask
+    return (
+        src_idx,
+        tgt_idx,
+        nsrc,
+        ntgt,
+        operator,
+        weight,
+        expected_map_dense,
+        expected_mask,
+    )
 
 
 def case_n_1_symmetric_sum():
@@ -92,6 +132,7 @@ def case_n_1_symmetric_sum():
     nsrc = 3
     ntgt = 3
     operator = Operator.SUM
+    weight = None
 
     expected_mask = np.array([0, 0, 1], dtype=int)
     expected_map_dense = np.array(
@@ -101,7 +142,16 @@ def case_n_1_symmetric_sum():
             [0.0, 0.0, 0.0],
         ]
     )
-    return src_idx, tgt_idx, nsrc, ntgt, operator, expected_map_dense, expected_mask
+    return (
+        src_idx,
+        tgt_idx,
+        nsrc,
+        ntgt,
+        operator,
+        weight,
+        expected_map_dense,
+        expected_mask,
+    )
 
 
 def case_n_1_symmetric_avg():
@@ -111,6 +161,7 @@ def case_n_1_symmetric_avg():
     nsrc = 3
     ntgt = 3
     operator = Operator.AVERAGE
+    weight = None
 
     expected_mask = np.array([0, 0, 1], dtype=int)
     expected_map_dense = np.array(
@@ -120,7 +171,16 @@ def case_n_1_symmetric_avg():
             [0.0, 0.0, 0.0],
         ]
     )
-    return src_idx, tgt_idx, nsrc, ntgt, operator, expected_map_dense, expected_mask
+    return (
+        src_idx,
+        tgt_idx,
+        nsrc,
+        ntgt,
+        operator,
+        weight,
+        expected_map_dense,
+        expected_mask,
+    )
 
 
 def case_n_1_asymmetric_sum():
@@ -130,6 +190,7 @@ def case_n_1_asymmetric_sum():
     nsrc = 3
     ntgt = 6
     operator = Operator.SUM
+    weight = None
 
     expected_mask = np.array([1, 1, 0, 1, 0, 1], dtype=int)
     expected_map_dense = np.array(
@@ -142,7 +203,16 @@ def case_n_1_asymmetric_sum():
             [0.0, 0.0, 0.0],
         ]
     )
-    return src_idx, tgt_idx, nsrc, ntgt, operator, expected_map_dense, expected_mask
+    return (
+        src_idx,
+        tgt_idx,
+        nsrc,
+        ntgt,
+        operator,
+        weight,
+        expected_map_dense,
+        expected_mask,
+    )
 
 
 def case_n_1_asymmetric_avg():
@@ -152,6 +222,7 @@ def case_n_1_asymmetric_avg():
     nsrc = 3
     ntgt = 6
     operator = Operator.AVERAGE
+    weight = None
 
     expected_mask = np.array([1, 1, 0, 1, 0, 1], dtype=int)
     expected_map_dense = np.array(
@@ -164,4 +235,136 @@ def case_n_1_asymmetric_avg():
             [0.0, 0.0, 0.0],
         ]
     )
-    return src_idx, tgt_idx, nsrc, ntgt, operator, expected_map_dense, expected_mask
+    return (
+        src_idx,
+        tgt_idx,
+        nsrc,
+        ntgt,
+        operator,
+        weight,
+        expected_map_dense,
+        expected_mask,
+    )
+
+
+def case_1_1_symmetric_weight():
+    src_idx = np.array([0, 1, 2], dtype=int)
+    tgt_idx = np.array([0, 1, 2], dtype=int)
+
+    nsrc = 3
+    ntgt = 3
+    operator = Operator.WEIGHT
+    weight = np.array([0.5, 0.3, 0.1])
+
+    expected_mask = np.array([0, 0, 0], dtype=int)
+
+    expected_map_dense = np.array(
+        [
+            [0.5, 0.0, 0.0],
+            [0.0, 0.3, 0.0],
+            [0.0, 0.0, 0.1],
+        ]
+    )
+    return (
+        src_idx,
+        tgt_idx,
+        nsrc,
+        ntgt,
+        operator,
+        weight,
+        expected_map_dense,
+        expected_mask,
+    )
+
+
+def case_1_1_asymmetric_weight():
+    src_idx = np.array([0, 1, 2], dtype=int)
+    tgt_idx = np.array([2, 3, 4], dtype=int)
+
+    nsrc = 3
+    ntgt = 6
+    operator = Operator.WEIGHT
+    weight = np.array([0.5, 0.3, 0.1])
+
+    expected_mask = np.array([1, 1, 0, 0, 0, 1], dtype=int)
+    expected_map_dense = np.array(
+        [
+            [0.0, 0.0, 0.0],
+            [0.0, 0.0, 0.0],
+            [0.5, 0.0, 0.0],
+            [0.0, 0.3, 0.0],
+            [0.0, 0.0, 0.1],
+            [0.0, 0.0, 0.0],
+        ]
+    )
+    return (
+        src_idx,
+        tgt_idx,
+        nsrc,
+        ntgt,
+        operator,
+        weight,
+        expected_map_dense,
+        expected_mask,
+    )
+
+
+def case_n_1_symmetric_weight():
+    src_idx = np.array([0, 1, 2], dtype=int)
+    tgt_idx = np.array([0, 1, 1], dtype=int)
+
+    nsrc = 3
+    ntgt = 3
+    operator = Operator.WEIGHT
+    weight = np.array([0.5, 0.3, 0.1])
+
+    expected_mask = np.array([0, 0, 1], dtype=int)
+    expected_map_dense = np.array(
+        [
+            [0.5, 0.0, 0.0],
+            [0.0, 0.3, 0.1],
+            [0.0, 0.0, 0.0],
+        ]
+    )
+    return (
+        src_idx,
+        tgt_idx,
+        nsrc,
+        ntgt,
+        operator,
+        weight,
+        expected_map_dense,
+        expected_mask,
+    )
+
+
+def case_n_1_asymmetric_weight():
+    src_idx = np.array([0, 1, 2], dtype=int)
+    tgt_idx = np.array([2, 2, 4], dtype=int)
+
+    nsrc = 3
+    ntgt = 6
+    operator = Operator.WEIGHT
+    weight = np.array([0.5, 0.3, 0.1])
+
+    expected_mask = np.array([1, 1, 0, 1, 0, 1], dtype=int)
+    expected_map_dense = np.array(
+        [
+            [0.0, 0.0, 0.0],
+            [0.0, 0.0, 0.0],
+            [0.5, 0.3, 0.0],
+            [0.0, 0.0, 0.0],
+            [0.0, 0.0, 0.1],
+            [0.0, 0.0, 0.0],
+        ]
+    )
+    return (
+        src_idx,
+        tgt_idx,
+        nsrc,
+        ntgt,
+        operator,
+        weight,
+        expected_map_dense,
+        expected_mask,
+    )
