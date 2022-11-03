@@ -1,5 +1,7 @@
 import numpy as np
 
+from imod_coupler.utils import Operator
+
 
 def case_1_1_symmetric_sum():
     src_idx = np.array([0, 1, 2], dtype=int)
@@ -7,7 +9,7 @@ def case_1_1_symmetric_sum():
 
     nsrc = 3
     ntgt = 3
-    operator = "sum"
+    operator = Operator.SUM
 
     expected_mask = np.array([0, 0, 0], dtype=int)
     expected_map_dense = np.array(
@@ -26,7 +28,7 @@ def case_1_1_symmetric_avg():
 
     nsrc = 3
     ntgt = 3
-    operator = "avg"
+    operator = Operator.AVERAGE
 
     expected_mask = np.array([0, 0, 0], dtype=int)
     expected_map_dense = np.array(
@@ -45,7 +47,7 @@ def case_1_1_asymmetric_sum():
 
     nsrc = 3
     ntgt = 6
-    operator = "sum"
+    operator = Operator.SUM
 
     expected_mask = np.array([1, 1, 0, 0, 0, 1], dtype=int)
     expected_map_dense = np.array(
@@ -67,7 +69,7 @@ def case_1_1_asymmetric_avg():
 
     nsrc = 3
     ntgt = 6
-    operator = "avg"
+    operator = Operator.AVERAGE
 
     expected_mask = np.array([1, 1, 0, 0, 0, 1], dtype=int)
     expected_map_dense = np.array(
@@ -89,7 +91,7 @@ def case_n_1_symmetric_sum():
 
     nsrc = 3
     ntgt = 3
-    operator = "sum"
+    operator = Operator.SUM
 
     expected_mask = np.array([0, 0, 1], dtype=int)
     expected_map_dense = np.array(
@@ -108,7 +110,7 @@ def case_n_1_symmetric_avg():
 
     nsrc = 3
     ntgt = 3
-    operator = "avg"
+    operator = Operator.AVERAGE
 
     expected_mask = np.array([0, 0, 1], dtype=int)
     expected_map_dense = np.array(
@@ -127,7 +129,7 @@ def case_n_1_asymmetric_sum():
 
     nsrc = 3
     ntgt = 6
-    operator = "sum"
+    operator = Operator.SUM
 
     expected_mask = np.array([1, 1, 0, 1, 0, 1], dtype=int)
     expected_map_dense = np.array(
@@ -149,7 +151,7 @@ def case_n_1_asymmetric_avg():
 
     nsrc = 3
     ntgt = 6
-    operator = "avg"
+    operator = Operator.AVERAGE
 
     expected_mask = np.array([1, 1, 0, 1, 0, 1], dtype=int)
     expected_map_dense = np.array(

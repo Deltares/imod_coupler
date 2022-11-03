@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from contextlib import contextmanager
 from email.generator import Generator
+from enum import Enum, auto
 from os import chdir
 from pathlib import Path
 from sys import stderr
@@ -16,12 +17,18 @@ from scipy.sparse import csr_matrix
 from imod_coupler.config import LogLevel
 
 
+class Operator(Enum):
+    AVERAGE = auto()
+    SUM = auto()
+    WEIGHT = auto()
+
+
 def create_mapping(
     src_idx: Any,
     tgt_idx: Any,
     nsrc: int,
     ntgt: int,
-    operator: str,
+    operator: Operator,
     weight: Optional[NDArray[float_]] = None,
 ) -> Tuple[csr_matrix, NDArray[int_]]:
     """
@@ -45,7 +52,7 @@ def create_mapping(
         The number of entries in the target array
     operator : str
        Indicating how n-1 mappings should be dealt
-       with: "avg" for average, "sum" for sum.
+       with: Operator.AVERAGE for average, Operator.SUM for sum.
        Operator does not affect 1-n couplings.
 
     Returns
@@ -53,14 +60,14 @@ def create_mapping(
     Tuple
         containing the mapping (csr_matrix) and a mask (numpy array)
     """
-    if operator == "avg":
+    if operator == Operator.AVERAGE:
         cnt = np.zeros(max(tgt_idx) + 1)
         for i in range(len(tgt_idx)):
             cnt[tgt_idx[i]] += 1
         dat = np.array([1.0 / cnt[xx] for xx in tgt_idx])
-    elif operator == "sum":
+    elif operator == Operator.SUM:
         dat = np.ones(tgt_idx.shape)
-    elif operator == "weight":
+    elif operator == Operator.WEIGHT:
         assert weight is not None
         dat = weight
     else:

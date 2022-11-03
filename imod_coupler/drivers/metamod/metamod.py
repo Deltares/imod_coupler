@@ -17,7 +17,7 @@ from xmipy import XmiWrapper
 from imod_coupler.config import BaseConfig
 from imod_coupler.drivers.driver import Driver
 from imod_coupler.drivers.metamod.config import Coupling, MetaModConfig
-from imod_coupler.utils import create_mapping
+from imod_coupler.utils import Operator, create_mapping
 
 
 class MetaMod(Driver):
@@ -152,7 +152,7 @@ class MetaMod(Driver):
             node_idx,
             self.msw_storage.size,
             self.mf6_storage.size,
-            "sum",
+            Operator.SUM,
         )
 
         # MetaSWAP gives SC1*area, MODFLOW by default needs SS, convert here.
@@ -176,7 +176,7 @@ class MetaMod(Driver):
             msw_idx,
             self.mf6_head.size,
             self.msw_head.size,
-            "avg",
+            Operator.AVERAGE,
         )
 
         table_rch2svat: NDArray[np.int32] = np.loadtxt(
@@ -193,7 +193,7 @@ class MetaMod(Driver):
             rch_idx,
             self.msw_volume.size,
             self.mf6_recharge.size,
-            "sum",
+            Operator.SUM,
         )
 
         if self.coupling.enable_sprinkling:
@@ -222,7 +222,7 @@ class MetaMod(Driver):
                 well_idx,
                 self.msw_volume.size,
                 self.mf6_sprinkling_wells.size,
-                "sum",
+                Operator.SUM,
             )
 
     def update(self) -> None:

@@ -8,7 +8,7 @@ from numpy.typing import NDArray
 from scipy.sparse import csr_matrix, dia_matrix
 from xmipy import XmiWrapper
 
-from imod_coupler.utils import create_mapping
+from imod_coupler.utils import Operator, create_mapping
 
 
 # mapping different types of exchanges within DFLOWMETMOD driver
@@ -43,7 +43,7 @@ def mapping_active_mf_dflow1d(
             dflow_idx,
             max(mf_idx) + 1,
             max(dflow_idx) + 1,
-            "sum",
+            Operator.SUM,
         )
         # DFLOW 1D  -> MF RIV 1 (flux)
         # weight array is flux-array from previous MF-RIV1 -> dlfowfm exchange
@@ -58,7 +58,7 @@ def mapping_active_mf_dflow1d(
                 mf_idx,
                 max(dflow_idx) + 1,
                 max(mf_idx) + 1,
-                "weight",
+                Operator.WEIGHT,
                 weight,
             )
     # DFLOW 1D -> MF RIV 1 (stage)
@@ -80,7 +80,7 @@ def mapping_active_mf_dflow1d(
             mf_idx,
             max(dflow_idx) + 1,
             max(mf_idx) + 1,
-            "weight",
+            Operator.WEIGHT,
             weight,
         )
     return map_active_mod_dflow1d, mask_active_mod_dflow1d
@@ -114,7 +114,7 @@ def mapping_passive_mf_dflow1d(
             dflow_idx,
             max(mf_idx) + 1,
             max(dflow_idx) + 1,
-            "sum",
+            Operator.SUM,
         )
     # MF DRN -> DFLOW 1D (flux)
     mapping_file = workdir / "MFDRNTODFM1D_Q.DMM"
@@ -134,7 +134,7 @@ def mapping_passive_mf_dflow1d(
             dflow_idx,
             max(mf_idx) + 1,
             max(dflow_idx) + 1,
-            "sum",
+            Operator.SUM,
         )
     return map_passive_mod_dflow1d, mask_passive_mod_dflow1d
 
@@ -171,7 +171,7 @@ def mapping_msw_dflow1d(
             dflow_idx,
             max(msw_idx) + 1,
             max(dflow_idx) + 1,
-            "sum",
+            Operator.SUM,
         )
         if array is not None:
             # DFLOW 1D -> MSW (sprinkling)
@@ -182,7 +182,12 @@ def mapping_msw_dflow1d(
                 map_msw_dflow1d["dflow1d_flux2msw-sprinkling"],
                 mask_msw_dflow1d["dflow1d_flux2msw-sprinkling"],
             ) = create_mapping(
-                dflow_idx, msw_idx, len(dflow_idx), len(msw_idx), "weight", weight
+                dflow_idx,
+                msw_idx,
+                len(dflow_idx),
+                len(msw_idx),
+                Operator.WEIGHT,
+                weight,
             )
     # MSW -> DFLOW 1D (ponding)
     mapping_file = workdir / "MSWRUNOFFTODFM1D_Q.DMM"
@@ -203,7 +208,7 @@ def mapping_msw_dflow1d(
             dflow_idx,
             max(msw_idx) + 1,
             max(dflow_idx) + 1,
-            "sum",
+            Operator.SUM,
         )
     return map_msw_dflow1d, mask_msw_dflow1d
 
@@ -240,7 +245,7 @@ def mapping_msw_dflow2d(
             dflow_idx,
             max(msw_idx) + 1,
             max(dflow_idx) + 1,
-            "sum",
+            Operator.SUM,
         )
         # DFLOW 2D -> MSW (ponding)
         # TODO: check if this is always, 1:1 connection, otherwise use weights
@@ -252,7 +257,7 @@ def mapping_msw_dflow2d(
             msw_idx,
             max(dflow_idx) + 1,
             max(msw_idx) + 1,
-            "sum",  # check TODO
+            Operator.SUM,  # check TODO
         )
     # DFLOW 2D -> MSW (stage/innudation)
     mapping_file = workdir / " DFM2DWATLEVTOMSW_H.DMM"
@@ -275,7 +280,7 @@ def mapping_msw_dflow2d(
             map_msw_dflow2d["dflow2d_stage2msw-ponding"],
             mask_msw_dflow2d["dflow2d_stage2msw-ponding"],
         ) = create_mapping(
-            dflow_idx, msw_idx, len(dflow_idx), len(msw_idx), "weight", weight
+            dflow_idx, msw_idx, len(dflow_idx), len(msw_idx), Operator.WEIGHT, weight
         )
     return map_msw_dflow2d, mask_msw_dflow2d
 
