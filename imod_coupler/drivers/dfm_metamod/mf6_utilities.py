@@ -1,6 +1,4 @@
 import numpy as np
-from imod import mf6
-from imod.mf6 import GroundwaterFlowModel, Modflow6Simulation
 from numpy.typing import NDArray
 from xmipy import XmiWrapper
 
