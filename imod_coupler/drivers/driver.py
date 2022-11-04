@@ -28,13 +28,13 @@ class Driver(ABC):
         # This will initialize and couple the kernels
         self.initialize()
 
-        # Run the time loop
-        while self.get_current_time() < self.get_end_time():
-            self.update()
-
-        logger.info("New simulation terminated normally")
-
-        self.finalize()
+        try:
+            # Run the time loop
+            while self.get_current_time() < self.get_end_time():
+                self.update()
+            logger.info("New simulation terminated normally")
+        finally:
+            self.finalize()
 
     @abstractmethod
     def initialize(self) -> None:

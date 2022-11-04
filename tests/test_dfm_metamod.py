@@ -21,7 +21,6 @@ def test_dfmmetamod_initialization(
     dflowfm_initial_inputfiles_folder: Path,
     tmp_path_dev: Path,
 ):
-
     # write input for the simulators and a toml configuration file containing the paths of these
     # inputfiles and the paths of the kernel dll's
     dfm_metamod.write(

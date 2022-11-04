@@ -5,20 +5,19 @@ from pathlib import Path
 import pytest
 from bmi.wrapper import BMIWrapper
 from hydrolib.core.io.mdu.models import FMModel
-
-from imod_coupler.drivers.dfm_metamod.dfm_utilities import DfmUtilities
+from imod import mf6
+from xmipy import XmiWrapper
 
 
 @pytest.mark.skip(
-    reason="currently the BMI wrapper does not survive a second initialize call, and it was already used in test_dfm_metamod"
+    reason="currently the BMI wrapper does not survive a second initialize call"
 )
-def test_get_river_stage_from_dflow(
+def test_bmi_wrapper_can_be_initialized_and_finalized_multiple_times(
     prepared_dflowfm_model: FMModel,
     dflowfm_dll_regression: Path,
     dflowfm_initial_inputfiles_folder: Path,
     tmp_path_reg: Path,
 ) -> None:
-
     prepared_dflowfm_model.save(recurse=True)
     prepared_dflowfm_model.filepath = tmp_path_reg / "fm.mdu"
     # ================
@@ -45,8 +44,23 @@ def test_get_river_stage_from_dflow(
     )
 
     bmiwrapper.initialize()
-    water_levels_1d = DfmUtilities.get_waterlevels_1d(bmiwrapper)
-    BMIWrapper.finalize()
+    bmiwrapper.finalize()
+    bmiwrapper.initialize()
+    bmiwrapper.finalize()
 
-    # the current test dataset does not have 1d rivers.
-    assert len(water_levels_1d) == 0
+
+def test_xmi_wrapper_can_be_initialized_and_finalized_multiple_times(
+    mf6_model_with_river: mf6.Modflow6Simulation,
+    modflow_dll_regression: Path,
+    tmp_path_dev: Path,
+) -> None:
+
+    mf6_model_with_river.write(tmp_path_dev)
+    mf6wrapper = XmiWrapper(
+        lib_path=modflow_dll_regression,
+        working_directory=tmp_path_dev,
+    )
+    mf6wrapper.initialize()
+    mf6wrapper.finalize()
+    mf6wrapper.initialize()
+    mf6wrapper.finalize()

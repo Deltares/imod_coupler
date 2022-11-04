@@ -10,15 +10,15 @@ from imod_coupler.drivers.dfm_metamod.mf6_utilities import MF6Utilities
 
 
 def test_mf6_set_river_stage(
-    mf6_model_with_river: mf6.Modflow6Simulation, modflow_dll_regression: Path
+    mf6_model_with_river: mf6.Modflow6Simulation,
+    modflow_dll_regression: Path,
+    tmp_path_dev: Path,
 ) -> None:
 
-    testdir = tempfile.mkdtemp()
-
-    mf6_model_with_river.write(testdir)
+    mf6_model_with_river.write(tmp_path_dev)
     mf6wrapper = XmiWrapper(
         lib_path=modflow_dll_regression,
-        working_directory=testdir,
+        working_directory=tmp_path_dev,
     )
     mf6wrapper.initialize()
     mf6wrapper.prepare_time_step(0.0)
@@ -35,4 +35,6 @@ def test_mf6_set_river_stage(
     bound_adress = mf6wrapper.get_var_address("BOUND", "GWF_1", "Oosterschelde")
     bound = mf6wrapper.get_value_ptr(bound_adress)
     stage = bound[:, 0]
+
     assert np.isclose(stage, new_river_stage).all()
+    mf6wrapper.finalize()
