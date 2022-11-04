@@ -1,7 +1,8 @@
+from ctypes import POINTER, byref, c_char_p, c_int
 from typing import Optional
 
 import numpy as np
-from bmi.wrapper import BMIWrapper
+from bmi.wrapper import BMIWrapper, create_string_buffer
 from numpy.typing import NDArray
 
 
@@ -24,3 +25,11 @@ class DfmWrapper(BMIWrapper):  # type: ignore
             return None
         all_cumulative_fluxes = self.get_var("vextcum")
         return np.asarray(all_cumulative_fluxes[-nr_nodes_1d:], dtype=np.float_)
+
+    def get_snapped_feature(self, name: str) -> int:
+        name = create_string_buffer(name)
+        rank = c_int()
+        self.library.get_var_rank.argtypes = [c_char_p, POINTER(c_int)]
+        self.library.get_var_rank.restype = None
+        self.library.get_var_rank(name, byref(rank))
+        return rank.value
