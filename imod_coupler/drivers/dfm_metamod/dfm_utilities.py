@@ -1,5 +1,6 @@
 import numpy as np
 from bmi.wrapper import BMIWrapper
+from numpy.typing import NDArray
 
 
 class DfmUtilities:
@@ -10,7 +11,7 @@ class DfmUtilities:
         return int(nr_nodes - nr_nodes2d)
 
     @classmethod
-    def get_waterlevels_1d(cls, dflow: BMIWrapper) -> np.ndarray[float]:
+    def get_waterlevels_1d(cls, dflow: BMIWrapper) -> NDarray[float]:
         nr_nodes_1d = cls.get_number_1d_nodes(dflow)
         if nr_nodes_1d == 0:
             return np.empty(shape=(0), dtype=np.float_)
@@ -18,7 +19,7 @@ class DfmUtilities:
         return np.asarray(all_waterlevels[-nr_nodes_1d:], dtype=np.float_)
 
     @classmethod
-    def get_cumulative_fluxes_1d_nodes(cls, dflow: BMIWrapper) -> np.ndarray[float]:
+    def get_cumulative_fluxes_1d_nodes(cls, dflow: BMIWrapper) -> NDArray[float]:
         nr_nodes_1d = cls.get_number_1d_nodes(dflow)
         if nr_nodes_1d == 0:
             return np.empty(shape=(0), dtype=np.float_)
