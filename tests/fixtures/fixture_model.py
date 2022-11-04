@@ -453,6 +453,7 @@ def prepared_dflowfm_model(tmp_path_reg: Path) -> FMModel:
 
         return fm_model
 
+
 @pytest_cases.fixture(scope="function")
 def mf6_model_with_river(coupled_mf6_model) -> mf6.Modflow6Simulation:
 
