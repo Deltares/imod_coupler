@@ -11,6 +11,7 @@ from imod_coupler.drivers.dfm_metamod.dfm_utilities import DfmUtilities
 
 @pytest.mark.skip(
     reason="currently the BMI wrapper does not survive a second initialize call, and it was already used in test_dfm_metamod"
+    + "It should still work when running just this test."
 )
 def test_get_river_stage_from_dflow(
     prepared_dflowfm_model: FMModel,
@@ -46,7 +47,7 @@ def test_get_river_stage_from_dflow(
 
     bmiwrapper.initialize()
     water_levels_1d = DfmUtilities.get_waterlevels_1d(bmiwrapper)
-    BMIWrapper.finalize()
+    bmiwrapper.finalize()
 
     # the current test dataset does not have 1d rivers.
     assert len(water_levels_1d) == 0
