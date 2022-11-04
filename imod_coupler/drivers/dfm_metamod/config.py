@@ -37,6 +37,7 @@ class Coupling(BaseModel):
     mf6_msw_well_pkg: Optional[
         str
     ] = None  # the well package that will be used for coupling when sprinkling is active
+    mf6_river_pkg: str  # the river package that will be used for coupling
     mf6_msw_node_map: FilePath  # the path to the node map file
     mf6_msw_recharge_map: FilePath  # the pach to the recharge map file
     mf6_msw_sprinkling_map: Optional[

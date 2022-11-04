@@ -13,7 +13,7 @@ from imod_coupler.drivers.dfm_metamod.dfm_metamod_model import DfmMetaModModel
 testdir = tempfile.mkdtemp()
 
 
-@parametrize_with_cases("dfm_metamod", prefix="case_default")
+@parametrize_with_cases("dfm_metamod", prefix="case_")
 def test_dfmmetamod_initialization(
     dfm_metamod: DfmMetaModModel,
     modflow_dll_devel: Path,
@@ -49,4 +49,4 @@ def test_dfmmetamod_initialization(
     # means the initialization of the kernels went well.
     with pytest.raises(ValueError) as e:
         __main__.run_coupler(inputpath)
-    assert str(e.value) == "survived initialization and did some stuff"
+    assert str(e.value) == "Expected size of new_river stages is 15"

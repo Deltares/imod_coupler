@@ -5,10 +5,9 @@ import tempfile
 from pathlib import Path
 
 from bmi.wrapper import BMIWrapper
-from hydrolib.core.io.bc.models import ForcingModel
 from hydrolib.core.io.mdu.models import FMModel
-from imod import mf6
-from xmipy import XmiWrapper
+
+from imod_coupler.drivers.dfm_metamod.dfm_utilities import DfmUtilities
 
 
 def test_get_river_stage_from_dflow(
@@ -16,7 +15,7 @@ def test_get_river_stage_from_dflow(
     dflowfm_dll_regression: Path,
     dflowfm_initial_inputfiles_folder: Path,
     tmp_path_reg: Path,
-):
+) -> None:
 
     prepared_dflowfm_model.save(recurse=True)
     prepared_dflowfm_model.filepath = tmp_path_reg / "fm.mdu"
@@ -44,7 +43,7 @@ def test_get_river_stage_from_dflow(
     )
 
     bmiwrapper.initialize()
-    nr_nodes = bmiwrapper.get_var("ndxi")  # number of 1d cells
-    nr_nodes2d = bmiwrapper.get_var("ndx2d")  # number of 2d cells
-    nr_nodes1d = nr_nodes - nr_nodes2d
-    waterlevels = bmiwrapper.get_var("s1")
+    water_levels_1d = DfmUtilities.get_waterlevels_1d(bmiwrapper)
+
+    # the current test dataset does not have 1d rivers.
+    assert len(water_levels_1d) == 0

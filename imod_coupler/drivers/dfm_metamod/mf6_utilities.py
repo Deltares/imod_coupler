@@ -34,25 +34,15 @@ class MF6Utilities:
     def set_river_stages(
         cls,
         mf6_wrapper: XmiWrapper,
-        mf6_model: Modflow6Simulation,
+        mf6_flowmodel_key: str,
+        mf6_river_pkg_key: str,
         new_river_stages: NDArray[np.float_],
     ) -> None:
         """
         sets the river stages in a modflow simulation to the provided values.
-        There is supposed to be 1 groundwater model in the simulation with 1 river package.
         """
-        flow_model_keys = cls.get_flow_model_keys(mf6_model)
-        if len(flow_model_keys) > 1:
-            raise ValueError("Currently we support only one flow model.")
-
-        river_pack_keys = cls.get_modflow_package_keys(
-            mf6_model[flow_model_keys[0]], mf6.River
-        )
-        if len(river_pack_keys) > 1:
-            raise ValueError("Currently we support only one river package.")
-
         bound_adress = mf6_wrapper.get_var_address(
-            "BOUND", flow_model_keys[0], river_pack_keys[0]
+            "BOUND", mf6_flowmodel_key, mf6_river_pkg_key
         )
         bound = mf6_wrapper.get_value_ptr(bound_adress)
         stage = bound[:, 0]

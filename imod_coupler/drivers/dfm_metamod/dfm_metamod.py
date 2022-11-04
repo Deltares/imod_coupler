@@ -4,9 +4,9 @@ description:
 
 """
 from __future__ import annotations
-from ast import Pass
 
 import os
+from ast import Pass
 from pathlib import Path
 from typing import Any, Dict
 
@@ -19,10 +19,10 @@ from xmipy import XmiWrapper
 
 from imod_coupler.config import BaseConfig
 from imod_coupler.drivers.dfm_metamod.config import Coupling, DfmMetaModConfig
-from imod_coupler.drivers.driver import Driver
-from imod_coupler.utils import Operator, create_mapping
 from imod_coupler.drivers.dfm_metamod.dfm_utilities import DfmUtilities
 from imod_coupler.drivers.dfm_metamod.mf6_utilities import MF6Utilities
+from imod_coupler.drivers.driver import Driver
+from imod_coupler.utils import Operator, create_mapping
 
 
 class DfmMetaMod(Driver):
@@ -133,8 +133,6 @@ class DfmMetaMod(Driver):
 
         self.mf6.finalize_time_step()
 
-        raise ValueError("survived initialization and did some stuff")
-
     def finalize(self) -> None:
         self.mf6.finalize()
         self.msw.finalize()
@@ -155,7 +153,12 @@ class DfmMetaMod(Driver):
         DFM unit: ?
         """
         water_levels = DfmUtilities.get_waterlevels_1d(self.dfm)
-        MF6Utilities.set_river_stages(self.mf6, water_levels)
+        MF6Utilities.set_river_stages(
+            self.mf6,
+            self.coupling.mf6_model,
+            self.coupling.mf6_river_pkg,
+            water_levels,
+        )
 
     def exchange_V_1D(self) -> None:
         """
