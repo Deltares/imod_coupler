@@ -21,5 +21,5 @@ class MF6Utilities:
         bound = mf6_wrapper.get_value_ptr(bound_adress)
         stage = bound[:, 0]
         if len(new_river_stages) != len(stage):
-            raise ValueError(f"Expected size of new_river stages is {len(stage)}")
+            raise ValueError(f"Expected size of new_river_stages is {len(stage)}")
         stage[:] = new_river_stages[:]

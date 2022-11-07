@@ -3,10 +3,9 @@ import shutil
 from pathlib import Path
 
 import pytest
-from bmi.wrapper import BMIWrapper
 from hydrolib.core.io.mdu.models import FMModel
 
-from imod_coupler.drivers.dfm_metamod.dfm_utilities import DfmUtilities
+from imod_coupler.drivers.dfm_metamod.extended_bmi_wrapper import ExtendedBMIWrapper
 
 
 @pytest.mark.skip(
@@ -41,12 +40,12 @@ def test_get_river_stage_from_dflow(
     for f in os.listdir(inifiles_dir):
         shutil.copy(inifiles_dir.joinpath(f), modeldir)
 
-    bmiwrapper = BMIWrapper(
+    bmiwrapper = ExtendedBMIWrapper(
         engine="dflowfm", configfile=prepared_dflowfm_model.filepath
     )
 
     bmiwrapper.initialize()
-    water_levels_1d = DfmUtilities.get_waterlevels_1d(bmiwrapper)
+    water_levels_1d = bmiwrapper.get_waterlevels_1d()
     bmiwrapper.finalize()
 
     # the current test dataset does not have 1d rivers.

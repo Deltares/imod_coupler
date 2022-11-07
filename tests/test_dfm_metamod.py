@@ -47,4 +47,4 @@ def test_dfmmetamod_initialization(
     # means the initialization of the kernels went well.
     with pytest.raises(ValueError) as e:
         run_coupler(inputpath)
-    assert str(e.value) == "Expected size of new_river stages is 15"
+    assert str(e.value) == "Expected size of new_river_stages is 15"

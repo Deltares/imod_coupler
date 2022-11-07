@@ -10,7 +10,6 @@ from pathlib import Path
 from typing import Any, Dict
 
 import numpy as np
-from bmi.wrapper import BMIWrapper
 from loguru import logger
 from numpy.typing import NDArray
 from scipy.sparse import csr_matrix, dia_matrix
@@ -18,7 +17,7 @@ from xmipy import XmiWrapper
 
 from imod_coupler.config import BaseConfig
 from imod_coupler.drivers.dfm_metamod.config import Coupling, DfmMetaModConfig
-from imod_coupler.drivers.dfm_metamod.dfm_utilities import DfmUtilities
+from imod_coupler.drivers.dfm_metamod.extended_bmi_wrapper import ExtendedBMIWrapper
 from imod_coupler.drivers.dfm_metamod.mf6_utilities import MF6Utilities
 from imod_coupler.drivers.driver import Driver
 from imod_coupler.utils import Operator, create_mapping
@@ -35,7 +34,7 @@ class DfmMetaMod(Driver):
     timing: bool  # true, when timing is enabled
     mf6: XmiWrapper  # the MODFLOW 6 XMI kernel
     msw: XmiWrapper  # the MetaSWAP XMI kernel
-    dfm: BMIWrapper  # the dflow-fm BMI kernel
+    dfm: ExtendedBMIWrapper  # the dflow-fm BMI kernel
 
     max_iter: NDArray[Any]  # max. nr outer iterations in MODFLOW kernel
     delt: float  # time step from MODFLOW 6 (leading)
@@ -89,7 +88,7 @@ class DfmMetaMod(Driver):
         dflowfm_input = self.dfm_metamod_config.kernels.dflowfm.work_dir.joinpath(
             mdu_name
         )
-        self.dfm = BMIWrapper(engine="dflowfm", configfile=dflowfm_input)
+        self.dfm = ExtendedBMIWrapper(engine="dflowfm", configfile=dflowfm_input)
 
         # Print output to stdout
         self.mf6.set_int("ISTDOUTTOFILE", 0)
@@ -151,7 +150,7 @@ class DfmMetaMod(Driver):
         MF6 unit: meters above MF6's reference plane
         DFM unit: ?
         """
-        water_levels = DfmUtilities.get_waterlevels_1d(self.dfm)
+        water_levels = self.dfm.get_waterlevels_1d()
         MF6Utilities.set_river_stages(
             self.mf6,
             self.coupling.mf6_model,
