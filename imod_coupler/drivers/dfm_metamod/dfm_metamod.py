@@ -18,7 +18,7 @@ from xmipy import XmiWrapper
 from imod_coupler.config import BaseConfig
 from imod_coupler.drivers.dfm_metamod.config import Coupling, DfmMetaModConfig
 from imod_coupler.drivers.dfm_metamod.dfm_wrapper import DfmWrapper
-from imod_coupler.drivers.dfm_metamod.mf6_wrapper import MF6_Wrapper
+from imod_coupler.drivers.dfm_metamod.mf6_wrapper import Mf6Wrapper
 from imod_coupler.drivers.driver import Driver
 from imod_coupler.utils import Operator, create_mapping
 
@@ -61,7 +61,7 @@ class DfmMetaMod(Driver):
         ]  # Adapt as soon as we have multimodel support
 
     def initialize(self) -> None:
-        self.mf6 = MF6_Wrapper(
+        self.mf6 = Mf6Wrapper(
             lib_path=self.dfm_metamod_config.kernels.modflow6.dll,
             lib_dependency=self.dfm_metamod_config.kernels.modflow6.dll_dep_dir,
             working_directory=Path(

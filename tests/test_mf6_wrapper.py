@@ -6,7 +6,7 @@ from imod import mf6
 from numpy.typing import NDArray
 from xmipy import XmiWrapper
 
-from imod_coupler.drivers.dfm_metamod.mf6_wrapper import MF6_Wrapper
+from imod_coupler.drivers.dfm_metamod.mf6_wrapper import Mf6Wrapper
 
 
 def test_mf6_set_river_stage(
@@ -16,7 +16,7 @@ def test_mf6_set_river_stage(
 ) -> None:
 
     mf6_model_with_river.write(tmp_path_dev)
-    mf6wrapper = MF6_Wrapper(
+    mf6wrapper = Mf6Wrapper(
         lib_path=modflow_dll_regression,
         working_directory=tmp_path_dev,
     )

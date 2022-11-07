@@ -3,7 +3,7 @@ from numpy.typing import NDArray
 from xmipy import XmiWrapper
 
 
-class MF6_Wrapper(XmiWrapper):
+class Mf6Wrapper(XmiWrapper):
     def set_river_stages(
         self,
         mf6_flowmodel_key: str,
