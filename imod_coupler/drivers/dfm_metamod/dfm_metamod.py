@@ -5,7 +5,6 @@ description:
 """
 from __future__ import annotations
 
-import copy
 import os
 from pathlib import Path
 from typing import Any, Dict
@@ -65,17 +64,13 @@ class DfmMetaMod(Driver):
         self.mf6 = Mf6Wrapper(
             lib_path=self.dfm_metamod_config.kernels.modflow6.dll,
             lib_dependency=self.dfm_metamod_config.kernels.modflow6.dll_dep_dir,
-            working_directory=copy.deepcopy(
-                self.dfm_metamod_config.kernels.modflow6.work_dir.absolute()
-            ),
+            working_directory=self.dfm_metamod_config.kernels.modflow6.work_dir,
             timing=self.base_config.timing,
         )
         self.msw = XmiWrapper(
             lib_path=self.dfm_metamod_config.kernels.metaswap.dll,
             lib_dependency=self.dfm_metamod_config.kernels.metaswap.dll_dep_dir,
-            working_directory=copy.deepcopy(
-                self.dfm_metamod_config.kernels.metaswap.work_dir.absolute()
-            ),
+            working_directory=self.dfm_metamod_config.kernels.metaswap.work_dir,
             timing=self.base_config.timing,
         )
 

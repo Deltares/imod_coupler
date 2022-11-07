@@ -36,4 +36,5 @@ def test_get_river_stage_from_dflow(
     bmiwrapper.finalize()
 
     # the current test dataset does not have 1d rivers.
+    assert water_levels_1d is not None
     assert len(water_levels_1d) == 0

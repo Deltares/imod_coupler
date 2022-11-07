@@ -22,6 +22,10 @@ class Kernel(BaseModel):
             dll_dep_dir = dll_dep_dir.resolve()
         return dll_dep_dir
 
+    @validator("work_dir")
+    def resolve_work_dir(cls, work_dir: FilePath) -> FilePath:
+        return work_dir.resolve()
+
 
 class Kernels(BaseModel):
     dflowfm: Kernel
