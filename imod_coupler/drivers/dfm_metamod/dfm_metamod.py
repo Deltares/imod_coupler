@@ -36,14 +36,16 @@ class DfmMetaMod(Driver):
     msw: XmiWrapper  # the MetaSWAP XMI kernel
     dfm: DfmWrapper  # the dflow-fm BMI kernel
 
-    max_iter: NDArray[Any]  # max. nr outer iterations in MODFLOW kernel
+    max_iter: NDArray[np.int_]  # max. nr outer iterations in MODFLOW kernel
     delt: float  # time step from MODFLOW 6 (leading)
 
-    mf6_head: NDArray[Any]  # the hydraulic head array in the groundwater model
-    mf6_river_stage: NDArray[Any]  # the river stage array in the groundwater model
+    mf6_head: NDArray[np.float_]  # the hydraulic head array in the groundwater model
+    mf6_river_stage: NDArray[
+        np.float_
+    ]  # the river stage array in the groundwater model
 
     dflowfm_1d_stage: NDArray[
-        Any
+        np.float_
     ]  # the river stage in the 1d rivers array in the surface water model
 
     number_dflowsteps_per_modflowstep = 10
