@@ -32,7 +32,7 @@ class DfmMetaMod(Driver):
     coupling: Coupling  # the coupling information
 
     timing: bool  # true, when timing is enabled
-    mf6: XmiWrapper  # the MODFLOW 6 XMI kernel
+    mf6: Mf6Wrapper  # the MODFLOW 6 XMI kernel
     msw: XmiWrapper  # the MetaSWAP XMI kernel
     dfm: DfmWrapper  # the dflow-fm BMI kernel
 

@@ -3,6 +3,7 @@ from os import listdir
 from pathlib import Path
 
 import pytest
+from dfm_test_initialization import copy_inputfiles
 from pytest_cases import parametrize_with_cases
 
 from imod_coupler.__main__ import run_coupler
@@ -29,14 +30,7 @@ def test_dfmmetamod_initialization(
         dflowfm_dll=dflowfm_dll,
     )
 
-    # there are a few files that are saved in the temp directory used by the fixture
-    # by statements such as xyz_model.save() and  forcing_model.save(recurse=True).
-    # However,  the DfmMetamod recreates the inputfiles in another folder usig FMModel.save()
-    # and this does not produce the files created by xyz_model and  forcing_model.save
-    # so as a temporary hack we copy these files into the DfmMetamod output directory
-    inifiles_dir = dflowfm_initial_inputfiles_folder
-    for f in listdir(inifiles_dir):
-        shutil.copy(inifiles_dir.joinpath(f), tmp_path_dev / "dflow-fm")
+    copy_inputfiles(dflowfm_initial_inputfiles_folder, tmp_path_dev / "dflow-fm")
 
     inputpath = tmp_path_dev / dfm_metamod._toml_name
 
