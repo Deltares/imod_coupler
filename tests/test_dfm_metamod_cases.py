@@ -10,17 +10,18 @@ this file contains testcases for the dfm_metamod coupling.
 """
 
 
-def case_default(
-    coupled_mf6_model: Modflow6Simulation,
+def case_with_river(
+    mf6_model_with_river: Modflow6Simulation,
     prepared_msw_model: MetaSwapModel,
     prepared_dflowfm_model: FMModel,
 ) -> DfmMetaModModel:
 
-    default = DfmMetaModModel(
+    with_river = DfmMetaModModel(
         prepared_msw_model,
-        coupled_mf6_model,
+        mf6_model_with_river,
         prepared_dflowfm_model,
         mf6_rch_pkgkey="rch_msw",
+        mf6_river_pkgkey="Oosterschelde",
         mf6_wel_pkgkey="wells_msw",
     )
-    return default
+    return with_river

@@ -41,12 +41,14 @@ class DfmMetaModModel:
         mf6_simulation: Modflow6Simulation,
         dfm_model: FMModel,
         mf6_rch_pkgkey: str,
+        mf6_river_pkgkey: str,
         mf6_wel_pkgkey: Optional[str] = None,
     ):
         self.msw_model = msw_model
         self.mf6_simulation = mf6_simulation
         self.mf6_rch_pkgkey = mf6_rch_pkgkey
         self.mf6_wel_pkgkey = mf6_wel_pkgkey
+        self.mf6_river_pkgkey = mf6_river_pkgkey
         self.dfm_model = dfm_model
         self.is_sprinkling = self._check_coupler_and_sprinkling()
 
@@ -135,7 +137,10 @@ class DfmMetaModModel:
         self.write_exchanges(exchange_dir, self.mf6_rch_pkgkey, self.mf6_wel_pkgkey)
 
         coupling_dict = self._get_coupling_dict(
-            exchange_dir, self.mf6_rch_pkgkey, self.mf6_wel_pkgkey
+            exchange_dir,
+            self.mf6_rch_pkgkey,
+            self.mf6_river_pkgkey,
+            self.mf6_wel_pkgkey,
         )
 
         self.write_toml(
@@ -228,6 +233,7 @@ class DfmMetaModModel:
         self,
         directory: Path,
         mf6_rch_pkgkey: str,
+        mf6_riv_pkgkey: str,
         mf6_wel_pkgkey: Optional[str],
     ) -> dict[str, Union[bool, str]]:
         """
@@ -242,7 +248,8 @@ class DfmMetaModModel:
         mf6_wel_pkgkey: str
             Key of Modflow 6 well package to which MetaSWAP sprinkling is
             coupled.
-
+        mf6_riv_pkgkey: str
+             Key of Modflow 6  river package
         Returns
         -------
         coupling_dict: dict
@@ -264,6 +271,7 @@ class DfmMetaModModel:
         ] = f"./{directory.name}/{NodeSvatMapping._file_name}"
 
         coupling_dict["mf6_msw_recharge_pkg"] = mf6_rch_pkgkey
+        coupling_dict["mf6_river_pkg"] = mf6_riv_pkgkey
         coupling_dict[
             "mf6_msw_recharge_map"
         ] = f"./{directory.name}/{RechargeSvatMapping._file_name}"
