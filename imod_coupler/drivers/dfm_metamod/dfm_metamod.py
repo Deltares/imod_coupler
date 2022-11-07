@@ -17,7 +17,7 @@ from xmipy import XmiWrapper
 
 from imod_coupler.config import BaseConfig
 from imod_coupler.drivers.dfm_metamod.config import Coupling, DfmMetaModConfig
-from imod_coupler.drivers.dfm_metamod.extended_bmi_wrapper import ExtendedBMIWrapper
+from imod_coupler.drivers.dfm_metamod.dfm_wrapper import DfmWrapper
 from imod_coupler.drivers.dfm_metamod.mf6_utilities import MF6Utilities
 from imod_coupler.drivers.driver import Driver
 from imod_coupler.utils import Operator, create_mapping
@@ -34,7 +34,7 @@ class DfmMetaMod(Driver):
     timing: bool  # true, when timing is enabled
     mf6: XmiWrapper  # the MODFLOW 6 XMI kernel
     msw: XmiWrapper  # the MetaSWAP XMI kernel
-    dfm: ExtendedBMIWrapper  # the dflow-fm BMI kernel
+    dfm: DfmWrapper  # the dflow-fm BMI kernel
 
     max_iter: NDArray[Any]  # max. nr outer iterations in MODFLOW kernel
     delt: float  # time step from MODFLOW 6 (leading)
@@ -88,7 +88,7 @@ class DfmMetaMod(Driver):
         dflowfm_input = self.dfm_metamod_config.kernels.dflowfm.work_dir.joinpath(
             mdu_name
         )
-        self.dfm = ExtendedBMIWrapper(engine="dflowfm", configfile=dflowfm_input)
+        self.dfm = DfmWrapper(engine="dflowfm", configfile=dflowfm_input)
 
         # Print output to stdout
         self.mf6.set_int("ISTDOUTTOFILE", 0)

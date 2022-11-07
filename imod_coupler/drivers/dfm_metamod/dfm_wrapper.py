@@ -3,7 +3,7 @@ from bmi.wrapper import BMIWrapper
 from numpy.typing import NDArray
 
 
-class ExtendedBMIWrapper(BMIWrapper):  # type: ignore
+class DfmWrapper(BMIWrapper):  # type: ignore
     def get_number_1d_nodes(self) -> int:
         nr_nodes = self.get_var("ndxi")  # number of 1d cells
         nr_nodes2d = self.get_var("ndx2d")  # number of 2d cells

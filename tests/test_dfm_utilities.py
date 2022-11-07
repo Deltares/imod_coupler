@@ -5,7 +5,7 @@ from pathlib import Path
 import pytest
 from hydrolib.core.io.mdu.models import FMModel
 
-from imod_coupler.drivers.dfm_metamod.extended_bmi_wrapper import ExtendedBMIWrapper
+from imod_coupler.drivers.dfm_metamod.dfm_wrapper import DfmWrapper
 
 
 @pytest.mark.skip(
@@ -40,7 +40,7 @@ def test_get_river_stage_from_dflow(
     for f in os.listdir(inifiles_dir):
         shutil.copy(inifiles_dir.joinpath(f), modeldir)
 
-    bmiwrapper = ExtendedBMIWrapper(
+    bmiwrapper = DfmWrapper(
         engine="dflowfm", configfile=prepared_dflowfm_model.filepath
     )
 
