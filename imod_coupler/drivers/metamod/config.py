@@ -21,7 +21,7 @@ class Kernel(BaseModel):
         if dll_dep_dir is not None:
             dll_dep_dir = dll_dep_dir.resolve()
         return dll_dep_dir
-    
+
     @validator("work_dir")
     def resolve_work_dir(cls, work_dir: FilePath) -> FilePath:
         return work_dir.resolve()
