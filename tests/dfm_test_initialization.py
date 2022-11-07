@@ -20,7 +20,7 @@ def copy_inputfiles(
         shutil.copy(dfm_files_dir.joinpath(f), tempdir)
 
 
-def set_dfm_path(dflowfm_dll_regression) -> None:
+def set_dfm_path(dflowfm_dll_regression: Path) -> None:
 
     os.environ["PATH"] = (
         os.path.dirname(str(dflowfm_dll_regression.absolute()))
