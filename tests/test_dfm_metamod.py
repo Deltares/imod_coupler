@@ -1,8 +1,6 @@
 import shutil
-import tempfile
-from os import listdir, sep
+from os import listdir
 from pathlib import Path
-from tempfile import tempdir
 
 import pytest
 from pytest_cases import parametrize_with_cases
