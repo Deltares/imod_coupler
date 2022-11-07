@@ -36,5 +36,5 @@ def test_mf6_set_river_stage(
     bound = mf6wrapper.get_value_ptr(bound_adress)
     stage = bound[:, 0]
 
-    assert np.isclose(stage, new_river_stage).all()
+    np.testing.assert_allclose(stage, new_river_stage)
     mf6wrapper.finalize()
