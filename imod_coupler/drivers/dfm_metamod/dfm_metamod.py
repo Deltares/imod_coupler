@@ -121,7 +121,7 @@ class DfmMetaMod(Driver):
         self.exchange_V_1D()
 
         subtimestep_endtime = self.get_current_time()
-        for _ in range(0, self.number_dflowsteps_per_modflowstep):
+        for _ in range(self.number_dflowsteps_per_modflowstep):
             subtimestep_endtime += self.delt / self.number_dflowsteps_per_modflowstep
             while self.dfm.get_current_time() < subtimestep_endtime:
                 self.dfm.update()
