@@ -15,6 +15,7 @@ from numpy.typing import NDArray
 from scipy.sparse import csr_matrix, dia_matrix
 from xmipy import XmiWrapper
 
+from examples.mapping_functions import get_dflow1d_lookup, mapping_active_mf_dflow1d
 from imod_coupler.config import BaseConfig
 from imod_coupler.drivers.dfm_metamod.config import Coupling, DfmMetaModConfig
 from imod_coupler.drivers.dfm_metamod.dfm_wrapper import DfmWrapper
@@ -59,6 +60,18 @@ class DfmMetaMod(Driver):
         self.coupling = self.dfm_metamod_config.coupling[
             0
         ]  # Adapt as soon as we have multimodel support
+        self.mapping_input_dir = Path()
+        self.dflow1d_lookup = dict[tuple[float, float], int]()
+        self.map_active_mod_dflow1d = dict[str, csr_matrix]()
+        self.mask_active_mod_dflow1d = dict[str, NDArray[np.int_]]()
+
+    def set_mapping_input_dir(self, mapping_input_dir: Path) -> None:
+        self.mapping_input_dir = mapping_input_dir
+        self.dflow1d_lookup, _ = get_dflow1d_lookup(mapping_input_dir)
+        (
+            self.map_active_mod_dflow1d,
+            self.mask_active_mod_dflow1d,
+        ) = mapping_active_mf_dflow1d(self.mapping_input_dir, self.dflow1d_lookup)
 
     def initialize(self) -> None:
         self.mf6 = Mf6Wrapper(
@@ -148,11 +161,20 @@ class DfmMetaMod(Driver):
         MF6 unit: meters above MF6's reference plane
         DFM unit: ?
         """
-        water_levels = self.dfm.get_waterlevels_1d()
+        dfm_water_levels = self.dfm.get_waterlevels_1d()
+        mf6_river_stage = self.mf6.get_river_stages()
+
+        updated_river_stage = (
+            self.mask_active_mod_dflow1d["dflow1d2mf-riv_stage"][:] * mf6_river_stage[:]
+            + self.map_active_mod_dflow1d["dflow1d2mf-riv_stage"].dot(dfm_water_levels)[
+                :
+            ]
+        )
+
         self.mf6.set_river_stages(
             self.coupling.mf6_model,
             self.coupling.mf6_river_pkg,
-            water_levels,
+            updated_river_stage,
         )
 
     def exchange_V_1D(self) -> None:
