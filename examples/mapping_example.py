@@ -6,7 +6,11 @@ import numpy as np
 from numpy import float_
 from numpy.typing import NDArray
 
-from examples.mapping_functions import get_dflow1d_lookup, mapping_active_mf_dflow1d
+from imod_coupler.drivers.dfm_metamod.mapping_functions import (
+    get_dflow1d_lookup,
+    mapping_active_mf_dflow1d,
+    weight_from_flux_distribution,
+)
 
 
 def calculated_as_expected(
@@ -104,3 +108,23 @@ mf_riv1_flux_receive = (
 )
 if not calculated_as_expected(mf_riv1_flux_receive_expected, mf_riv1_flux_receive):
     raise ValueError("FOUT in exchange flux DFLOW 1D -> MF")
+
+
+def test_weight_from_flux_distribution() -> bool:
+    # test calculated weights based on flux exchange
+    # mf-riv1 elements=5
+    # dfow1d  elements=3
+
+    # set dummy variables
+    # previous flux from MF-RIV1 to DFLOW1d
+    dummy_flux_mf2dflow1d = np.array([1, 2, 3, 4, 5])
+    # set connection sparse array for DFLOW1d --> MF
+    target_index = np.array([0, 0, 1, 1, 2])
+    source_index = np.array([0, 1, 2, 3, 4])
+
+    # evaluate weight distribution
+    expected_weight = np.array([1 / 3, 2 / 3, 3 / 7, 4 / 7, 5 / 5])
+    calculated_weight = weight_from_flux_distribution(
+        target_index, source_index, dummy_flux_mf2dflow1d
+    )
+    return all(expected_weight == calculated_weight)
