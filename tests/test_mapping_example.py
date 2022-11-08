@@ -74,8 +74,8 @@ mf_riv1_stage_receive = (
     mask_active_mod_dflow1d["dflow1d2mf-riv_stage"][:] * mf_riv1_stage_receive[:]
     + map_active_mod_dflow1d["dflow1d2mf-riv_stage"].dot(dflow1d_stage)[:]
 )
-if not calculated_as_expected(mf_riv1_stage_receive_expected, mf_riv1_stage_receive):
-    raise ValueError(f"FOUT in exchange stage DFLOW 1D  -> MF")
+np.testing.assert_allclose(mf_riv1_stage_receive_expected, mf_riv1_stage_receive)
+
 
 # MF RIV 1 -> DFLOW 1D flux
 # flux is always n:1, so values are summed
@@ -85,8 +85,8 @@ dflow1d_flux_receive = (
     mask_active_mod_dflow1d["mf-riv2dflow1d_flux"][:] * dflow1d_flux_receive[:]
     + map_active_mod_dflow1d["mf-riv2dflow1d_flux"].dot(mf_riv1_flux)[:]
 )
-if not calculated_as_expected(dflow1d_flux_receive_expected, dflow1d_flux_receive):
-    raise ValueError(f"FOUT in exchange flux MF -> DFLOW 1D")
+np.testing.assert_allclose(dflow1d_flux_receive_expected, dflow1d_flux_receive)
+
 
 # DFLOW 1D flux -> MF RIV 1 flux
 # flux is always 1:n, decomposition based on previous Mf -> DFLOW flux distribution
@@ -106,8 +106,7 @@ mf_riv1_flux_receive = (
     mask_active_mod_dflow1d["dflow1d2mf-riv_flux"][:] * mf_riv1_flux_receive[:]
     + map_active_mod_dflow1d["dflow1d2mf-riv_flux"].dot(dflow1d_flux)[:]
 )
-if not calculated_as_expected(mf_riv1_flux_receive_expected, mf_riv1_flux_receive):
-    raise ValueError("FOUT in exchange flux DFLOW 1D -> MF")
+np.testing.assert_allclose(mf_riv1_flux_receive_expected, mf_riv1_flux_receive)
 
 
 def test_weight_from_flux_distribution() -> bool:
@@ -127,4 +126,4 @@ def test_weight_from_flux_distribution() -> bool:
     calculated_weight = weight_from_flux_distribution(
         target_index, source_index, dummy_flux_mf2dflow1d
     )
-    return all(expected_weight == calculated_weight)
+    assert all(expected_weight == calculated_weight)
