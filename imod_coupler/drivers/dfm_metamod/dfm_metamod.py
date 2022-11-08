@@ -15,10 +15,13 @@ from numpy.typing import NDArray
 from scipy.sparse import csr_matrix, dia_matrix
 from xmipy import XmiWrapper
 
-from examples.mapping_functions import get_dflow1d_lookup, mapping_active_mf_dflow1d
 from imod_coupler.config import BaseConfig
 from imod_coupler.drivers.dfm_metamod.config import Coupling, DfmMetaModConfig
 from imod_coupler.drivers.dfm_metamod.dfm_wrapper import DfmWrapper
+from imod_coupler.drivers.dfm_metamod.mapping_functions import (
+    get_dflow1d_lookup,
+    mapping_active_mf_dflow1d,
+)
 from imod_coupler.drivers.dfm_metamod.mf6_wrapper import Mf6Wrapper
 from imod_coupler.drivers.driver import Driver
 from imod_coupler.utils import Operator, create_mapping
@@ -162,7 +165,9 @@ class DfmMetaMod(Driver):
         DFM unit: ?
         """
         dfm_water_levels = self.dfm.get_waterlevels_1d()
-        mf6_river_stage = self.mf6.get_river_stages()
+        mf6_river_stage = self.mf6.get_river_stages(
+            self.coupling.mf6_model, self.coupling.mf6_river_pkg
+        )
 
         updated_river_stage = (
             self.mask_active_mod_dflow1d["dflow1d2mf-riv_stage"][:] * mf6_river_stage[:]
@@ -186,7 +191,16 @@ class DfmMetaMod(Driver):
         MF6 unit: ?
         DFM unit: ?
         """
-        pass
+        mf6_river_aquifer_flux = self.mf6.get_river_flux(
+            self.coupling.mf6_model, self.coupling.mf6_river_pkg
+        )
+        dflow1d_flux_receive = (
+            self.mask_active_mod_dflow1d["mf-riv2dflow1d_flux"][:]
+            * dflow1d_flux_receive[:]
+            + self.map_active_mod_dflow1d["mf-riv2dflow1d_flux"].dot(
+                mf6_river_aquifer_flux
+            )[:]
+        )
 
     def exchange_V_dash_1D(self) -> None:
         """

@@ -1,12 +1,10 @@
 from pathlib import Path
-from typing import Any, Dict, Optional, Tuple
+from typing import Any, Dict, Optional
 
 import numpy as np
-from loguru import logger
 from numpy import float_, int_
 from numpy.typing import NDArray
-from scipy.sparse import csr_matrix, dia_matrix
-from xmipy import XmiWrapper
+from scipy.sparse import csr_matrix
 
 from imod_coupler.utils import Operator, create_mapping
 
@@ -15,13 +13,36 @@ from imod_coupler.utils import Operator, create_mapping
 def mapping_active_mf_dflow1d(
     workdir: Path,
     dflow1d_lookup: dict[tuple[float, float], int],
-    array: Optional[NDArray[float_]] = None,
+    weights: Optional[NDArray[float_]] = None,
 ) -> tuple[dict[str, csr_matrix], dict[str, NDArray[int_]]]:
-    # function creates dictionary with mapping tables for mapping MF <-> dflow1d
-    # mapping includes active MF coupling:
-    #   1 MF RIV 1                      -> DFLOW-FM 1D flux
-    #   2 DFLOW FM 1D (correction)flux  -> MF RIV 1
-    #   3 DFLOW FM 1D stage             -> MF RIV 1
+    """
+    function creates dictionary with mapping tables for mapping arrays between MF and dflow1d
+    (both ways).
+
+        # mapping includes active MF coupling:
+        #   1 MF RIV 1                      -> DFLOW-FM 1D flux
+        #   2 DFLOW FM 1D (correction)flux  -> MF RIV 1
+        #   3 DFLOW FM 1D stage             -> MF RIV 1
+
+    Parameters
+    ----------
+    workdir : Path
+        directory where mapping-related input files can be found
+    dflow1d_lookup : dict[tuple[float, float], int]
+        used for mapping x, y coordinates to dflow node numbers
+    array : Optional[NDArray[float_]], optional
+        optional array for weigths
+
+    Returns
+    -------
+    tuple[dict[str, csr_matrix], dict[str, NDArray[int_]]]
+        The first return value is a dict containing as key, the exchange type,
+        and as value, the sparse matrix used for this kind of exchange.
+        The second return value is a dict containing as key, the exchange type,
+        and as value, the mask used for this kind of exchange.
+
+    """
+    #
     map_active_mod_dflow1d: Dict[str, csr_matrix] = {}
     mask_active_mod_dflow1d: Dict[str, NDArray[Any]] = {}
 
@@ -48,8 +69,8 @@ def mapping_active_mf_dflow1d(
         # DFLOW 1D  -> MF RIV 1 (flux)
         # weight array is flux-array from previous MF-RIV1 -> dlfowfm exchange
         # if no weight array is provided, skip this exchange
-        if array is not None:
-            weight = weight_from_flux_distribution(dflow_idx, mf_idx, array)
+        if weights is not None:
+            weight = weight_from_flux_distribution(dflow_idx, mf_idx, weights)
             (
                 map_active_mod_dflow1d["dflow1d2mf-riv_flux"],
                 mask_active_mod_dflow1d["dflow1d2mf-riv_flux"],
@@ -89,10 +110,28 @@ def mapping_active_mf_dflow1d(
 def mapping_passive_mf_dflow1d(
     workdir: Path, dflow1d_lookup: dict[tuple[float, float], int]
 ) -> tuple[dict[str, csr_matrix], dict[str, NDArray[int_]]]:
-    # function creates dictionary with mapping tables for mapping MF <-> dflow1d
-    # mapping includes passive MF coupling:
-    #   1 MF RIV 2                      -> DFLOW-FM 1D flux
-    #   2 MF DRN                        -> DFLOW-FM 1D flux
+    """
+    function creates dictionary with mapping tables for mapping MF <-> dflow1d
+    To be used for passive MF coupling:
+      1 MF RIV 2                      -> DFLOW-FM 1D flux
+      2 MF DRN                        -> DFLOW-FM 1D flux
+
+    Parameters
+    ----------
+    workdir : Path
+        directory where mapping-related input files can be found
+    dflow1d_lookup : dict[tuple[float, float], int]
+        used for mapping x, y coordinates to dflow node numbers
+
+    Returns
+    -------
+    tuple[dict[str, csr_matrix], dict[str, NDArray[int_]]]
+        The first return value is a dict containing as key, the exchange type,
+        and as value, the sparse matrix used for this kind of exchange.
+        The second return value is a dict containing as key, the exchange type,
+        and as value, the mask used for this kind of exchange.
+    """
+
     map_passive_mod_dflow1d: Dict[str, csr_matrix] = {}
     mask_passive_mod_dflow1d: Dict[str, NDArray[Any]] = {}
 
@@ -142,13 +181,31 @@ def mapping_passive_mf_dflow1d(
 def mapping_msw_dflow1d(
     workdir: Path,
     dflow1d_lookup: dict[tuple[float, float], int],
-    array: Optional[NDArray[float_]] = None,
+    msw_sprinkling_flux: Optional[NDArray[float_]] = None,
 ) -> tuple[dict[str, csr_matrix], dict[str, NDArray[int_]]]:
-    # function creates dictionary with mapping tables for mapping MSW -> dflow1d
-    # mapping includes MSW 1D coupling:
-    #   1 MSW sprinkling flux            -> DFLOW-FM 1D flux
-    #   2 DFLOW-FM 1D flux               -> MSW sprinkling flux
-    #   3 MSW ponding flux               -> DFLOW-FM 1D flux (optional if no 2D network is availble)
+
+    """
+    function creates dictionary with mapping tables for mapping MSW -> dflow1d
+    mapping includes MSW 1D coupling:
+    1 MSW sprinkling flux            -> DFLOW-FM 1D flux
+    2 DFLOW-FM 1D flux               -> MSW sprinkling flux
+    3 MSW ponding flux               -> DFLOW-FM 1D flux (optional if no 2D network is availble)
+
+    workdir : Path
+        directory where mapping-related input files can be found
+    dflow1d_lookup : dict[tuple[float, float], int]
+        used for mapping x, y coordinates to dflow node numbers
+    msw_sprinkling_flux: Optional[NDArray[float_]]
+        flux-array from previous MSW-sprinkling -> dflowfm 1d
+
+
+    Returns
+    -------
+        The first return value is a dict containing as key, the exchange type,
+        and as value, the sparse matrix used for this kind of exchange.
+        The second return value is a dict containing as key, the exchange type,
+        and as value, the mask used for this kind of exchange.
+    """
     map_msw_dflow1d: Dict[str, csr_matrix] = {}
     mask_msw_dflow1d: Dict[str, NDArray[int_]] = {}
 
@@ -173,11 +230,11 @@ def mapping_msw_dflow1d(
             max(dflow_idx) + 1,
             Operator.SUM,
         )
-        if array is not None:
+        if msw_sprinkling_flux is not None:
             # DFLOW 1D -> MSW (sprinkling)
             weight = weight_from_flux_distribution(
-                msw_idx, dflow_idx, array
-            )  # array is flux-array from previous MSW-sprinkling -> dflowfm 1d
+                msw_idx, dflow_idx, msw_sprinkling_flux
+            )
             (
                 map_msw_dflow1d["dflow1d_flux2msw-sprinkling"],
                 mask_msw_dflow1d["dflow1d_flux2msw-sprinkling"],
@@ -217,11 +274,28 @@ def mapping_msw_dflow2d(
     workdir: Path,
     dflow2d_lookup: dict[tuple[float, float], int],
 ) -> tuple[dict[str, csr_matrix], dict[str, NDArray[int_]]]:
+    """
     # dictionary with mapping tables for msw-dflow-2d coupling
     # mapping includes MSW 2D coupling:
     #   1 MSW ponding flux               -> DFLOW-FM 2D flux (optional)
     #   2 DFLOW-FM 2D flux               -> MSW ponding flux (optional)
     #   3 DFLOW-FM 2D stage              -> MSW ponding stage (optional)
+
+    Parameters
+    ----------
+    workdir : Path
+        directory where mapping-related input files can be found
+    dflow2d_lookup : dict[tuple[float, float], int]
+        used for mapping x, y coordinates to dflow node numbers
+
+    Returns
+    -------
+        The first return value is a dict containing as key, the exchange type,
+        and as value, the sparse matrix used for this kind of exchange.
+        The second return value is a dict containing as key, the exchange type,
+        and as value, the mask used for this kind of exchange.
+    """
+
     map_msw_dflow2d: Dict[str, csr_matrix] = {}
     mask_msw_dflow2d: Dict[str, NDArray[Any]] = {}
 
@@ -285,46 +359,59 @@ def mapping_msw_dflow2d(
     return map_msw_dflow2d, mask_msw_dflow2d
 
 
-# this function calculates the weight based on the flux distribution of a n:1 connection,
-# so it can be used in the 1:n redistribution of an correction flux or volume.
-# Input is the target and source index of the mapings sparse array, and previouse flux array at n
-# Output is weight-array for inversed mapping
 def weight_from_flux_distribution(
-    tgt_idx: NDArray[int_], src_idx: NDArray[int_], values: NDArray[float_]
+    tgt_idx: NDArray[int_], src_idx: NDArray[int_], previous_flux: NDArray[float_]
 ) -> NDArray[float_]:
+    """
+    this function calculates the weight based on the flux distribution of a n:1 connection,
+    so it can be used in the 1:n redistribution of an correction flux or volume.
+    Input is the target and source index of the mapings sparse array, and previouse flux array at n
+    Output is weight-array for inversed mapping
+
+    Parameters
+    ----------
+    tgt_idx :NDArray[int_],
+        target index of mapping sparse array
+    src_idx :NDArray[int_],
+        source index of mapping sparse array
+    previous_flux : NDArray[float_]
+        previous flux
+
+    Returns
+    -------
+    NDArray[float_]:
+        the weight based on the flux distribution of a n:1 connection,
+        so it can be used in the 1:n redistribution of an correction flux or volume.
+    """
+
     cnt = np.zeros(max(tgt_idx) + 1)
     weight = np.zeros(max(src_idx) + 1)
     for i in range(len(tgt_idx)):
-        cnt[tgt_idx[i]] = cnt[tgt_idx[i]] + values[i]
+        cnt[tgt_idx[i]] = cnt[tgt_idx[i]] + previous_flux[i]
     for i in range(len(tgt_idx)):
-        weight[i] = values[i] / cnt[tgt_idx[i]]
+        weight[i] = previous_flux[i] / cnt[tgt_idx[i]]
     return weight
 
 
-def test_weight_from_flux_distribution() -> bool:
-    # test calculated weights based on flux exchange
-    # mf-riv1 elements=5
-    # dfow1d  elements=3
-
-    # set dummy variables
-    # previous flux from MF-RIV1 to DFLOW1d
-    dummy_flux_mf2dflow1d = np.array([1, 2, 3, 4, 5])
-    # set connection sparse array for DFLOW1d --> MF
-    target_index = np.array([0, 0, 1, 1, 2])
-    source_index = np.array([0, 1, 2, 3, 4])
-
-    # evaluate weight distribution
-    expected_weight = np.array([1 / 3, 2 / 3, 3 / 7, 4 / 7, 5 / 5])
-    calculated_weight = weight_from_flux_distribution(
-        target_index, source_index, dummy_flux_mf2dflow1d
-    )
-    return all(expected_weight == calculated_weight)
-
-
-# read file with all uniek coupled dflow 1d and 2d nodes (represented by xy pairs). After initialisation
-# of dflow, dict is filled with node-id's corresponding tot xy-pairs.
-# this functions should be called after initialisation of dflow-fm.
+#
 def get_dflow1d_lookup(workdir: Path) -> tuple[dict[tuple[float, float], int], bool]:
+    """
+    read file with all uniek coupled dflow 1d and 2d nodes (represented by xy pairs). After initialisation
+    of dflow, dict is filled with node-id's corresponding tot xy-pairs.
+    this functions should be called after initialisation of dflow-fm.
+
+    Parameters
+    ----------
+    workdir : Path
+        directory where mapping input files can be found
+
+    Returns
+    -------
+    tuple[dict[tuple[float, float], int], bool]
+       The first value of the tupple is a dictionary of pairs of xy-coordinates to node numbers
+       The second value is an indicator of whether the said dictionary could be filled without issues.
+    """
+
     ok = True
     dflow1d_lookup = {}
     dflow1d_file = workdir / "DFLOWFM1D_POINTS.DAT"
@@ -353,6 +440,23 @@ def get_dflow1d_lookup(workdir: Path) -> tuple[dict[tuple[float, float], int], b
 
 
 def get_dflow2d_lookup(workdir: Path) -> tuple[dict[tuple[float, float], int], bool]:
+    """
+    read file with all uniek coupled dflow 1d and 2d nodes (represented by xy pairs). After initialisation
+    of dflow, dict is filled with node-id's corresponding tot xy-pairs.
+    this functions should be called after initialisation of dflow-fm.
+
+    Parameters
+    ----------
+    workdir : Path
+        directory where mapping input files can be found
+
+    Returns
+    -------
+    tuple[dict[tuple[float, float], int], bool]
+       The first value of the tupple is a dictionary of pairs of xy-coordinates to node numbers
+       The second value is an indicator of whether the said dictionary could be filled without issues.
+    """
+
     ok = True
     dflow2d_lookup = {}
     dflow2d_file = workdir / "DFLOWFM2D_POINTS.DAT"
