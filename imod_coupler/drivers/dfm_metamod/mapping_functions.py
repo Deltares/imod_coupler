@@ -91,7 +91,7 @@ def mapping_active_mf_dflow1d(
         mf_idx = table_active_dflow1d2mfriv[:, 0].astype(int) - 1
         weight = table_active_dflow1d2mfriv[:, 3]
         dflow_idx = np.array(
-            [dflow1d_lookup[row[0], row[1]] for row in table_active_dflow1d2mfriv]
+            [dflow1d_lookup[row[1], row[2]] for row in table_active_dflow1d2mfriv]
         )
         (
             map_active_mod_dflow1d["dflow1d2mf-riv_stage"],
