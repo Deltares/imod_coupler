@@ -93,7 +93,7 @@ def test_mappers_general(mapping_input_folder) -> None:
         mapping_input_folder, dflow1d_lookup, mf_riv1_flux
     )
     # expected results
-    weights = np.array([3 / 6, 3 / 6, 4 / 4, 4 / 8, 4 / 8])
+    weights = np.array([3 / 6, 3 / 6, 1, 4 / 8, 4 / 8])
     mf_riv1_flux_receive_expected = np.array(
         [6 * weights[0], 6 * weights[1], 7 * weights[2], 8 * weights[3], 8 * weights[0]]
     )
@@ -120,7 +120,7 @@ def test_weight_from_flux_distribution() -> None:
     source_index = np.array([0, 1, 2, 3, 4])
 
     # evaluate weight distribution
-    expected_weight = np.array([1 / 3, 2 / 3, 3 / 7, 4 / 7, 5 / 5])
+    expected_weight = np.array([1 / 3, 2 / 3, 3 / 7, 4 / 7, 1])
     calculated_weight = weight_from_flux_distribution(
         target_index, source_index, dummy_flux_mf2dflow1d
     )
