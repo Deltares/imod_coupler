@@ -47,13 +47,13 @@ class DfmWrapper(BMIWrapper):  # type: ignore
             raise ValueError(f"Expected number of river fluxes: {nr_nodes_1d}")
         self.set_var_slice("qext", river_flux, nr_nodes_2d, nr_nodes_1d)
 
-    def get_1d_river_fluxes(self, river_flux: NDArray[np.float_]) -> NDArray[np.float_]:
+    def get_1d_river_fluxes(self) -> NDArray[np.float_]:
         """
         assigns external fluxes
         """
         nr_nodes_1d = self.get_number_1d_nodes()
-        if len(river_flux) != nr_nodes_1d:
-            raise ValueError(f"Expected number of river fluxes: {nr_nodes_1d}")
+        if nr_nodes_1d == 0:
+            return None
         q_ext = self.get_var("qext")
         q_ext_1dnodes = q_ext[-nr_nodes_1d:]
         return q_ext_1dnodes
