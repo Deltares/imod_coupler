@@ -13,9 +13,7 @@ from imod_coupler.drivers.dfm_metamod.dfm_wrapper import DfmWrapper
     shutil.copytree(tmodel_input_folder / "dflow-fm", tmp_path_reg)
     set_dfm_path(dflowfm_dll_regression)
 
-    bmiwrapper = DfmWrapper(
-        engine="dflowfm", configfile=tmodel_input_folder / "dflow-fm" / "FlowFM.mdu"
-    )
+    bmiwrapper = DfmWrapper(engine="dflowfm", configfile=tmp_path_reg / "FlowFM.mdu")
 
     bmiwrapper.initialize()
     bmiwrapper.update()
@@ -59,9 +57,7 @@ def test_get_cumulative_fluxes_1d_nodes(
 
     shutil.copytree(tmodel_input_folder / "dflow-fm", tmp_path_reg)
 
-    bmiwrapper = DfmWrapper(
-        engine="dflowfm", configfile=tmodel_input_folder / "dflow-fm" / "FlowFM.mdu"
-    )
+    bmiwrapper = DfmWrapper(engine="dflowfm", configfile=tmp_path_reg / "FlowFM.mdu")
 
     bmiwrapper.initialize()
     bmiwrapper.update()
@@ -84,9 +80,7 @@ def test_get_1d_river_fluxes(
     shutil.copytree(tmodel_input_folder / "dflow-fm", tmp_path_reg)
     set_dfm_path(dflowfm_dll_regression)
 
-    bmiwrapper = DfmWrapper(
-        engine="dflowfm", configfile=tmodel_input_folder / "dflow-fm" / "FlowFM.mdu"
-    )
+    bmiwrapper = DfmWrapper(engine="dflowfm", configfile=tmp_path_reg / "FlowFM.mdu")
 
     bmiwrapper.initialize()
     bmiwrapper.update()
@@ -157,9 +151,7 @@ def test_set_1d_river_fluxes(
     shutil.copytree(tmodel_input_folder / "dflow-fm", tmp_path_reg)
     set_dfm_path(dflowfm_dll_regression)
 
-    bmiwrapper = DfmWrapper(
-        engine="dflowfm", configfile=tmodel_input_folder / "dflow-fm" / "FlowFM.mdu"
-    )
+    bmiwrapper = DfmWrapper(engine="dflowfm", configfile=tmp_path_reg / "FlowFM.mdu")
 
     bmiwrapper.initialize()
     bmiwrapper.update()
