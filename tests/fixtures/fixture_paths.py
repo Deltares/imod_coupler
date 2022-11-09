@@ -125,5 +125,5 @@ def dflowfm_dll() -> Path:
 
 
 @pytest.fixture(scope="function")
-def dflow_example_data_with_river(request) -> Path:
-    return Path(request.fspath).parent / "data" / "dflow_fm_with_1dnodes"
+def tmodel_input_folder(request) -> Path:
+    return Path(request.fspath).parent / "data" / "t_model"

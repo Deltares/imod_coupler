@@ -67,6 +67,7 @@ class DfmMetaMod(Driver):
         self.dflow1d_lookup = dict[tuple[float, float], int]()
         self.map_active_mod_dflow1d = dict[str, csr_matrix]()
         self.mask_active_mod_dflow1d = dict[str, NDArray[np.int_]]()
+        self.set_mapping_input_dir(config_dir / "exchanges")
 
     def set_mapping_input_dir(self, mapping_input_dir: Path) -> None:
         self.mapping_input_dir = mapping_input_dir
@@ -194,6 +195,9 @@ class DfmMetaMod(Driver):
         mf6_river_aquifer_flux = self.mf6.get_river_flux(
             self.coupling.mf6_model, self.coupling.mf6_river_pkg
         )
+        dflow1d_flux_receive = self.dfm.get_1d_river_fluxes()
+        if dflow1d_flux_receive is None:
+            raise ValueError("dflow 1d river flux not found")
         dflow1d_flux_receive = (
             self.mask_active_mod_dflow1d["mf-riv2dflow1d_flux"][:]
             * dflow1d_flux_receive[:]

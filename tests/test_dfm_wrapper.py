@@ -1,4 +1,5 @@
 import os
+import shutil
 from pathlib import Path
 
 import numpy as np
@@ -35,24 +36,6 @@ def test_get_river_stage_from_dflow(
     assert water_levels_1d is None
 
 
-def test_get_river_stage_from_dflow_with_river(
-    dflowfm_dll_regression: Path,
-    dflow_example_data_with_river: Path,
-) -> None:
-
-    set_dfm_path(dflowfm_dll_regression)
-    bmiwrapper = DfmWrapper(
-        engine="dflowfm", configfile=dflow_example_data_with_river / "river1d2d.mdu"
-    )
-
-    bmiwrapper.initialize()
-    bmiwrapper.update()
-    water_levels_1d = bmiwrapper.get_waterlevels_1d()
-
-    river_fluxes = bmiwrapper.get_1d_river_fluxes()
-    river_fluxes[:] = 7.0
-    bmiwrapper.get_1d_river_fluxes()
-
 
 def test_get_snapped_flownode(
     prepared_dflowfm_model: FMModel,
@@ -82,4 +65,3 @@ def test_get_snapped_flownode(
         flownode_ids,
         excepted_flownode_ids,
     )
-
