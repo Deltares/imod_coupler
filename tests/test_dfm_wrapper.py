@@ -8,10 +8,10 @@ from hydrolib.core.io.mdu.models import FMModel
 from imod_coupler.drivers.dfm_metamod.dfm_wrapper import DfmWrapper
 
 
-@pytest.mark.skip(
-    reason="currently the BMI wrapper does not survive a second initialize call, and it was already used in test_dfm_metamod"
-    + "It should still work when running just this test."
-)
+# @pytest.mark.skip(
+#     reason="currently the BMI wrapper does not survive a second initialize call, and it was already used in test_dfm_metamod"
+#     + "It should still work when running just this test."
+# )
 def test_get_river_stage_from_dflow(
     prepared_dflowfm_model: FMModel,
     dflowfm_dll_regression: Path,
@@ -36,5 +36,4 @@ def test_get_river_stage_from_dflow(
     bmiwrapper.finalize()
 
     # the current test dataset does not have 1d rivers.
-    assert water_levels_1d is not None
-    assert len(water_levels_1d) == 0
+    assert water_levels_1d is None
