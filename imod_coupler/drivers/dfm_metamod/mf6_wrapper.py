@@ -40,6 +40,20 @@ class Mf6Wrapper(XmiWrapper):
         mf6_flowmodel_key: str,
         mf6_river_pkg_key: str,
     ) -> NDArray[np.float_]:
+        """returns the river stages of the modflow model
+
+        Parameters
+        ----------
+        mf6_flowmodel_key : str
+            flowmodel key
+        mf6_river_pkg_key : str
+            river package key
+
+        Returns
+        -------
+         NDArray[np.float_]:
+            stages of the rivers in modflow
+        """
         bound_adress = self.get_var_address(
             "BOUND", mf6_flowmodel_key, mf6_river_pkg_key
         )

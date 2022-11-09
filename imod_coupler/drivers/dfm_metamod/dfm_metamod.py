@@ -63,19 +63,15 @@ class DfmMetaMod(Driver):
         self.coupling = self.dfm_metamod_config.coupling[
             0
         ]  # Adapt as soon as we have multimodel support
-        self.mapping_input_dir = Path()
         self.dflow1d_lookup = dict[tuple[float, float], int]()
         self.map_active_mod_dflow1d = dict[str, csr_matrix]()
         self.mask_active_mod_dflow1d = dict[str, NDArray[np.int_]]()
-        self.set_mapping_input_dir(config_dir / "exchanges")
-
-    def set_mapping_input_dir(self, mapping_input_dir: Path) -> None:
-        self.mapping_input_dir = mapping_input_dir
+        mapping_input_dir = config_dir / "exchanges"
         self.dflow1d_lookup, _ = get_dflow1d_lookup(mapping_input_dir)
         (
             self.map_active_mod_dflow1d,
             self.mask_active_mod_dflow1d,
-        ) = mapping_active_mf_dflow1d(self.mapping_input_dir, self.dflow1d_lookup)
+        ) = mapping_active_mf_dflow1d(mapping_input_dir, self.dflow1d_lookup)
 
     def initialize(self) -> None:
         self.mf6 = Mf6Wrapper(
