@@ -107,7 +107,7 @@ def test_mappers_general(mapping_input_folder) -> None:
     )
 
 
-def test_weight_from_flux_distribution() -> bool:
+def test_weight_from_flux_distribution() -> None:
     # test calculated weights based on flux exchange
     # mf-riv1 elements=5
     # dfow1d  elements=3
@@ -124,4 +124,4 @@ def test_weight_from_flux_distribution() -> bool:
     calculated_weight = weight_from_flux_distribution(
         target_index, source_index, dummy_flux_mf2dflow1d
     )
-    assert all(expected_weight == calculated_weight)
+    np.testing.assert_almost_equal(expected_weight, calculated_weight)
