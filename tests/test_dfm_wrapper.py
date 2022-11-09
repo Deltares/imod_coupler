@@ -5,6 +5,7 @@ import numpy as np
 import pytest
 from dfm_test_initialization import copy_inputfiles, set_dfm_path
 from hydrolib.core.io.mdu.models import FMModel
+from numpy.testing import assert_allclose
 
 from imod_coupler.drivers.dfm_metamod.dfm_wrapper import DfmWrapper
 
@@ -60,9 +61,10 @@ def test_get_snapped_feature(
     )
 
     bmiwrapper.initialize()
-    input_node_x = np.array([200.0])
-    input_node_y = np.array([200.0])
+    input_node_x = np.array([104.0, 104.0, 496.0], dtype=np.float64)
+    input_node_y = np.array([102.0, 298.0, 102.0], dtype=np.float64)
+    # input(os.getpid())
     result = bmiwrapper.get_snapped_flownode(input_node_x, input_node_y)
     bmiwrapper.finalize()
 
-    assert result == 1
+    assert_allclose(result, np.zeros(len(result)))
