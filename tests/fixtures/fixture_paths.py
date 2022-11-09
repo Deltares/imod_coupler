@@ -122,3 +122,8 @@ def mapping_input_folder(request) -> Path:
 @pytest.fixture(scope="session")
 def dflowfm_dll() -> Path:
     return Path(os.environ["DFLOWFM_DLL_DEVEL"])
+
+
+@pytest.fixture(scope="function")
+def dflow_example_data_with_river(request) -> Path:
+    return Path(request.fspath).parent / "data" / "dflow_fm_with_1dnodes"

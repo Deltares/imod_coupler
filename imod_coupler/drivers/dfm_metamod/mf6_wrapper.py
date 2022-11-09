@@ -54,7 +54,8 @@ class Mf6Wrapper(XmiWrapper):
     ) -> NDArray[np.float_]:
         """
         returns the river fluxes consistent with current river head, river stage and conductance.
-        a simple linear model is used: flux = conductance * (stage - head)
+        a simple linear model is used: flux = conductance * (stage - max(head, bot))
+        Bot is the levelof the bottom of the river.
 
         Parameters
         ----------
@@ -67,6 +68,7 @@ class Mf6Wrapper(XmiWrapper):
         -------
         NDArray[np.float_]
             flux (array size = nr of river nodes)
+            sign is positive for infiltration
         """
         bound_adress = self.get_var_address(
             "BOUND", mf6_flowmodel_key, mf6_river_pkg_key
@@ -74,20 +76,16 @@ class Mf6Wrapper(XmiWrapper):
         bound = self.get_value_ptr(bound_adress)
 
         head_adress = self.get_var_address("X", mf6_flowmodel_key)
-        head = self.mf6.get_value_ptr(head_adress)
+        head = self.get_value_ptr(head_adress)
         nodelist_adress = self.get_var_address(
             "NODELIST", mf6_flowmodel_key, mf6_river_pkg_key
         )
-        nodelist = self.mf6.get_value_ptr(nodelist_adress)
+        nodelist = self.get_value_ptr(nodelist_adress)
+
+        subset_head = head[nodelist - 1]
+        bot = bound[:, 2]
+        river_head = np.maximum(subset_head, bot)
         q = NDArray[np.float_](len(nodelist))
-        for nodenr in range(len(nodelist)):
-            node_head = head[nodelist[nodenr]]
-            node_stage = bound[nodenr, 0]
-            node_conductance = bound[nodenr, 1]
-            q[nodenr] = node_conductance * (node_stage - node_head)
-        """
-        subset_head = head[nodelist]
-        q = bound[:, 1] * (subset_head - bound[:, 0])
-        """
+        q[:] = bound[:, 1] * (bound[:, 0] - river_head)
 
         return q
