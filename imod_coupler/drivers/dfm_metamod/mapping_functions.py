@@ -417,16 +417,16 @@ def get_dflow1d_lookup(workdir: Path) -> tuple[dict[tuple[float, float], int], b
     dflow1d_file = workdir / "DFLOWFM1D_POINTS.DAT"
     if dflow1d_file.is_file():
         dflow1d_data: NDArray[np.single] = np.loadtxt(
-            dflow1d_file, dtype=np.single, ndmin=2, skiprows=1
+            dflow1d_file, dtype=np.single, ndmin=2, skiprows=0
         )
-        dflow1d_x = dflow1d_data[:, 3]
-        dflow1d_y = dflow1d_data[:, 4]
+        dflow1d_x = dflow1d_data[:, 0]
+        dflow1d_y = dflow1d_data[:, 1]
         # XMI/BMI call to dflow-fm with x and y list, returns id list with node numbers
         # dflowfm_MapCoordinateTo1DCellId(x, y, id)
         # for testing purpose, we take the id from the dat-file
-        dflow1d_id = dflow1d_data[:, 1].astype(int) - 1
-        ii = dflow1d_data.shape[0]
-        for i in range(0, ii):
+        dflow1d_id = dflow1d_data[:, 2].astype(int) - 1
+        nrpoints = dflow1d_data.shape[0]
+        for i in range(nrpoints):
             if dflow1d_id[i] >= 0:
                 dflow1d_lookup[(dflow1d_x[i], dflow1d_y[i])] = dflow1d_id[i]
             else:
