@@ -10,19 +10,14 @@ from imod import mf6
 from xmipy import XmiWrapper
 
 
-@pytest.mark.skip(
-    reason="currently the BMI wrapper does not survive a second initialize call"
-)
 def test_bmi_wrapper_can_be_initialized_and_finalized_multiple_times(
     prepared_dflowfm_model: FMModel,
-    dflowfm_dll_regression: Path,
+    dflowfm_dll_devel: Path,
     dflowfm_initial_inputfiles_folder: Path,
-    tmp_path_reg: Path,
 ) -> None:
     prepared_dflowfm_model.save(recurse=True)
-    prepared_dflowfm_model.filepath = tmp_path_reg / "fm.mdu"
 
-    set_dfm_path(dflowfm_dll_regression)
+    set_dfm_path(dflowfm_dll_devel)
 
     copy_inputfiles(
         dflowfm_initial_inputfiles_folder, prepared_dflowfm_model.filepath.parent
