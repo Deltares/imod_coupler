@@ -30,6 +30,20 @@ class DfmWrapper(BMIWrapper):  # type: ignore
     def get_snapped_flownode(
         self, input_node_x: NDArray[np.float64], input_node_y: NDArray[np.float64]
     ) -> NDArray[np.int_]:
+        """Calculates the flownodes near the given x-y coordinates
+
+        Parameters
+        ----------
+        input_node_x : NDArray[np.float64]
+            x-coordinates of the input nodes
+        input_node_y : NDArray[np.float64]
+            y-coordinates of the input nodes
+
+        Returns
+        -------
+        NDArray[np.int_]
+            flownodes near the given x-y coordinates
+        """
         feature_type = create_string_buffer("flownode")
         assert len(input_node_x) == len(input_node_y)
 
