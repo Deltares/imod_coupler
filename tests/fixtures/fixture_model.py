@@ -380,16 +380,17 @@ def coupled_mf6_model_storage_coefficient() -> mf6.Modflow6Simulation:
 
 
 @pytest_cases.fixture(scope="function")
-def prepared_dflowfm_model(tmp_path_reg: Path) -> FMModel:
+def prepared_dflowfm_model(tmp_path_dev: Path) -> FMModel:
 
     x, y, _, _, dx, dy, _ = grid_sizes()
-    tmp_path_reg.mkdir(exist_ok=True)
+    tmp_path_dev.mkdir()
 
-    with cd(tmp_path_reg):
+    with cd(tmp_path_dev):
         top = 0.0
 
         # Create new model object
         fm_model = FMModel()
+        fm_model.filepath = tmp_path_dev / "fm.mdu"
 
         network = fm_model.geometry.netfile.network
 

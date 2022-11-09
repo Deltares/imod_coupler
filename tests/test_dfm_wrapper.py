@@ -12,15 +12,13 @@ from imod_coupler.drivers.dfm_metamod.dfm_wrapper import DfmWrapper
 
 def test_get_river_stage_from_dflow(
     prepared_dflowfm_model: FMModel,
-    dflowfm_dll_regression: Path,
+    dflowfm_dll_devel: Path,
     dflowfm_initial_inputfiles_folder: Path,
-    tmp_path_reg: Path,
 ) -> None:
 
     prepared_dflowfm_model.save(recurse=True)
-    prepared_dflowfm_model.filepath = tmp_path_reg / "fm.mdu"
 
-    set_dfm_path(dflowfm_dll_regression)
+    set_dfm_path(dflowfm_dll_devel)
     copy_inputfiles(
         dflowfm_initial_inputfiles_folder, prepared_dflowfm_model.filepath.parent
     )
@@ -39,15 +37,13 @@ def test_get_river_stage_from_dflow(
 
 def test_get_snapped_flownode(
     prepared_dflowfm_model: FMModel,
-    dflowfm_dll_regression: Path,
+    dflowfm_dll_devel: Path,
     dflowfm_initial_inputfiles_folder: Path,
-    tmp_path_reg: Path,
 ) -> None:
 
     prepared_dflowfm_model.save(recurse=True)
-    prepared_dflowfm_model.filepath = tmp_path_reg / "fm.mdu"
 
-    set_dfm_path(dflowfm_dll_regression)
+    set_dfm_path(dflowfm_dll_devel)
     copy_inputfiles(
         dflowfm_initial_inputfiles_folder, prepared_dflowfm_model.filepath.parent
     )

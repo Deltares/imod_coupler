@@ -23,7 +23,7 @@ def copy_inputfiles(
 def set_dfm_path(dflowfm_dll_regression: Path) -> None:
 
     os.environ["PATH"] = (
-        os.path.dirname(str(dflowfm_dll_regression.absolute()))
+        str(dflowfm_dll_regression.absolute().parent)
         + os.pathsep
         + os.environ["PATH"]
     )
