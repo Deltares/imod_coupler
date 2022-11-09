@@ -26,7 +26,7 @@ dependencies:
   - pytest-xdist
   - pytest-cases
   - pytest-dotenv
-  - python
+  - python=3.10
   - pywin32
   - rasterio>=1.0
   - scipy
