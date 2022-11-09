@@ -2,7 +2,8 @@ import shutil
 from pathlib import Path
 
 import numpy as np
-from dfm_test_initialization import set_dfm_path
+from dfm_test_initialization import copy_inputfiles, set_dfm_path
+from hydrolib.core.io.mdu.models import FMModel
 from numpy.testing import assert_array_equal
 
 from imod_coupler.drivers.dfm_metamod.dfm_wrapper import DfmWrapper
@@ -74,8 +75,6 @@ def test_get_cumulative_fluxes_1d_nodes(
     np.testing.assert_allclose(cumul_fluxes, 0)
 
 
-
-
 def test_get_1d_river_fluxes(
     tmodel_input_folder: Path,
     dflowfm_dll_regression: Path,
@@ -93,12 +92,10 @@ def test_get_1d_river_fluxes(
     bmiwrapper.update()
     fluxes = bmiwrapper.get_1d_river_fluxes()
     assert fluxes is not None
-    fluxes[:] = 20
-    bmiwrapper.set_1d_river_fluxes(fluxes)
-    new_fluxes = bmiwrapper.get_1d_river_fluxes()
-    bmiwrapper.finalize()
-    assert new_fluxes is not None
-    np.testing.assert_allclose(fluxes, new_fluxes)
+    assert len(fluxes) == 20
+    # @TODO
+    # check if these  fluxes are supposed to be zero
+    np.testing.assert_allclose(fluxes, 0)
 
 
 def test_set_1d_river_fluxes(
@@ -122,8 +119,6 @@ def test_set_1d_river_fluxes(
     bmiwrapper.finalize()
     assert new_fluxes is not None
     np.testing.assert_allclose(fluxes, new_fluxes)
-
-
 
 
 def test_get_snapped_flownode(
@@ -135,48 +130,22 @@ def test_get_snapped_flownode(
     prepared_dflowfm_model.save(recurse=True)
 
     set_dfm_path(dflowfm_dll_devel)
+    copy_inputfiles(
+        dflowfm_initial_inputfiles_folder, prepared_dflowfm_model.filepath.parent
+    )
 
-    bmiwrapper = DfmWrapper(engine="dflowfm", configfile=tmp_path_reg / "FlowFM.mdu")
-
-    bmiwrapper.initialize()
-    bmiwrapper.update()
-    fluxes = bmiwrapper.get_1d_river_fluxes()
-  )
-def test_set_1d_river_fluxes(
-    tmodel_input_folder: Path,
-    dflowfm_dll_regression: Path,
-    tmp_path_reg: Path,
-) -> None:
-
-    shutil.copytree(tmodel_input_folder / "dflow-fm", tmp_path_reg)
-    set_dfm_path(dflowfm_dll_regression)
-
-    bmiwrapper = DfmWrapper(engine="dflowfm", configfile=tmp_path_reg / "FlowFM.mdu")
+    bmiwrapper = DfmWrapper(
+        engine="dflowfm", configfile=prepared_dflowfm_model.filepath
+    )
 
     bmiwrapper.initialize()
-    bmiwrapper.update()
-    fluxes = bmiwrapper.get_1d_river_fluxes()
-    assert fluxes is not None
-    fluxes[:] = 20
-    bmiwrapper.set_1d_river_fluxes(fluxes)
-    new_fluxes = bmiwrapper.get_1d_river_fluxes()
+    input_node_x = np.array([150.0, 150.0, 450.0])
+    input_node_y = np.array([150.0, 250.0, 250.0])
+    flownode_ids = bmiwrapper.get_snapped_flownode(input_node_x, input_node_y)
     bmiwrapper.finalize()
-    assert new_fluxes is not None
-    np.testing.assert_allclose(fluxes, new_fluxes)
-    
 
-    shutil.copytree(tmodel_input_folder / "dflow-fm", tmp_path_reg)
-    set_dfm_path(dflowfm_dll_regression)
-
-    bmiwrapper = DfmWrapper(engine="dflowfm", configfile=tmp_path_reg / "FlowFM.mdu")
-
-    bmiwrapper.initialize()
-    bmiwrapper.update()
-    fluxes = bmiwrapper.get_1d_river_fluxes()
-    assert fluxes is not None
-    fluxes[:] = 20
-    bmiwrapper.set_1d_river_fluxes(fluxes)
-    new_fluxes = bmiwrapper.get_1d_river_fluxes()
-    bmiwrapper.finalize()
-    assert new_fluxes is not None
-    np.testing.assert_allclose(fluxes, new_fluxes)
+    excepted_flownode_ids = np.array([1, 2, 8])
+    assert_array_equal(
+        flownode_ids,
+        excepted_flownode_ids,
+    )
