@@ -56,7 +56,7 @@ class DfmWrapper(BMIWrapper):  # type: ignore
             return None
         q_ext = self.get_var("qext")
         return np.asarray(q_ext[-nr_nodes_1d:], dtype=np.float_)
-        
+
     def get_snapped_flownode(
         self, input_node_x: NDArray[np.float64], input_node_y: NDArray[np.float64]
     ) -> NDArray[np.int_]:
