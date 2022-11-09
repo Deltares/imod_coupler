@@ -383,8 +383,7 @@ def coupled_mf6_model_storage_coefficient() -> mf6.Modflow6Simulation:
 def prepared_dflowfm_model(tmp_path_reg: Path) -> FMModel:
 
     x, y, _, _, dx, dy, _ = grid_sizes()
-    if not tmp_path_reg.exists():
-        Path.mkdir(tmp_path_reg)
+    tmp_path_reg.mkdir(exist_ok=True)
 
     with cd(tmp_path_reg):
         top = 0.0

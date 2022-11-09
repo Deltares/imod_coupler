@@ -5,15 +5,11 @@ import numpy as np
 import pytest
 from dfm_test_initialization import copy_inputfiles, set_dfm_path
 from hydrolib.core.io.mdu.models import FMModel
-from numpy.testing import assert_allclose
+from numpy.testing import assert_array_equal
 
 from imod_coupler.drivers.dfm_metamod.dfm_wrapper import DfmWrapper
 
 
-# @pytest.mark.skip(
-#     reason="currently the BMI wrapper does not survive a second initialize call, and it was already used in test_dfm_metamod"
-#     + "It should still work when running just this test."
-# )
 def test_get_river_stage_from_dflow(
     prepared_dflowfm_model: FMModel,
     dflowfm_dll_regression: Path,
@@ -41,7 +37,7 @@ def test_get_river_stage_from_dflow(
     assert water_levels_1d is None
 
 
-def test_get_snapped_feature(
+def test_get_snapped_flownode(
     prepared_dflowfm_model: FMModel,
     dflowfm_dll_regression: Path,
     dflowfm_initial_inputfiles_folder: Path,
@@ -61,10 +57,13 @@ def test_get_snapped_feature(
     )
 
     bmiwrapper.initialize()
-    input_node_x = np.array([104.0, 104.0, 496.0], dtype=np.float64)
-    input_node_y = np.array([102.0, 298.0, 102.0], dtype=np.float64)
-    # input(os.getpid())
-    result = bmiwrapper.get_snapped_flownode(input_node_x, input_node_y)
+    input_node_x = np.array([150.0, 150.0, 450.0])
+    input_node_y = np.array([150.0, 250.0, 250.0])
+    flownode_ids = bmiwrapper.get_snapped_flownode(input_node_x, input_node_y)
     bmiwrapper.finalize()
 
-    assert_allclose(result, np.zeros(len(result)))
+    excepted_flownode_ids = np.array([1, 2, 8])
+    assert_array_equal(
+        flownode_ids,
+        excepted_flownode_ids,
+    )
