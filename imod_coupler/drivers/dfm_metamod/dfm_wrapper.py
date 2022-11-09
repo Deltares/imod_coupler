@@ -1,8 +1,9 @@
-from ctypes import POINTER, byref, c_char_p, c_int
+from ctypes import POINTER, byref, c_char_p, c_double, c_int, pointer
 from typing import Optional
 
 import numpy as np
 from bmi.wrapper import BMIWrapper, create_string_buffer
+from numpy.ctypeslib import as_array, ndpointer
 from numpy.typing import NDArray
 
 
@@ -26,10 +27,31 @@ class DfmWrapper(BMIWrapper):  # type: ignore
         all_cumulative_fluxes = self.get_var("vextcum")
         return np.asarray(all_cumulative_fluxes[-nr_nodes_1d:], dtype=np.float_)
 
-    def get_snapped_feature(self, name: str) -> int:
-        name = create_string_buffer(name)
-        rank = c_int()
-        self.library.get_var_rank.argtypes = [c_char_p, POINTER(c_int)]
-        self.library.get_var_rank.restype = None
-        self.library.get_var_rank(name, byref(rank))
-        return rank.value
+    def get_snapped_flownode(
+        self, input_node_x: NDArray[np.float_], input_node_y: NDArray[np.float_]
+    ) -> NDArray[np.int_]:
+        feature_type = create_string_buffer("flownode")
+        assert len(input_node_x) == len(input_node_y)
+        input_array_length = c_int(len(input_node_x))
+        output_array_length = c_int()
+        output_ptr_x = ndpointer(dtype=np.float_)
+        output_ptr_y = ndpointer(dtype=np.float_)
+        output_ptr_ids = ndpointer(dtype=np.float_)
+        ierror = c_int()
+        self.library.get_snapped_feature(
+            feature_type,
+            input_array_length,
+            input_node_x.ctypes.data_as(POINTER(c_double)),
+            input_node_y.ctypes.data_as(POINTER(c_double)),
+            byref(output_array_length),
+            byref(output_ptr_x()),
+            byref(output_ptr_y()),
+            byref(output_ptr_ids()),
+            byref(ierror),
+        )
+
+        if ierror.value != 0:
+            raise RuntimeError("The `get_snapped_flownode` call failed.")
+
+        output_ids = as_array(output_ptr_ids, shape=(output_array_length.value,))
+        return output_ids
