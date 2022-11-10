@@ -55,7 +55,7 @@ def test_get_river_stage(
 
 def test_get_cumulative_fluxes_1d_nodes(
     tmodel_input_folder: Path,
-    dflowfm_dll_regression: Path,
+    dflowfm_dll_devel: Path,
     tmp_path_reg: Path,
 ) -> None:
 
