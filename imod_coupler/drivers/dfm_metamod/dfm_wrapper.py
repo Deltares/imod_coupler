@@ -44,7 +44,7 @@ class DfmWrapper(BMIWrapper):  # type: ignore
         nr_nodes_2d = self.get_var("ndx2d")  # number of 2d cells
         nr_nodes_1d = self.get_number_1d_nodes()
         if len(river_flux) != nr_nodes_1d:
-            raise ValueError(f"Expected number of river fluxes: {nr_nodes_1d}")
+            raise ValueError(f"Expected number of river fluxes: {nr_nodes_1d}, got {len(river_flux)}")
         self.set_var_slice("qext", [nr_nodes_2d], [nr_nodes_1d], river_flux)
 
     def get_1d_river_fluxes(self) -> Optional[NDArray[np.float_]]:
