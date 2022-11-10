@@ -12,12 +12,12 @@ from imod_coupler.drivers.dfm_metamod.dfm_wrapper import DfmWrapper
 def test_get_river_stage(
     tmodel_input_folder: Path,
     dflowfm_dll_devel: Path,
-    tmp_path_reg: Path,
+    tmp_path_dev: Path,
 ) -> None:
-    shutil.copytree(tmodel_input_folder / "dflow-fm", tmp_path_reg)
+    shutil.copytree(tmodel_input_folder / "dflow-fm", tmp_path_dev)
     set_dfm_path(dflowfm_dll_devel)
 
-    bmiwrapper = DfmWrapper(engine="dflowfm", configfile=tmp_path_reg / "FlowFM.mdu")
+    bmiwrapper = DfmWrapper(engine="dflowfm", configfile=tmp_path_dev / "FlowFM.mdu")
 
     bmiwrapper.initialize()
     bmiwrapper.update()
@@ -59,9 +59,9 @@ def test_get_cumulative_fluxes_1d_nodes(
     tmp_path_dev: Path,
 ) -> None:
 
-    shutil.copytree(tmodel_input_folder / "dflow-fm", tmp_path_reg)
+    shutil.copytree(tmodel_input_folder / "dflow-fm", tmp_path_dev)
     set_dfm_path(dflowfm_dll_devel)
-    bmiwrapper = DfmWrapper(engine="dflowfm", configfile=tmp_path_reg / "FlowFM.mdu")
+    bmiwrapper = DfmWrapper(engine="dflowfm", configfile=tmp_path_dev / "FlowFM.mdu")
 
     bmiwrapper.initialize()
     bmiwrapper.update()
@@ -78,10 +78,10 @@ def test_get_cumulative_fluxes_1d_nodes(
 def test_get_1d_river_fluxes(
     tmodel_input_folder: Path,
     dflowfm_dll_devel: Path,
-    tmp_path_reg: Path,
+    tmp_path_dev: Path,
 ) -> None:
 
-    shutil.copytree(tmodel_input_folder / "dflow-fm", tmp_path_reg)
+    shutil.copytree(tmodel_input_folder / "dflow-fm", tmp_path_dev)
     set_dfm_path(dflowfm_dll_devel)
 
     bmiwrapper = DfmWrapper(
@@ -101,13 +101,13 @@ def test_get_1d_river_fluxes(
 def test_set_1d_river_fluxes(
     tmodel_input_folder: Path,
     dflowfm_dll_devel: Path,
-    tmp_path_reg: Path,
+    tmp_path_dev: Path,
 ) -> None:
 
-    shutil.copytree(tmodel_input_folder / "dflow-fm", tmp_path_reg)
+    shutil.copytree(tmodel_input_folder / "dflow-fm", tmp_path_dev)
     set_dfm_path(dflowfm_dll_devel)
 
-    bmiwrapper = DfmWrapper(engine="dflowfm", configfile=tmp_path_reg / "FlowFM.mdu")
+    bmiwrapper = DfmWrapper(engine="dflowfm", configfile=tmp_path_dev / "FlowFM.mdu")
 
     bmiwrapper.initialize()
     bmiwrapper.update()

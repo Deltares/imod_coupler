@@ -266,7 +266,6 @@ VelocityMagnitudeClasses= 0
 VelocityDirectionClassesInterval= 30
 ClassMapInterval  = 300
 StatsInterval     =
-Writebalancefile  = 0
 TimingsInterval   =
 Richardsononoutput= 1
 Wrimap_wet_waterdepth_threshold= 0.01
