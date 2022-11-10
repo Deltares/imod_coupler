@@ -1,3 +1,4 @@
+import os
 import shutil
 from pathlib import Path
 
@@ -14,6 +15,7 @@ def test_get_river_stage(
     dflowfm_dll_devel: Path,
     tmp_path_dev: Path,
 ) -> None:
+
     shutil.copytree(tmodel_input_folder / "dflow-fm", tmp_path_dev)
     set_dfm_path(dflowfm_dll_devel)
 
@@ -28,29 +30,29 @@ def test_get_river_stage(
     assert len(water_levels_1d) == 20
     reference_result = np.array(
         [
-            10.05267912,
-            10.05255347,
-            10.05247691,
-            10.05241757,
-            10.05239327,
-            10.05244195,
-            10.05224224,
-            10.05142698,
-            10.0504504,
-            10.04934978,
-            10.04812866,
-            10.04687276,
-            10.04610396,
-            9.133569,
-            9.13208469,
-            9.11029247,
-            9.05359345,
+            10.0526756,
+            10.05226328,
+            10.05217788,
+            10.05211877,
+            10.05208595,
+            10.05203286,
+            10.05199938,
+            10.05121906,
+            10.05021786,
+            10.04904483,
+            10.04767879,
+            10.04616922,
+            10.04497164,
+            9.16042689,
+            9.15877603,
+            9.13318928,
+            9.06684356,
             9.0,
-            10.05325025,
-            10.05244195,
+            10.05412232,
+            10.05203286,
         ]
     )
-    np.testing.assert_almost_equal(water_levels_1d, reference_result)
+    np.testing.assert_allclose(water_levels_1d, reference_result, rtol=1e-3)
 
 
 def test_get_cumulative_fluxes_1d_nodes(
@@ -61,6 +63,7 @@ def test_get_cumulative_fluxes_1d_nodes(
 
     shutil.copytree(tmodel_input_folder / "dflow-fm", tmp_path_dev)
     set_dfm_path(dflowfm_dll_devel)
+
     bmiwrapper = DfmWrapper(engine="dflowfm", configfile=tmp_path_dev / "FlowFM.mdu")
 
     bmiwrapper.initialize()
