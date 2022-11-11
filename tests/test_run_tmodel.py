@@ -33,9 +33,4 @@ def test_run_tmodel(
     with open(toml_file_path, "wb") as toml_file:
         tomli_w.dump(toml_dict, toml_file)
 
-    output_version = subprocess.run(
-        [imod_coupler_exec_devel, f"{toml_file_path}"],
-        capture_output=True,
-        text=True,
-        check=True,
-    )
+    subprocess.run([imod_coupler_exec_devel, toml_file_path], check=True)
