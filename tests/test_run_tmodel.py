@@ -1,4 +1,5 @@
 import shutil
+import subprocess
 from pathlib import Path
 
 import tomli
@@ -14,6 +15,7 @@ def test_run_tmodel(
     dflowfm_dll: Path,
     metaswap_dll_devel: Path,
     metaswap_dll_dep_dir_devel: Path,
+    imod_coupler_exec_devel: Path,
 ) -> None:
     shutil.copytree(tmodel_input_folder, tmp_path_dev)
 
@@ -31,4 +33,9 @@ def test_run_tmodel(
     with open(toml_file_path, "wb") as toml_file:
         tomli_w.dump(toml_dict, toml_file)
 
-    run_coupler(toml_file_path)
+    output_version = subprocess.run(
+        [imod_coupler_exec_devel, f"{toml_file_path}"],
+        capture_output=True,
+        text=True,
+        check=True,
+    )
