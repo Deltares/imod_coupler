@@ -11,13 +11,13 @@ from imod_coupler.drivers.dfm_metamod.mf6_wrapper import Mf6Wrapper
 
 def test_mf6_set_river_stage(
     mf6_model_with_river: mf6.Modflow6Simulation,
-    dflowfm_dll_devel: Path,
+    modflow_dll_devel: Path,
     tmp_path_dev: Path,
 ) -> None:
 
     mf6_model_with_river.write(tmp_path_dev)
     mf6wrapper = Mf6Wrapper(
-        lib_path=dflowfm_dll_devel,
+        lib_path=modflow_dll_devel,
         working_directory=tmp_path_dev,
     )
     mf6wrapper.initialize()
@@ -41,12 +41,12 @@ def test_mf6_set_river_stage(
 
 def test_mf6_get_river_flux(
     mf6_model_with_river: mf6.Modflow6Simulation,
-    dflowfm_dll_devel: Path,
+    modflow_dll_devel: Path,
     tmp_path_dev: Path,
 ) -> None:
     mf6_model_with_river.write(tmp_path_dev)
     mf6wrapper = Mf6Wrapper(
-        lib_path=dflowfm_dll_devel,
+        lib_path=modflow_dll_devel,
         working_directory=tmp_path_dev,
     )
     mf6wrapper.initialize()

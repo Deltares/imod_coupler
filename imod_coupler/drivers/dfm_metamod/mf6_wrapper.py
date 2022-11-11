@@ -33,7 +33,12 @@ class Mf6Wrapper(XmiWrapper):
         stage = self.get_river_stages(mf6_flowmodel_key, mf6_river_pkg_key)
         if new_river_stages is None or len(new_river_stages) != len(stage):
             raise ValueError(f"Expected size of new_river_stages is {len(stage)}")
-        stage[:] = new_river_stages[:]
+        bound_adress = self.get_var_address(
+            "BOUND", mf6_flowmodel_key, mf6_river_pkg_key
+        )
+        bound = self.get_value_ptr(bound_adress)
+        bound[:, 0] = new_river_stages[:]
+        self.set_value(bound_adress, bound)
 
     def get_river_stages(
         self,
