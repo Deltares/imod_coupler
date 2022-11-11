@@ -10,16 +10,25 @@ from numpy.typing import NDArray
 class DfmWrapper(BMIWrapper):  # type: ignore
     def get_number_1d_nodes(self) -> int:
         """
-        Returns the number of 1d nodes in the dflow-FM model
+        Returns
+        -------
+        int
+            the number of 1d nodes in the dflow-FM model
         """
+
         nr_nodes = self.get_var("ndxi")  # number of cells
         nr_nodes2d = self.get_var("ndx2d")  # number of 2d cells
         return int(nr_nodes - nr_nodes2d)
 
     def get_waterlevels_1d(self) -> Optional[NDArray[np.float_]]:
         """
-        Returns the waterlevels of the 1d nodes in the dflow-FM model
+        Returns
+        -------
+        Optional[NDArray[np.float_]]
+            an array with the waterlevels of the 1d nodes in the dflow-FM model,
+            or None if there ar no 1d nodes.
         """
+
         nr_nodes_1d = self.get_number_1d_nodes()
         if nr_nodes_1d == 0:
             return None
@@ -28,7 +37,11 @@ class DfmWrapper(BMIWrapper):  # type: ignore
 
     def get_cumulative_fluxes_1d_nodes(self) -> Optional[NDArray[np.float_]]:
         """
-        Returns the cumulative fluxes of the 1d nodes in the dflow-FM model
+        Returns
+        -------
+        Optional[NDArray[np.float_]]
+            an array with the cumulative fluxes of the 1d nodes in the dflow-FM model,
+            or None if there ar no 1d nodes.
         """
         nr_nodes_1d = self.get_number_1d_nodes()
         if nr_nodes_1d == 0:
@@ -38,18 +51,33 @@ class DfmWrapper(BMIWrapper):  # type: ignore
 
     def set_1d_river_fluxes(self, river_flux: NDArray[np.float_]) -> None:
         """
-        sets the elements of the DFLOW-FM array "qext" that correspond to 1d nodes to
-        the river_flux
+        Sets the DFLOW-FM array qext (external fluxes) for the 1d nodes
+
+        Parameters
+        ----------
+        river_flux : NDArray[np.float_]
+            the 1d river fluxes that need to be set to the DFLOW-FM array "qext"
+
+        Raises
+        ------
+        ValueError
+            mismatch between expected size and actual size.
         """
+
         nr_nodes_2d = self.get_var("ndx2d")  # number of 2d cells
         nr_nodes_1d = self.get_number_1d_nodes()
         if len(river_flux) != nr_nodes_1d:
-            raise ValueError(f"Expected number of river fluxes: {nr_nodes_1d}, got {len(river_flux)}")
+            raise ValueError(
+                f"Expected number of river fluxes: {nr_nodes_1d}, got {len(river_flux)}"
+            )
         self.set_var_slice("qext", [nr_nodes_2d], [nr_nodes_1d], river_flux)
 
     def get_1d_river_fluxes(self) -> Optional[NDArray[np.float_]]:
         """
-        assigns external fluxes
+        Returns
+        -------
+        Optional[NDArray[np.float_]]
+            the DFLOW_FM external fluxes ( "qext") for the 1d nodes
         """
         nr_nodes_1d = self.get_number_1d_nodes()
         if nr_nodes_1d == 0:

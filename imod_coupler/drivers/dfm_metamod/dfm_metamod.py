@@ -54,6 +54,15 @@ class DfmMetaMod(Driver):
 
     number_dflowsteps_per_modflowstep = 10
 
+    # dictionary used for converting x, y coordinates to node numbers for dflow-fm
+    dflow1d_lookup = dict[tuple[float, float], int]()
+
+    # sparse matrices used for  modflow-dflow exchanges
+    map_active_mod_dflow1d = dict[str, csr_matrix]()
+
+    # masks used for  modflow-dflow exchanges
+    mask_active_mod_dflow1d = dict[str, NDArray[np.int_]]()
+
     def __init__(
         self, base_config: BaseConfig, config_dir: Path, driver_dict: Dict[str, Any]
     ):
@@ -63,9 +72,7 @@ class DfmMetaMod(Driver):
         self.coupling = self.dfm_metamod_config.coupling[
             0
         ]  # Adapt as soon as we have multimodel support
-        self.dflow1d_lookup = dict[tuple[float, float], int]()
-        self.map_active_mod_dflow1d = dict[str, csr_matrix]()
-        self.mask_active_mod_dflow1d = dict[str, NDArray[np.int_]]()
+
         mapping_input_dir = config_dir / "exchanges"
         self.dflow1d_lookup, _ = get_dflow1d_lookup(mapping_input_dir)
         (
@@ -74,6 +81,7 @@ class DfmMetaMod(Driver):
         ) = mapping_active_mf_dflow1d(mapping_input_dir, self.dflow1d_lookup)
 
     def initialize(self) -> None:
+
         self.mf6 = Mf6Wrapper(
             lib_path=self.dfm_metamod_config.kernels.modflow6.dll,
             lib_dependency=self.dfm_metamod_config.kernels.modflow6.dll_dep_dir,
