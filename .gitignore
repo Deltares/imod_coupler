@@ -133,3 +133,5 @@ dmypy.json
 
 # Tests
 tests/temp
+tests/data/t_model/dflow-fm/DFM_OUTPUT_FlowFM/*
+tests/data/t_model/dflow-fm/FlowFM.cache
