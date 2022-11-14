@@ -107,4 +107,36 @@ class Mf6Wrapper(XmiWrapper):
         q = NDArray[np.float_](len(nodelist))
         q[:] = bound[:, 1] * (bound[:, 0] - river_head)
 
-        return q
+        return q            
+
+    def set_correction_flux(
+        self,
+        mf6_flowmodel_key: str,
+        mf6_wel_pkg_key: str,
+        correction_flux: Optional[NDArray[np.float_]],
+    ) -> None:
+        """
+        sets the river correction flux in a modflow simulation via the well package
+
+        Parameters
+        ----------
+        mf6_flowmodel_key : str
+            key of the modflow model
+        mf6_wel_pkg_key : str
+            key of the wel package used for the correction flux
+        correction_flux : NDArray[np.float_]
+            correction flux to be set to modflow
+
+
+        Raises
+        ------
+        ValueError
+            the size of the provided flux array does not match the expected size
+        """
+        bound_adress = self.get_var_address("BOUND", mf6_flowmodel_key, mf6_wel_pkg_key)
+        flux = self.get_value_ptr(bound_adress)
+        if correction_flux is None or len(correction_flux) != len(flux):
+            raise ValueError(f"Expected size of correction_flux is {len(flux)}")
+        flux[:] = correction_flux[:]
+        self.set_value(bound_adress, flux)
+       
