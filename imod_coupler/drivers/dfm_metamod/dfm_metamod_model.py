@@ -42,7 +42,15 @@ class DfmMetaModModel:
         dfm_model: FMModel,
         mf6_rch_pkgkey: str,
         mf6_river_pkgkey: str,
-        mf6_wel_pkgkey: Optional[str] = None,
+        mf6_wel_pkgkey: str,
+        MFRIVTODFM1D_Q_DMM_path: Path,
+        DFM1DWATLEVTOMFRIV_H_DMM_path: Path,
+        MFRIV2TODFM1D_Q_DMM: Path,
+        MFDRNTODFM1D_Q_DMM: Path,
+        MSWSPRINKTODFM1D_Q_DMM: Path,
+        MSWRUNOFFTODFM1D_Q_DMM: Path,
+        DFM2DWATLEVTOMSW_H_DMM: Path,
+        DFLOWFM1D_POINTS_DAT: Path,
     ):
         self.msw_model = msw_model
         self.mf6_simulation = mf6_simulation
