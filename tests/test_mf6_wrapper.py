@@ -11,13 +11,13 @@ from imod_coupler.drivers.dfm_metamod.mf6_wrapper import Mf6Wrapper
 
 def test_mf6_set_river_stage(
     mf6_model_with_river: mf6.Modflow6Simulation,
-    modflow_dll_regression: Path,
+    modflow_dll_devel: Path,
     tmp_path_dev: Path,
 ) -> None:
 
     mf6_model_with_river.write(tmp_path_dev)
     mf6wrapper = Mf6Wrapper(
-        lib_path=modflow_dll_regression,
+        lib_path=modflow_dll_devel,
         working_directory=tmp_path_dev,
     )
     mf6wrapper.initialize()
@@ -37,3 +37,53 @@ def test_mf6_set_river_stage(
 
     np.testing.assert_allclose(stage, new_river_stage)
     mf6wrapper.finalize()
+
+
+def test_mf6_get_river_flux(
+    mf6_model_with_river: mf6.Modflow6Simulation,
+    modflow_dll_devel: Path,
+    tmp_path_dev: Path,
+) -> None:
+    mf6_model_with_river.write(tmp_path_dev)
+    mf6wrapper = Mf6Wrapper(
+        lib_path=modflow_dll_devel,
+        working_directory=tmp_path_dev,
+    )
+    mf6wrapper.initialize()
+    mf6wrapper.prepare_time_step(0.0)
+
+    new_river_stage = NDArray[np.float_](15)
+    new_river_stage[:] = range(15)
+    mf6wrapper.set_river_stages(
+        "GWF_1",
+        "Oosterschelde",
+        new_river_stage,
+    )
+
+    q = mf6wrapper.get_river_flux(
+        "GWF_1",
+        "Oosterschelde",
+    )
+
+    np.testing.assert_allclose(
+        q,
+        np.array(
+            [
+                -1.26,
+                2.94,
+                16.8,
+                11.34,
+                15.54,
+                19.74,
+                23.94,
+                37.8,
+                32.34,
+                36.54,
+                40.74,
+                44.94,
+                58.8,
+                53.34,
+                57.54,
+            ]
+        ),
+    )

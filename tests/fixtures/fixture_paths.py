@@ -110,6 +110,20 @@ def dflowfm_initial_inputfiles_folder(request) -> Path:
     return Path(request.fspath).parent / "data" / "dflowfm_example"
 
 
+@pytest.fixture(scope="function")
+def mapping_input_folder(request) -> Path:
+    """
+    Return the directory of the mapping example problem input data
+    """
+
+    return Path(request.fspath).parent / "data" / "mapper_input"
+
+
 @pytest.fixture(scope="session")
 def dflowfm_dll() -> Path:
     return Path(os.environ["DFLOWFM_DLL_DEVEL"])
+
+
+@pytest.fixture(scope="function")
+def tmodel_input_folder(request) -> Path:
+    return Path(request.fspath).parent / "data" / "t_model"

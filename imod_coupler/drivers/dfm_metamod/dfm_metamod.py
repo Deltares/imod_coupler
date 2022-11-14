@@ -18,6 +18,10 @@ from xmipy import XmiWrapper
 from imod_coupler.config import BaseConfig
 from imod_coupler.drivers.dfm_metamod.config import Coupling, DfmMetaModConfig
 from imod_coupler.drivers.dfm_metamod.dfm_wrapper import DfmWrapper
+from imod_coupler.drivers.dfm_metamod.mapping_functions import (
+    get_dflow1d_lookup,
+    mapping_active_mf_dflow1d,
+)
 from imod_coupler.drivers.dfm_metamod.mf6_wrapper import Mf6Wrapper
 from imod_coupler.drivers.driver import Driver
 from imod_coupler.utils import Operator, create_mapping
@@ -50,6 +54,15 @@ class DfmMetaMod(Driver):
 
     number_dflowsteps_per_modflowstep = 10
 
+    # dictionary used for converting x, y coordinates to node numbers for dflow-fm
+    dflow1d_lookup = dict[tuple[float, float], int]()
+
+    # sparse matrices used for  modflow-dflow exchanges
+    map_active_mod_dflow1d = dict[str, csr_matrix]()
+
+    # masks used for  modflow-dflow exchanges
+    mask_active_mod_dflow1d = dict[str, NDArray[np.int_]]()
+
     def __init__(
         self, base_config: BaseConfig, config_dir: Path, driver_dict: Dict[str, Any]
     ):
@@ -60,7 +73,15 @@ class DfmMetaMod(Driver):
             0
         ]  # Adapt as soon as we have multimodel support
 
+        mapping_input_dir = config_dir / "exchanges"
+        self.dflow1d_lookup, _ = get_dflow1d_lookup(mapping_input_dir)
+        (
+            self.map_active_mod_dflow1d,
+            self.mask_active_mod_dflow1d,
+        ) = mapping_active_mf_dflow1d(mapping_input_dir, self.dflow1d_lookup)
+
     def initialize(self) -> None:
+
         self.mf6 = Mf6Wrapper(
             lib_path=self.dfm_metamod_config.kernels.modflow6.dll,
             lib_dependency=self.dfm_metamod_config.kernels.modflow6.dll_dep_dir,
@@ -148,11 +169,22 @@ class DfmMetaMod(Driver):
         MF6 unit: meters above MF6's reference plane
         DFM unit: ?
         """
-        water_levels = self.dfm.get_waterlevels_1d()
+        dfm_water_levels = self.dfm.get_waterlevels_1d()
+        mf6_river_stage = self.mf6.get_river_stages(
+            self.coupling.mf6_model, self.coupling.mf6_river_pkg
+        )
+
+        updated_river_stage = (
+            self.mask_active_mod_dflow1d["dflow1d2mf-riv_stage"][:] * mf6_river_stage[:]
+            + self.map_active_mod_dflow1d["dflow1d2mf-riv_stage"].dot(dfm_water_levels)[
+                :
+            ]
+        )
+
         self.mf6.set_river_stages(
             self.coupling.mf6_model,
             self.coupling.mf6_river_pkg,
-            water_levels,
+            updated_river_stage,
         )
 
     def exchange_V_1D(self) -> None:
@@ -164,7 +196,19 @@ class DfmMetaMod(Driver):
         MF6 unit: ?
         DFM unit: ?
         """
-        pass
+        mf6_river_aquifer_flux = self.mf6.get_river_flux(
+            self.coupling.mf6_model, self.coupling.mf6_river_pkg
+        )
+        dflow1d_flux_receive = self.dfm.get_1d_river_fluxes()
+        if dflow1d_flux_receive is None:
+            raise ValueError("dflow 1d river flux not found")
+        dflow1d_flux_receive = (
+            self.mask_active_mod_dflow1d["mf-riv2dflow1d_flux"][:]
+            * dflow1d_flux_receive[:]
+            + self.map_active_mod_dflow1d["mf-riv2dflow1d_flux"].dot(
+                mf6_river_aquifer_flux
+            )[:]
+        )
 
     def exchange_V_dash_1D(self) -> None:
         """
