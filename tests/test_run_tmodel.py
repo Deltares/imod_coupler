@@ -4,6 +4,7 @@ from pathlib import Path
 
 import tomli
 import tomli_w
+from test_utilities import fill_para_sim_template
 
 from imod_coupler.__main__ import run_coupler
 
@@ -15,6 +16,7 @@ def test_run_tmodel(
     dflowfm_dll: Path,
     metaswap_dll_devel: Path,
     metaswap_dll_dep_dir_devel: Path,
+    metaswap_lookup_table: Path,
     imod_coupler_exec_devel: Path,
 ) -> None:
     shutil.copytree(tmodel_input_folder, tmp_path_dev)
@@ -33,4 +35,5 @@ def test_run_tmodel(
     with open(toml_file_path, "wb") as toml_file:
         tomli_w.dump(toml_dict, toml_file)
 
+    fill_para_sim_template(tmp_path_dev / "MetaSWAP", metaswap_lookup_table)
     run_coupler(toml_file_path)
