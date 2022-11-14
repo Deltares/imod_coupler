@@ -107,7 +107,7 @@ class Mf6Wrapper(XmiWrapper):
         q = NDArray[np.float_](len(nodelist))
         q[:] = bound[:, 1] * (bound[:, 0] - river_head)
 
-        return q            
+        return q
 
     def set_correction_flux(
         self,
@@ -139,4 +139,3 @@ class Mf6Wrapper(XmiWrapper):
             raise ValueError(f"Expected size of correction_flux is {len(flux)}")
         flux[:] = correction_flux[:]
         self.set_value(bound_adress, flux)
-       
