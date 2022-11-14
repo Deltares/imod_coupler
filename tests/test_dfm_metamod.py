@@ -10,10 +10,6 @@ from imod_coupler.__main__ import run_coupler
 from imod_coupler.drivers.dfm_metamod.dfm_metamod_model import DfmMetaModModel
 
 
-@pytest.mark.skip(
-    "disabled because we currently don't have test_dfm_metamod_cases which contain valid mapping files."
-    + "the driver is now tested in test_run_tmodel.py"
-)
 @parametrize_with_cases("dfm_metamod", prefix="case_")
 def test_dfmmetamod_initialization(
     dfm_metamod: DfmMetaModModel,

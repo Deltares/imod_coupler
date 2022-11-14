@@ -43,14 +43,14 @@ class DfmMetaModModel:
         mf6_rch_pkgkey: str,
         mf6_river_pkgkey: str,
         mf6_wel_pkgkey: str,
-        MFRIVTODFM1D_Q_DMM_path: Path,
-        DFM1DWATLEVTOMFRIV_H_DMM_path: Path,
-        MFRIV2TODFM1D_Q_DMM: Path,
-        MFDRNTODFM1D_Q_DMM: Path,
-        MSWSPRINKTODFM1D_Q_DMM: Path,
-        MSWRUNOFFTODFM1D_Q_DMM: Path,
-        DFM2DWATLEVTOMSW_H_DMM: Path,
-        DFLOWFM1D_POINTS_DAT: Path,
+        mf6_river_to_dfm_1d_q_dmm_path: Path,
+        dfm_1d_waterlevel_to_mf6_river_stage_dmm_path: Path,
+        mf6_river2_to_dmf_1d_q_dmm_path: Path,
+        mf6_drainage_to_dfm_1d_q_dmm_path: Path,
+        msw_sprink_to_dfm_1d_q_dmm_path: Path,
+        msw_runoff_to_dfm_1d_q_dmm_path: Path,
+        dfm_2d_waterlevels_to_msw_h_dmm_path: Path,
+        dfm_1d_points_dat_path: Path,
     ):
         self.msw_model = msw_model
         self.mf6_simulation = mf6_simulation
@@ -59,6 +59,27 @@ class DfmMetaModModel:
         self.mf6_river_pkgkey = mf6_river_pkgkey
         self.dfm_model = dfm_model
         self.is_sprinkling = self._check_coupler_and_sprinkling()
+        self.mapping_files = dict[str, Path]()
+        self.mapping_files["mf6_river_to_dfm_1d_q_dmm"] = mf6_river_to_dfm_1d_q_dmm_path
+        self.mapping_files[
+            "dfm_1d_waterlevel_to_mf6_river_stage_dmm"
+        ] = dfm_1d_waterlevel_to_mf6_river_stage_dmm_path
+        self.mapping_files[
+            "mf6_river2_to_dmf_1d_q_dmm"
+        ] = mf6_river2_to_dmf_1d_q_dmm_path
+        self.mapping_files[
+            "mf6_drainage_to_dfm_1d_q_dmm"
+        ] = mf6_drainage_to_dfm_1d_q_dmm_path
+        self.mapping_files[
+            "metaswap_sprink_to_dfm1D_Q_dmm"
+        ] = msw_sprink_to_dfm_1d_q_dmm_path
+        self.mapping_files[
+            "msw_runoff_to_dfm_1d_q_dmm"
+        ] = msw_runoff_to_dfm_1d_q_dmm_path
+        self.mapping_files[
+            "dfm_2d_waterlevels_to_msw_h_dmm"
+        ] = dfm_2d_waterlevels_to_msw_h_dmm_path
+        self.mapping_files["dfm_1d_points_dat"] = dfm_1d_points_dat_path
 
     def _check_coupler_and_sprinkling(self) -> bool:
         mf6_rch_pkgkey = self.mf6_rch_pkgkey
@@ -294,6 +315,9 @@ class DfmMetaModModel:
                 "mf6_msw_sprinkling_map"
             ] = f"./{directory.name}/{WellSvatMapping._file_name}"
 
+        for mapping_name, mapping_path in self.mapping_files.items():
+            if mapping_path is not None:
+                coupling_dict[mapping_name] = str(mapping_path)
         return coupling_dict
 
     def write_exchanges(
