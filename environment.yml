@@ -22,7 +22,7 @@ dependencies:
   - pytest-xdist
   - pytest-cases
   - pytest-dotenv
-  - python
+  - python=3.10
   - rasterio>=1.0
   - scipy
   - sphinx
