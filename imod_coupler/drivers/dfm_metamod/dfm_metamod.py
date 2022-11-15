@@ -55,13 +55,13 @@ class DfmMetaMod(Driver):
     number_dflowsteps_per_modflowstep = 10
 
     # dictionary used for converting x, y coordinates to node numbers for dflow-fm
-    dflow1d_lookup = dict[tuple[float, float], int]()
+    dflow1d_lookup: dict[tuple[float, float], int]
 
     # sparse matrices used for  modflow-dflow exchanges
-    map_active_mod_dflow1d = dict[str, csr_matrix]()
+    map_active_mod_dflow1d: dict[str, csr_matrix]
 
     # masks used for  modflow-dflow exchanges
-    mask_active_mod_dflow1d = dict[str, NDArray[np.int_]]()
+    mask_active_mod_dflow1d: dict[str, NDArray[np.int_]]
 
     def __init__(
         self, base_config: BaseConfig, config_dir: Path, driver_dict: Dict[str, Any]
