@@ -4,7 +4,7 @@ from typing import Any, Dict, Optional
 import numpy as np
 from numpy import float_, int_
 from numpy.typing import NDArray
-from scipy.sparse import csr_matrix
+from scipy.sparse import csr_matrix, dia_matrix
 
 from imod_coupler.utils import Operator, create_mapping
 
@@ -437,6 +437,38 @@ def get_dflow1d_lookup(workdir: Path) -> tuple[dict[tuple[float, float], int], b
         print(f"Can't find {dflow1d_file}.")
         ok = False
     return dflow1d_lookup, ok
+
+
+def get_svat_lookup(workdir_msw: Path) -> tuple[dict[tuple[int, int], int], bool]:
+    """
+    read file with all coupled MetaSWAP svat. Function creates a lookup, with the svat tuples (id, lay) as keys and the metaswap internal indexes as values
+
+    Parameters
+    ----------
+    workdir_msw : Path
+        directory where MetaSWAP mapping input files can be found
+
+    Returns
+    -------
+    tuple[dict[tuple[int, int, int], bool]
+       The first value of the tupple is a dictionary of pairs svat and layer to internal svat-number
+       The second value is an indicator of whether the said dictionary could be filled without issues.
+    """
+
+    ok = True
+    svat_lookup = {}
+    msw_mod2svat_file = workdir_msw / "mod2svat.inp"
+    if msw_mod2svat_file.is_file():
+        svat_data: NDArray[np.int32] = np.loadtxt(
+            msw_mod2svat_file, dtype=np.int32, ndmin=2
+        )
+        svat_id = svat_data[:, 1]
+        svat_lay = svat_data[:, 2]
+        for vi in range(svat_id.size):
+            svat_lookup[(svat_id[vi], svat_lay[vi])] = vi
+    else:
+        ok = False
+    return svat_lookup, ok
 
 
 def get_dflow2d_lookup(workdir: Path) -> tuple[dict[tuple[float, float], int], bool]:
