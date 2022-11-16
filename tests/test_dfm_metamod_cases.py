@@ -33,4 +33,7 @@ def case_with_river(
         dfm_2d_waterlevels_to_msw_h_dmm_path=Path("sample.xyz"),
         dfm_1d_points_dat_path=Path("sample.xyz"),
     )
+
+    # sample.xyz is in fact not a real mapping file- it is used here because there are no valid mapping files
+    # for this example
     return with_river
