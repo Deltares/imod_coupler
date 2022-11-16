@@ -58,7 +58,7 @@ class DfmMetaModModel:
         self.mf6_river_pkgkey = mf6_river_pkgkey
         self.dfm_model = dfm_model
         self.is_sprinkling = self._check_coupler_and_sprinkling()
-        self.mapping_files = dict[str, Path]()
+        self.mapping_files = {}
         self.mapping_files["mf6_river_to_dfm_1d_q_dmm"] = mf6_river_to_dfm_1d_q_dmm_path
         self.mapping_files[
             "dfm_1d_waterlevel_to_mf6_river_stage_dmm"
