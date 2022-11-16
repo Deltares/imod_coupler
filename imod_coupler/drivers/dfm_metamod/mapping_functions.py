@@ -412,7 +412,6 @@ def get_dflow1d_lookup(workdir: Path) -> tuple[dict[tuple[float, float], int], b
        The second value is an indicator of whether the said dictionary could be filled without issues.
     """
 
-    ok = True
     dflow1d_lookup = {}
     dflow1d_file = workdir / "DFLOWFM1D_POINTS.DAT"
     if dflow1d_file.is_file():
@@ -434,9 +433,10 @@ def get_dflow1d_lookup(workdir: Path) -> tuple[dict[tuple[float, float], int], b
                     f"xy coordinate {dflow1d_x[i], dflow1d_y[i]} is not part of dflow's mesh"
                 )
     else:
-        print(f"Can't find {dflow1d_file}.")
-        ok = False
-    return dflow1d_lookup, ok
+        raise ValueError(
+            f"mapping file 'DFLOWFM1D_POINTS.DAT' was not found!"
+        )
+    return dflow1d_lookup
 
 
 def get_svat_lookup(workdir_msw: Path) -> tuple[dict[tuple[int, int], int], bool]:
@@ -455,7 +455,6 @@ def get_svat_lookup(workdir_msw: Path) -> tuple[dict[tuple[int, int], int], bool
        The second value is an indicator of whether the said dictionary could be filled without issues.
     """
 
-    ok = True
     svat_lookup = {}
     msw_mod2svat_file = workdir_msw / "mod2svat.inp"
     if msw_mod2svat_file.is_file():
@@ -467,8 +466,10 @@ def get_svat_lookup(workdir_msw: Path) -> tuple[dict[tuple[int, int], int], bool
         for vi in range(svat_id.size):
             svat_lookup[(svat_id[vi], svat_lay[vi])] = vi
     else:
-        ok = False
-    return svat_lookup, ok
+        raise ValueError(
+            f"mapping file 'mod2svat.inp' was not found!"
+        )
+    return svat_lookup
 
 
 def get_dflow2d_lookup(workdir: Path) -> tuple[dict[tuple[float, float], int], bool]:

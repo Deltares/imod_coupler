@@ -78,13 +78,13 @@ class DfmMetaMod(Driver):
     mask_active_mod_dflow1d = dict[str, NDArray[np.int_]]()
 
     # dictionary with mapping tables for mod=>msw coupling
-    map_mod2msw: Dict[str, csr_matrix] = {}
+    map_mod2msw: Dict[str, csr_matrix]
     # dictionary with mapping tables for msw=>mod coupling
-    map_msw2mod: Dict[str, csr_matrix] = {}
+    map_msw2mod: Dict[str, csr_matrix]
     # dict. with mask arrays for mod=>msw coupling
-    mask_mod2msw: Dict[str, NDArray[Any]] = {}
+    mask_mod2msw: Dict[str, NDArray[Any]]
     # dict. with mask arrays for msw=>mod coupling
-    mask_msw2mod: Dict[str, NDArray[Any]] = {}
+    mask_msw2mod: Dict[str, NDArray[Any]]
 
     def __init__(
         self, base_config: BaseConfig, config_dir: Path, driver_dict: Dict[str, Any]
@@ -97,7 +97,7 @@ class DfmMetaMod(Driver):
         ]  # Adapt as soon as we have multimodel support
 
         mapping_input_dir = config_dir / "exchanges"
-        self.dflow1d_lookup, _ = get_dflow1d_lookup(mapping_input_dir)
+        self.dflow1d_lookup = get_dflow1d_lookup(mapping_input_dir)
         (
             self.map_active_mod_dflow1d,
             self.mask_active_mod_dflow1d,
@@ -175,8 +175,13 @@ class DfmMetaMod(Driver):
         self.msw_volume = self.msw.get_value_ptr("dvsim")
         self.msw_storage = self.msw.get_value_ptr("dsc1sim")
 
+        self.map_mod2msw = {}
+        self.map_msw2mod = {}
+        self.mask_mod2msw = {}
+        self.mask_msw2mod = {}
+
         # create mapping for metamod, should move tot mapping functions at one point maybe
-        self.svat_lookup, _ = get_svat_lookup(self.msw.working_directory)
+        self.svat_lookup = get_svat_lookup(self.msw.working_directory)
         table_node2svat: NDArray[np.int32] = np.loadtxt(
             self.coupling.mf6_msw_node_map, dtype=np.int32, ndmin=2
         )
@@ -291,7 +296,7 @@ class DfmMetaMod(Driver):
         # convergence loop modflow-metaswap
         self.mf6.prepare_solve(1)
         for kiter in range(1, self.max_iter + 1):
-            has_converged = self.do_iter(1)
+            has_converged = self.do_iter_mf_msw(1)
             if has_converged:
                 logger.debug(f"MF6-MSW converged in {kiter} iterations")
                 break
@@ -413,7 +418,7 @@ class DfmMetaMod(Driver):
         total = total_mf6 + total_msw
         logger.info(f"Total elapsed time in numerical kernels: {total:0.4f} seconds")
 
-    def do_iter(self, sol_id: int) -> bool:
+    def do_iter_mf_msw(self, sol_id: int) -> bool:
         """Execute a single iteration"""
         self.msw.prepare_solve(0)
         self.msw.solve(0)
