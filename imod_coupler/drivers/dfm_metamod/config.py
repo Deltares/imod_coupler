@@ -81,7 +81,7 @@ class Coupling(BaseModel):
         "dfm_2d_waterlevels_to_msw_h_dmm",
         "dfm_1d_points_dat",
     )
-    def resolve_mapping_file(cls, mapping_file: FilePath) -> FilePath:
+    def resolve_mapping_files(cls, mapping_file: FilePath) -> FilePath:
         return mapping_file.resolve()
 
     @validator("mf6_msw_recharge_map")
