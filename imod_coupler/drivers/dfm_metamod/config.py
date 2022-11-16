@@ -53,7 +53,9 @@ class Coupling(BaseModel):
     dfm_2d_waterlevels_to_msw_h_dmm: FilePath
     dfm_1d_points_dat: FilePath
 
-    mf6_msw_sprinkling_map: Optional[FilePath]  # the pach to the sprinkling map file
+    mf6_msw_sprinkling_map: Optional[
+        FilePath
+    ] = None  # the pach to the sprinkling map file
 
     class Config:
         arbitrary_types_allowed = True  # Needed for `mf6_msw_sprinkling_map`
@@ -92,7 +94,7 @@ class Coupling(BaseModel):
     def validate_mf6_msw_sprinkling_map(
         cls, mf6_msw_sprinkling_map: Optional[FilePath], values: Any
     ) -> Optional[FilePath]:
-        if mf6_msw_sprinkling_map is not None:
+        if mf6_msw_sprinkling_map:
             return mf6_msw_sprinkling_map.resolve()
         elif values.get("enable_sprinkling"):
             raise ValueError(
