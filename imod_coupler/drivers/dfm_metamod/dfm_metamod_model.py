@@ -310,7 +310,7 @@ class DfmMetaModModel:
             ] = f"./{directory.name}/{WellSvatMapping._file_name}"
 
         for mapping_name, mapping_path in self.mapping_files.items():
-            if mapping_path is not None:
+            if mapping_path:
                 coupling_dict[mapping_name] = str(mapping_path)
         coupling_dict["enable_sprinkling"] = self.is_sprinkling
         return coupling_dict
