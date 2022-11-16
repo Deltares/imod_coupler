@@ -73,12 +73,15 @@ class DfmMetaMod(Driver):
             0
         ]  # Adapt as soon as we have multimodel support
 
-        mapping_input_dir = config_dir / "exchanges"
-        self.dflow1d_lookup, _ = get_dflow1d_lookup(mapping_input_dir)
+        (self.dflow1d_lookup, _) = get_dflow1d_lookup(self.coupling.dfm_1d_points_dat)
         (
             self.map_active_mod_dflow1d,
             self.mask_active_mod_dflow1d,
-        ) = mapping_active_mf_dflow1d(mapping_input_dir, self.dflow1d_lookup)
+        ) = mapping_active_mf_dflow1d(
+            self.coupling.mf6_river_to_dfm_1d_q_dmm,
+            self.coupling.dfm_1d_waterlevel_to_mf6_river_stage_dmm,
+            self.dflow1d_lookup,
+        )
 
     def initialize(self) -> None:
 
@@ -88,6 +91,7 @@ class DfmMetaMod(Driver):
             working_directory=self.dfm_metamod_config.kernels.modflow6.work_dir,
             timing=self.base_config.timing,
         )
+
         self.msw = XmiWrapper(
             lib_path=self.dfm_metamod_config.kernels.metaswap.dll,
             lib_dependency=self.dfm_metamod_config.kernels.metaswap.dll_dep_dir,

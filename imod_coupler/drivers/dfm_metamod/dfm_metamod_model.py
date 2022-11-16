@@ -47,7 +47,6 @@ class DfmMetaModModel:
         dfm_1d_waterlevel_to_mf6_river_stage_dmm_path: Path,
         mf6_river2_to_dmf_1d_q_dmm_path: Path,
         mf6_drainage_to_dfm_1d_q_dmm_path: Path,
-        msw_sprink_to_dfm_1d_q_dmm_path: Path,
         msw_runoff_to_dfm_1d_q_dmm_path: Path,
         dfm_2d_waterlevels_to_msw_h_dmm_path: Path,
         dfm_1d_points_dat_path: Path,
@@ -70,9 +69,6 @@ class DfmMetaModModel:
         self.mapping_files[
             "mf6_drainage_to_dfm_1d_q_dmm"
         ] = mf6_drainage_to_dfm_1d_q_dmm_path
-        self.mapping_files[
-            "metaswap_sprink_to_dfm1D_Q_dmm"
-        ] = msw_sprink_to_dfm_1d_q_dmm_path
         self.mapping_files[
             "msw_runoff_to_dfm_1d_q_dmm"
         ] = msw_runoff_to_dfm_1d_q_dmm_path
@@ -305,8 +301,6 @@ class DfmMetaModModel:
             "mf6_msw_recharge_map"
         ] = f"./{directory.name}/{RechargeSvatMapping._file_name}"
 
-        coupling_dict["enable_sprinkling"] = self.is_sprinkling
-
         if self.is_sprinkling:
             if mf6_wel_pkgkey is None:
                 raise ValueError("mf6_wel_pkgkey is required when using sprikling")
@@ -318,6 +312,7 @@ class DfmMetaModModel:
         for mapping_name, mapping_path in self.mapping_files.items():
             if mapping_path is not None:
                 coupling_dict[mapping_name] = str(mapping_path)
+        coupling_dict["enable_sprinkling"] = self.is_sprinkling
         return coupling_dict
 
     def write_exchanges(

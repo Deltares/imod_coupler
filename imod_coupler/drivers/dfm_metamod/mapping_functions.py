@@ -11,7 +11,8 @@ from imod_coupler.utils import Operator, create_mapping
 
 # mapping different types of exchanges within DFLOWMETMOD driver
 def mapping_active_mf_dflow1d(
-    workdir: Path,
+    mapping_file_MFRIVTODFM1D_Q: Path,
+    mapping_file_DFM1DWATLEVTOMFRIV_H: Path,
     dflow1d_lookup: dict[tuple[float, float], int],
     weights: Optional[NDArray[float_]] = None,
 ) -> tuple[dict[str, csr_matrix], dict[str, NDArray[int_]]]:
@@ -47,7 +48,7 @@ def mapping_active_mf_dflow1d(
     mask_active_mod_dflow1d: Dict[str, NDArray[Any]] = {}
 
     # MF RIV 1 -> DFLOW 1D (flux)
-    mapping_file = workdir / "MFRIVTODFM1D_Q.DMM"
+    mapping_file = mapping_file_MFRIVTODFM1D_Q
     if mapping_file.is_file():
         table_active_mfriv2dflow1d: NDArray[np.single] = np.loadtxt(
             mapping_file, dtype=np.single, ndmin=2, skiprows=1
@@ -83,7 +84,7 @@ def mapping_active_mf_dflow1d(
                 weight,
             )
     # DFLOW 1D -> MF RIV 1 (stage)
-    mapping_file = workdir / "DFM1DWATLEVTOMFRIV_H.DMM"
+    mapping_file = mapping_file_DFM1DWATLEVTOMFRIV_H
     if mapping_file.is_file():
         table_active_dflow1d2mfriv: NDArray[np.single] = np.loadtxt(
             mapping_file, dtype=np.single, ndmin=2, skiprows=1
@@ -394,7 +395,9 @@ def weight_from_flux_distribution(
 
 
 #
-def get_dflow1d_lookup(workdir: Path) -> tuple[dict[tuple[float, float], int], bool]:
+def get_dflow1d_lookup(
+    dflow1d_file: Path,
+) -> tuple[dict[tuple[float, float], int], bool]:
     """
     read file with all uniek coupled dflow 1d and 2d nodes (represented by xy pairs). After initialisation
     of dflow, dict is filled with node-id's corresponding tot xy-pairs.
@@ -414,7 +417,6 @@ def get_dflow1d_lookup(workdir: Path) -> tuple[dict[tuple[float, float], int], b
 
     ok = True
     dflow1d_lookup = {}
-    dflow1d_file = workdir / "DFLOWFM1D_POINTS.DAT"
     if dflow1d_file.is_file():
         dflow1d_data: NDArray[np.single] = np.loadtxt(
             dflow1d_file, dtype=np.single, ndmin=2, skiprows=0

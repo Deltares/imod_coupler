@@ -111,12 +111,27 @@ def dflowfm_initial_inputfiles_folder(request) -> Path:
 
 
 @pytest.fixture(scope="function")
-def mapping_input_folder(request) -> Path:
+def dflow1d_mapping_file(request) -> Path:
     """
     Return the directory of the mapping example problem input data
     """
+    return (
+        Path(request.fspath).parent / "data" / "mapper_input" / "DFLOWFM1D_POINTS.DAT"
+    )
 
-    return Path(request.fspath).parent / "data" / "mapper_input"
+
+@pytest.fixture(scope="function")
+def mapping_file_MFRIVTODFM1D_Q(request) -> Path:
+    return Path(request.fspath).parent / "data" / "mapper_input" / "MFRIVTODFM1D_Q.DMM"
+
+
+def mapping_file_DFM1DWATLEVTOMFRIV_H(request) -> Path:
+    return (
+        Path(request.fspath).parent
+        / "data"
+        / "mapper_input"
+        / "DFM1DWATLEVTOMFRIV_H.DMM"
+    )
 
 
 @pytest.fixture(scope="session")
