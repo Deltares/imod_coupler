@@ -433,9 +433,7 @@ def get_dflow1d_lookup(workdir: Path) -> tuple[dict[tuple[float, float], int], b
                     f"xy coordinate {dflow1d_x[i], dflow1d_y[i]} is not part of dflow's mesh"
                 )
     else:
-        raise ValueError(
-            f"mapping file 'DFLOWFM1D_POINTS.DAT' was not found!"
-        )
+        raise ValueError(f"mapping file 'DFLOWFM1D_POINTS.DAT' was not found!")
     return dflow1d_lookup
 
 
@@ -466,9 +464,7 @@ def get_svat_lookup(workdir_msw: Path) -> tuple[dict[tuple[int, int], int], bool
         for vi in range(svat_id.size):
             svat_lookup[(svat_id[vi], svat_lay[vi])] = vi
     else:
-        raise ValueError(
-            f"mapping file 'mod2svat.inp' was not found!"
-        )
+        raise ValueError(f"mapping file 'mod2svat.inp' was not found!")
     return svat_lookup
 
 
