@@ -121,12 +121,12 @@ def dflow1d_mapping_file(request) -> Path:
 
 
 @pytest.fixture(scope="function")
-def mapping_file_MFRIVTODFM1D_Q(request) -> Path:
+def mapping_file_mf6_river_to_dfm_1d_q(request) -> Path:
     return Path(request.fspath).parent / "data" / "mapper_input" / "MFRIVTODFM1D_Q.DMM"
 
 
 @pytest.fixture(scope="function")
-def mapping_file_DFM1DWATLEVTOMFRIV_H(request) -> Path:
+def mapping_file_dfm_1d_waterlevel_to_mf6_river_stage(request) -> Path:
     return (
         Path(request.fspath).parent
         / "data"

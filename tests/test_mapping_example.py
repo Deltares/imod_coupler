@@ -14,7 +14,9 @@ from imod_coupler.drivers.dfm_metamod.mapping_functions import (
 
 
 def test_mappers_general(
-    dflow1d_mapping_file, mapping_file_MFRIVTODFM1D_Q, mapping_file_DFM1DWATLEVTOMFRIV_H
+    dflow1d_mapping_file,
+    mapping_file_mf6_river_to_dfm_1d_q,
+    mapping_file_dfm_1d_waterlevel_to_mf6_river_stage,
 ) -> None:
 
     # Test exchange MF-DFLOW1D
@@ -33,7 +35,9 @@ def test_mappers_general(
     # there is no previous flux geven for weight distributed weights,
     # so DFLOW 1D stage -> MF RIV 1 exchange is not availble at this time
     map_active_mod_dflow1d, mask_active_mod_dflow1d = mapping_active_mf_dflow1d(
-        mapping_file_MFRIVTODFM1D_Q, mapping_file_DFM1DWATLEVTOMFRIV_H, dflow1d_lookup
+        mapping_file_mf6_river_to_dfm_1d_q,
+        mapping_file_dfm_1d_waterlevel_to_mf6_river_stage,
+        dflow1d_lookup,
     )
 
     # exchange in order of actual coupling
@@ -92,8 +96,8 @@ def test_mappers_general(
     # create new mapping based on  previous MF -> dflow flux exchange distribution
     # for now, all mappingfiles are read in again, this could be optimised in the future
     map_active_mod_dflow1d, mask_active_mod_dflow1d = mapping_active_mf_dflow1d(
-        mapping_file_MFRIVTODFM1D_Q,
-        mapping_file_DFM1DWATLEVTOMFRIV_H,
+        mapping_file_mf6_river_to_dfm_1d_q,
+        mapping_file_dfm_1d_waterlevel_to_mf6_river_stage,
         dflow1d_lookup,
         mf_riv1_flux,
     )
