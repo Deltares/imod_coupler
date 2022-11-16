@@ -125,6 +125,7 @@ def mapping_file_MFRIVTODFM1D_Q(request) -> Path:
     return Path(request.fspath).parent / "data" / "mapper_input" / "MFRIVTODFM1D_Q.DMM"
 
 
+@pytest.fixture(scope="function")
 def mapping_file_DFM1DWATLEVTOMFRIV_H(request) -> Path:
     return (
         Path(request.fspath).parent
