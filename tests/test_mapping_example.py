@@ -29,7 +29,7 @@ def test_mappers_general(
     dflow1d_stage = np.array([4, 5, 6])
 
     # get dflow-id based on xy-coordinates after initialisation (now as test from file)
-    dflow1d_lookup, _ = get_dflow1d_lookup(dflow1d_mapping_file)
+    dflow1d_lookup = get_dflow1d_lookup(dflow1d_mapping_file)
 
     # create mapping for mf-dflow1d
     # there is no previous flux geven for weight distributed weights,
