@@ -398,7 +398,7 @@ def weight_from_flux_distribution(
 #
 def get_dflow1d_lookup(
     dflow1d_file: Path,
-) -> tuple[dict[tuple[float, float], int], bool]:
+) -> dict[tuple[float, float], int]:
     """
     read file with all uniek coupled dflow 1d and 2d nodes (represented by xy pairs). After initialisation
     of dflow, dict is filled with node-id's corresponding tot xy-pairs.
