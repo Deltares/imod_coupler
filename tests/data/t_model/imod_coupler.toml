@@ -31,4 +31,4 @@ mf6_drainage_to_dfm_1d_q_dmm = "./exchanges/MFDRNTODFM1D_Q.DMM"
 msw_runoff_to_dfm_1d_q_dmm = "./exchanges/MSWSPRINKTODFM1D_Q.DMM"
 dfm_2d_waterlevels_to_msw_h_dmm = "./exchanges/DFM2DWATLEVTOMSW_H.DMM"
 dfm_1d_points_dat = "./exchanges/DFLOWFM1D_POINTS.DAT"
-enable_sprinkling = true
+enable_sprinkling = false

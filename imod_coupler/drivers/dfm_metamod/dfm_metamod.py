@@ -96,7 +96,7 @@ class DfmMetaMod(Driver):
             0
         ]  # Adapt as soon as we have multimodel support
 
-        (self.dflow1d_lookup, _) = get_dflow1d_lookup(self.coupling.dfm_1d_points_dat)
+        self.dflow1d_lookup = get_dflow1d_lookup(self.coupling.dfm_1d_points_dat)
         (
             self.map_active_mod_dflow1d,
             self.mask_active_mod_dflow1d,
