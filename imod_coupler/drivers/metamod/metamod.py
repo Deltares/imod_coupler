@@ -50,13 +50,13 @@ class MetaMod(Driver):
     msw_time: float  # MetaSWAP current time
 
     # dictionary with mapping tables for mod=>msw coupling
-    map_mod2msw: Dict[str, csr_matrix] = {}
+    map_mod2msw: Dict[str, csr_matrix]
     # dictionary with mapping tables for msw=>mod coupling
-    map_msw2mod: Dict[str, csr_matrix] = {}
+    map_msw2mod: Dict[str, csr_matrix]
     # dict. with mask arrays for mod=>msw coupling
-    mask_mod2msw: Dict[str, NDArray[Any]] = {}
+    mask_mod2msw: Dict[str, NDArray[Any]]
     # dict. with mask arrays for msw=>mod coupling
-    mask_msw2mod: Dict[str, NDArray[Any]] = {}
+    mask_msw2mod: Dict[str, NDArray[Any]]
 
     def __init__(
         self, base_config: BaseConfig, config_dir: Path, driver_dict: Dict[str, Any]
@@ -121,6 +121,11 @@ class MetaMod(Driver):
         self.msw_head = self.msw.get_value_ptr("dhgwmod")
         self.msw_volume = self.msw.get_value_ptr("dvsim")
         self.msw_storage = self.msw.get_value_ptr("dsc1sim")
+
+        self.map_mod2msw = {}
+        self.map_msw2mod = {}
+        self.mask_mod2msw = {}
+        self.mask_msw2mod = {}
 
         # create a lookup, with the svat tuples (id, lay) as keys and the
         # metaswap internal indexes as values
