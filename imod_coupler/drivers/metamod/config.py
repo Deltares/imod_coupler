@@ -58,13 +58,9 @@ class Coupling(BaseModel):
             )
         return mf6_msw_well_pkg
 
-    @validator("mf6_msw_node_map")
-    def resolve_mf6_msw_node_map(cls, mf6_msw_node_map: FilePath) -> FilePath:
-        return mf6_msw_node_map.resolve()
-
-    @validator("mf6_msw_recharge_map")
-    def resolve_mf6_msw_recharge_map(cls, mf6_msw_recharge_map: FilePath) -> FilePath:
-        return mf6_msw_recharge_map.resolve()
+    @validator("mf6_msw_node_map", "mf6_msw_recharge_map")
+    def resolve_mapping_files(cls, mapping_file: FilePath) -> FilePath:
+        return mapping_file.resolve()
 
     @validator("mf6_msw_sprinkling_map")
     def validate_mf6_msw_sprinkling_map(

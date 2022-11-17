@@ -11,7 +11,8 @@ from imod_coupler.utils import Operator, create_mapping
 
 # mapping different types of exchanges within DFLOWMETMOD driver
 def mapping_active_mf_dflow1d(
-    workdir: Path,
+    mapping_file_mf6_river_to_dfm_1d_q: Path,
+    mapping_file_dfm_1d_waterlevel_to_mf6_river_stage: Path,
     dflow1d_lookup: dict[tuple[float, float], int],
     weights: Optional[NDArray[float_]] = None,
 ) -> tuple[dict[str, csr_matrix], dict[str, NDArray[int_]]]:
@@ -26,8 +27,10 @@ def mapping_active_mf_dflow1d(
 
     Parameters
     ----------
-    workdir : Path
-        directory where mapping-related input files can be found
+    mapping_file_mf6_river_to_dfm_1d_q : Path
+        path of mapping file mf6 river nodes to dfm 1d  nodes
+    mapping_file_dfm_1d_waterlevel_to_mf6_river_stage : Path
+        path of mapping file dfm 1d  nodes to mf6 river nodes
     dflow1d_lookup : dict[tuple[float, float], int]
         used for mapping x, y coordinates to dflow node numbers
     array : Optional[NDArray[float_]], optional
@@ -47,55 +50,31 @@ def mapping_active_mf_dflow1d(
     mask_active_mod_dflow1d: Dict[str, NDArray[Any]] = {}
 
     # MF RIV 1 -> DFLOW 1D (flux)
-    mapping_file = workdir / "MFRIVTODFM1D_Q.DMM"
-    if mapping_file.is_file():
-        table_active_mfriv2dflow1d: NDArray[np.single] = np.loadtxt(
-            mapping_file, dtype=np.single, ndmin=2, skiprows=1
-        )
-        mf_idx = table_active_mfriv2dflow1d[:, 2].astype(int) - 1
-        dflow_idx = np.array(
-            [dflow1d_lookup[row[0], row[1]] for row in table_active_mfriv2dflow1d]
-        )
+    table_active_mfriv2dflow1d: NDArray[np.single] = np.loadtxt(
+        mapping_file_mf6_river_to_dfm_1d_q, dtype=np.single, ndmin=2, skiprows=1
+    )
+    mf_idx = table_active_mfriv2dflow1d[:, 2].astype(int) - 1
+    dflow_idx = np.array(
+        [dflow1d_lookup[row[0], row[1]] for row in table_active_mfriv2dflow1d]
+    )
+    (
+        map_active_mod_dflow1d["mf-riv2dflow1d_flux"],
+        mask_active_mod_dflow1d["mf-riv2dflow1d_flux"],
+    ) = create_mapping(
+        mf_idx,
+        dflow_idx,
+        max(mf_idx) + 1,
+        max(dflow_idx) + 1,
+        Operator.SUM,
+    )
+    # DFLOW 1D  -> MF RIV 1 (flux)
+    # weight array is flux-array from previous MF-RIV1 -> dlfowfm exchange
+    # if no weight array is provided, skip this exchange
+    if weights is not None:
+        weight = weight_from_flux_distribution(dflow_idx, mf_idx, weights)
         (
-            map_active_mod_dflow1d["mf-riv2dflow1d_flux"],
-            mask_active_mod_dflow1d["mf-riv2dflow1d_flux"],
-        ) = create_mapping(
-            mf_idx,
-            dflow_idx,
-            max(mf_idx) + 1,
-            max(dflow_idx) + 1,
-            Operator.SUM,
-        )
-        # DFLOW 1D  -> MF RIV 1 (flux)
-        # weight array is flux-array from previous MF-RIV1 -> dlfowfm exchange
-        # if no weight array is provided, skip this exchange
-        if weights is not None:
-            weight = weight_from_flux_distribution(dflow_idx, mf_idx, weights)
-            (
-                map_active_mod_dflow1d["dflow1d2mf-riv_flux"],
-                mask_active_mod_dflow1d["dflow1d2mf-riv_flux"],
-            ) = create_mapping(
-                dflow_idx,
-                mf_idx,
-                max(dflow_idx) + 1,
-                max(mf_idx) + 1,
-                Operator.WEIGHT,
-                weight,
-            )
-    # DFLOW 1D -> MF RIV 1 (stage)
-    mapping_file = workdir / "DFM1DWATLEVTOMFRIV_H.DMM"
-    if mapping_file.is_file():
-        table_active_dflow1d2mfriv: NDArray[np.single] = np.loadtxt(
-            mapping_file, dtype=np.single, ndmin=2, skiprows=1
-        )
-        mf_idx = table_active_dflow1d2mfriv[:, 0].astype(int) - 1
-        weight = table_active_dflow1d2mfriv[:, 3]
-        dflow_idx = np.array(
-            [dflow1d_lookup[row[1], row[2]] for row in table_active_dflow1d2mfriv]
-        )
-        (
-            map_active_mod_dflow1d["dflow1d2mf-riv_stage"],
-            mask_active_mod_dflow1d["dflow1d2mf-riv_stage"],
+            map_active_mod_dflow1d["dflow1d2mf-riv_flux"],
+            mask_active_mod_dflow1d["dflow1d2mf-riv_flux"],
         ) = create_mapping(
             dflow_idx,
             mf_idx,
@@ -104,6 +83,29 @@ def mapping_active_mf_dflow1d(
             Operator.WEIGHT,
             weight,
         )
+    # DFLOW 1D -> MF RIV 1 (stage)
+    table_active_dflow1d2mfriv: NDArray[np.single] = np.loadtxt(
+        mapping_file_dfm_1d_waterlevel_to_mf6_river_stage,
+        dtype=np.single,
+        ndmin=2,
+        skiprows=1,
+    )
+    mf_idx = table_active_dflow1d2mfriv[:, 0].astype(int) - 1
+    weight = table_active_dflow1d2mfriv[:, 3]
+    dflow_idx = np.array(
+        [dflow1d_lookup[row[1], row[2]] for row in table_active_dflow1d2mfriv]
+    )
+    (
+        map_active_mod_dflow1d["dflow1d2mf-riv_stage"],
+        mask_active_mod_dflow1d["dflow1d2mf-riv_stage"],
+    ) = create_mapping(
+        dflow_idx,
+        mf_idx,
+        max(dflow_idx) + 1,
+        max(mf_idx) + 1,
+        Operator.WEIGHT,
+        weight,
+    )
     return map_active_mod_dflow1d, mask_active_mod_dflow1d
 
 
@@ -394,7 +396,9 @@ def weight_from_flux_distribution(
 
 
 #
-def get_dflow1d_lookup(workdir: Path) -> tuple[dict[tuple[float, float], int], bool]:
+def get_dflow1d_lookup(
+    dflow1d_file: Path,
+) -> tuple[dict[tuple[float, float], int], bool]:
     """
     read file with all uniek coupled dflow 1d and 2d nodes (represented by xy pairs). After initialisation
     of dflow, dict is filled with node-id's corresponding tot xy-pairs.
@@ -414,7 +418,6 @@ def get_dflow1d_lookup(workdir: Path) -> tuple[dict[tuple[float, float], int], b
 
     ok = True
     dflow1d_lookup = {}
-    dflow1d_file = workdir / "DFLOWFM1D_POINTS.DAT"
     if dflow1d_file.is_file():
         dflow1d_data: NDArray[np.single] = np.loadtxt(
             dflow1d_file, dtype=np.single, ndmin=2, skiprows=0

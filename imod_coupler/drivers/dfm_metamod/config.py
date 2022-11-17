@@ -40,10 +40,19 @@ class Coupling(BaseModel):
     mf6_msw_recharge_pkg: str  # the recharge package that will be used for coupling
     mf6_msw_well_pkg: Optional[
         str
-    ] = None  # the well package that will be used for coupling when sprinkling is active
+    ]  # the well package that will be used for coupling when sprinkling is active
     mf6_river_pkg: str  # the river package that will be used for coupling
     mf6_msw_node_map: FilePath  # the path to the node map file
     mf6_msw_recharge_map: FilePath  # the pach to the recharge map file
+
+    mf6_river_to_dfm_1d_q_dmm: FilePath
+    dfm_1d_waterlevel_to_mf6_river_stage_dmm: FilePath
+    mf6_river2_to_dmf_1d_q_dmm: FilePath
+    mf6_drainage_to_dfm_1d_q_dmm: FilePath
+    msw_runoff_to_dfm_1d_q_dmm: FilePath
+    dfm_2d_waterlevels_to_msw_h_dmm: FilePath
+    dfm_1d_points_dat: FilePath
+
     mf6_msw_sprinkling_map: Optional[
         FilePath
     ] = None  # the pach to the sprinkling map file
@@ -65,6 +74,18 @@ class Coupling(BaseModel):
     def resolve_mf6_msw_node_map(cls, mf6_msw_node_map: FilePath) -> FilePath:
         return mf6_msw_node_map.resolve()
 
+    @validator(
+        "mf6_river_to_dfm_1d_q_dmm",
+        "dfm_1d_waterlevel_to_mf6_river_stage_dmm",
+        "mf6_river2_to_dmf_1d_q_dmm",
+        "mf6_drainage_to_dfm_1d_q_dmm",
+        "msw_runoff_to_dfm_1d_q_dmm",
+        "dfm_2d_waterlevels_to_msw_h_dmm",
+        "dfm_1d_points_dat",
+    )
+    def resolve_mapping_files(cls, mapping_file: FilePath) -> FilePath:
+        return mapping_file.resolve()
+
     @validator("mf6_msw_recharge_map")
     def resolve_mf6_msw_recharge_map(cls, mf6_msw_recharge_map: FilePath) -> FilePath:
         return mf6_msw_recharge_map.resolve()
@@ -73,7 +94,7 @@ class Coupling(BaseModel):
     def validate_mf6_msw_sprinkling_map(
         cls, mf6_msw_sprinkling_map: Optional[FilePath], values: Any
     ) -> Optional[FilePath]:
-        if mf6_msw_sprinkling_map is not None:
+        if mf6_msw_sprinkling_map:
             return mf6_msw_sprinkling_map.resolve()
         elif values.get("enable_sprinkling"):
             raise ValueError(
