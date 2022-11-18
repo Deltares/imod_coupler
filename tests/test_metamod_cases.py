@@ -63,7 +63,37 @@ def case_storage_coefficient_no_sprinkling(
     )
 
 
-def failure_msw_input(
+def case_inactive_cell(
+    coupled_mf6_model_inactive: Modflow6Simulation,
+    prepared_msw_model_inactive: MetaSwapModel,
+) -> MetaMod:
+
+    return MetaMod(
+        prepared_msw_model_inactive,
+        coupled_mf6_model_inactive,
+        mf6_rch_pkgkey="rch_msw",
+        mf6_wel_pkgkey="wells_msw",
+    )
+
+
+def fail_write_inactive_cell(
+    coupled_mf6_model_inactive: Modflow6Simulation,
+    prepared_msw_model: MetaSwapModel,
+) -> MetaMod:
+    """
+    Force an error by having an active MetaSWAP cell in an inactive Modflow 6
+    cell during writing.
+    """
+
+    return MetaMod(
+        prepared_msw_model,
+        coupled_mf6_model_inactive,
+        mf6_rch_pkgkey="rch_msw",
+        mf6_wel_pkgkey="wells_msw",
+    )
+
+
+def fail_run_msw_input(
     coupled_mf6_model: Modflow6Simulation,
     prepared_msw_model: MetaSwapModel,
 ) -> MetaMod:
@@ -85,7 +115,7 @@ def failure_msw_input(
     )
 
 
-def failure_mf6_input(
+def fail_run_mf6_input(
     coupled_mf6_model: Modflow6Simulation,
     prepared_msw_model: MetaSwapModel,
 ) -> MetaMod:
@@ -103,7 +133,7 @@ def failure_mf6_input(
     )
 
 
-def failure_mf6_convergence(
+def fail_run_mf6_convergence(
     coupled_mf6_model: Modflow6Simulation,
     prepared_msw_model: MetaSwapModel,
 ) -> MetaMod:
