@@ -179,7 +179,8 @@ def mapping_passive_mf_dflow1d(
 
 
 def mapping_msw_dflow1d(
-    workdir: Path,
+    msw_runoff_to_dfm_1d_q_dmm: Path,
+    msw_sprinkling_to_dfm_1d_q_dmm: Path,
     dflow1d_lookup: dict[tuple[float, float], int],
     msw_sprinkling_flux: Optional[NDArray[float_]] = None,
 ) -> tuple[dict[str, csr_matrix], dict[str, NDArray[int_]]]:
@@ -210,63 +211,57 @@ def mapping_msw_dflow1d(
     mask_msw_dflow1d: Dict[str, NDArray[int_]] = {}
 
     # MSW -> DFLOW 1D (sprinkling)
-    mapping_file = workdir / "MSWSPRINKTODFM1D_Q.DMM"
-    if mapping_file.is_file():
-        table_mswsprinkling2dflow1d: NDArray[np.single] = np.loadtxt(
-            mapping_file, dtype=np.single, ndmin=2, skiprows=1
-        )
-        msw_idx = table_mswsprinkling2dflow1d[:, 2].astype(int) - 1
+    table_mswsprinkling2dflow1d: NDArray[np.single] = np.loadtxt(
+        msw_sprinkling_to_dfm_1d_q_dmm, dtype=np.single, ndmin=2, skiprows=1
+    )
+    msw_idx = table_mswsprinkling2dflow1d[:, 2].astype(int) - 1
 
-        dflow_idx = np.array(
-            [dflow1d_lookup[row[0], row[1]] for row in table_mswsprinkling2dflow1d]
-        )
+    dflow_idx = np.array(
+        [dflow1d_lookup[row[0], row[1]] for row in table_mswsprinkling2dflow1d]
+    )
+    (
+        map_msw_dflow1d["msw-sprinkling2dflow1d_flux"],
+        mask_msw_dflow1d["msw-sprinkling2dflow1d_flux"],
+    ) = create_mapping(
+        msw_idx,
+        dflow_idx,
+        max(msw_idx) + 1,
+        max(dflow_idx) + 1,
+        Operator.SUM,
+    )
+    if msw_sprinkling_flux is not None:
+        # DFLOW 1D -> MSW (sprinkling)
+        weight = weight_from_flux_distribution(msw_idx, dflow_idx, msw_sprinkling_flux)
         (
-            map_msw_dflow1d["msw-sprinkling2dflow1d_flux"],
-            mask_msw_dflow1d["msw-sprinkling2dflow1d_flux"],
+            map_msw_dflow1d["dflow1d_flux2msw-sprinkling"],
+            mask_msw_dflow1d["dflow1d_flux2msw-sprinkling"],
         ) = create_mapping(
-            msw_idx,
             dflow_idx,
-            max(msw_idx) + 1,
-            max(dflow_idx) + 1,
-            Operator.SUM,
+            msw_idx,
+            len(dflow_idx),
+            len(msw_idx),
+            Operator.WEIGHT,
+            weight,
         )
-        if msw_sprinkling_flux is not None:
-            # DFLOW 1D -> MSW (sprinkling)
-            weight = weight_from_flux_distribution(
-                msw_idx, dflow_idx, msw_sprinkling_flux
-            )
-            (
-                map_msw_dflow1d["dflow1d_flux2msw-sprinkling"],
-                mask_msw_dflow1d["dflow1d_flux2msw-sprinkling"],
-            ) = create_mapping(
-                dflow_idx,
-                msw_idx,
-                len(dflow_idx),
-                len(msw_idx),
-                Operator.WEIGHT,
-                weight,
-            )
     # MSW -> DFLOW 1D (ponding)
-    mapping_file = workdir / "MSWRUNOFFTODFM1D_Q.DMM"
-    if mapping_file.is_file():
-        table_mswponding2dflow1d: NDArray[np.single] = np.loadtxt(
-            mapping_file, dtype=np.single, ndmin=2, skiprows=1
-        )
-        msw_idx = table_mswponding2dflow1d[:, 2].astype(int) - 1
+    table_mswponding2dflow1d: NDArray[np.single] = np.loadtxt(
+        msw_runoff_to_dfm_1d_q_dmm, dtype=np.single, ndmin=2, skiprows=1
+    )
+    msw_idx = table_mswponding2dflow1d[:, 2].astype(int) - 1
 
-        dflow_idx = np.array(
-            [dflow1d_lookup[row[0], row[1]] for row in table_mswponding2dflow1d]
-        )
-        (
-            map_msw_dflow1d["msw-sprinkling2dflow1d_flux"],
-            mask_msw_dflow1d["msw-sprinkling2dflow1d_flux"],
-        ) = create_mapping(
-            msw_idx,
-            dflow_idx,
-            max(msw_idx) + 1,
-            max(dflow_idx) + 1,
-            Operator.SUM,
-        )
+    dflow_idx = np.array(
+        [dflow1d_lookup[row[0], row[1]] for row in table_mswponding2dflow1d]
+    )
+    (
+        map_msw_dflow1d["msw-sprinkling2dflow1d_flux"],
+        mask_msw_dflow1d["msw-sprinkling2dflow1d_flux"],
+    ) = create_mapping(
+        msw_idx,
+        dflow_idx,
+        max(msw_idx) + 1,
+        max(dflow_idx) + 1,
+        Operator.SUM,
+    )
     return map_msw_dflow1d, mask_msw_dflow1d
 
 
