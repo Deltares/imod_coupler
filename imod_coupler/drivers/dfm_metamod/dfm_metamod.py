@@ -13,6 +13,7 @@ import numpy as np
 from loguru import logger
 from numpy.typing import NDArray
 from scipy.sparse import csr_matrix, dia_matrix
+import scipy.sparse as spr
 from xmipy import XmiWrapper
 
 from imod_coupler.config import BaseConfig
@@ -289,6 +290,9 @@ class DfmMetaMod(Driver):
         # flux from modflow to dflow 1d
         self.exchange_V_1D()
 
+        # get cum flux mf->fm pre-timestep and store locally
+        self.store_1d_river_fluxes_to_dfm()
+
         # sub timestepping between metaswap and dflow
         subtimestep_endtime = self.get_current_time()
         for _ in range(self.number_dflowsteps_per_modflowstep):
@@ -296,6 +300,9 @@ class DfmMetaMod(Driver):
             while self.dfm.get_current_time() < subtimestep_endtime:
                 self.dfm.update()
         self.exchange_V_dash_1D()
+
+        # get cum flux new and calculate correction
+        # apply correction to fm -> gives a modflow array
 
         # convergence loop modflow-metaswap
         self.mf6.prepare_solve(1)
@@ -370,13 +377,37 @@ class DfmMetaMod(Driver):
             )[:]
         )
 
+    def store_1d_river_fluxes_to_dfm(self) -> None:
+        """Stores current contents of fluxes going into dflowfm (dfm in this instance) through qext"""
+        self.dflow1d_flux_estimate = np.copy(self.dfm.get_1d_river_fluxes())
+
     def exchange_V_dash_1D(self) -> None:
         """
         From DFM to MF6
-        the drainage/inflitration flux to the 1d rivers as realised by DFM is passed to modflow
-        as a correction
+        the drainage/inflitration flux to the 1d rivers as realised by DFM is passed to
+        mf6 as a correction
         """
-        pass
+        dflow1d_flux_estimate = (
+            self.dfm.get_river_fluxes_estimate()
+        )  # previously estimated 1d flux to dflowfm 1d
+        dflow1d_flux_receive = (
+            self.dfm.get_1d_river_fluxes()
+        )  # realized 1d flux to dflowfm 1d
+        qmf6 = self.mf6.get_river_flux(
+            self.coupling.mf6_model, self.coupling.mf6_river_pkg
+        )  # originally sent by modflow
+        qdfm = np.maximum(
+            0.0, dflow1d_flux_estimate - dflow1d_flux_receive - dflow1d_flux_estimate
+        )  # correction on dfm cells -> back to modflow
+
+        afmc = spr.diags(qmf6).multiply(
+            self.map_active_mod_dflow1d["dflow1d2mf-riv_flux"]
+        )
+        # multiply the couple matrix dfm->mf6 with the original modflow fluxes
+        # redistribution back to mf6 proportial to the original contributions
+        s = 1.0 / (np.ones(np.size(qmf6)) * afmc)
+        afmcc = afmc.multiply(spr.diags(s))
+        qmf_corr = afmcc * qdfm
 
     def exchange_msw2mod(self) -> None:
         """
