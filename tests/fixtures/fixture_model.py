@@ -28,30 +28,56 @@ def grid_sizes() -> Tuple[
     dx = x[1] - x[0]
     dy = y[1] - y[0]
 
+    return x, y, layer, dx, dy, dz
+
+
+def get_times():
     freq = "D"
-    times = pd.date_range(start="1/1/1971", end="8/1/1971", freq=freq)
-
-    return x, y, layer, times, dx, dy, dz
+    return pd.date_range(start="1/1/1971", end="8/1/1971", freq=freq)
 
 
-def make_coupled_mf6_model() -> mf6.Modflow6Simulation:
-    x, y, layer, times, dx, dy, dz = grid_sizes()
+def create_wells(nrow, ncol, idomain):
+    """
+    Create wells, deactivate inactive cells. This function wouldn't be necessary
+    if iMOD Python had a package to specify wells based on grids.
+    """
+
+    wel_layer = 3
+
+    is_inactive = ~idomain.sel(layer=wel_layer).astype(bool)
+    id_inactive = np.argwhere(is_inactive.values) + 1
+
+    ix = np.tile(np.arange(ncol) + 1, nrow)
+    iy = np.repeat(np.arange(nrow) + 1, ncol)
+
+    to_deactivate = np.full_like(ix, False, dtype=bool)
+    for i in id_inactive:
+        is_cell = (iy == i[0]) & (ix == i[1])
+        to_deactivate = to_deactivate | is_cell
+
+    ix_active = ix[~to_deactivate]
+    iy_active = iy[~to_deactivate]
+
+    rate = np.zeros(ix_active.shape)
+    layer = np.full_like(ix_active, wel_layer)
+
+    return mf6.WellDisStructured(
+        layer=layer, row=iy_active, column=ix_active, rate=rate
+    )
+
+
+def make_coupled_mf6_model(idomain) -> mf6.Modflow6Simulation:
+    times = get_times()
+    x, y, layer, _, _, dz = grid_sizes()
 
     nlay = len(layer)
     nrow = len(y)
     ncol = len(x)
 
-    like = xr.DataArray(
-        data=np.ones((nlay, nrow, ncol)),
-        dims=("layer", "y", "x"),
-        coords={"layer": layer, "y": y, "x": x, "dx": dx, "dy": dy},
-    )
-    idomain = like.astype(np.int32)
-
     top = 0.0
     bottom = top - xr.DataArray(np.cumsum(dz), coords={"layer": layer}, dims="layer")
 
-    head = xr.full_like(like, np.nan)
+    head = xr.full_like(idomain.astype(np.float64), np.nan)
     head[0, :, 0] = -2.0
 
     head = head.expand_dims(time=times)
@@ -85,22 +111,13 @@ def make_coupled_mf6_model() -> mf6.Modflow6Simulation:
 
     recharge = xr.zeros_like(idomain.sel(layer=1), dtype=float)
     recharge[:, 0] = np.nan
+    recharge = recharge.where(idomain.sel(layer=1))
 
     gwf_model["rch_msw"] = mf6.Recharge(recharge)
 
     gwf_model["oc"] = mf6.OutputControl(save_head="last", save_budget="last")
 
-    # Create wells
-    wel_layer = 3
-
-    ix = np.tile(np.arange(ncol) + 1, nrow)
-    iy = np.repeat(np.arange(nrow) + 1, ncol)
-    rate = np.zeros(ix.shape)
-    layer = np.full_like(ix, wel_layer)
-
-    gwf_model["wells_msw"] = mf6.WellDisStructured(
-        layer=layer, row=iy, column=ix, rate=rate
-    )
+    gwf_model["wells_msw"] = create_wells(nrow, ncol, idomain)
 
     # Attach it to a simulation
     simulation = mf6.Modflow6Simulation("test")
@@ -128,11 +145,11 @@ def make_coupled_mf6_model() -> mf6.Modflow6Simulation:
     return simulation
 
 
-@pytest.fixture(scope="function")
-def msw_model() -> msw.MetaSwapModel:
+def make_msw_model(idomain) -> msw.MetaSwapModel:
+    times = get_times()
     unsaturated_database = "./unsat_database"
 
-    x, y, _, times, dx, dy, _ = grid_sizes()
+    x, y, _, dx, dy, _ = grid_sizes()
     subunit = [0, 1]
 
     nrow = len(y)
@@ -165,6 +182,13 @@ def msw_model() -> msw.MetaSwapModel:
         dims=("y", "x"),
         coords={"y": y, "x": x}
     )
+
+    # Clip off 
+    modflow_active = idomain.sel(layer=1, drop=True).astype(bool)
+
+    area = area.where(modflow_active)
+    active = active & modflow_active
+
     # fmt: on
     msw_grid = xr.ones_like(active, dtype=float)
 
@@ -206,15 +230,7 @@ def msw_model() -> msw.MetaSwapModel:
     lu = xr.ones_like(vegetation_index_da, dtype=float)
 
     # Well
-
-    wel_layer = 3
-
-    ix = np.tile(np.arange(ncol) + 1, nrow)
-    iy = np.repeat(np.arange(nrow) + 1, ncol)
-    rate = np.zeros(ix.shape)
-    layer = np.full_like(ix, wel_layer)
-
-    well = mf6.WellDisStructured(layer=layer, row=iy, column=ix, rate=rate)
+    well = create_wells(nrow, ncol, idomain)
 
     # Modflow 6
     idomain = xr.full_like(msw_grid, 1, dtype=int).expand_dims(layer=[1, 2, 3])
@@ -317,32 +333,11 @@ def msw_model() -> msw.MetaSwapModel:
     return msw_model
 
 
-#%% Case fixtures
-@pytest_cases.fixture(scope="function")
-def coupled_mf6_model() -> mf6.Modflow6Simulation:
-    return make_coupled_mf6_model()
-
-
-@pytest_cases.fixture(scope="function")
-def prepared_msw_model(
-    msw_model: msw.MetaSwapModel,
-    metaswap_lookup_table: Path,
-) -> msw.MetaSwapModel:
-    # Override unsat_svat_path with path from environment
-    msw_model.simulation_settings[
-        "unsa_svat_path"
-    ] = msw_model._render_unsaturated_database_path(metaswap_lookup_table)
-
-    return msw_model
-
-
-@pytest_cases.fixture(scope="function")
-def coupled_mf6_model_storage_coefficient() -> mf6.Modflow6Simulation:
-
-    coupled_mf6_model = make_coupled_mf6_model()
-
-    gwf_model = coupled_mf6_model["GWF_1"]
-
+def convert_storage_package(gwf_model):
+    """
+    Convert existing groundwater flow model with a specific storage to a model
+    with a storage coefficient.
+    """
     # Specific storage package
     sto_ds = gwf_model.pop("sto").dataset
 
@@ -360,7 +355,95 @@ def coupled_mf6_model_storage_coefficient() -> mf6.Modflow6Simulation:
     sto_ds = sto_ds.drop_vars("specific_storage")
 
     gwf_model["sto"] = mf6.StorageCoefficient(**sto_ds)
+    return gwf_model
+
+
+#%% Helper fixtures
+def make_idomain() -> xr.DataArray:
+    x, y, layer, dx, dy, _ = grid_sizes()
+
+    nlay = len(layer)
+    nrow = len(y)
+    ncol = len(x)
+
+    return xr.DataArray(
+        data=np.ones((nlay, nrow, ncol), dtype=np.int32),
+        dims=("layer", "y", "x"),
+        coords={"layer": layer, "y": y, "x": x, "dx": dx, "dy": dy},
+    )
+
+
+@pytest_cases.fixture(scope="function")
+def active_idomain() -> xr.DataArray:
+    """Return all active idomain"""
+    idomain = make_idomain()
+
+    return idomain
+
+
+@pytest_cases.fixture(scope="function")
+def inactive_idomain() -> xr.DataArray:
+    """Return idomain with an inactive cell"""
+    idomain = make_idomain()
+    # Deactivate middle cell
+    idomain[:, 1, 2] = 0
+
+    return idomain
+
+
+#%% Case fixtures
+@pytest_cases.fixture(scope="function")
+def coupled_mf6_model(active_idomain: xr.DataArray) -> mf6.Modflow6Simulation:
+    return make_coupled_mf6_model(active_idomain)
+
+
+@pytest_cases.fixture(scope="function")
+def coupled_mf6_model_storage_coefficient(
+    active_idomain: xr.DataArray,
+) -> mf6.Modflow6Simulation:
+    coupled_mf6_model = make_coupled_mf6_model(active_idomain)
+
+    gwf_model = coupled_mf6_model["GWF_1"]
+    gwf_model = convert_storage_package(gwf_model)
     # reassign gwf model
     coupled_mf6_model["GWF_1"] = gwf_model
 
     return coupled_mf6_model
+
+
+@pytest_cases.fixture(scope="function")
+def coupled_mf6_model_inactive(
+    inactive_idomain: xr.DataArray,
+) -> mf6.Modflow6Simulation:
+    """coupled mf6 model with an inactive cell"""
+    return make_coupled_mf6_model(inactive_idomain)
+
+
+@pytest_cases.fixture(scope="function")
+def prepared_msw_model(
+    active_idomain: xr.DataArray,
+    metaswap_lookup_table: Path,
+) -> msw.MetaSwapModel:
+
+    msw_model = make_msw_model(active_idomain)
+    # Override unsat_svat_path with path from environment
+    msw_model.simulation_settings[
+        "unsa_svat_path"
+    ] = msw_model._render_unsaturated_database_path(metaswap_lookup_table)
+
+    return msw_model
+
+
+@pytest_cases.fixture(scope="function")
+def prepared_msw_model_inactive(
+    inactive_idomain: xr.DataArray,
+    metaswap_lookup_table: Path,
+) -> msw.MetaSwapModel:
+
+    msw_model = make_msw_model(inactive_idomain)
+    # Override unsat_svat_path with path from environment
+    msw_model.simulation_settings[
+        "unsa_svat_path"
+    ] = msw_model._render_unsaturated_database_path(metaswap_lookup_table)
+
+    return msw_model
