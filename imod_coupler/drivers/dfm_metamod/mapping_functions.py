@@ -110,7 +110,9 @@ def mapping_active_mf_dflow1d(
 
 
 def mapping_passive_mf_dflow1d(
-    workdir: Path, dflow1d_lookup: dict[tuple[float, float], int]
+    mf6_river2_to_dmf_1d_q_dmm: Path,
+    mf6_drainage_to_dfm_1d_q_dmm: Path,
+    dflow1d_lookup: dict[tuple[float, float], int],
 ) -> tuple[dict[str, csr_matrix], dict[str, NDArray[int_]]]:
     """
     function creates dictionary with mapping tables for mapping MF <-> dflow1d
@@ -138,45 +140,41 @@ def mapping_passive_mf_dflow1d(
     mask_passive_mod_dflow1d: Dict[str, NDArray[Any]] = {}
 
     # MF RIV 2 -> DFLOW 1D (flux)
-    mapping_file = workdir / "MFRIV2TODFM1D_Q.DMM"
-    if mapping_file.is_file():
-        table_passive_mfriv2dflow1d: NDArray[np.single] = np.loadtxt(
-            mapping_file, dtype=np.single, ndmin=2, skiprows=1
-        )
-        mf_idx = table_passive_mfriv2dflow1d[:, 2].astype(int) - 1
-        dflow_idx = np.array(
-            [dflow1d_lookup[row[0], row[1]] for row in table_passive_mfriv2dflow1d]
-        )
-        (
-            map_passive_mod_dflow1d["mf-riv2dflow1d_flux"],
-            mask_passive_mod_dflow1d["mf-riv2dflow1d_flux"],
-        ) = create_mapping(
-            mf_idx,
-            dflow_idx,
-            max(mf_idx) + 1,
-            max(dflow_idx) + 1,
-            Operator.SUM,
-        )
+    table_passive_mfriv2dflow1d: NDArray[np.single] = np.loadtxt(
+        mf6_river2_to_dmf_1d_q_dmm, dtype=np.single, ndmin=2, skiprows=1
+    )
+    mf_idx = table_passive_mfriv2dflow1d[:, 2].astype(int) - 1
+    dflow_idx = np.array(
+        [dflow1d_lookup[row[0], row[1]] for row in table_passive_mfriv2dflow1d]
+    )
+    (
+        map_passive_mod_dflow1d["mf-riv2dflow1d_flux"],
+        mask_passive_mod_dflow1d["mf-riv2dflow1d_flux"],
+    ) = create_mapping(
+        mf_idx,
+        dflow_idx,
+        max(mf_idx) + 1,
+        max(dflow_idx) + 1,
+        Operator.SUM,
+    )
     # MF DRN -> DFLOW 1D (flux)
-    mapping_file = workdir / "MFDRNTODFM1D_Q.DMM"
-    if mapping_file.is_file():
-        table_passive_mfdrn2dflow1d: NDArray[np.single] = np.loadtxt(
-            mapping_file, dtype=np.single, ndmin=2, skiprows=1
-        )
-        mf_idx = table_passive_mfdrn2dflow1d[:, 2].astype(int) - 1
-        dflow_idx = np.array(
-            [dflow1d_lookup[row[0], row[1]] for row in table_passive_mfdrn2dflow1d]
-        )
-        (
-            map_passive_mod_dflow1d["mf-drn2dflow1d_flux"],
-            mask_passive_mod_dflow1d["mf-drn2dflow1d_flux"],
-        ) = create_mapping(
-            mf_idx,
-            dflow_idx,
-            max(mf_idx) + 1,
-            max(dflow_idx) + 1,
-            Operator.SUM,
-        )
+    table_passive_mfdrn2dflow1d: NDArray[np.single] = np.loadtxt(
+        mf6_drainage_to_dfm_1d_q_dmm, dtype=np.single, ndmin=2, skiprows=1
+    )
+    mf_idx = table_passive_mfdrn2dflow1d[:, 2].astype(int) - 1
+    dflow_idx = np.array(
+        [dflow1d_lookup[row[0], row[1]] for row in table_passive_mfdrn2dflow1d]
+    )
+    (
+        map_passive_mod_dflow1d["mf-drn2dflow1d_flux"],
+        mask_passive_mod_dflow1d["mf-drn2dflow1d_flux"],
+    ) = create_mapping(
+        mf_idx,
+        dflow_idx,
+        max(mf_idx) + 1,
+        max(dflow_idx) + 1,
+        Operator.SUM,
+    )
     return map_passive_mod_dflow1d, mask_passive_mod_dflow1d
 
 
