@@ -15,7 +15,6 @@ def grid_sizes() -> Tuple[
     List[float],
     List[float],
     NDArray[int_],
-    pd.DatetimeIndex,
     float,
     float,
     NDArray[float_],
@@ -31,12 +30,12 @@ def grid_sizes() -> Tuple[
     return x, y, layer, dx, dy, dz
 
 
-def get_times():
+def get_times() -> pd.DatetimeIndex:
     freq = "D"
     return pd.date_range(start="1/1/1971", end="8/1/1971", freq=freq)
 
 
-def create_wells(nrow, ncol, idomain):
+def create_wells(nrow: int, ncol: int, idomain: xr.DataArray) -> mf6.WellDisStructured:
     """
     Create wells, deactivate inactive cells. This function wouldn't be necessary
     if iMOD Python had a package to specify wells based on grids.
@@ -66,7 +65,7 @@ def create_wells(nrow, ncol, idomain):
     )
 
 
-def make_coupled_mf6_model(idomain) -> mf6.Modflow6Simulation:
+def make_coupled_mf6_model(idomain: xr.DataArray) -> mf6.Modflow6Simulation:
     times = get_times()
     x, y, layer, _, _, dz = grid_sizes()
 
@@ -145,7 +144,7 @@ def make_coupled_mf6_model(idomain) -> mf6.Modflow6Simulation:
     return simulation
 
 
-def make_msw_model(idomain) -> msw.MetaSwapModel:
+def make_msw_model(idomain: xr.DataArray) -> msw.MetaSwapModel:
     times = get_times()
     unsaturated_database = "./unsat_database"
 
@@ -333,7 +332,9 @@ def make_msw_model(idomain) -> msw.MetaSwapModel:
     return msw_model
 
 
-def convert_storage_package(gwf_model):
+def convert_storage_package(
+    gwf_model: mf6.GroundwaterFlowModel,
+) -> mf6.GroundwaterFlowModel:
     """
     Convert existing groundwater flow model with a specific storage to a model
     with a storage coefficient.
