@@ -30,6 +30,8 @@ def case_with_river(
         mf6_river2_to_dmf_1d_q_dmm_path=Path("sample.xyz"),
         mf6_drainage_to_dfm_1d_q_dmm_path=Path("sample.xyz"),
         msw_runoff_to_dfm_1d_q_dmm_path=Path("sample.xyz"),
+        msw_ponding_to_dfm_2d_dv_dmm_path=Path("sample.xyz"),
+        msw_sprinkling_to_dfm_1d_q_dmm_path=Path("sample.xyz"),
         dfm_2d_waterlevels_to_msw_h_dmm_path=Path("sample.xyz"),
         dfm_1d_points_dat_path=Path("sample.xyz"),
     )
