@@ -41,6 +41,7 @@ class Coupling(BaseModel):
     mf6_msw_well_pkg: Optional[
         str
     ] = None  # the well package that will be used for coupling when sprinkling is active
+    mf6_corr_well_pkg: str  # the well package that will be used for the correction fluxes from surface water
     mf6_river_pkg: str  # the river package that will be used for coupling
     mf6_msw_node_map: FilePath  # the path to the node map file
     mf6_msw_recharge_map: FilePath  # the pach to the recharge map file
@@ -69,6 +70,14 @@ class Coupling(BaseModel):
                 "If `enable_sprinkling` is True, then `mf6_msw_well_pkg` needs to be set."
             )
         return mf6_msw_well_pkg
+
+    @validator("mf6_corr_well_pkg")
+    def validate_mf6_corr_well_pkg(cls, mf6_corr_well_pkg: str, values: Any) -> str:
+        if mf6_corr_well_pkg == "":
+            raise ValueError(
+                "Name of the correction flux well package cannot be empty."
+            )
+        return mf6_corr_well_pkg
 
     @validator("mf6_msw_node_map")
     def resolve_mf6_msw_node_map(cls, mf6_msw_node_map: FilePath) -> FilePath:

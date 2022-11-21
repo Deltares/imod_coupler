@@ -408,6 +408,10 @@ class DfmMetaMod(Driver):
         s = 1.0 / (np.ones(np.size(qmf6)) * afmc)
         afmcc = afmc.multiply(spr.diags(s))
         qmf_corr = afmcc * qdfm
+        assert self.coupling.mf6_msw_well_pkg
+        self.mf6.set_correction_flux(
+            self.coupling.mf6_model, self.coupling.mf6_corr_well_pkg, qmf_corr
+        )
 
     def exchange_msw2mod(self) -> None:
         """
