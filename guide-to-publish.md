@@ -1,5 +1,9 @@
 # How to release in Github and publish to PyPi
 
+- Copy the TeamCity configuration "Testbench" and all its dependencies
+
+- Set the version control sources of the copied configurations to suitable (release) commits
+
 - Remove the `-dev` suffix from the version number in `imod_coupler/__init__.py`
 
 For example: `__version__ = "0.10.0-dev"` -> `__version__ = "0.10.0"`
