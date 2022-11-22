@@ -1,9 +1,5 @@
 # How to release in Github and publish to PyPi
 
-- Copy the TeamCity configuration "Testbench" and all its dependencies
-
-- Set the version control sources of all dependencies to a suitable release and the one of imod_coupler to current main
-
 - Remove the `-dev` suffix from the version number in `imod_coupler/__init__.py`
 
 For example: `__version__ = "0.10.0-dev"` -> `__version__ = "0.10.0"`
@@ -47,4 +43,11 @@ twine upload dist/*
 
 For example: `__version__ = "0.11.0"` -> `__version__ = "0.11.0-dev"`
 
-- Set the version control sources of the newly created TeamCity configurations to the current iMOD Coupler release
+
+## iMOD Release
+
+- Create a branch starting from the latest iMOD Coupler release called `release_imodXX` where `XX` is the version of the iMOD release
+
+- Copy the TeamCity configuration "Testbench" and all its dependencies
+
+- Set the version control sources of all dependencies to a suitable release
