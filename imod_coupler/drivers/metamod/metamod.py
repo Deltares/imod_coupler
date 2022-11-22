@@ -82,12 +82,7 @@ class MetaMod(Driver):
         self.mf6.set_int("ISTDOUTTOFILE", 0)
         self.mf6.initialize()
         self.msw.initialize()
-        self.log_version()
         self.couple()
-
-    def log_version(self) -> None:
-        logger.info(f"MODFLOW version: {self.mf6.get_version()}")
-        logger.info(f"MetaSWAP version: {self.msw.get_version()}")
 
     def couple(self) -> None:
         """Couple Modflow and Metaswap"""
