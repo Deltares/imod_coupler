@@ -290,6 +290,8 @@ class DfmMetaMod(Driver):
         # flux from modflow to dflow 1d
         self.exchange_V_1D()
 
+        q_corr_init = self.dfm.get_cumulative_fluxes_1d_nodes()
+
         # sub timestepping between metaswap and dflow
         subtimestep_endtime = tBegin
         for _ in range(self.number_dflowsteps_per_modflowstep):
@@ -298,6 +300,10 @@ class DfmMetaMod(Driver):
             while self.dfm.get_current_time() < days_to_seconds(subtimestep_endtime):
                 self.dfm.update()
         self.exchange_V_dash_1D()
+        q_corr_end = self.dfm.get_cumulative_fluxes_1d_nodes()
+        assert q_corr_end is not None
+        assert q_corr_init is not None
+        qcorr = q_corr_end - q_corr_init
 
         # convergence loop modflow-metaswap
         self.mf6.prepare_solve(1)
