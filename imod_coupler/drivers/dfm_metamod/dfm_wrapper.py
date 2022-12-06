@@ -8,6 +8,17 @@ from numpy.typing import NDArray
 
 
 class DfmWrapper(BMIWrapper):  # type: ignore
+    def get_number_nodes(self) -> int:
+        """
+        Returns
+        -------
+        int
+            the number of nodes in the dflow-FM model
+        """
+
+        nr_nodes = self.get_var("ndxi")  # number of cells
+        return int(nr_nodes)
+
     def get_number_1d_nodes(self) -> int:
         """
         Returns
@@ -16,9 +27,18 @@ class DfmWrapper(BMIWrapper):  # type: ignore
             the number of 1d nodes in the dflow-FM model
         """
 
-        nr_nodes = self.get_var("ndxi")  # number of cells
+        return self.get_number_nodes() - self.get_number_2d_nodes()
+
+    def get_number_2d_nodes(self) -> int:
+        """
+        Returns
+        -------
+        int
+            the number of 2d nodes in the dflow-FM model
+        """
+
         nr_nodes2d = self.get_var("ndx2d")  # number of 2d cells
-        return int(nr_nodes - nr_nodes2d)
+        return int(nr_nodes2d)
 
     def get_waterlevels_1d(self) -> Optional[NDArray[np.float_]]:
         """
@@ -30,10 +50,13 @@ class DfmWrapper(BMIWrapper):  # type: ignore
         """
 
         nr_nodes_1d = self.get_number_1d_nodes()
+        nr_nodes_2d = self.get_number_2d_nodes()
         if nr_nodes_1d == 0:
             return None
         all_waterlevels = self.get_var("s1")
-        return np.asarray(all_waterlevels[-nr_nodes_1d:], dtype=np.float_)
+        return np.asarray(
+            all_waterlevels[nr_nodes_2d : nr_nodes_2d + nr_nodes_1d], dtype=np.float_
+        )
 
     def get_cumulative_fluxes_1d_nodes(self) -> Optional[NDArray[np.float_]]:
         """
