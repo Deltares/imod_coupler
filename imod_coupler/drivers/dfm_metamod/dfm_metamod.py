@@ -365,6 +365,7 @@ class DfmMetaMod(Driver):
         requested infiltration/drainage in the coming MF6 timestep for the 1D-rivers,
         estimated based on the MF6 groundwater levels and DFM water levels at T =t
         (so at the beginning of the timestep)
+        Also recomputes the weights that should be used for the correction flux.
         MF6 unit: ?
         DFM unit: ?
         """
@@ -381,8 +382,8 @@ class DfmMetaMod(Driver):
                 mf6_river_aquifer_flux
             )[:]
         )
-        # create new mapping based on  previous MF -> dflow flux exchange distribution
-        # for now, all mappingfiles are read in again, this could be optimised in the future
+
+        # update weigths for the correction flux.
         (
             self.map_active_mod_dflow1d,
             self.mask_active_mod_dflow1d,
