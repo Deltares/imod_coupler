@@ -280,7 +280,7 @@ class DfmMetaMod(Driver):
 
         # we cannot set the timestep (yet) in Modflow
         # -> set to the (dummy) value 0.0 for now
-        tBegin = self.get_current_time()
+        t_begin = self.get_current_time()
         self.mf6.prepare_time_step(0.0)
 
         self.delt = self.mf6.get_time_step()
@@ -295,11 +295,14 @@ class DfmMetaMod(Driver):
         assert q_corr_init is not None
 
         # sub timestepping between metaswap and dflow
-        subtimestep_endtime = tBegin
+        subtimestep_endtime = t_begin
         for _ in range(self.number_dflowsteps_per_modflowstep):
             subtimestep_endtime += self.delt / self.number_dflowsteps_per_modflowstep
 
-            while self.dfm.get_current_time() < days_to_seconds(subtimestep_endtime):
+            while (
+                self.dfm.get_current_time()
+                < days_to_seconds(subtimestep_endtime) - 1e-5
+            ):
                 self.dfm.update()
         self.exchange_V_dash_1D()
 
