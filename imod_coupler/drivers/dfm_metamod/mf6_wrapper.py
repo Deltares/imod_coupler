@@ -135,7 +135,10 @@ class Mf6Wrapper(XmiWrapper):
         """
         bound_adress = self.get_var_address("BOUND", mf6_flowmodel_key, mf6_wel_pkg_key)
         flux = self.get_value_ptr(bound_adress)
+
         if correction_flux is None or len(correction_flux) != len(flux):
             raise ValueError(f"Expected size of correction_flux is {len(flux)}")
-        flux[:] = correction_flux[:]
+        for i in range(len(flux)):
+            flux[i, 0] = correction_flux[i]
+
         self.set_value(bound_adress, flux)

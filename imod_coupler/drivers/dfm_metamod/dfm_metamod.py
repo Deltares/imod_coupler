@@ -274,11 +274,13 @@ class DfmMetaMod(Driver):
             )
 
     def update(self) -> None:
+
         # heads from modflow to MetaSWAP
         self.exchange_mod2msw()
 
         # we cannot set the timestep (yet) in Modflow
         # -> set to the (dummy) value 0.0 for now
+        t_begin = self.get_current_time()
         self.mf6.prepare_time_step(0.0)
 
         self.delt = self.mf6.get_time_step()
@@ -289,14 +291,27 @@ class DfmMetaMod(Driver):
         # flux from modflow to dflow 1d
         self.exchange_V_1D()
 
+        q_corr_init = self.dfm.get_cumulative_fluxes_1d_nodes()
+        assert q_corr_init is not None
+
         # sub timestepping between metaswap and dflow
-        subtimestep_endtime = self.get_current_time()
+        subtimestep_endtime = t_begin
         for _ in range(self.number_dflowsteps_per_modflowstep):
             subtimestep_endtime += self.delt / self.number_dflowsteps_per_modflowstep
-            while self.dfm.get_current_time() < subtimestep_endtime:
+
+            while (
+                self.dfm.get_current_time()
+                < days_to_seconds(subtimestep_endtime) - 1e-5
+            ):
                 self.dfm.update()
         self.exchange_V_dash_1D()
 
+        q_corr_end = self.dfm.get_cumulative_fluxes_1d_nodes()
+        assert q_corr_end is not None
+
+        qcorr = q_corr_end - q_corr_init
+        mf_riv1_flux = self.map_active_mod_dflow1d["dflow1d2mf-riv_flux"].dot(qcorr)[:]
+        self.mf6.set_correction_flux("GWF_1", "RIV_CORR", mf_riv1_flux)
         # convergence loop modflow-metaswap
         self.mf6.prepare_solve(1)
         for kiter in range(1, self.max_iter + 1):
@@ -353,6 +368,7 @@ class DfmMetaMod(Driver):
         requested infiltration/drainage in the coming MF6 timestep for the 1D-rivers,
         estimated based on the MF6 groundwater levels and DFM water levels at T =t
         (so at the beginning of the timestep)
+        Also recomputes the weights that should be used for the correction flux.
         MF6 unit: ?
         DFM unit: ?
         """
@@ -368,6 +384,17 @@ class DfmMetaMod(Driver):
             + self.map_active_mod_dflow1d["mf-riv2dflow1d_flux"].dot(
                 mf6_river_aquifer_flux
             )[:]
+        )
+
+        # update weigths for the correction flux.
+        (
+            self.map_active_mod_dflow1d,
+            self.mask_active_mod_dflow1d,
+        ) = mapping_active_mf_dflow1d(
+            self.coupling.mf6_river_to_dfm_1d_q_dmm,
+            self.coupling.dfm_1d_waterlevel_to_mf6_river_stage_dmm,
+            self.dflow1d_lookup,
+            mf6_river_aquifer_flux,
         )
 
     def exchange_V_dash_1D(self) -> None:
@@ -431,3 +458,7 @@ class DfmMetaMod(Driver):
         self.exchange_mod2msw()
         self.msw.finalize_solve(0)
         return has_converged
+
+
+def days_to_seconds(time: float) -> float:
+    return time * 86400
