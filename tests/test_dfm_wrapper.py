@@ -60,6 +60,9 @@ def test_get_river_stage(
     assert len(water_levels_1d) == 20
     reference_result = np.array(
         [
+            10.05412232,
+            10.05367417,
+            10.05316315,
             10.0526756,
             10.05226328,
             10.05217788,
@@ -77,9 +80,6 @@ def test_get_river_stage(
             9.15877603,
             9.13318928,
             9.06684356,
-            9.0,
-            10.05412232,
-            10.05203286,
         ]
     )
     np.testing.assert_allclose(water_levels_1d, reference_result, rtol=1e-3)
@@ -152,3 +152,26 @@ def test_set_1d_river_fluxes(
     bmiwrapper.finalize()
     assert new_fluxes is not None
     np.testing.assert_allclose(fluxes, new_fluxes)
+
+
+def test_get_node_numbers(
+    tmodel_input_folder: Path,
+    dflowfm_dll_devel: Path,
+    tmp_path_dev: Path,
+) -> None:
+
+    shutil.copytree(tmodel_input_folder / "dflow-fm", tmp_path_dev)
+    set_dfm_path(dflowfm_dll_devel)
+
+    bmiwrapper = DfmWrapper(engine="dflowfm", configfile=tmp_path_dev / "FlowFM.mdu")
+
+    bmiwrapper.initialize()
+    bmiwrapper.update()
+
+    nr_1d_nodes = bmiwrapper.get_number_1d_nodes()
+    nr_2d_nodes = bmiwrapper.get_number_2d_nodes()
+    nr_nodes = bmiwrapper.get_number_nodes()
+
+    assert nr_1d_nodes == 20
+    assert nr_2d_nodes == 110
+    assert nr_nodes == 130
