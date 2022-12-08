@@ -314,7 +314,9 @@ class DfmMetaMod(Driver):
 
         qcorr = q_corr_end - q_corr_init
         mf_riv1_flux = self.map_active_mod_dflow1d["dflow1d2mf-riv_flux"].dot(qcorr)[:]
-        self.mf6.set_correction_flux("GWF_1", "RIV_CORR", mf_riv1_flux)
+        self.mf6.set_correction_flux(
+            self.coupling.mf6_model, self.coupling.mf6_wel_correction_pkg, mf_riv1_flux
+        )
         # convergence loop modflow-metaswap
         self.mf6.prepare_solve(1)
         for kiter in range(1, self.max_iter + 1):
