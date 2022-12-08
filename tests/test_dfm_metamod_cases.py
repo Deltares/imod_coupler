@@ -24,6 +24,7 @@ def case_with_river(
         prepared_dflowfm_model,
         mf6_rch_pkgkey="rch_msw",
         mf6_river_pkgkey="Oosterschelde",
+        mf6_wel_correction_pkgkey="RIV_CORR",
         mf6_wel_pkgkey="wells_msw",
         mf6_river_to_dfm_1d_q_dmm_path=Path("sample.xyz"),
         dfm_1d_waterlevel_to_mf6_river_stage_dmm_path=Path("sample.xyz"),
