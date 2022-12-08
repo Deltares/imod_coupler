@@ -86,6 +86,9 @@ class DfmMetaMod(Driver):
     # dict. with mask arrays for msw=>mod coupling
     mask_msw2mod: Dict[str, NDArray[Any]]
 
+    # tolerance for time-related comparisons
+    time_eps = 1e-5
+
     def __init__(
         self, base_config: BaseConfig, config_dir: Path, driver_dict: Dict[str, Any]
     ):
@@ -301,7 +304,7 @@ class DfmMetaMod(Driver):
 
             while (
                 self.dfm.get_current_time()
-                < days_to_seconds(subtimestep_endtime) - 1e-5
+                < days_to_seconds(subtimestep_endtime) - self.time_eps
             ):
                 self.dfm.update()
         self.exchange_V_dash_1D()
