@@ -179,6 +179,7 @@ class DfmMetaModModel:
             exchange_dir,
             self.mf6_rch_pkgkey,
             self.mf6_river_pkgkey,
+            self.mf6_wel_correction_pkgkey,
             self.mf6_wel_pkgkey,
         )
 
