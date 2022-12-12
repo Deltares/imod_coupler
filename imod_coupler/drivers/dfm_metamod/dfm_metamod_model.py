@@ -37,7 +37,7 @@ class DfmMetaModModel:
     _metaswap_model_dir = "MetaSWAP"
     _dfm_model_dir = "dflow-fm"
 
-    def __init__(
+    def __init__(  # NOSONAR
         self,
         msw_model: MetaSwapModel,
         mf6_simulation: Modflow6Simulation,
@@ -55,7 +55,7 @@ class DfmMetaModModel:
         msw_ponding_to_dfm_2d_dv_dmm_path: Path,
         dfm_2d_waterlevels_to_msw_h_dmm_path: Path,
         dfm_1d_points_dat_path: Path,
-    ):  # NOSONAR
+    ):
         self.msw_model = msw_model
         self.mf6_simulation = mf6_simulation
         self.mf6_rch_pkgkey = mf6_rch_pkgkey
