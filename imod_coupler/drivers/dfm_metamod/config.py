@@ -38,6 +38,7 @@ class Coupling(BaseModel):
     mf6_model: str  # the MODFLOW 6 model that will be coupled
     dfm_model: str  # the dflow-fm model that will be coupled
     mf6_msw_recharge_pkg: str  # the recharge package that will be used for coupling
+    mf6_wel_correction_pkg: str  # key of Modflow 6 well package used for applying the correction flux
     mf6_msw_well_pkg: Optional[
         str
     ] = None  # the well package that will be used for coupling when sprinkling is active
