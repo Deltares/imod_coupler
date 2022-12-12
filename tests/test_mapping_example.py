@@ -8,9 +8,11 @@ from numpy.typing import NDArray
 
 from imod_coupler.drivers.dfm_metamod.mapping_functions import (
     get_dflow1d_lookup,
+    map_values_reweighted,
     mapping_active_mf_dflow1d,
     weight_from_flux_distribution,
 )
+from imod_coupler.utils import Operator, create_mapping
 
 
 def test_mappers_general(
@@ -134,3 +136,32 @@ def test_weight_from_flux_distribution() -> None:
         target_index, source_index, dummy_flux_mf2dflow1d
     )
     np.testing.assert_almost_equal(expected_weight, calculated_weight)
+
+
+def test_mapping_from_flux_distribution() -> None:
+    # test calculated mapped values based on mapping and re-weighting 
+    # with the estimated fluxes
+    # mf-riv1 elements=5
+    # dfow1d  elements=3
+
+    # set dummy variables
+    # previous flux from MF-RIV1 to DFLOW1d, used for reweighting
+    dummy_flux_mf2dflow1d = np.array([1, 2, 3, 4, 5])
+    source_values = np.array([34, 73, 666])
+    # set connection sparse array for DFLOW1d --> MF
+    source_index = np.array([0, 0, 1, 1, 2])
+    target_index = np.array([0, 1, 2, 3, 4])
+
+    mapping = create_mapping(source_index, target_index, 3, 5, Operator.SUM)
+    target_values = \
+        map_values_reweighted(mapping[0], source_values, dummy_flux_mf2dflow1d)
+
+    # evaluate weight distribution
+    expected_target_values = np.array([
+        34 * 1. / 3.,
+        34 * 2. / 3.,
+        73 * 3. / 7.,
+        73 * 4. / 7.,
+        666.])
+    np.testing.assert_almost_equal(expected_target_values, target_values)
+

@@ -10,10 +10,10 @@ from pathlib import Path
 from typing import Any, Dict
 
 import numpy as np
+import scipy.sparse as spr
 from loguru import logger
 from numpy.typing import NDArray
 from scipy.sparse import csr_matrix, dia_matrix
-import scipy.sparse as spr
 from xmipy import XmiWrapper
 
 from imod_coupler.config import BaseConfig
@@ -22,6 +22,7 @@ from imod_coupler.drivers.dfm_metamod.dfm_wrapper import DfmWrapper
 from imod_coupler.drivers.dfm_metamod.mapping_functions import (
     get_dflow1d_lookup,
     get_svat_lookup,
+    map_values_reweighted,
     mapping_active_mf_dflow1d,
 )
 from imod_coupler.drivers.dfm_metamod.mf6_wrapper import Mf6Wrapper
@@ -399,15 +400,8 @@ class DfmMetaMod(Driver):
         qdfm = np.maximum(
             0.0, dflow1d_flux_estimate - dflow1d_flux_receive - dflow1d_flux_estimate
         )  # correction on dfm cells -> back to modflow
-
-        afmc = spr.diags(qmf6).multiply(
-            self.map_active_mod_dflow1d["dflow1d2mf-riv_flux"]
-        )
-        # multiply the couple matrix dfm->mf6 with the original modflow fluxes
-        # redistribution back to mf6 proportial to the original contributions
-        s = 1.0 / (np.ones(np.size(qmf6)) * afmc)
-        afmcc = afmc.multiply(spr.diags(s))
-        qmf_corr = afmcc * qdfm
+        qmf_corr = map_values_reweighted(
+            self.map_active_mod_dflow1d["dflow1d2mf-riv_flux"], qdfm, qmf6)
         assert self.coupling.mf6_msw_well_pkg
         self.mf6.set_correction_flux(
             self.coupling.mf6_model, self.coupling.mf6_corr_well_pkg, qmf_corr

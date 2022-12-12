@@ -4,7 +4,7 @@ from typing import Any, Dict, Optional
 import numpy as np
 from numpy import float_, int_
 from numpy.typing import NDArray
-from scipy.sparse import csr_matrix, dia_matrix
+from scipy.sparse import csr_matrix, diags
 
 from imod_coupler.utils import Operator, create_mapping
 
@@ -359,6 +359,37 @@ def mapping_msw_dflow2d(
             dflow_idx, msw_idx, len(dflow_idx), len(msw_idx), Operator.WEIGHT, weight
         )
     return map_msw_dflow2d, mask_msw_dflow2d
+
+
+def map_values_reweighted(
+    mapping: csr_matrix, xin: NDArray[float_], rw: NDArray[float_]
+) -> NDArray[float_]:
+    """
+    this function performs a mapping with the given sparse matrix,
+    but re-weighted with an additional array, and applies it to the given input matrix
+    Output is the mapping result
+
+    Parameters
+    ----------
+    mapping : csr_matrix
+        Un-weighted mapping from source to target
+    xin : NDArray[float_]
+        Input array subjected to the mapping
+    rw : NDArray[float_]
+        Re-weighting over the output elements (size should be size of xout = number of rows in the matrix) 
+
+    Returns
+    -------
+    NDArray[float_]:
+        the mapping result
+    """
+
+    afmc = diags(rw).dot(mapping)
+    s = (np.ones(np.size(rw)) * afmc)
+    s[s == 0] = 1.0E-13
+    afmcc = afmc.dot(diags(1.0 / s))
+    xout = np.array(afmcc * xin)
+    return xout
 
 
 def weight_from_flux_distribution(
