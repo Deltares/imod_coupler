@@ -38,10 +38,11 @@ class Coupling(BaseModel):
     mf6_model: str  # the MODFLOW 6 model that will be coupled
     dfm_model: str  # the dflow-fm model that will be coupled
     mf6_msw_recharge_pkg: str  # the recharge package that will be used for coupling
+    mf6_wel_correction_pkg: str  # key of Modflow 6 well package used for applying the correction flux
     mf6_msw_well_pkg: Optional[
         str
     ] = None  # the well package that will be used for coupling when sprinkling is active
-    mf6_corr_well_pkg: str  # the well package that will be used for the correction fluxes from surface water
+    mf6_wel_correction_pkg: str  # the well package that will be used for the correction fluxes from surface water
     mf6_river_pkg: str  # the river package that will be used for coupling
     mf6_msw_node_map: FilePath  # the path to the node map file
     mf6_msw_recharge_map: FilePath  # the pach to the recharge map file
@@ -73,13 +74,13 @@ class Coupling(BaseModel):
             )
         return mf6_msw_well_pkg
 
-    @validator("mf6_corr_well_pkg")
-    def validate_mf6_corr_well_pkg(cls, mf6_corr_well_pkg: str, values: Any) -> str:
-        if mf6_corr_well_pkg == "":
+    @validator("mf6_wel_correction_pkg")
+    def validate_mf6_wel_correction_pkg(cls, mf6_wel_correction_pkg: str, values: Any) -> str:
+        if mf6_wel_correction_pkg == "":
             raise ValueError(
                 "Name of the correction flux well package cannot be empty."
             )
-        return mf6_corr_well_pkg
+        return mf6_wel_correction_pkg
 
     @validator("mf6_msw_node_map")
     def resolve_mf6_msw_node_map(cls, mf6_msw_node_map: FilePath) -> FilePath:

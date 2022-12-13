@@ -389,7 +389,10 @@ class DfmMetaMod(Driver):
         )
 
     def store_1d_river_fluxes_to_dfm(self) -> None:
-        """Stores current contents of fluxes going into dflowfm (dfm in this instance) through qext"""
+        """
+        Stores current contents of fluxes going into dflowfm 
+        (dfm in this instance) through qext
+        """
         self.dflow1d_flux_estimate = np.copy(self.dfm.get_1d_river_fluxes())
 
     def exchange_V_dash_1D(self) -> None:
@@ -398,23 +401,20 @@ class DfmMetaMod(Driver):
         the drainage/inflitration flux to the 1d rivers as realised by DFM is passed to
         mf6 as a correction
         """
-        dflow1d_flux_estimate = (
-            self.dfm.get_river_fluxes_estimate()
-        )  # previously estimated 1d flux to dflowfm 1d
-        dflow1d_flux_receive = (
-            self.dfm.get_1d_river_fluxes()
-        )  # realized 1d flux to dflowfm 1d
         qmf6 = self.mf6.get_river_flux(
             self.coupling.mf6_model, self.coupling.mf6_river_pkg
         )  # originally sent by modflow
+        dflow1d_flux_receive = self.dfm.get_1d_river_fluxes()
+        if dflow1d_flux_receive is None:
+            raise ValueError("dflow 1d river flux not found")
         qdfm = np.maximum(
-            0.0, dflow1d_flux_estimate - dflow1d_flux_receive - dflow1d_flux_estimate
+            0.0, self.dflow1d_flux_estimate - dflow1d_flux_receive
         )  # correction on dfm cells -> back to modflow
         qmf_corr = map_values_reweighted(
             self.map_active_mod_dflow1d["dflow1d2mf-riv_flux"], qdfm, qmf6)
         assert self.coupling.mf6_msw_well_pkg
         self.mf6.set_correction_flux(
-            self.coupling.mf6_model, self.coupling.mf6_corr_well_pkg, qmf_corr
+            self.coupling.mf6_model, self.coupling.mf6_wel_correction_pkg, qmf_corr
         )
 
     def exchange_msw2mod(self) -> None:

@@ -83,6 +83,18 @@ def mapping_active_mf_dflow1d(
             Operator.WEIGHT,
             weight,
         )
+    else:    
+        (
+            map_active_mod_dflow1d["dflow1d2mf-riv_flux"],
+            mask_active_mod_dflow1d["dflow1d2mf-riv_flux"],
+        ) = create_mapping(
+            dflow_idx,
+            mf_idx,
+            max(dflow_idx) + 1,
+            max(mf_idx) + 1,
+            Operator.SUM
+        )
+
     # DFLOW 1D -> MF RIV 1 (stage)
     table_active_dflow1d2mfriv: NDArray[np.single] = np.loadtxt(
         mapping_file_dfm_1d_waterlevel_to_mf6_river_stage,
