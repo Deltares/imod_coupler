@@ -7,6 +7,7 @@ from numpy import float_
 from numpy.typing import NDArray
 
 from imod_coupler.drivers.dfm_metamod.mapping_functions import (
+    calc_correction_dfm2mf,
     get_dflow1d_lookup,
     map_values_reweighted,
     mapping_active_mf_dflow1d,
@@ -138,8 +139,36 @@ def test_weight_from_flux_distribution() -> None:
     np.testing.assert_almost_equal(expected_weight, calculated_weight)
 
 
+def test_calc_correction_dfm2mf() -> None:
+    # test calculated mapped values based on mapping and re-weighting
+    # with the estimated fluxes
+    # mf-riv1 elements=5
+    # dfow1d  elements=3
+
+    # set dummy variables
+    # previous flux from MF-RIV1 to DFLOW1d, used for reweighting
+    q_demand_mf6 = np.array([1, 2, 3, 4, 5])
+
+    # set connection sparse array for DFLOW1d --> MF
+    dfm_index = np.array([0, 0, 1, 1, 2])
+    mf6_index = np.array([0, 1, 2, 3, 4])
+
+    mf6_to_dfm = create_mapping(mf6_index, dfm_index, 5, 3, Operator.SUM)
+    q_demand_dfm = mf6_to_dfm[0].dot(q_demand_mf6)
+    q_realized_dfm = (1, 1.1, 0.2) * q_demand_dfm
+    target_values = calc_correction_dfm2mf(
+        mf6_to_dfm, q_demand_mf6, q_demand_dfm, q_realized_dfm
+    )
+
+    # evaluate weight distribution
+    expected_target_values = np.array(
+        [34 * 1.0 / 3.0, 34 * 2.0 / 3.0, 73 * 3.0 / 7.0, 73 * 4.0 / 7.0, 666.0]
+    )
+    np.testing.assert_almost_equal(expected_target_values, target_values)
+
+
 def test_mapping_from_flux_distribution() -> None:
-    # test calculated mapped values based on mapping and re-weighting 
+    # test calculated mapped values based on mapping and re-weighting
     # with the estimated fluxes
     # mf-riv1 elements=5
     # dfow1d  elements=3
@@ -153,15 +182,12 @@ def test_mapping_from_flux_distribution() -> None:
     target_index = np.array([0, 1, 2, 3, 4])
 
     mapping = create_mapping(source_index, target_index, 3, 5, Operator.SUM)
-    target_values = \
-        map_values_reweighted(mapping[0], source_values, dummy_flux_mf2dflow1d)
+    target_values = map_values_reweighted(
+        mapping[0], source_values, dummy_flux_mf2dflow1d
+    )
 
     # evaluate weight distribution
-    expected_target_values = np.array([
-        34 * 1. / 3.,
-        34 * 2. / 3.,
-        73 * 3. / 7.,
-        73 * 4. / 7.,
-        666.])
+    expected_target_values = np.array(
+        [34 * 1.0 / 3.0, 34 * 2.0 / 3.0, 73 * 3.0 / 7.0, 73 * 4.0 / 7.0, 666.0]
+    )
     np.testing.assert_almost_equal(expected_target_values, target_values)
-

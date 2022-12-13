@@ -75,7 +75,9 @@ class Coupling(BaseModel):
         return mf6_msw_well_pkg
 
     @validator("mf6_wel_correction_pkg")
-    def validate_mf6_wel_correction_pkg(cls, mf6_wel_correction_pkg: str, values: Any) -> str:
+    def validate_mf6_wel_correction_pkg(
+        cls, mf6_wel_correction_pkg: str, values: Any
+    ) -> str:
         if mf6_wel_correction_pkg == "":
             raise ValueError(
                 "Name of the correction flux well package cannot be empty."

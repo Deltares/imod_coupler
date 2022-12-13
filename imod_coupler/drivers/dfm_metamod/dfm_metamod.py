@@ -390,7 +390,7 @@ class DfmMetaMod(Driver):
 
     def store_1d_river_fluxes_to_dfm(self) -> None:
         """
-        Stores current contents of fluxes going into dflowfm 
+        Stores current contents of fluxes going into dflowfm
         (dfm in this instance) through qext
         """
         self.dflow1d_flux_estimate = np.copy(self.dfm.get_1d_river_fluxes())
@@ -411,7 +411,8 @@ class DfmMetaMod(Driver):
             0.0, self.dflow1d_flux_estimate - dflow1d_flux_receive
         )  # correction on dfm cells -> back to modflow
         qmf_corr = map_values_reweighted(
-            self.map_active_mod_dflow1d["dflow1d2mf-riv_flux"], qdfm, qmf6)
+            self.map_active_mod_dflow1d["dflow1d2mf-riv_flux"], qdfm, qmf6
+        )
         assert self.coupling.mf6_msw_well_pkg
         self.mf6.set_correction_flux(
             self.coupling.mf6_model, self.coupling.mf6_wel_correction_pkg, qmf_corr
