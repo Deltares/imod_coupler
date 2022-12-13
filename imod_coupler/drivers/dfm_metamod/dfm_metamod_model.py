@@ -48,6 +48,8 @@ class DfmMetaModModel:
         mf6_river2_to_dmf_1d_q_dmm_path: Path,
         mf6_drainage_to_dfm_1d_q_dmm_path: Path,
         msw_runoff_to_dfm_1d_q_dmm_path: Path,
+        msw_sprinkling_to_dfm_1d_q_dmm_path: Path,
+        msw_ponding_to_dfm_2d_dv_dmm_path: Path,
         dfm_2d_waterlevels_to_msw_h_dmm_path: Path,
         dfm_1d_points_dat_path: Path,
     ):
@@ -72,6 +74,14 @@ class DfmMetaModModel:
         self.mapping_files[
             "msw_runoff_to_dfm_1d_q_dmm"
         ] = msw_runoff_to_dfm_1d_q_dmm_path
+
+        self.mapping_files[
+            "msw_sprinkling_to_dfm_1d_q_dmm"
+        ] = msw_sprinkling_to_dfm_1d_q_dmm_path
+
+        self.mapping_files[
+            "msw_ponding_to_dfm_2d_dv_dmm"
+        ] = msw_ponding_to_dfm_2d_dv_dmm_path
         self.mapping_files[
             "dfm_2d_waterlevels_to_msw_h_dmm"
         ] = dfm_2d_waterlevels_to_msw_h_dmm_path

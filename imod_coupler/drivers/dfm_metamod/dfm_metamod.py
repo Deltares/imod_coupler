@@ -88,6 +88,9 @@ class DfmMetaMod(Driver):
     # dict. with mask arrays for msw=>mod coupling
     mask_msw2mod: Dict[str, NDArray[Any]]
 
+    # tolerance for time-related comparisons
+    time_eps = 1e-5
+
     def __init__(
         self, base_config: BaseConfig, config_dir: Path, driver_dict: Dict[str, Any]
     ):
@@ -276,11 +279,13 @@ class DfmMetaMod(Driver):
             )
 
     def update(self) -> None:
+
         # heads from modflow to MetaSWAP
         self.exchange_mod2msw()
 
         # we cannot set the timestep (yet) in Modflow
         # -> set to the (dummy) value 0.0 for now
+        t_begin = self.get_current_time()
         self.mf6.prepare_time_step(0.0)
 
         self.delt = self.mf6.get_time_step()
@@ -295,10 +300,14 @@ class DfmMetaMod(Driver):
         self.store_1d_river_fluxes_to_dfm()
 
         # sub timestepping between metaswap and dflow
-        subtimestep_endtime = self.get_current_time()
+        subtimestep_endtime = t_begin
         for _ in range(self.number_dflowsteps_per_modflowstep):
             subtimestep_endtime += self.delt / self.number_dflowsteps_per_modflowstep
-            while self.dfm.get_current_time() < subtimestep_endtime:
+
+            while (
+                self.dfm.get_current_time()
+                < days_to_seconds(subtimestep_endtime) - self.time_eps
+            ):
                 self.dfm.update()
         self.exchange_V_dash_1D()
 
@@ -361,6 +370,7 @@ class DfmMetaMod(Driver):
         requested infiltration/drainage in the coming MF6 timestep for the 1D-rivers,
         estimated based on the MF6 groundwater levels and DFM water levels at T =t
         (so at the beginning of the timestep)
+        Also recomputes the weights that should be used for the correction flux.
         MF6 unit: ?
         DFM unit: ?
         """
@@ -460,3 +470,7 @@ class DfmMetaMod(Driver):
         self.exchange_mod2msw()
         self.msw.finalize_solve(0)
         return has_converged
+
+
+def days_to_seconds(time: float) -> float:
+    return time * 86400

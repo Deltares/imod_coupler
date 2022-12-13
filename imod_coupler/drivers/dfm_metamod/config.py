@@ -52,6 +52,8 @@ class Coupling(BaseModel):
     mf6_drainage_to_dfm_1d_q_dmm: FilePath
     msw_runoff_to_dfm_1d_q_dmm: FilePath
     dfm_2d_waterlevels_to_msw_h_dmm: FilePath
+    msw_sprinkling_to_dfm_1d_q_dmm: FilePath
+    msw_ponding_to_dfm_2d_dv_dmm: FilePath
     dfm_1d_points_dat: FilePath
 
     mf6_msw_sprinkling_map: Optional[
@@ -90,6 +92,8 @@ class Coupling(BaseModel):
         "mf6_drainage_to_dfm_1d_q_dmm",
         "msw_runoff_to_dfm_1d_q_dmm",
         "dfm_2d_waterlevels_to_msw_h_dmm",
+        "msw_sprinkling_to_dfm_1d_q_dmm",
+        "msw_ponding_to_dfm_2d_dv_dmm",
         "dfm_1d_points_dat",
     )
     def resolve_mapping_files(cls, mapping_file: FilePath) -> FilePath:
