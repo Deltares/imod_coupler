@@ -383,6 +383,36 @@ def map_values_reweighted(
     return xout
 
 
+def calc_correction_dfm2mf(
+    mapping: csr_matrix, q_pre1: NDArray[float_], q_pre2: NDArray[float_], q_post2: NDArray[float_]
+) -> NDArray[float_]:
+    """
+    this function computes the not-realized amounts in system1 
+    by comparing demand and realization in system2 and applying the resulting
+    fraction realized back on system1, which gives the not-realized values in system1 
+
+    Parameters
+    ----------
+    mapping : csr_matrix
+        Un-weighted mapping from system1 to system2
+    q_pre1 : NDArray[float_]
+        Input array of demand values in system1 
+    q_pre2:  NDArray[float_]
+        Input array of demand values in system2 
+    q_post2:  NDArray[float_]
+        realized values in system2
+
+    Returns
+    -------
+    NDArray[float_]:
+        the amounts in system1 that were NOT realized (i.o.w. correction terms)
+
+    """
+    alpha = np.maximum(0.0, (1. - q_post2 / np.maximum(q_pre2, 1.0E-13)))
+    qcorr = np.array(alpha.dot(mapping.dot(diags(q_pre1))))
+    return qcorr
+
+
 def weight_from_flux_distribution(
     tgt_idx: NDArray[int_], src_idx: NDArray[int_], previous_flux: NDArray[float_]
 ) -> NDArray[float_]:
@@ -417,7 +447,6 @@ def weight_from_flux_distribution(
     return weight
 
 
-#
 def get_dflow1d_lookup(
     dflow1d_file: Path,
 ) -> dict[tuple[float, float], int]:
