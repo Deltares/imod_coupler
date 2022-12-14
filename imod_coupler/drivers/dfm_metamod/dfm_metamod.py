@@ -393,7 +393,10 @@ class DfmMetaMod(Driver):
         Stores current contents of fluxes going into dflowfm
         (dfm in this instance) through qext
         """
-        self.dflow1d_flux_estimate = np.copy(self.dfm.get_1d_river_fluxes())
+        #       self.dflow1d_flux_estimate = np.copy(self.dfm.get_1d_river_fluxes())
+        dfm_estimate = self.dfm.get_1d_river_fluxes()
+        if dfm_estimate is not None:
+            self.dflow1d_flux_estimate = dfm_estimate[:]
 
     def exchange_V_dash_1D(self) -> None:
         """

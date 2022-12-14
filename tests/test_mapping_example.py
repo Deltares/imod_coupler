@@ -154,10 +154,12 @@ def test_calc_correction_dfm2mf() -> None:
     mf6_index = np.array([0, 1, 2, 3, 4])
 
     mf6_to_dfm = create_mapping(mf6_index, dfm_index, 5, 3, Operator.SUM)
-    q_demand_dfm = mf6_to_dfm[0].dot(q_demand_mf6)
-    q_realized_dfm = (1, 1.1, 0.2) * q_demand_dfm
+    #   q_realized_dfm = (1.1, 0.7, 0.2) * q_demand_dfm  # test corner cases
+    q_demand_dfm = mf6_to_dfm[0].dot(q_demand_mf6)  # same as other test
+
+    q_realized_dfm = q_demand_dfm - (34, 73, 666)
     target_values = calc_correction_dfm2mf(
-        mf6_to_dfm, q_demand_mf6, q_demand_dfm, q_realized_dfm
+        mf6_to_dfm[0], q_demand_mf6, q_demand_dfm, q_realized_dfm
     )
 
     # evaluate weight distribution

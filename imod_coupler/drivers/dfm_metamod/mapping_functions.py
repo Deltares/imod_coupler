@@ -420,7 +420,7 @@ def calc_correction_dfm2mf(
 
     """
     alpha = np.maximum(0.0, (1.0 - q_post2 / np.maximum(q_pre2, 1.0e-13)))
-    qcorr = np.array(alpha.dot(mapping.dot(diags(q_pre1))))
+    qcorr = np.array(alpha * (mapping.dot(diags(q_pre1))))
     return qcorr
 
 
