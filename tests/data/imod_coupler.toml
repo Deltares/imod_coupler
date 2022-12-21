@@ -1,0 +1,37 @@
+timing = false
+log_level = "INFO"
+driver_type = "dfm_metamod"
+
+[driver.kernels.modflow6]
+dll = "D:\\dev\\imod_coupler_test\\imod_collector_regression\\libmf6.dll"
+work_dir = ".\\Modflow6"
+
+[driver.kernels.metaswap]
+dll = "D:\\dev\\imod_coupler_test\\imod_collector_devel\\MetaSWAP.dll"
+work_dir = ".\\MetaSWAP"
+dll_dep_dir = "D:\\dev\\imod_coupler_test\\imod_collector_devel"
+
+[driver.kernels.dflowfm]
+dll = "D:\\dev\\imod_coupler_test\\dflowfm_dll\\dflowfm.dll"
+work_dir = ".\\dflow-fm"
+
+[[driver.coupling]]
+dfm_model = "FlowFM.mdu"
+mf6_model = "GWF_1"
+mf6_msw_node_map = "./exchanges/nodenr2svat.dxc"
+mf6_msw_recharge_pkg = "RCH_MSW"
+mf6_river_pkg = "RIV_SYS1"
+mf6_wel_correction_pkg = "RIV_CORR"
+mf6_msw_recharge_map = "./exchanges/RCHINDEX2SVAT.DXC"
+mf6_msw_well_pkg = "wells_msw"
+mf6_msw_sprinkling_map = "./exchanges/WELLINDEX2SVAT.DXC"
+mf6_river_to_dfm_1d_q_dmm = "./exchanges/MFRIVTODFM1D_Q.DMM"
+dfm_1d_waterlevel_to_mf6_river_stage_dmm = "./exchanges/DFM1DWATLEVTOMFRIV_H.DMM"
+mf6_river2_to_dmf_1d_q_dmm = "./exchanges/MFRIV2TODFM1D_Q.DMM"
+mf6_drainage_to_dfm_1d_q_dmm = "./exchanges/MFDRNTODFM1D_Q.DMM"
+msw_runoff_to_dfm_1d_q_dmm = "./exchanges/MSWSPRINKTODFM1D_Q.DMM"
+msw_sprinkling_to_dfm_1d_q_dmm = "./exchanges/MSWSPRINKTODFM1D_Q.DMM"
+msw_ponding_to_dfm_2d_dv_dmm = "./exchanges/MSWPONDINGTODFM2D_DV.DMM"
+dfm_2d_waterlevels_to_msw_h_dmm = "./exchanges/DFM2DWATLEVTOMSW_H.DMM"
+dfm_1d_points_dat = "./exchanges/DFLOWFM1D_POINTS.DAT"
+enable_sprinkling = false

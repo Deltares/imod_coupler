@@ -1,0 +1,53 @@
+[General]
+    fileVersion           = 1.01                
+    fileType              = boundConds          
+
+[forcing]
+    name                  = InstroomOnder       
+    function              = timeseries            
+    timeInterpolation     = linear              
+    quantity              = time
+	unit                  = seconds since 2001-01-01 00:00:00
+    quantity              = waterlevelbnd
+    unit                  = m                   
+0        10.00
+2678400  10.00
+2721600   9.55
+5097600   9.55
+5101200  10.00
+7776000  10.00
+7948800   9.55
+10368000  9.55
+10371600 10.00
+13046400 10.00
+13392000  9.55
+15638400  9.55
+15642000 10.00
+18316800 10.00
+19008000  9.55
+20995200  9.55
+20998800 10.00
+23587200 10.00
+24969600  9.55
+26265600  9.55
+26269200 10.00
+28857600 10.00
+30931200  9.55
+31536000  9.55
+31968000  9.55
+
+[forcing]
+    name                  = InstroomBoven
+    function              = constant
+    timeInterpolation     = linear              
+    quantity              = dischargebnd        
+    unit                  = m³/s                
+    0.00
+
+[forcing]
+    name                  = Uitstroom           
+    function              = constant            
+    timeInterpolation     = linear              
+    quantity              = waterlevelbnd
+    unit                  = m                   
+    9 
