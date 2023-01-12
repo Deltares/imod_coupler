@@ -20,9 +20,9 @@ from imod_coupler.config import BaseConfig
 from imod_coupler.drivers.dfm_metamod.config import Coupling, DfmMetaModConfig
 from imod_coupler.drivers.dfm_metamod.dfm_wrapper import DfmWrapper
 from imod_coupler.drivers.dfm_metamod.mapping_functions import (
+    calc_correction,
     get_dflow1d_lookup,
     get_svat_lookup,
-    map_values_reweighted,
     mapping_active_mf_dflow1d,
 )
 from imod_coupler.drivers.dfm_metamod.mf6_wrapper import Mf6Wrapper
@@ -410,12 +410,14 @@ class DfmMetaMod(Driver):
         dflow1d_flux_receive = self.dfm.get_1d_river_fluxes()
         if dflow1d_flux_receive is None:
             raise ValueError("dflow 1d river flux not found")
-        qdfm = np.maximum(
-            0.0, self.dflow1d_flux_estimate - dflow1d_flux_receive
-        )  # correction on dfm cells -> back to modflow
-        qmf_corr = map_values_reweighted(
-            self.map_active_mod_dflow1d["dflow1d2mf-riv_flux"], qdfm, qmf6
+        qdfm = self.dflow1d_flux_estimate
+        qmf_corr = calc_correction(
+            self.map_active_mod_dflow1d["mf-riv2dflow1d_flux"],
+            qmf6,
+            qdfm,
+            dflow1d_flux_receive,
         )
+
         assert self.coupling.mf6_msw_well_pkg
         self.mf6.set_correction_flux(
             self.coupling.mf6_model, self.coupling.mf6_wel_correction_pkg, qmf_corr

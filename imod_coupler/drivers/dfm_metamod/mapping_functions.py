@@ -251,6 +251,7 @@ def mapping_msw_dflow1d(
             Operator.WEIGHT,
             weight,
         )
+
     # MSW -> DFLOW 1D (ponding)
     table_mswponding2dflow1d: NDArray[np.single] = np.loadtxt(
         msw_runoff_to_dfm_1d_q_dmm, dtype=np.single, ndmin=2, skiprows=1
@@ -360,38 +361,7 @@ def mapping_msw_dflow2d(
     return map_msw_dflow2d, mask_msw_dflow2d
 
 
-def map_values_reweighted(
-    mapping: csr_matrix, xin: NDArray[float_], rw: NDArray[float_]
-) -> NDArray[float_]:
-    """
-    this function performs a mapping with the given sparse matrix,
-    but re-weighted with an additional array, and applies it to the given input matrix
-    Output is the mapping result
-
-    Parameters
-    ----------
-    mapping : csr_matrix
-        Un-weighted mapping from source to target
-    xin : NDArray[float_]
-        Input array subjected to the mapping
-    rw : NDArray[float_]
-        Re-weighting over the output elements (size should be size of xout = number of rows in the matrix)
-
-    Returns
-    -------
-    NDArray[float_]:
-        the mapping result
-    """
-
-    afmc = diags(rw).dot(mapping)
-    s = np.ones(np.size(rw)) * afmc
-    s[s == 0] = 1.0e-13
-    afmcc = afmc.dot(diags(1.0 / s))
-    xout = np.array(afmcc * xin)
-    return xout
-
-
-def calc_correction_dfm2mf(
+def calc_correction(
     mapping: csr_matrix,
     q_pre1: NDArray[float_],
     q_pre2: NDArray[float_],
