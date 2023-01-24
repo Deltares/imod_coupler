@@ -151,3 +151,44 @@ def test_mapping_riv2_drain(
         mapping_file_drainage_to_dfm_1d_q,
         dflow1d_lookup,
     )
+
+    # dflow nodes 13, 14 and 15 participate in the river exchange; 14 and 15 in the drainage
+    mask_active_riv2_expected = np.array([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0])
+    mask_active_drn2_expected = np.array([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0])
+
+    np.testing.assert_almost_equal(
+        mask_active_mod_dflow1d["mf-riv2dflow1d_flux"], mask_active_riv2_expected
+    )
+    np.testing.assert_almost_equal(
+        mask_active_mod_dflow1d["mf-drn2dflow1d_flux"], mask_active_drn2_expected
+    )
+
+    rivmat = map_active_mod_dflow1d["mf-riv2dflow1d_flux"]
+    assert rivmat.shape == (15, 58)
+    assert (
+        rivmat[11:16, 55:58].todense()
+        == ([[0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [1.0, 0.0, 0.0], [0.0, 0.0, 1.0]])
+    ).all()
+
+    drainmat = map_active_mod_dflow1d["mf-drn2dflow1d_flux"]
+    assert drainmat.shape == (15, 2)
+
+    drainmat.todense() == (
+        [
+            [0.0, 0.0],
+            [0.0, 0.0],
+            [0.0, 0.0],
+            [0.0, 0.0],
+            [0.0, 0.0],
+            [0.0, 0.0],
+            [0.0, 0.0],
+            [0.0, 0.0],
+            [0.0, 0.0],
+            [0.0, 0.0],
+            [0.0, 0.0],
+            [0.0, 0.0],
+            [0.0, 0.0],
+            [1.0, 0.0],
+            [0.0, 1.0],
+        ]
+    )
