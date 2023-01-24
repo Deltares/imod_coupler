@@ -121,6 +121,16 @@ def dflow1d_mapping_file(request) -> Path:
 
 
 @pytest.fixture(scope="function")
+def dflow1d_mapping_file_tmodel(request) -> Path:
+    """
+    Return the directory of the mapping example problem input data
+    """
+    return (
+        Path(request.fspath).parent / "data" / "mapper_input" / "DFLOWFM1D_POINTS_2.DAT"
+    )
+
+
+@pytest.fixture(scope="function")
 def mapping_file_mf6_river_to_dfm_1d_q(request) -> Path:
     return Path(request.fspath).parent / "data" / "mapper_input" / "MFRIVTODFM1D_Q.DMM"
 
@@ -143,3 +153,13 @@ def dflowfm_dll() -> Path:
 @pytest.fixture(scope="function")
 def tmodel_input_folder(request) -> Path:
     return Path(request.fspath).parent / "data" / "t_model"
+
+
+@pytest.fixture(scope="function")
+def mapping_file_mf6_river2_to_dmf_1d_q(request) -> Path:
+    return Path(request.fspath).parent / "data" / "mapper_input" / "MFRIV2TODFM1D_Q.DMM"
+
+
+@pytest.fixture(scope="function")
+def mapping_file_drainage_to_dfm_1d_q(request) -> Path:
+    return Path(request.fspath).parent / "data" / "mapper_input" / "MFDRN2TODFM1D_Q.DMM"

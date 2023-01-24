@@ -9,6 +9,7 @@ from numpy.typing import NDArray
 from imod_coupler.drivers.dfm_metamod.mapping_functions import (
     get_dflow1d_lookup,
     mapping_active_mf_dflow1d,
+    mapping_passive_mf_dflow1d,
     weight_from_flux_distribution,
 )
 
@@ -134,3 +135,19 @@ def test_weight_from_flux_distribution() -> None:
         target_index, source_index, dummy_flux_mf2dflow1d
     )
     np.testing.assert_almost_equal(expected_weight, calculated_weight)
+
+
+def test_mapping_riv2_drain(
+    dflow1d_mapping_file_tmodel: Path,
+    mapping_file_mf6_river2_to_dmf_1d_q: Path,
+    mapping_file_drainage_to_dfm_1d_q: Path,
+) -> None:
+
+    # get dflow-id based on xy-coordinates after initialisation (now as test from file)
+    dflow1d_lookup = get_dflow1d_lookup(dflow1d_mapping_file_tmodel)
+
+    map_active_mod_dflow1d, mask_active_mod_dflow1d = mapping_passive_mf_dflow1d(
+        mapping_file_mf6_river2_to_dmf_1d_q,
+        mapping_file_drainage_to_dfm_1d_q,
+        dflow1d_lookup,
+    )
