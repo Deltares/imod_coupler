@@ -428,7 +428,7 @@ def coupled_mf6_model_storage_coefficient(
 @pytest_cases.fixture(scope="function")
 def prepared_dflowfm_model(tmp_path_dev: Path) -> FMModel:
 
-    x, y, _, _, dx, dy, _ = grid_sizes()
+    x, y, _, dx, dy, _ = grid_sizes()
     tmp_path_dev.mkdir()
 
     with cd(tmp_path_dev):
