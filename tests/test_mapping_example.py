@@ -164,34 +164,34 @@ def test_mapping_riv2_drain(
     )
 
     rivmat = map_active_mod_dflow1d["mf-riv2dflow1d_flux"]
-    assert rivmat.shape == (15, 58)
-    assert (
-        rivmat[11:16, 55:58].todense()
-        == ([[0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [1.0, 0.0, 0.0], [0.0, 0.0, 1.0]])
-    ).all()
+    rivmat_fragment_expected = [
+        [0.0, 0.0, 0.0],
+        [1.0, 0.0, 0.0],
+        [1.0, 0.0, 0.0],
+        [0.0, 0.0, 1.0],
+    ]
 
+    assert rivmat.shape == (15, 58)
+    np.testing.assert_array_equal(
+        rivmat[11:16, 55:58].toarray(), rivmat_fragment_expected
+    )
     drainmat = map_active_mod_dflow1d["mf-drn2dflow1d_flux"]
     assert drainmat.shape == (15, 2)
-
-    assert (
-        drainmat.todense()
-        == (
-            [
-                [0.0, 0.0],
-                [0.0, 0.0],
-                [0.0, 0.0],
-                [0.0, 0.0],
-                [0.0, 0.0],
-                [0.0, 0.0],
-                [0.0, 0.0],
-                [0.0, 0.0],
-                [0.0, 0.0],
-                [0.0, 0.0],
-                [0.0, 0.0],
-                [0.0, 0.0],
-                [0.0, 0.0],
-                [1.0, 0.0],
-                [0.0, 1.0],
-            ]
-        )
-    ).all()
+    drainmat_expected = [
+        [0.0, 0.0],
+        [0.0, 0.0],
+        [0.0, 0.0],
+        [0.0, 0.0],
+        [0.0, 0.0],
+        [0.0, 0.0],
+        [0.0, 0.0],
+        [0.0, 0.0],
+        [0.0, 0.0],
+        [0.0, 0.0],
+        [0.0, 0.0],
+        [0.0, 0.0],
+        [0.0, 0.0],
+        [1.0, 0.0],
+        [0.0, 1.0],
+    ]
+    np.testing.assert_array_equal(drainmat.toarray(), drainmat_expected)
