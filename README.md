@@ -1,4 +1,4 @@
-# iMOD-coupler
+# iMOD Coupler
 
 ![Continuous integration](https://github.com/Deltares/imod_coupler/workflows/Continuous%20integration/badge.svg)
 
