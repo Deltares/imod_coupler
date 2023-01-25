@@ -16,7 +16,7 @@ dependencies:
   - pip
   - pip:
       - bmi-python
-      - git+https://gitlab.com/deltares/imod/imod-python.git
+      - git+https://gitlab.com/deltares/imod/imod-python.git@fd4d71293a434b9d8d3fbf65b12f2f235867fd7b
       - HYDROLIB-core
       - pydantic
       - xmipy

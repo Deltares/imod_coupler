@@ -42,3 +42,12 @@ twine upload dist/*
 - Add the `-dev` suffix to the version number in `imod_coupler/__init__.py`
 
 For example: `__version__ = "0.11.0"` -> `__version__ = "0.11.0-dev"`
+
+
+## iMOD Release
+
+- Create a branch starting from the latest iMOD Coupler release called `release_imodXX` where `XX` is the version of the iMOD release
+
+- Copy the TeamCity configuration "Testbench" and all its dependencies
+
+- Set the version control sources of all dependencies to a suitable release

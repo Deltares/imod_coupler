@@ -2,7 +2,7 @@ from pathlib import Path
 from typing import Optional, Union
 
 import tomli_w
-from hydrolib.core.io.mdu.models import FMModel
+from hydrolib.core.dflowfm.mdu.models import FMModel
 from imod.couplers.metamod.node_svat_mapping import NodeSvatMapping
 from imod.couplers.metamod.rch_svat_mapping import RechargeSvatMapping
 from imod.couplers.metamod.wel_svat_mapping import WellSvatMapping
