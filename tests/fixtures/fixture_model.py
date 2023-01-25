@@ -7,16 +7,16 @@ import pandas as pd
 import pytest
 import pytest_cases
 import xarray as xr
-from hydrolib.core.io.bc.models import Astronomic, ForcingModel, QuantityUnitPair
-from hydrolib.core.io.ext.models import Boundary, ExtModel
-from hydrolib.core.io.inifield.models import (
+from hydrolib.core.dflowfm.bc.models import Astronomic, ForcingModel, QuantityUnitPair
+from hydrolib.core.dflowfm.ext.models import Boundary, ExtModel
+from hydrolib.core.dflowfm.inifield.models import (
     DataFileType,
     IniFieldModel,
     InitialField,
     InterpolationMethod,
 )
-from hydrolib.core.io.mdu.models import FMModel
-from hydrolib.core.io.xyz.models import XYZModel, XYZPoint
+from hydrolib.core.dflowfm.mdu.models import FMModel
+from hydrolib.core.dflowfm.xyz.models import XYZModel, XYZPoint
 from imod import mf6, msw
 from numpy import float_, int_, nan
 from numpy.typing import NDArray

@@ -5,7 +5,7 @@ from pathlib import Path
 import pytest
 from bmi.wrapper import BMIWrapper
 from dfm_test_initialization import copy_inputfiles, set_dfm_path
-from hydrolib.core.io.mdu.models import FMModel
+from hydrolib.core.dflowfm.mdu.models import FMModel
 from imod import mf6
 from xmipy import XmiWrapper
 

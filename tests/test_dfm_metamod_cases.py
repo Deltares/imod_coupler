@@ -1,7 +1,7 @@
 from pathlib import Path
 
 import pytest
-from hydrolib.core.io.mdu.models import FMModel
+from hydrolib.core.dflowfm.mdu.models import FMModel
 from imod.mf6 import Modflow6Simulation
 from imod.msw import MetaSwapModel
 
