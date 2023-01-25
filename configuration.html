@@ -318,39 +318,39 @@ interpret a rawstring (<code class="docutils literal notranslate"><span class="p
 (<code class="docutils literal notranslate"><span class="pre">&quot;&quot;</span></code>) are interpreted in a similar manner to regular strings in
 python (<code class="docutils literal notranslate"><span class="pre">&quot;&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">''</span></code>). This matters for paths on Windows, for which
 we advice to use single quotes.</p>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">log_level</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&#39;INFO&#39;</span><span class="w"></span>
-<span class="n">timing</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">false</span><span class="w"></span>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">log_level</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&#39;INFO&#39;</span>
+<span class="n">timing</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">false</span>
 
-<span class="n">driver_type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&#39;metamod&#39;</span><span class="w"></span>
+<span class="n">driver_type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&#39;metamod&#39;</span>
 
-<span class="c1"># MODFLOW 6</span><span class="w"></span>
-<span class="k">[driver.kernels.modflow6]</span><span class="w"></span>
-<span class="n">dll</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&#39;./kernels/libmf6.dll&#39;</span><span class="w"></span>
-<span class="n">work_dir</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&#39;./mf6_data&#39;</span><span class="w"></span>
+<span class="c1"># MODFLOW 6</span>
+<span class="k">[driver.kernels.modflow6]</span>
+<span class="n">dll</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&#39;./kernels/libmf6.dll&#39;</span>
+<span class="n">work_dir</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&#39;./mf6_data&#39;</span>
 
-<span class="c1"># MetaSWAP</span><span class="w"></span>
-<span class="k">[driver.kernels.metaswap]</span><span class="w"></span>
-<span class="n">dll</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&#39;./kernels/MetaSWAP.dll&#39;</span><span class="w"></span>
-<span class="n">dll_dep_dir</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&#39;./kernels/3rdparty&#39;</span><span class="w"></span>
-<span class="n">work_dir</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&#39;./msw_data&#39;</span><span class="w"></span>
+<span class="c1"># MetaSWAP</span>
+<span class="k">[driver.kernels.metaswap]</span>
+<span class="n">dll</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&#39;./kernels/MetaSWAP.dll&#39;</span>
+<span class="n">dll_dep_dir</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&#39;./kernels/3rdparty&#39;</span>
+<span class="n">work_dir</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&#39;./msw_data&#39;</span>
 
-<span class="c1"># Inner model with sprinkling</span><span class="w"></span>
-<span class="k">[[driver.coupling]]</span><span class="w"></span>
-<span class="n">enable_sprinkling</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span><span class="w"></span>
-<span class="n">mf6_model</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&#39;inner_model&#39;</span><span class="w"></span>
-<span class="n">mf6_msw_recharge_pkg</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&#39;RCH_MSW&#39;</span><span class="w"></span>
-<span class="n">mf6_msw_well_pkg</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&#39;WELLS_MSW&#39;</span><span class="w"></span>
-<span class="n">mf6_msw_node_map</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&#39;mappings_inner/nodenr2svat.dxc&#39;</span><span class="w"></span>
-<span class="n">mf6_msw_recharge_map</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&#39;mappings_inner/rchindex2svat.dxc&#39;</span><span class="w"></span>
-<span class="n">mf6_msw_sprinkling_map</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&#39;mappings_inner/wellindex2svat.dxc&#39;</span><span class="w"></span>
+<span class="c1"># Inner model with sprinkling</span>
+<span class="k">[[driver.coupling]]</span>
+<span class="n">enable_sprinkling</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
+<span class="n">mf6_model</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&#39;inner_model&#39;</span>
+<span class="n">mf6_msw_recharge_pkg</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&#39;RCH_MSW&#39;</span>
+<span class="n">mf6_msw_well_pkg</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&#39;WELLS_MSW&#39;</span>
+<span class="n">mf6_msw_node_map</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&#39;mappings_inner/nodenr2svat.dxc&#39;</span>
+<span class="n">mf6_msw_recharge_map</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&#39;mappings_inner/rchindex2svat.dxc&#39;</span>
+<span class="n">mf6_msw_sprinkling_map</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&#39;mappings_inner/wellindex2svat.dxc&#39;</span>
 
-<span class="c1"># Outer model, without sprinkling</span><span class="w"></span>
-<span class="k">[[driver.coupling]]</span><span class="w"></span>
-<span class="n">enable_sprinkling</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">false</span><span class="w"></span>
-<span class="n">mf6_model</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&#39;outer_model&#39;</span><span class="w"></span>
-<span class="n">mf6_msw_recharge_pkg</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&#39;RCH_MSW&#39;</span><span class="w"></span>
-<span class="n">mf6_msw_node_map</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&#39;mappings_outer/nodenr2svat.dxc&#39;</span><span class="w"></span>
-<span class="n">mf6_msw_recharge_map</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&#39;mappings_outer/rchindex2svat.dxc&#39;</span><span class="w"></span>
+<span class="c1"># Outer model, without sprinkling</span>
+<span class="k">[[driver.coupling]]</span>
+<span class="n">enable_sprinkling</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">false</span>
+<span class="n">mf6_model</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&#39;outer_model&#39;</span>
+<span class="n">mf6_msw_recharge_pkg</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&#39;RCH_MSW&#39;</span>
+<span class="n">mf6_msw_node_map</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&#39;mappings_outer/nodenr2svat.dxc&#39;</span>
+<span class="n">mf6_msw_recharge_map</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&#39;mappings_outer/rchindex2svat.dxc&#39;</span>
 </pre></div>
 </div>
 <section id="config-schema">
