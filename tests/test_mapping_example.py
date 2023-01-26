@@ -7,10 +7,12 @@ from numpy import float_
 from numpy.typing import NDArray
 
 from imod_coupler.drivers.dfm_metamod.mapping_functions import (
+    calc_correction,
     get_dflow1d_lookup,
     mapping_active_mf_dflow1d,
     weight_from_flux_distribution,
 )
+from imod_coupler.utils import Operator, create_mapping
 
 
 def test_mappers_general(
@@ -134,3 +136,74 @@ def test_weight_from_flux_distribution() -> None:
         target_index, source_index, dummy_flux_mf2dflow1d
     )
     np.testing.assert_almost_equal(expected_weight, calculated_weight)
+
+
+def test_correction_from_flux_distribution() -> None:
+    # test calculated correction based on weights from first flux estimate
+    # uses the weights to construct the weighted mapping from the dfm-mf6 mapping table
+    # and applies the mapping table to calculate the corrections in terms of mf6 fluxes
+    # mf-riv1 elements=5
+    # dfow1d  elements=3
+
+    # set dummy variables
+    dfm_index = np.array([0, 0, 1, 1, 2])
+    mf6_index = np.array([0, 1, 2, 3, 4])
+    mf6_demand = np.array([1, 2, 3, 4, 5])
+    # forward mapping
+    map_mf2dfm, mask_mf2dfm = create_mapping(
+        mf6_index, dfm_index, max(mf6_index) + 1, max(dfm_index) + 1, Operator.SUM
+    )
+    # Apply new mapping to mf6 fluxes to get the demand flux on the dfm side
+    dfm_demand = map_mf2dfm.dot(mf6_demand)
+    # produce the realized fluxes on the dfm side, calculate the corrections.
+    dfm_realized = (0.5, 1.0, 0.7) * dfm_demand
+    # calculate the correction fluxes
+    dfm_corr = np.maximum(dfm_demand - dfm_realized, 0.0)
+    # create reverse mapping, but with the mf6 demands as weights
+    calculated_weight = weight_from_flux_distribution(dfm_index, mf6_index, mf6_demand)
+
+    # evaluate weight distribution
+    expected_weight = np.array([1 / 3, 2 / 3, 3 / 7, 4 / 7, 1])
+    np.testing.assert_almost_equal(expected_weight, calculated_weight)
+
+    map_dfm2mf, mask_dfm2mf = create_mapping(
+        dfm_index,
+        mf6_index,
+        max(dfm_index) + 1,
+        max(mf6_index) + 1,
+        Operator.WEIGHT,
+        calculated_weight,
+    )
+    # apply the weighted mapping to the correction values
+    calculated_corr = map_dfm2mf.dot(dfm_corr)
+
+    # evaluate calculated correction array in mf
+    expected_corr = np.array([0.5, 1.0, 0.0, 0.0, 1.5])
+    np.testing.assert_almost_equal(expected_corr, calculated_corr)
+
+
+def test_calc_correction() -> None:
+    # test calculation of proportional correction between estimated and realized values
+    # mf-riv1 elements=5
+    # dfow1d  elements=3
+
+    # set dummy variables
+    dfm_index = np.array([0, 0, 1, 1, 2])
+    mf6_index = np.array([0, 1, 2, 3, 4])
+    mf6_demand = np.array([1, 2, 3, 4, 5])
+
+    # forward mapping
+    map_mf2dfm, mask_mf2dfm = create_mapping(
+        mf6_index, dfm_index, max(mf6_index) + 1, max(dfm_index) + 1, Operator.SUM
+    )
+
+    # Apply new mapping to mf6 fluxes to get the demand flux on the dfm side
+    dfm_demand = map_mf2dfm.dot(mf6_demand)
+    # produce the realized fluxes on the dfm side, calculate the corrections.
+    dfm_realized = (0.5, 1.0, 0.7) * dfm_demand
+
+    calculated_corr = calc_correction(map_mf2dfm, mf6_demand, dfm_demand, dfm_realized)
+
+    # evaluate calculated correction array in mf
+    expected_corr = np.array([0.5, 1.0, 0.0, 0.0, 1.5])
+    np.testing.assert_almost_equal(expected_corr, calculated_corr)

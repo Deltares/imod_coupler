@@ -4,7 +4,7 @@ from typing import Any, Dict, Optional
 import numpy as np
 from numpy import float_, int_
 from numpy.typing import NDArray
-from scipy.sparse import csr_matrix, dia_matrix
+from scipy.sparse import csr_matrix, diags
 
 from imod_coupler.utils import Operator, create_mapping
 
@@ -83,6 +83,14 @@ def mapping_active_mf_dflow1d(
             Operator.WEIGHT,
             weight,
         )
+    else:
+        (
+            map_active_mod_dflow1d["dflow1d2mf-riv_flux"],
+            mask_active_mod_dflow1d["dflow1d2mf-riv_flux"],
+        ) = create_mapping(
+            dflow_idx, mf_idx, max(dflow_idx) + 1, max(mf_idx) + 1, Operator.SUM
+        )
+
     # DFLOW 1D -> MF RIV 1 (stage)
     table_active_dflow1d2mfriv: NDArray[np.single] = np.loadtxt(
         mapping_file_dfm_1d_waterlevel_to_mf6_river_stage,
@@ -350,6 +358,39 @@ def mapping_msw_dflow2d(
         dflow_idx, msw_idx, len(dflow_idx), len(msw_idx), Operator.WEIGHT, weight
     )
     return map_msw_dflow2d, mask_msw_dflow2d
+
+
+def calc_correction(
+    mapping: csr_matrix,
+    q_pre1: NDArray[float_],
+    q_pre2: NDArray[float_],
+    q_post2: NDArray[float_],
+) -> NDArray[float_]:
+    """
+    this function computes the not-realized amounts in system1
+    by comparing demand and realization in system2 and applying the resulting
+    fraction realized back on system1, which gives the not-realized values in system1
+
+    Parameters
+    ----------
+    mapping : csr_matrix
+        Un-weighted mapping from system1 to system2
+    q_pre1 : NDArray[float_]
+        Input array of demand values in system1
+    q_pre2:  NDArray[float_]
+        Input array of demand values in system2
+    q_post2:  NDArray[float_]
+        realized values in system2
+
+    Returns
+    -------
+    NDArray[float_]:
+        the amounts in system1 that were NOT realized (i.o.w. correction terms)
+
+    """
+    alpha = np.maximum(0.0, (1.0 - q_post2 / np.maximum(q_pre2, 1.0e-13)))
+    qcorr = np.array(alpha * (mapping.dot(diags(q_pre1))))
+    return qcorr
 
 
 def weight_from_flux_distribution(

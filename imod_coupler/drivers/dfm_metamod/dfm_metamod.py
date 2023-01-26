@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Any, Dict
 
 import numpy as np
+import scipy.sparse as spr
 from loguru import logger
 from numpy.typing import NDArray
 from scipy.sparse import csr_matrix, dia_matrix
@@ -19,6 +20,7 @@ from imod_coupler.config import BaseConfig
 from imod_coupler.drivers.dfm_metamod.config import Coupling, DfmMetaModConfig
 from imod_coupler.drivers.dfm_metamod.dfm_wrapper import DfmWrapper
 from imod_coupler.drivers.dfm_metamod.mapping_functions import (
+    calc_correction,
     get_dflow1d_lookup,
     get_svat_lookup,
     mapping_active_mf_dflow1d,
@@ -294,8 +296,8 @@ class DfmMetaMod(Driver):
         # flux from modflow to dflow 1d
         self.exchange_V_1D()
 
-        q_corr_init = self.dfm.get_cumulative_fluxes_1d_nodes()
-        assert q_corr_init is not None
+        # get cum flux mf->fm pre-timestep and store locally
+        self.store_1d_river_fluxes_to_dfm()
 
         # sub timestepping between metaswap and dflow
         subtimestep_endtime = t_begin
@@ -309,14 +311,9 @@ class DfmMetaMod(Driver):
                 self.dfm.update()
         self.exchange_V_dash_1D()
 
-        q_corr_end = self.dfm.get_cumulative_fluxes_1d_nodes()
-        assert q_corr_end is not None
+        # get cum flux new and calculate correction
+        # apply correction to fm -> gives a modflow array
 
-        qcorr = q_corr_end - q_corr_init
-        mf_riv1_flux = self.map_active_mod_dflow1d["dflow1d2mf-riv_flux"].dot(qcorr)[:]
-        self.mf6.set_correction_flux(
-            self.coupling.mf6_model, self.coupling.mf6_wel_correction_pkg, mf_riv1_flux
-        )
         # convergence loop modflow-metaswap
         self.mf6.prepare_solve(1)
         for kiter in range(1, self.max_iter + 1):
@@ -391,24 +388,40 @@ class DfmMetaMod(Driver):
             )[:]
         )
 
-        # update weigths for the correction flux.
-        (
-            self.map_active_mod_dflow1d,
-            self.mask_active_mod_dflow1d,
-        ) = mapping_active_mf_dflow1d(
-            self.coupling.mf6_river_to_dfm_1d_q_dmm,
-            self.coupling.dfm_1d_waterlevel_to_mf6_river_stage_dmm,
-            self.dflow1d_lookup,
-            mf6_river_aquifer_flux,
-        )
+    def store_1d_river_fluxes_to_dfm(self) -> None:
+        """
+        Stores current contents of fluxes going into dflowfm
+        (dfm in this instance) through qext
+        """
+        #       self.dflow1d_flux_estimate = np.copy(self.dfm.get_1d_river_fluxes())
+        dfm_estimate = self.dfm.get_1d_river_fluxes()
+        if dfm_estimate is not None:
+            self.dflow1d_flux_estimate = dfm_estimate[:]
 
     def exchange_V_dash_1D(self) -> None:
         """
         From DFM to MF6
-        the drainage/inflitration flux to the 1d rivers as realised by DFM is passed to modflow
-        as a correction
+        the drainage/inflitration flux to the 1d rivers as realised by DFM is passed to
+        mf6 as a correction
         """
-        pass
+        qmf6 = self.mf6.get_river_flux(
+            self.coupling.mf6_model, self.coupling.mf6_river_pkg
+        )  # originally sent by modflow
+        dflow1d_flux_receive = self.dfm.get_1d_river_fluxes()
+        if dflow1d_flux_receive is None:
+            raise ValueError("dflow 1d river flux not found")
+        qdfm = self.dflow1d_flux_estimate
+        qmf_corr = calc_correction(
+            self.map_active_mod_dflow1d["mf-riv2dflow1d_flux"],
+            qmf6,
+            qdfm,
+            dflow1d_flux_receive,
+        )
+
+        assert self.coupling.mf6_msw_well_pkg
+        self.mf6.set_correction_flux(
+            self.coupling.mf6_model, self.coupling.mf6_wel_correction_pkg, qmf_corr
+        )
 
     def exchange_msw2mod(self) -> None:
         """

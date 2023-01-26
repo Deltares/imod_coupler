@@ -73,6 +73,16 @@ class Coupling(BaseModel):
             )
         return mf6_msw_well_pkg
 
+    @validator("mf6_wel_correction_pkg")
+    def validate_mf6_wel_correction_pkg(
+        cls, mf6_wel_correction_pkg: str, values: Any
+    ) -> str:
+        if mf6_wel_correction_pkg == "":
+            raise ValueError(
+                "Name of the correction flux well package cannot be empty."
+            )
+        return mf6_wel_correction_pkg
+
     @validator("mf6_msw_node_map")
     def resolve_mf6_msw_node_map(cls, mf6_msw_node_map: FilePath) -> FilePath:
         return mf6_msw_node_map.resolve()
