@@ -66,15 +66,20 @@ class Mf6Wrapper(XmiWrapper):
         stage = bound[:, 0]
         return stage
 
-    def get_river_flux(
+    def get_river_flux_estimate(
         self,
         mf6_flowmodel_key: str,
         mf6_river_pkg_key: str,
     ) -> NDArray[np.float_]:
         """
-        returns the river fluxes consistent with current river head, river stage and conductance.
+        returns the river1 fluxes consistent with current head, river stage and conductance.
         a simple linear model is used: flux = conductance * (stage - max(head, bot))
         Bot is the levelof the bottom of the river.
+
+        This function does not use the HCOF and RHS for calculating the flux, bacause it is used
+        at the beginning of the timestep, after updating the river stage by dflow. At that time
+        the package HCOF and RHS are not updated yet by MF6. Therefore we use the bottom level,
+        conducatnce and head of the previous timestep, and the stage of the new timestep.
 
         Parameters
         ----------
@@ -106,6 +111,75 @@ class Mf6Wrapper(XmiWrapper):
         river_head = np.maximum(subset_head, bot)
         q = NDArray[np.float_](len(nodelist))
         q[:] = bound[:, 1] * (bound[:, 0] - river_head)
+
+        return q
+
+    def get_river_drain_flux(
+        self,
+        mf6_flowmodel_key: str,
+        mf6_river2_drain_pkg_key: str,
+    ) -> NDArray[np.float_]:
+        """
+        returns the calculated river or DRN fluxes of MF6. In MF6 the RIV boundary condition is added to the solution in the following matter:
+
+        RHS = -cond*(hriv-rivbot)
+        HCOF = -cond
+
+        if head < bot then HCOF = 0
+
+        for the DRN package:
+
+        RHS = -f * cond * bot
+        HCOF = -f * cond
+
+        Where f is the 'drainage scaling factor' when using the option 'auxdepthname'.
+
+
+        The MF6 solutions has the form of:
+
+        A * h = Q
+
+        Therefore, the flux contributions of RIV and DRN can be calculated by:
+
+        Flux = HCOF * X - RHS
+
+
+        When this function is called before initialisation of a new timestep (t), the
+        calculated flux is of timestep t-1. If function is called before initialisation
+        of the first timestep, the calculated flux will be zero.
+
+        Parameters
+        ----------
+        mf6_flowmodel_key : str
+            name of mf6 groundwater flow model
+        mf6_river_pkg_key : str
+            name of river or drn package
+
+        Returns
+        -------
+        NDArray[np.float_]
+            flux (array size = nr of river nodes)
+            sign is positive for infiltration
+        """
+
+        rhs_adress = self.get_var_address(
+            "RHS", mf6_flowmodel_key, mf6_river2_drain_pkg_key
+        )
+        package_rhs = self.get_value_ptr(rhs_adress)
+        hcof_adress = self.get_var_address(
+            "HCOF", mf6_flowmodel_key, mf6_river2_drain_pkg_key
+        )
+        package_hcof = self.get_value_ptr(hcof_adress)
+        head_adress = self.get_var_address("X", mf6_flowmodel_key)
+        head = self.get_value_ptr(head_adress)
+        package_nodelist_adress = self.get_var_address(
+            "NODELIST", mf6_flowmodel_key, mf6_river2_drain_pkg_key
+        )
+        package_nodelist = self.get_value_ptr(package_nodelist_adress)
+        subset_head = head[package_nodelist - 1]
+
+        q = NDArray[np.float_](len(package_nodelist))
+        q = package_hcof * subset_head - package_rhs
 
         return q
 
