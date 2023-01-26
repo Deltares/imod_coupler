@@ -24,6 +24,7 @@ from imod_coupler.drivers.dfm_metamod.mapping_functions import (
     get_dflow1d_lookup,
     get_svat_lookup,
     mapping_active_mf_dflow1d,
+    mapping_passive_mf_dflow1d,
 )
 from imod_coupler.drivers.dfm_metamod.mf6_wrapper import Mf6Wrapper
 from imod_coupler.drivers.driver import Driver
@@ -74,10 +75,12 @@ class DfmMetaMod(Driver):
     dflow1d_lookup: dict[tuple[float, float], int]
 
     # sparse matrices used for  modflow-dflow exchanges
-    map_active_mod_dflow1d: dict[str, csr_matrix]
+    map_active_mod_dflow1d: dict[str, csr_matrix]  # riv1
+    map_passive_mod_dflow1d: dict[str, csr_matrix]  # riv2 + drn
 
     # masks used for  modflow-dflow exchanges
-    mask_active_mod_dflow1d: dict[str, NDArray[np.int_]]
+    mask_active_mod_dflow1d: dict[str, NDArray[np.int_]]  # riv1
+    mask_passive_mod_dflow1d: dict[str, NDArray[np.int_]]  # riv2 + drn
 
     # dictionary with mapping tables for mod=>msw coupling
     map_mod2msw: Dict[str, csr_matrix]
@@ -102,12 +105,21 @@ class DfmMetaMod(Driver):
         ]  # Adapt as soon as we have multimodel support
 
         self.dflow1d_lookup = get_dflow1d_lookup(self.coupling.dfm_1d_points_dat)
+
         (
             self.map_active_mod_dflow1d,
             self.mask_active_mod_dflow1d,
         ) = mapping_active_mf_dflow1d(
             self.coupling.mf6_river_to_dfm_1d_q_dmm,
             self.coupling.dfm_1d_waterlevel_to_mf6_river_stage_dmm,
+            self.dflow1d_lookup,
+        )
+        (
+            self.map_passive_mod_dflow1d,
+            self.mask_passive_mod_dflow1d,
+        ) = mapping_passive_mf_dflow1d(
+            self.coupling.mf6_river2_to_dmf_1d_q_dmm,
+            self.coupling.mf6_drainage_to_dfm_1d_q_dmm,
             self.dflow1d_lookup,
         )
 
@@ -291,10 +303,14 @@ class DfmMetaMod(Driver):
         self.delt = self.mf6.get_time_step()
         self.msw.prepare_time_step(self.delt)
 
-        # stage from dflow 1d to modflow
+        # stage from dflow 1d to mf riv1
         self.exchange_H_1D_t()
-        # flux from modflow to dflow 1d
-        self.exchange_V_1D()
+        # riv1 flux from modflow to dflow 1d
+        self.exchange_RIV1_1D()
+        # riv2 flux from modflow to dflow 1d
+        self.exchange_RIV2_1D()
+        # drn flux from modflow to dflow 1d
+        self.exchange_DRN_1D()
 
         # get cum flux mf->fm pre-timestep and store locally
         self.store_1d_river_fluxes_to_dfm()
@@ -348,7 +364,7 @@ class DfmMetaMod(Driver):
         """
         dfm_water_levels = self.dfm.get_waterlevels_1d()
         mf6_river_stage = self.mf6.get_river_stages(
-            self.coupling.mf6_model, self.coupling.mf6_river_pkg
+            self.coupling.mf6_model, self.coupling.mf6_river_active_pkg
         )
 
         updated_river_stage = (
@@ -360,11 +376,11 @@ class DfmMetaMod(Driver):
 
         self.mf6.set_river_stages(
             self.coupling.mf6_model,
-            self.coupling.mf6_river_pkg,
+            self.coupling.mf6_river_active_pkg,
             updated_river_stage,
         )
 
-    def exchange_V_1D(self) -> None:
+    def exchange_RIV1_1D(self) -> None:
         """
         From MF6 to DFM.
         requested infiltration/drainage in the coming MF6 timestep for the 1D-rivers,
@@ -374,8 +390,8 @@ class DfmMetaMod(Driver):
         MF6 unit: ?
         DFM unit: ?
         """
-        mf6_river_aquifer_flux = self.mf6.get_river_flux(
-            self.coupling.mf6_model, self.coupling.mf6_river_pkg
+        mf6_river_aquifer_flux = self.mf6.get_river_flux_estimate(
+            self.coupling.mf6_model, self.coupling.mf6_river_active_pkg
         )
         dflow1d_flux_receive = self.dfm.get_1d_river_fluxes()
         if dflow1d_flux_receive is None:
@@ -397,6 +413,56 @@ class DfmMetaMod(Driver):
         dfm_estimate = self.dfm.get_1d_river_fluxes()
         if dfm_estimate is not None:
             self.dflow1d_flux_estimate = dfm_estimate[:]
+
+    def exchange_RIV2_1D(self) -> None:
+        """
+        From MF6 to DFM.
+        Calculated RIV2 drainage flux from MF6 to DFLOW 1D.
+
+        MF6 unit: m3/d
+        DFM unit: m3/s
+        """
+        mf6_riv2_flux = self.mf6.get_river_drain_flux(
+            self.coupling.mf6_model, self.coupling.mf6_river_passive_pkg
+        )
+        # conversion now dtsw=1, dtgw=1
+        mf6_riv2_flux_sec = mf6_riv2_flux / days_to_seconds(1.0)
+
+        dflow1d_flux_receive = self.dfm.get_1d_river_fluxes()
+        if dflow1d_flux_receive is None:
+            raise ValueError("dflow 1d river flux not found")
+        dflow1d_flux_receive = (
+            self.mask_passive_mod_dflow1d["mf-riv2dflow1d_flux"][:]
+            * dflow1d_flux_receive[:]
+            + self.map_passive_mod_dflow1d["mf-riv2dflow1d_flux"].dot(
+                mf6_riv2_flux_sec
+            )[:]
+        )
+
+    def exchange_DRN_1D(self) -> None:
+        """
+        From MF6 to DFM.
+        Calculated DRN drainage flux from MF6 to DFLOW 1D.
+
+        MF6 unit: m3/d
+        DFM unit: m3/s
+        """
+        mf6_drn_flux = self.mf6.get_river_drain_flux(
+            self.coupling.mf6_model, self.coupling.mf6_drain_pkg
+        )
+        # conversion now dtsw=1, dtgw=1
+        mf6_drn_flux_sec = mf6_drn_flux / days_to_seconds(1.0)
+
+        dflow1d_flux_receive = self.dfm.get_1d_river_fluxes()
+        if dflow1d_flux_receive is None:
+            raise ValueError("dflow 1d river flux not found")
+        dflow1d_flux_receive = (
+            self.mask_passive_mod_dflow1d["mf-drn2dflow1d_flux"][:]
+            * dflow1d_flux_receive[:]
+            + self.map_passive_mod_dflow1d["mf-drn2dflow1d_flux"].dot(mf6_drn_flux_sec)[
+                :
+            ]
+        )
 
     def exchange_V_dash_1D(self) -> None:
         """

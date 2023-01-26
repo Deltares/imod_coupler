@@ -60,7 +60,7 @@ def test_mf6_get_river_flux(
         new_river_stage,
     )
 
-    q = mf6wrapper.get_river_flux(
+    q = mf6wrapper.get_river_flux_estimate(
         "GWF_1",
         "Oosterschelde",
     )
