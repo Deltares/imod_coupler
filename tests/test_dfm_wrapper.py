@@ -4,7 +4,7 @@ from pathlib import Path
 
 import numpy as np
 from dfm_test_initialization import copy_inputfiles, set_dfm_path
-from hydrolib.core.io.mdu.models import FMModel
+from hydrolib.core.dflowfm.mdu.models import FMModel
 from numpy.testing import assert_array_equal
 
 from imod_coupler.drivers.dfm_metamod.dfm_wrapper import DfmWrapper
