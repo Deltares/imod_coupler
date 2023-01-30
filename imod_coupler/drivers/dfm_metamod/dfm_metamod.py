@@ -306,9 +306,9 @@ class DfmMetaMod(Driver):
         # riv1 flux from modflow to dflow 1d
         self.exchange_RIV1_1D()
         # riv2 flux from modflow to dflow 1d
-        self.exchange_RIV2_1D()
+        # self.exchange_RIV2_1D()
         # drn flux from modflow to dflow 1d
-        self.exchange_DRN_1D()
+        # self.exchange_DRN_1D()
 
         # get cum flux mf->fm pre-timestep and store locally
         self.store_1d_river_fluxes_to_dfm()
@@ -462,64 +462,14 @@ class DfmMetaMod(Driver):
             ]
         )
 
-    def exchange_RIV2_1D(self) -> None:
-        """
-        From MF6 to DFM.
-        Calculated RIV2 drainage flux from MF6 to DFLOW 1D.
-
-        MF6 unit: m3/d
-        DFM unit: m3/s
-        """
-        mf6_riv2_flux = self.mf6.get_river_drain_flux(
-            self.coupling.mf6_model, self.coupling.mf6_river_passive_pkg
-        )
-        # conversion now dtsw=1, dtgw=1
-        mf6_riv2_flux_sec = mf6_riv2_flux / days_to_seconds(1.0)
-
-        dflow1d_flux_receive = self.dfm.get_1d_river_fluxes()
-        if dflow1d_flux_receive is None:
-            raise ValueError("dflow 1d river flux not found")
-        dflow1d_flux_receive = (
-            self.mask_passive_mod_dflow1d["mf-riv2dflow1d_flux"][:]
-            * dflow1d_flux_receive[:]
-            + self.map_passive_mod_dflow1d["mf-riv2dflow1d_flux"].dot(
-                mf6_riv2_flux_sec
-            )[:]
-        )
-
-    def exchange_DRN_1D(self) -> None:
-        """
-        From MF6 to DFM.
-        Calculated DRN drainage flux from MF6 to DFLOW 1D.
-
-        MF6 unit: m3/d
-        DFM unit: m3/s
-        """
-        mf6_drn_flux = self.mf6.get_river_drain_flux(
-            self.coupling.mf6_model, self.coupling.mf6_drain_pkg
-        )
-        # conversion now dtsw=1, dtgw=1
-        mf6_drn_flux_sec = mf6_drn_flux / days_to_seconds(1.0)
-
-        dflow1d_flux_receive = self.dfm.get_1d_river_fluxes()
-        if dflow1d_flux_receive is None:
-            raise ValueError("dflow 1d river flux not found")
-        dflow1d_flux_receive = (
-            self.mask_passive_mod_dflow1d["mf-drn2dflow1d_flux"][:]
-            * dflow1d_flux_receive[:]
-            + self.map_passive_mod_dflow1d["mf-drn2dflow1d_flux"].dot(mf6_drn_flux_sec)[
-                :
-            ]
-        )
-
     def exchange_V_dash_1D(self) -> None:
         """
         From DFM to MF6
         the drainage/inflitration flux to the 1d rivers as realised by DFM is passed to
         mf6 as a correction
         """
-        qmf6 = self.mf6.get_river_flux(
-            self.coupling.mf6_model, self.coupling.mf6_river_pkg
+        qmf6 = self.mf6.get_river_flux_estimate(
+            self.coupling.mf6_model, self.coupling.mf6_river_active_pkg
         )  # originally sent by modflow
         dflow1d_flux_receive = self.dfm.get_1d_river_fluxes()
         if dflow1d_flux_receive is None:
