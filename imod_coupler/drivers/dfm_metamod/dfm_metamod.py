@@ -308,9 +308,9 @@ class DfmMetaMod(Driver):
         # riv1 flux from modflow to dflow 1d
         self.exchange_RIV1_1D()
         # riv2 flux from modflow to dflow 1d
-        # self.exchange_RIV2_1D()
+        self.exchange_RIV2_1D()
         # drn flux from modflow to dflow 1d
-        # self.exchange_DRN_1D()
+        self.exchange_DRN_1D()
 
         # get cum flux mf->fm pre-timestep and store locally
         self.store_1d_river_fluxes_to_dfm()
