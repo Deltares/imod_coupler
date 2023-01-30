@@ -148,11 +148,14 @@ def make_msw_model(idomain: xr.DataArray) -> msw.MetaSwapModel:
     times = get_times()
     unsaturated_database = "./unsat_database"
 
-    x, y, _, dx, dy, _ = grid_sizes()
+    x, y, layer, dx, dy, dz = grid_sizes()
     subunit = [0, 1]
 
     nrow = len(y)
     ncol = len(x)
+
+    top = 0.0
+    bottom = top - xr.DataArray(np.cumsum(dz), coords={"layer": layer}, dims="layer")
 
     # fmt: off
     relative_area = xr.DataArray(
@@ -232,9 +235,9 @@ def make_msw_model(idomain: xr.DataArray) -> msw.MetaSwapModel:
     well = create_wells(nrow, ncol, idomain)
 
     # Modflow 6
-    idomain = xr.full_like(msw_grid, 1, dtype=int).expand_dims(layer=[1, 2, 3])
+    idomain = xr.full_like(msw_grid, 1, dtype=int).expand_dims(layer=layer)
 
-    dis = mf6.StructuredDiscretization(top=1.0, bottom=0.0, idomain=idomain)
+    dis = mf6.StructuredDiscretization(idomain=idomain, top=top, bottom=bottom)
 
     # Initiate model
     msw_model = msw.MetaSwapModel(unsaturated_database=unsaturated_database)
