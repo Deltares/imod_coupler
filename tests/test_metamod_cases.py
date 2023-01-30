@@ -133,28 +133,6 @@ def fail_run_mf6_input(
     )
 
 
-def fail_run_mf6_convergence(
-    coupled_mf6_model: Modflow6Simulation,
-    prepared_msw_model: MetaSwapModel,
-) -> MetaMod:
-    """
-    Creates a MetaMod object which will result in a non-convergencent MODFLOW 6
-    solution, by providing extreme differences in the k values.
-    """
-
-    k = xr.ones_like(coupled_mf6_model["GWF_1"]["npf"]["k"])
-
-    k[:] = [1e32, 1e-32, 1e32]
-    coupled_mf6_model["GWF_1"]["npf"]["k"] = k
-
-    return MetaMod(
-        prepared_msw_model,
-        coupled_mf6_model,
-        mf6_rch_pkgkey="rch_msw",
-        mf6_wel_pkgkey="wells_msw",
-    )
-
-
 def cases_no_sprinkling(
     prepared_msw_model: MetaSwapModel,
     coupled_mf6_model: Modflow6Simulation,
