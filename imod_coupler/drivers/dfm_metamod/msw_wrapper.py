@@ -137,8 +137,52 @@ class MswWrapper(XmiWrapper):
         Returns
         -------
          svat_area: NDArray[np.float_]
-            area of svats (m2). Array as a copy of the MetaSWAP intenal array,
-            since the array does not need to be changed.
+            area of svats (m2). Array as pointer to the MetaSWAP intenal array
         """
-        svat_area = self.get_value("ark")
+        svat_area = self.get_value_ptr("ark")
         return svat_area
+
+    def msw_head(self) -> NDArray[np.float_]:
+        """gets heads array from metaswap
+
+        Parameters
+        ----------
+        none
+
+        Returns
+        -------
+         msw_head: NDArray[np.float_]
+            array of the heads used by metaswap. Array as pointer to the MetaSWAP intenal array
+        """
+        msw_head = self.get_value_ptr("dhgwmod")
+        return msw_head
+
+    def msw_volume(self) -> NDArray[np.float_]:
+        """gets volume array from metaswap
+
+        Parameters
+        ----------
+        none
+
+        Returns
+        -------
+         msw_volume: NDArray[np.float_]
+            array of volume used by metaswap. Array as pointer to the MetaSWAP intenal array
+        """
+        msw_volume = self.get_value_ptr("dvsim")
+        return msw_volume
+
+    def msw_storage(self) -> NDArray[np.float_]:
+        """gets storage array from metaswap
+
+        Parameters
+        ----------
+        none
+
+        Returns
+        -------
+         msw_storage: NDArray[np.float_]
+            array of storage used by metaswap. Array as pointer to the MetaSWAP intenal array
+        """
+        msw_storage = self.get_value_ptr("dsc1sim")
+        return msw_storage
