@@ -6,6 +6,67 @@ from xmipy import XmiWrapper
 
 
 class Mf6Wrapper(XmiWrapper):
+    def get_head(self, mf6_flowmodel_key: str) -> NDArray[np.float_]:
+        mf6_head_tag = self.get_var_address("X", mf6_flowmodel_key)
+        mf6_head = self.get_value_ptr(mf6_head_tag)
+        return mf6_head
+
+    def get_recharge(
+        self, mf6_flowmodel_key: str, mf6_package_key: str
+    ) -> NDArray[np.float_]:
+        mf6_recharge_tag = self.get_var_address(
+            "BOUND", mf6_flowmodel_key, mf6_package_key
+        )
+        mf6_recharge = self.get_value_ptr(mf6_recharge_tag)[:, 0]
+        return mf6_recharge
+
+    def get_storage(
+        self,
+        mf6_flowmodel_key: str,
+    ) -> tuple[bool, NDArray[np.float_]]:
+        mf6_storage_tag = self.get_var_address("SS", mf6_flowmodel_key, "STO")
+        mf6_storage = self.get_value_ptr(mf6_storage_tag)
+
+        mf6_is_sc1_tag = self.get_var_address("ISTOR_COEF", mf6_flowmodel_key, "STO")
+        mf6_has_sc1 = self.get_value_ptr(mf6_is_sc1_tag)[0] != 0
+        return mf6_has_sc1, mf6_storage
+
+    def get_area(
+        self,
+        mf6_flowmodel_key: str,
+    ) -> NDArray[np.float_]:
+        mf6_area_tag = self.get_var_address("AREA", mf6_flowmodel_key, "DIS")
+        mf6_area = self.get_value_ptr(mf6_area_tag)
+        return mf6_area
+
+    def get_top_bot(
+        self,
+        mf6_flowmodel_key: str,
+    ) -> tuple[NDArray[np.float_], NDArray[np.float_]]:
+        mf6_top_tag = self.get_var_address("TOP", mf6_flowmodel_key, "DIS")
+        mf6_bot_tag = self.get_var_address("BOT", mf6_flowmodel_key, "DIS")
+        mf6_top = self.get_value_ptr(mf6_top_tag)
+        mf6_bot = self.get_value_ptr(mf6_bot_tag)
+        return mf6_top, mf6_bot
+
+    def get_max_iter(
+        self,
+    ) -> int:
+        mf6_max_iter_tag = self.get_var_address("MXITER", "SLN_1")
+        mf6_max_iter = self.get_value_ptr(mf6_max_iter_tag)[0]
+        return mf6_max_iter
+
+    def get_sprinkling(
+        self,
+        mf6_flowmodel_key: str,
+        mf6_package_key: str,
+    ) -> NDArray[np.float_]:
+        mf6_sprinkling_tag = self.mf6.get_var_address(
+            "BOUND", mf6_flowmodel_key, mf6_package_key
+        )
+        mf6_sprinkling_wells = self.get_value_ptr(mf6_sprinkling_tag)[:, 0]
+        return mf6_sprinkling_wells
+
     def set_river_stages(
         self,
         mf6_flowmodel_key: str,

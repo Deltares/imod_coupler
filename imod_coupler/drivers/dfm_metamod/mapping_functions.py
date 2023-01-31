@@ -4,12 +4,147 @@ from typing import Any, Dict, Optional
 import numpy as np
 from numpy import float_, int_
 from numpy.typing import NDArray
-from scipy.sparse import csr_matrix, diags
+from scipy.sparse import csr_matrix, dia_matrix, diags
 
+from imod_coupler.drivers.dfm_metamod.config import Coupling
 from imod_coupler.utils import Operator, create_mapping
 
+coupling: Coupling
 
 # mapping different types of exchanges within DFLOWMETMOD driver
+def mf6_storage_conversion_term(
+    mf6_has_sc1: bool,
+    mf6_area: NDArray[float_],
+    mf6_top: NDArray[float_],
+    mf6_bot: NDArray[float_],
+) -> dia_matrix[float_]:
+    """calculated storage conversion terms to use for exchange from metaswap to mf6
+
+    Args:
+        mf6_has_sc1 (bool): check if MF6 model is using SC1 instead of SS
+        mf6_area (NDArray[float_]): area of mf6 nodes
+        mf6_top (NDArray[float_]): top of mf6 nodes
+        mf6_bot (NDArray[float_]): bot of mf6 nodes
+
+    Returns:
+        conversion_matrix (NDArray[float_]): array with conversion terms
+    """
+
+    if mf6_has_sc1:
+        conversion_terms = 1.0 / mf6_area
+    else:
+        conversion_terms = 1.0 / (mf6_area * (mf6_top - mf6_bot))
+
+    conversion_matrix = dia_matrix(
+        (conversion_terms, [0]),
+        shape=(mf6_area.size, mf6_area.size),
+        dtype=float,
+    )
+    return conversion_matrix
+
+
+def mapping_mf_msw(
+    svat_lookup: dict[tuple[float, float], int],
+    array_dims: dict[str, int],
+    conversion_matrix: dia_matrix[float_],
+) -> tuple[dict[str, csr_matrix], dict[str, NDArray[int_]]]:
+    """function creates dictionary with mapping tables for mapping arrays between modflow6 and metaswap and dflow1d
+    (both ways).
+
+        # mapping includes MF-MSW coupling:
+        #   1 Storage:      msw -> mf6
+        #   2 heads:        msw <- mf6
+        #   3 volume:       msw -> mf6
+        #   3 sprinkling:   msw <- mf6
+
+    Args:
+        svat_lookup (dict[tuple[float, float], int]): lookup to metaswap internal numbering
+        array_dims (dict[str, int]): list of dimentions of the to be mapped arrays
+        conversion_matrix (dia_matrix[float_]): conversion matrix for storage exchange
+
+    Returns:
+        tuple[dict[str, csr_matrix], dict[str, NDArray[int_]]]: dicts with mapping and masks for exchange types
+    """
+
+    map_mf_msw: Dict[str, csr_matrix] = {}
+    mask_mf_msw: Dict[str, NDArray[Any]] = {}
+
+    # read_coupling file
+    table_node2svat: NDArray[np.int32] = np.loadtxt(
+        coupling.mf6_msw_node_map, dtype=np.int32, ndmin=2
+    )
+    node_idx = table_node2svat[:, 0] - 1
+    msw_idx = [
+        svat_lookup[table_node2svat[ii, 1], table_node2svat[ii, 2]]
+        for ii in range(len(table_node2svat))
+    ]
+
+    # storage exchange from metaswap to mf6
+    map_mf_msw["msw2mf_storage"], mask_mf_msw["msw2mf_storage"] = create_mapping(
+        msw_idx,
+        node_idx,
+        array_dims["msw_storage"],
+        array_dims["mf6_storage"],
+        Operator.SUM,
+    )
+    # MetaSWAP gives SC1*area, MODFLOW by default needs SS.
+    # When MODFLOW is configured to use SC1 explicitly via the
+    # STORAGECOEFFICIENT option in the STO package, only the multiplication
+    # by area needs to be undone
+    map_mf_msw["msw2mf_storage"] = conversion_matrix * map_mf_msw["msw2mf_storage"]
+
+    # head exchange from mf6 to msw
+    map_mf_msw["mod2msw_head"], mask_mf_msw["mod2msw_head"] = create_mapping(
+        node_idx,
+        msw_idx,
+        array_dims["mf6_head"],
+        array_dims["msw_head"],
+        Operator.AVERAGE,
+    )
+    table_rch2svat: NDArray[np.int32] = np.loadtxt(
+        coupling.mf6_msw_recharge_map, dtype=np.int32, ndmin=2
+    )
+    rch_idx = table_rch2svat[:, 0] - 1
+    msw_idx = [
+        svat_lookup[table_rch2svat[ii, 1], table_rch2svat[ii, 2]]
+        for ii in range(len(table_rch2svat))
+    ]
+
+    # recharge exchange from msw to mf6
+    map_mf_msw["msw2mod_recharge"], mask_mf_msw["msw2mod_recharge"] = create_mapping(
+        msw_idx,
+        rch_idx,
+        array_dims["msw_volume"],
+        array_dims["mf6_recharge"],
+        Operator.SUM,
+    )
+    # optional sprinkling from mf6 to msw
+    if coupling.enable_sprinkling:
+        assert isinstance(coupling.mf6_msw_well_pkg, str)
+        assert isinstance(coupling.mf6_msw_sprinkling_map, Path)
+
+        table_well2svat: NDArray[np.int32] = np.loadtxt(
+            coupling.mf6_msw_sprinkling_map, dtype=np.int32, ndmin=2
+        )
+        well_idx = table_well2svat[:, 0] - 1
+        msw_idx = [
+            svat_lookup[table_well2svat[ii, 1], table_well2svat[ii, 2]]
+            for ii in range(len(table_well2svat))
+        ]
+
+        (
+            map_mf_msw["msw2mod_sprinkling"],
+            mask_mf_msw["msw2mod_sprinkling"],
+        ) = create_mapping(
+            msw_idx,
+            well_idx,
+            array_dims["msw_volume"],
+            array_dims["mf6_sprinkling_wells"],
+            Operator.SUM,
+        )
+    return map_mf_msw, mask_mf_msw
+
+
 def mapping_active_mf_dflow1d(
     mapping_file_mf6_river_to_dfm_1d_q: Path,
     mapping_file_dfm_1d_waterlevel_to_mf6_river_stage: Path,
@@ -483,9 +618,8 @@ def get_svat_lookup(workdir_msw: Path) -> dict[tuple[int, int], int]:
 
     Returns
     -------
-    tuple[dict[tuple[int, int, int], bool]
-       The first value of the tupple is a dictionary of pairs svat and layer to internal svat-number
-       The second value is an indicator of whether the said dictionary could be filled without issues.
+    tuple[dict[tuple[int, int], int]
+       The first value of the tupple is a dictionary of pairs svat and layer to internal svat-number.
     """
 
     svat_lookup = {}
