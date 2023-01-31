@@ -6,6 +6,21 @@ from xmipy import XmiWrapper
 
 
 class MswWrapper(XmiWrapper):
+    def initialise_surfacewater_component(self) -> None:
+
+        """
+        function to initialise the surface water component in metaswap.
+
+        Parameters
+        ----------
+        none
+
+        """
+        idtsw = 0
+        iact = 0
+
+        # call SIMGRO_DTSW(iact,idtsw)
+
     def perform_surfacewater_timestep(self, idtsw: int) -> None:
         """
         function to start and excecute surface water timestep between msw and dflow
