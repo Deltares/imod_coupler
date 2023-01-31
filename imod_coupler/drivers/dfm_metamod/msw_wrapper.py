@@ -44,7 +44,8 @@ class MswWrapper(XmiWrapper):
         Returns
         -------
          NDArray[np.float_]:
-            sprinkling demand of MetaSWAP in m3/dtgw
+            sprinkling demand of MetaSWAP in m3/dtgw. Array as a copy of the MetaSWAP intenal array,
+            since the set function uses a different bmi/xmi-variable
         """
         sw_sprinkling_demand = self.get_value("dts2dfmputsp")
         return sw_sprinkling_demand
@@ -76,7 +77,8 @@ class MswWrapper(XmiWrapper):
         Returns
         -------
          NDArray[np.float_]:
-            ponding volume allocation of MetaSWAP in m3/dtsw
+            ponding volume allocation of MetaSWAP in m3/dtsw. Array as a copy of the MetaSWAP intenal array,
+            since the set function uses a different bmi/xmi-variable
         """
         ponding_allocation = self.get_value("ts2dfmput")
         return ponding_allocation
@@ -135,8 +137,8 @@ class MswWrapper(XmiWrapper):
         Returns
         -------
          svat_area: NDArray[np.float_]
-            area of svats (m2)
+            area of svats (m2). Array as a copy of the MetaSWAP intenal array,
+            since the array does not need to be changed.
         """
         svat_area = self.get_value("ark")
         return svat_area
-
