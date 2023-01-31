@@ -6,14 +6,14 @@ from xmipy import XmiWrapper
 
 
 class MswWrapper(XmiWrapper):
-    def perform_surfacewater_timestep(self, idtsw: float) -> None:
+    def perform_surfacewater_timestep(self, idtsw: int) -> None:
         """
         function to start and excecute surface water timestep between msw and dflow
 
         Parameters
         ----------
-        idtsw : float
-            timesetp duration as fraction relative to the MF6 timestep durations (days)
+        idtsw : integer*4
+            index of time step within dtgw-cycle
 
         """
         iact = 1
@@ -26,15 +26,15 @@ class MswWrapper(XmiWrapper):
 
         Parameters
         ----------
-        idtsw : float
-            timesetp duration as fraction relative to the MF6 timestep durations (days)
+        idtsw : integer*4
+            index of time step within dtgw-cycle
 
         """
         iact = 2
 
         # call SIMGRO_DTSW(iact,idtsw)
 
-    def get_sw_sprinking_demand(self) -> NDArray[np.float_]:
+    def get_surfacewater_sprinking_demand(self) -> NDArray[np.float_]:
         """returns the sprinkling volume demand from metaswap
 
         Parameters
@@ -46,10 +46,27 @@ class MswWrapper(XmiWrapper):
          NDArray[np.float_]:
             sprinkling demand of MetaSWAP in m3/dtgw
         """
-        sw_sprinkling_demand = self.get_value_ptr("dcupsswdemm3i")
+        sw_sprinkling_demand = self.get_value("dts2dfmputsp")
         return sw_sprinkling_demand
 
-    def get_ponding_allocation(self) -> NDArray[np.float_]:
+    def put_surfacewater_sprinking_demand(
+        self, sprinking_demand: NDArray[np.float_]
+    ) -> None:
+        """sets the sprinkling volume demand in metaswap
+
+        Parameters
+        ----------
+        sprinkiling_demand: NDArray[np.float_]:
+            sprinkling demand of MetaSWAP in m3/dtgw
+
+        Returns
+        -------
+        none
+
+        """
+        self.set_value("dts2dfmgetsp", sprinking_demand)
+
+    def get_surfacewater_ponding_allocation(self) -> NDArray[np.float_]:
         """returns the ponding volume allocation from metaswap
 
         Parameters
@@ -59,23 +76,67 @@ class MswWrapper(XmiWrapper):
         Returns
         -------
          NDArray[np.float_]:
-            ponding volume allocation of MetaSWAP in m3/dtsw?
+            ponding volume allocation of MetaSWAP in m3/dtsw
         """
-        ponding_allocation = self.get_value_ptr("ts2dfmget")
+        ponding_allocation = self.get_value("ts2dfmput")
         return ponding_allocation
 
-    def put_ponding_allocation(self, ponding_allocation) -> None:
+    def put_surfacewater_ponding_allocation(
+        self, ponding_allocation: NDArray[np.float_]
+    ) -> None:
         """sets ponding volume allocation in metaswap
 
         Parameters
         ----------
         ponding_allocation: NDArray[np.float_]
-            ponding volume allocation to set in metaswap
+            ponding volume allocation to set in metaswap in m3/dtsw
 
         Returns
         -------
         none
         """
-        self.get_value_ptr("ts2dfmput", ponding_allocation)
+        self.set_value("ts2dfmget", ponding_allocation)
 
-    # MetaSWAP_performSurfacewaterTimestep(idtsw)
+    def put_ponding_level_1d(self, ponding_level_1d: NDArray[np.float_]) -> None:
+        """sets ponding level from dlfow-1d in metaswap
+
+        Parameters
+        ----------
+        ponding_level_1d: NDArray[np.float_]
+            ponding level to set in metaswap in m relative to msw soil surface elevation (depth)
+
+        Returns
+        -------
+        none
+        """
+        self.set_value("dfm2lvsw1Dk", ponding_level_1d)
+
+    def put_ponding_level_2d(self, ponding_level_2d: NDArray[np.float_]) -> None:
+        """sets ponding level from dlfow-2d in metaswap
+
+        Parameters
+        ----------
+        ponding_level_2d: NDArray[np.float_]
+            ponding level to set in metaswap in m relative to msw soil surface elevation (depth)
+
+        Returns
+        -------
+        none
+        """
+        self.set_value("dfm2lvswk", ponding_level_2d)
+
+    def get_svat_area(self) -> NDArray[np.float_]:
+        """gets area's of svats in metaswap. This can ben used to calculate ponding volumes based on dlfow ponding levels
+
+        Parameters
+        ----------
+        none
+
+        Returns
+        -------
+         svat_area: NDArray[np.float_]
+            area of svats (m2)
+        """
+        svat_area = self.get_value("ark")
+        return svat_area
+
