@@ -4,8 +4,18 @@ import numpy as np
 from numpy.typing import NDArray
 from xmipy import XmiWrapper
 
+from imod_coupler.drivers.dfm_metamod.config import Coupling
+
+coupling: Coupling
+
 
 class Mf6Wrapper(XmiWrapper):
+    mf6_flowmodel_key = coupling.mf6_model
+    mf6_keys = {}
+    mf6_keys["head"] = ["X", mf6_flowmodel_key]
+    mf6_keys["recharge"] = ["BOUND", mf6_flowmodel_key, coupling.mf6_msw_recharge_pkg]
+    mf6_keys["storage"] = ["SS", mf6_flowmodel_key, "STO"]
+
     def get_head(self, mf6_flowmodel_key: str) -> NDArray[np.float_]:
         mf6_head_tag = self.get_var_address("X", mf6_flowmodel_key)
         mf6_head = self.get_value_ptr(mf6_head_tag)
