@@ -6,7 +6,7 @@ from xmipy import XmiWrapper
 
 
 class MswWrapper(XmiWrapper):
-    def initialise_surfacewater_component(self) -> None:
+    def initiate_surface_water_component(self) -> None:
 
         """
         function to initialise the surface water component in metaswap.
@@ -16,12 +16,9 @@ class MswWrapper(XmiWrapper):
         none
 
         """
-        idtsw = 0
-        iact = 0
+        self.initiate_surface_water_component()
 
-        # call SIMGRO_DTSW(iact,idtsw)
-
-    def perform_surfacewater_timestep(self, idtsw: int) -> None:
+    def start_surfacewater_timestep(self, idtsw: int) -> None:
         """
         function to start and excecute surface water timestep between msw and dflow
 
@@ -31,11 +28,9 @@ class MswWrapper(XmiWrapper):
             index of time step within dtgw-cycle
 
         """
-        iact = 1
+        self.start_surface_water_time_step(idtsw)
 
-        # call SIMGRO_DTSW(iact,idtsw)
-
-    def finish_surfacewater_timestep(self, idtsw: float) -> None:
+    def finish_surfacewater_timestep(self, idtsw: int) -> None:
         """
         function to finish surface water timestep between msw and dflow
 
@@ -45,9 +40,7 @@ class MswWrapper(XmiWrapper):
             index of time step within dtgw-cycle
 
         """
-        iact = 2
-
-        # call SIMGRO_DTSW(iact,idtsw)
+        self.finish_surface_water_time_step(idtsw)
 
     def get_surfacewater_sprinking_demand(self) -> NDArray[np.float_]:
         """returns the sprinkling volume demand from metaswap
@@ -114,20 +107,6 @@ class MswWrapper(XmiWrapper):
         """
         self.set_value("ts2dfmget", ponding_allocation)
 
-    def put_ponding_level_1d(self, ponding_level_1d: NDArray[np.float_]) -> None:
-        """sets ponding level from dlfow-1d in metaswap
-
-        Parameters
-        ----------
-        ponding_level_1d: NDArray[np.float_]
-            ponding level to set in metaswap in m relative to msw soil surface elevation (depth)
-
-        Returns
-        -------
-        none
-        """
-        self.set_value("dfm2lvsw1Dk", ponding_level_1d)
-
     def put_ponding_level_2d(self, ponding_level_2d: NDArray[np.float_]) -> None:
         """sets ponding level from dlfow-2d in metaswap
 
@@ -141,18 +120,3 @@ class MswWrapper(XmiWrapper):
         none
         """
         self.set_value("dfm2lvswk", ponding_level_2d)
-
-    def get_svat_area(self) -> NDArray[np.float_]:
-        """gets area's of svats in metaswap. This can ben used to calculate ponding volumes based on dlfow ponding levels
-
-        Parameters
-        ----------
-        none
-
-        Returns
-        -------
-         svat_area: NDArray[np.float_]
-            area of svats (m2). Array as pointer to the MetaSWAP intenal array
-        """
-        svat_area = self.get_value_ptr("ark")
-        return svat_area
