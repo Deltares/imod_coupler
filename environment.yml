@@ -15,7 +15,7 @@ dependencies:
   - pip
   - pip:
       - xmipy
-      - git+https://gitlab.com/deltares/imod/imod-python.git@e6dca61fcfd5fc74d7021093d2d66d8e92364982
+      - imod>=0.11.6
   - pydantic
   - pydata-sphinx-theme
   - pytest
