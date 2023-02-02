@@ -11,7 +11,6 @@ def case_sprinkling(
     coupled_mf6_model: Modflow6Simulation,
     prepared_msw_model: MetaSwapModel,
 ) -> MetaMod:
-
     return MetaMod(
         prepared_msw_model,
         coupled_mf6_model,
@@ -24,7 +23,6 @@ def case_no_sprinkling(
     coupled_mf6_model: Modflow6Simulation,
     prepared_msw_model: MetaSwapModel,
 ) -> MetaMod:
-
     prepared_msw_model.pop("sprinkling")
 
     return MetaMod(
@@ -39,7 +37,6 @@ def case_storage_coefficient(
     coupled_mf6_model_storage_coefficient: Modflow6Simulation,
     prepared_msw_model: MetaSwapModel,
 ) -> MetaMod:
-
     return MetaMod(
         prepared_msw_model,
         coupled_mf6_model_storage_coefficient,
@@ -52,7 +49,6 @@ def case_storage_coefficient_no_sprinkling(
     coupled_mf6_model_storage_coefficient: Modflow6Simulation,
     prepared_msw_model: MetaSwapModel,
 ) -> MetaMod:
-
     prepared_msw_model.pop("sprinkling")
 
     return MetaMod(
@@ -67,7 +63,6 @@ def case_inactive_cell(
     coupled_mf6_model_inactive: Modflow6Simulation,
     prepared_msw_model_inactive: MetaSwapModel,
 ) -> MetaMod:
-
     return MetaMod(
         prepared_msw_model_inactive,
         coupled_mf6_model_inactive,

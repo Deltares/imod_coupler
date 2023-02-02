@@ -3,7 +3,6 @@ from typing import List, Tuple
 
 import numpy as np
 import pandas as pd
-import pytest
 import pytest_cases
 import xarray as xr
 from imod import mf6, msw
@@ -11,14 +10,16 @@ from numpy import float_, int_, nan
 from numpy.typing import NDArray
 
 
-def grid_sizes() -> Tuple[
-    List[float],
-    List[float],
-    NDArray[int_],
-    float,
-    float,
-    NDArray[float_],
-]:
+def grid_sizes() -> (
+    Tuple[
+        List[float],
+        List[float],
+        NDArray[int_],
+        float,
+        float,
+        NDArray[float_],
+    ]
+):
     x = [100.0, 200.0, 300.0, 400.0, 500.0]
     y = [300.0, 200.0, 100.0]
     dz = np.array([0.2, 10.0, 100.0])
@@ -362,7 +363,6 @@ def convert_storage_package(
     return gwf_model
 
 
-#%% Helper fixtures
 def make_idomain() -> xr.DataArray:
     x, y, layer, dx, dy, _ = grid_sizes()
 
@@ -395,7 +395,6 @@ def inactive_idomain() -> xr.DataArray:
     return idomain
 
 
-#%% Case fixtures
 @pytest_cases.fixture(scope="function")
 def coupled_mf6_model(active_idomain: xr.DataArray) -> mf6.Modflow6Simulation:
     return make_coupled_mf6_model(active_idomain)
@@ -428,7 +427,6 @@ def prepared_msw_model(
     active_idomain: xr.DataArray,
     metaswap_lookup_table: Path,
 ) -> msw.MetaSwapModel:
-
     msw_model = make_msw_model(active_idomain)
     # Override unsat_svat_path with path from environment
     msw_model.simulation_settings[
@@ -443,7 +441,6 @@ def prepared_msw_model_inactive(
     inactive_idomain: xr.DataArray,
     metaswap_lookup_table: Path,
 ) -> msw.MetaSwapModel:
-
     msw_model = make_msw_model(inactive_idomain)
     # Override unsat_svat_path with path from environment
     msw_model.simulation_settings[
