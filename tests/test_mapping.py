@@ -1,5 +1,3 @@
-#%% Import
-
 import numpy as np
 from numpy.testing import assert_almost_equal, assert_array_equal
 from pytest_cases import parametrize_with_cases
@@ -7,7 +5,6 @@ from pytest_cases import parametrize_with_cases
 from imod_coupler.utils import create_mapping
 
 
-#%% Test
 @parametrize_with_cases(
     "src_idx,tgt_idx,nsrc,ntgt,operator,expected_map_dense,expected_mask"
 )

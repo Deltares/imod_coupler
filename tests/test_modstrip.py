@@ -14,7 +14,6 @@ def write_toml(
     metaswap_dll_dep_dir_devel: Path,
     modflow_dll_devel: Path,
 ):
-
     coupling_dict = dict(
         mf6_model="GWF_1",
         mf6_msw_node_map="./NODENR2SVAT.DXC",
