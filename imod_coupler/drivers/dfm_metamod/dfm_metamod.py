@@ -19,15 +19,17 @@ from xmipy import XmiWrapper
 from imod_coupler.config import BaseConfig
 from imod_coupler.drivers.dfm_metamod.config import Coupling, DfmMetaModConfig
 from imod_coupler.drivers.dfm_metamod.dfm_wrapper import DfmWrapper
-from imod_coupler.drivers.dfm_metamod.mapping_functions import (
-    calc_correction,
-    get_dflow1d_lookup,
-    get_svat_lookup,
-    mapping_active_mf_dflow1d,
-)
+from imod_coupler.drivers.dfm_metamod.mapping_functions import Mapping
 from imod_coupler.drivers.dfm_metamod.mf6_wrapper import Mf6Wrapper
 from imod_coupler.drivers.driver import Driver
 from imod_coupler.utils import Operator, create_mapping
+
+# from imod_coupler.drivers.dfm_metamod.mapping_functions import (
+#     calc_correction,
+#     get_dflow1d_lookup,
+#     get_svat_lookup,
+#     mapping_active_mf_dflow1d,
+# )
 
 
 class DfmMetaMod(Driver):
@@ -45,33 +47,11 @@ class DfmMetaMod(Driver):
 
     max_iter: NDArray[np.int_]  # max. nr outer iterations in MODFLOW kernel
     delt: float  # time step from MODFLOW 6 (leading)
-
-    mf6_head: NDArray[np.float_]  # the hydraulic head array in the groundwater model
-    mf6_recharge: NDArray[Any]  # the coupled recharge array from the RCH package
-    mf6_storage: NDArray[Any]  # the specific storage array (ss)
-    mf6_has_sc1: bool  # when true, specific storage in mf6 is given as a storage coefficient (sc1)
-    mf6_area: NDArray[Any]  # cell area (size:nodes)
-    mf6_top: NDArray[Any]  # top of cell (size:nodes)
-    mf6_bot: NDArray[Any]  # bottom of cell (size:nodes)
-
-    mf6_sprinkling_wells: NDArray[Any]  # the well data for coupled extractions
-    msw_head: NDArray[Any]  # internal MetaSWAP groundwater head
-    msw_volume: NDArray[Any]  # unsaturated zone flux (as a volume!)
-    msw_storage: NDArray[Any]  # MetaSWAP storage coefficients (MODFLOW's sc1)
     msw_time: float  # MetaSWAP current time
 
-    mf6_river_stage: NDArray[
-        np.float_
-    ]  # the river stage array in the groundwater model
-
-    dflowfm_1d_stage: NDArray[
-        np.float_
-    ]  # the river stage in the 1d rivers array in the surface water model
-
-    number_dflowsteps_per_modflowstep = 10
-
-    # dictionary used for converting x, y coordinates to node numbers for dflow-fm
-    dflow1d_lookup: dict[tuple[float, float], int]
+    number_dflowsteps_per_modflowstep = (
+        10  # should be replaced by msw.dtgw/msw.dtsw (maybe also set dtsw via coupler?)
+    )
 
     # sparse matrices used for  modflow-dflow exchanges
     map_active_mod_dflow1d: dict[str, csr_matrix]
@@ -101,33 +81,20 @@ class DfmMetaMod(Driver):
             0
         ]  # Adapt as soon as we have multimodel support
 
-        self.dflow1d_lookup = get_dflow1d_lookup(self.coupling.dfm_1d_points_dat)
-        (
-            self.map_active_mod_dflow1d,
-            self.mask_active_mod_dflow1d,
-        ) = mapping_active_mf_dflow1d(
-            self.coupling.mf6_river_to_dfm_1d_q_dmm,
-            self.coupling.dfm_1d_waterlevel_to_mf6_river_stage_dmm,
-            self.dflow1d_lookup,
-        )
-
     def initialize(self) -> None:
-
         self.mf6 = Mf6Wrapper(
-            lib_path=self.dfm_metamod_config.kernels.modflow6.dll,
-            lib_dependency=self.dfm_metamod_config.kernels.modflow6.dll_dep_dir,
-            working_directory=self.dfm_metamod_config.kernels.modflow6.work_dir,
-            timing=self.base_config.timing,
+            self.coupling,
+            self.dfm_metamod_config.kernels.modflow6.dll,
+            self.dfm_metamod_config.kernels.modflow6.dll_dep_dir,
+            self.dfm_metamod_config.kernels.modflow6.work_dir,
+            self.base_config.timing,
         )
-        self.mf6.set_coupling(self.coupling)
-
         self.msw = XmiWrapper(
             lib_path=self.dfm_metamod_config.kernels.metaswap.dll,
             lib_dependency=self.dfm_metamod_config.kernels.metaswap.dll_dep_dir,
             working_directory=self.dfm_metamod_config.kernels.metaswap.work_dir,
             timing=self.base_config.timing,
         )
-
         # ================
         # modifying the path here should not be necessary
         os.environ["PATH"] = (
@@ -141,6 +108,7 @@ class DfmMetaMod(Driver):
             mdu_name
         )
         self.dfm = DfmWrapper(engine="dflowfm", configfile=dflowfm_input)
+        self.mapping = Mapping(self.coupling, self.mf6, self.msw)
 
         # Print output to stdout
         self.mf6.set_int("ISTDOUTTOFILE", 0)
@@ -148,136 +116,18 @@ class DfmMetaMod(Driver):
         self.msw.initialize()
         self.dfm.initialize()
         self.log_version()
-        self.couple()
 
     def log_version(self) -> None:
         logger.info(f"MODFLOW version: {self.mf6.get_version()}")
         logger.info(f"MetaSWAP version: {self.msw.get_version()}")
         logger.info(f"Dflow FM version: version fetching not implemented in BMI")
 
-    def couple(self) -> None:
-        """Couple Modflow and Metaswap"""
-        # get some 'pointers' to MF6 and MSW internal data
-        mf6_head_tag = self.mf6.get_var_address("X", self.coupling.mf6_model)
-        mf6_recharge_tag = self.mf6.get_var_address(
-            "BOUND", self.coupling.mf6_model, self.coupling.mf6_msw_recharge_pkg
-        )
-        mf6_storage_tag = self.mf6.get_var_address("SS", self.coupling.mf6_model, "STO")
-        mf6_is_sc1_tag = self.mf6.get_var_address(
-            "ISTOR_COEF", self.coupling.mf6_model, "STO"
-        )
-        mf6_area_tag = self.mf6.get_var_address("AREA", self.coupling.mf6_model, "DIS")
-        mf6_top_tag = self.mf6.get_var_address("TOP", self.coupling.mf6_model, "DIS")
-        mf6_bot_tag = self.mf6.get_var_address("BOT", self.coupling.mf6_model, "DIS")
-        mf6_max_iter_tag = self.mf6.get_var_address("MXITER", "SLN_1")
-
-        self.mf6_head = self.mf6.get_value_ptr(mf6_head_tag)
-        # NB: recharge is set to first column in BOUND
-        self.mf6_recharge = self.mf6.get_value_ptr(mf6_recharge_tag)[:, 0]
-        self.mf6_storage = self.mf6.get_value_ptr(mf6_storage_tag)
-        self.mf6_has_sc1 = self.mf6.get_value_ptr(mf6_is_sc1_tag)[0] != 0
-        self.mf6_area = self.mf6.get_value_ptr(mf6_area_tag)
-        self.mf6_top = self.mf6.get_value_ptr(mf6_top_tag)
-        self.mf6_bot = self.mf6.get_value_ptr(mf6_bot_tag)
-        self.max_iter = self.mf6.get_value_ptr(mf6_max_iter_tag)[0]
-
-        self.msw_head = self.msw.get_value_ptr("dhgwmod")
-        self.msw_volume = self.msw.get_value_ptr("dvsim")
-        self.msw_storage = self.msw.get_value_ptr("dsc1sim")
-
-        self.map_mod2msw = {}
-        self.map_msw2mod = {}
-        self.mask_mod2msw = {}
-        self.mask_msw2mod = {}
-
-        # create mapping for metamod, should move tot mapping functions at one point maybe
-        self.svat_lookup = get_svat_lookup(self.msw.working_directory)
-        table_node2svat: NDArray[np.int32] = np.loadtxt(
-            self.coupling.mf6_msw_node_map, dtype=np.int32, ndmin=2
-        )
-        node_idx = table_node2svat[:, 0] - 1
-        msw_idx = [
-            self.svat_lookup[table_node2svat[ii, 1], table_node2svat[ii, 2]]
-            for ii in range(len(table_node2svat))
-        ]
-
-        self.map_msw2mod["storage"], self.mask_msw2mod["storage"] = create_mapping(
-            msw_idx,
-            node_idx,
-            self.msw_storage.size,
-            self.mf6_storage.size,
-            Operator.SUM,
-        )
-        # MetaSWAP gives SC1*area, MODFLOW by default needs SS, convert here.
-        # When MODFLOW is configured to use SC1 explicitly via the
-        # STORAGECOEFFICIENT option in the STO package, only the multiplication
-        # by area needs to be undone
-
-        if self.mf6_has_sc1:
-            conversion_terms = 1.0 / self.mf6_area
-        else:
-            conversion_terms = 1.0 / (self.mf6_area * (self.mf6_top - self.mf6_bot))
-
-        conversion_matrix = dia_matrix(
-            (conversion_terms, [0]),
-            shape=(self.mf6_area.size, self.mf6_area.size),
-            dtype=self.mf6_area.dtype,
-        )
-        self.map_msw2mod["storage"] = conversion_matrix * self.map_msw2mod["storage"]
-
-        self.map_mod2msw["head"], self.mask_mod2msw["head"] = create_mapping(
-            node_idx,
-            msw_idx,
-            self.mf6_head.size,
-            self.msw_head.size,
-            Operator.AVERAGE,
-        )
-
-        table_rch2svat: NDArray[np.int32] = np.loadtxt(
-            self.coupling.mf6_msw_recharge_map, dtype=np.int32, ndmin=2
-        )
-        rch_idx = table_rch2svat[:, 0] - 1
-        msw_idx = [
-            self.svat_lookup[table_rch2svat[ii, 1], table_rch2svat[ii, 2]]
-            for ii in range(len(table_rch2svat))
-        ]
-
-        self.map_msw2mod["recharge"], self.mask_msw2mod["recharge"] = create_mapping(
-            msw_idx,
-            rch_idx,
-            self.msw_volume.size,
-            self.mf6_recharge.size,
-            Operator.SUM,
-        )
-
-        if self.coupling.enable_sprinkling:
-            assert isinstance(self.coupling.mf6_msw_well_pkg, str)
-            assert isinstance(self.coupling.mf6_msw_sprinkling_map, Path)
-
-            # in this case we have a sprinkling demand from MetaSWAP
-            mf6_sprinkling_tag = self.mf6.get_var_address(
-                "BOUND", self.coupling.mf6_model, self.coupling.mf6_msw_well_pkg
-            )
-            self.mf6_sprinkling_wells = self.mf6.get_value_ptr(mf6_sprinkling_tag)[:, 0]
-            table_well2svat: NDArray[np.int32] = np.loadtxt(
-                self.coupling.mf6_msw_sprinkling_map, dtype=np.int32, ndmin=2
-            )
-            well_idx = table_well2svat[:, 0] - 1
-            msw_idx = [
-                self.svat_lookup[table_well2svat[ii, 1], table_well2svat[ii, 2]]
-                for ii in range(len(table_well2svat))
-            ]
-
-            (
-                self.map_msw2mod["sprinkling"],
-                self.mask_msw2mod["sprinkling"],
-            ) = create_mapping(
-                msw_idx,
-                well_idx,
-                self.msw_volume.size,
-                self.mf6_sprinkling_wells.size,
-                Operator.SUM,
-            )
+    def set_mapping(self) -> None:
+        self.map_mod_msw, self.mask_mod_msw = self.mapping.mapping_mf_msw()
+        (
+            self.map_active_mod_dflow1d,
+            self.mask_active_mod_dflow1d,
+        ) = self.mapping.mapping_active_mf_dflow1d()
 
     def update(self) -> None:
 
@@ -293,9 +143,9 @@ class DfmMetaMod(Driver):
         self.msw.prepare_time_step(self.delt)
 
         # stage from dflow 1d to modflow
-        self.exchange_H_1D_t()
+        self.exchange_stage_1d_dfm2mf6()
         # flux from modflow to dflow 1d
-        self.exchange_V_1D()
+        self.exchange_flux_1d_mf62dfm()
 
         # get cum flux mf->fm pre-timestep and store locally
         self.store_1d_river_fluxes_to_dfm()
@@ -339,7 +189,7 @@ class DfmMetaMod(Driver):
     def get_end_time(self) -> float:
         return self.mf6.get_end_time()
 
-    def exchange_H_1D_t(self) -> None:
+    def exchange_stage_1d_dfm2mf6(self) -> None:
         """
         From DFM to MF6.
         Waterlevels in the 1D-rivers at the beginning of the mf6-timestep. (T=t)
@@ -348,9 +198,7 @@ class DfmMetaMod(Driver):
         DFM unit: ?
         """
         dfm_water_levels = self.dfm.get_waterlevels_1d()
-        mf6_river_stage = self.mf6.get_river_stages(
-            self.coupling.mf6_model, self.coupling.mf6_river_pkg
-        )
+        mf6_river_stage = self.mf6.get_river_stages()
 
         updated_river_stage = (
             self.mask_active_mod_dflow1d["dflow1d2mf-riv_stage"][:] * mf6_river_stage[:]
@@ -359,13 +207,9 @@ class DfmMetaMod(Driver):
             ]
         )
 
-        self.mf6.set_river_stages(
-            self.coupling.mf6_model,
-            self.coupling.mf6_river_pkg,
-            updated_river_stage,
-        )
+        self.mf6.set_river_stages(updated_river_stage)
 
-    def exchange_V_1D(self) -> None:
+    def exchange_flux_1d_mf62dfm(self) -> None:
         """
         From MF6 to DFM.
         requested infiltration/drainage in the coming MF6 timestep for the 1D-rivers,
@@ -375,9 +219,7 @@ class DfmMetaMod(Driver):
         MF6 unit: ?
         DFM unit: ?
         """
-        mf6_river_aquifer_flux = self.mf6.get_river_flux(
-            self.coupling.mf6_model, self.coupling.mf6_river_pkg
-        )
+        mf6_river_aquifer_flux = self.mf6.get_river_flux()
         dflow1d_flux_receive = self.dfm.get_1d_river_fluxes()
         if dflow1d_flux_receive is None:
             raise ValueError("dflow 1d river flux not found")
@@ -405,14 +247,12 @@ class DfmMetaMod(Driver):
         the drainage/inflitration flux to the 1d rivers as realised by DFM is passed to
         mf6 as a correction
         """
-        qmf6 = self.mf6.get_river_flux(
-            self.coupling.mf6_model, self.coupling.mf6_river_pkg
-        )  # originally sent by modflow
+        qmf6 = self.mf6.get_river_flux()  # originally sent by modflow
         dflow1d_flux_receive = self.dfm.get_1d_river_fluxes()
         if dflow1d_flux_receive is None:
             raise ValueError("dflow 1d river flux not found")
         qdfm = self.dflow1d_flux_estimate
-        qmf_corr = calc_correction(
+        qmf_corr = self.mapping.calc_correction(
             self.map_active_mod_dflow1d["mf-riv2dflow1d_flux"],
             qmf6,
             qdfm,
@@ -420,9 +260,7 @@ class DfmMetaMod(Driver):
         )
 
         assert self.coupling.mf6_msw_well_pkg
-        self.mf6.set_correction_flux(
-            self.coupling.mf6_model, self.coupling.mf6_wel_correction_pkg, qmf_corr
-        )
+        self.mf6.set_correction_flux(qmf_corr)
 
     def exchange_msw2mod(self) -> None:
         """
@@ -433,22 +271,22 @@ class DfmMetaMod(Driver):
         3- Sprinkling request from MetaSWAP to MF6
 
         """
-        self.mf6_storage[:] = (
-            self.mask_msw2mod["storage"][:] * self.mf6_storage[:]
-            + self.map_msw2mod["storage"].dot(self.msw_storage)[:]
+        self.mf6.storage()[:] = (
+            self.mask_msw2mod["storage"][:] * self.mf6.storage()[:]
+            + self.map_msw2mod["storage"].dot(self.msw.storage())[:]
         )
 
         # Divide recharge and extraction by delta time
         tled = 1 / self.delt
-        self.mf6_recharge[:] = (
-            self.mask_msw2mod["recharge"][:] * self.mf6_recharge[:]
-            + tled * self.map_msw2mod["recharge"].dot(self.msw_volume)[:]
+        self.mf6.recharge()[:] = (
+            self.mask_msw2mod["recharge"][:] * self.mf6.recharge()[:]
+            + tled * self.map_msw2mod["recharge"].dot(self.msw.volume())[:]
         )
 
         if self.coupling.enable_sprinkling:
-            self.mf6_sprinkling_wells[:] = (
-                self.mask_msw2mod["sprinkling"][:] * self.mf6_sprinkling_wells[:]
-                + tled * self.map_msw2mod["sprinkling"].dot(self.msw_volume)[:]
+            self.mf6.sprinkling_wells()[:] = (
+                self.mask_msw2mod["sprinkling"][:] * self.mf6.sprinkling_wells()[:]
+                + tled * self.map_msw2mod["sprinkling"].dot(self.msw.volume())[:]
             )
 
     def exchange_mod2msw(self) -> None:
@@ -457,9 +295,9 @@ class DfmMetaMod(Driver):
 
         1- Exchange of head from MF6 to MetaSWAP
         """
-        self.msw_head[:] = (
-            self.mask_mod2msw["head"][:] * self.msw_head[:]
-            + self.map_mod2msw["head"].dot(self.mf6_head)[:]
+        self.msw.head()[:] = (
+            self.mask_mod2msw["head"][:] * self.msw.head()[:]
+            + self.map_mod2msw["head"].dot(self.mf6.head())[:]
         )
 
     def report_timing_totals(self) -> None:

@@ -142,7 +142,7 @@ class MswWrapper(XmiWrapper):
         """
         self.set_value("dfm2lvswk", ponding_level_2d)
 
-    def get_svat_area(self) -> NDArray[np.float_]:
+    def svat_area(self) -> NDArray[np.float_]:
         """gets area's of svats in metaswap. This can ben used to calculate ponding volumes based on dlfow ponding levels
 
         Parameters
@@ -157,7 +157,7 @@ class MswWrapper(XmiWrapper):
         svat_area = self.get_value_ptr("ark")
         return svat_area
 
-    def msw_head(self) -> NDArray[np.float_]:
+    def head(self) -> NDArray[np.float_]:
         """gets heads array from metaswap
 
         Parameters
@@ -172,7 +172,7 @@ class MswWrapper(XmiWrapper):
         msw_head = self.get_value_ptr("dhgwmod")
         return msw_head
 
-    def msw_volume(self) -> NDArray[np.float_]:
+    def volume(self) -> NDArray[np.float_]:
         """gets volume array from metaswap
 
         Parameters
@@ -187,7 +187,7 @@ class MswWrapper(XmiWrapper):
         msw_volume = self.get_value_ptr("dvsim")
         return msw_volume
 
-    def msw_storage(self) -> NDArray[np.float_]:
+    def storage(self) -> NDArray[np.float_]:
         """gets storage array from metaswap
 
         Parameters
