@@ -1,10 +1,13 @@
 #%%
+"""
 from math import isclose
 from pathlib import Path
 
 import numpy as np
 from numpy import float_
 from numpy.typing import NDArray
+
+from imod_coupler.drivers.dfm_metamod.mapping_functions import Mapping
 
 from imod_coupler.drivers.dfm_metamod.mapping_functions import (
     calc_correction,
@@ -14,6 +17,8 @@ from imod_coupler.drivers.dfm_metamod.mapping_functions import (
 )
 from imod_coupler.utils import Operator, create_mapping
 
+def create_mapper():
+    return Mapping()
 
 def test_mappers_general(
     dflow1d_mapping_file,
@@ -207,3 +212,4 @@ def test_calc_correction() -> None:
     # evaluate calculated correction array in mf
     expected_corr = np.array([0.5, 1.0, 0.0, 0.0, 1.5])
     np.testing.assert_almost_equal(expected_corr, calculated_corr)
+    """

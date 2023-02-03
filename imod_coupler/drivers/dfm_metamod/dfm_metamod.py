@@ -21,6 +21,7 @@ from imod_coupler.drivers.dfm_metamod.config import Coupling, DfmMetaModConfig
 from imod_coupler.drivers.dfm_metamod.dfm_wrapper import DfmWrapper
 from imod_coupler.drivers.dfm_metamod.mapping_functions import Mapping
 from imod_coupler.drivers.dfm_metamod.mf6_wrapper import Mf6Wrapper
+from imod_coupler.drivers.dfm_metamod.msw_wrapper import MswWrapper
 from imod_coupler.drivers.driver import Driver
 from imod_coupler.utils import Operator, create_mapping
 
@@ -45,7 +46,6 @@ class DfmMetaMod(Driver):
     msw: XmiWrapper  # the MetaSWAP XMI kernel
     dfm: DfmWrapper  # the dflow-fm BMI kernel
 
-    max_iter: NDArray[np.int_]  # max. nr outer iterations in MODFLOW kernel
     delt: float  # time step from MODFLOW 6 (leading)
     msw_time: float  # MetaSWAP current time
 
@@ -89,11 +89,11 @@ class DfmMetaMod(Driver):
             self.dfm_metamod_config.kernels.modflow6.work_dir,
             self.base_config.timing,
         )
-        self.msw = XmiWrapper(
-            lib_path=self.dfm_metamod_config.kernels.metaswap.dll,
-            lib_dependency=self.dfm_metamod_config.kernels.metaswap.dll_dep_dir,
-            working_directory=self.dfm_metamod_config.kernels.metaswap.work_dir,
-            timing=self.base_config.timing,
+        self.msw = MswWrapper(
+            self.dfm_metamod_config.kernels.metaswap.dll,
+            self.dfm_metamod_config.kernels.metaswap.dll_dep_dir,
+            self.dfm_metamod_config.kernels.metaswap.work_dir,
+            self.base_config.timing,
         )
         # ================
         # modifying the path here should not be necessary
@@ -108,13 +108,14 @@ class DfmMetaMod(Driver):
             mdu_name
         )
         self.dfm = DfmWrapper(engine="dflowfm", configfile=dflowfm_input)
-        self.mapping = Mapping(self.coupling, self.mf6, self.msw)
 
         # Print output to stdout
         self.mf6.set_int("ISTDOUTTOFILE", 0)
         self.mf6.initialize()
         self.msw.initialize()
         self.dfm.initialize()
+        self.mapping = Mapping(self.coupling, self.mf6, self.msw)
+        self.set_mapping()
         self.log_version()
 
     def log_version(self) -> None:
@@ -167,7 +168,7 @@ class DfmMetaMod(Driver):
 
         # convergence loop modflow-metaswap
         self.mf6.prepare_solve(1)
-        for kiter in range(1, self.max_iter + 1):
+        for kiter in range(1, self.mf.max_iter() + 1):
             has_converged = self.do_iter_mf_msw(1)
             if has_converged:
                 logger.debug(f"MF6-MSW converged in {kiter} iterations")
@@ -272,21 +273,23 @@ class DfmMetaMod(Driver):
 
         """
         self.mf6.storage()[:] = (
-            self.mask_msw2mod["storage"][:] * self.mf6.storage()[:]
-            + self.map_msw2mod["storage"].dot(self.msw.storage())[:]
+            self.mask_mod_msw["msw2mf_storage"][:] * self.mf6.storage()[:]
+            + self.map_mod_msw["msw2mf_storage"].dot(self.msw.storage())[:]
         )
 
         # Divide recharge and extraction by delta time
         tled = 1 / self.delt
         self.mf6.recharge()[:] = (
-            self.mask_msw2mod["recharge"][:] * self.mf6.recharge()[:]
-            + tled * self.map_msw2mod["recharge"].dot(self.msw.volume())[:]
+            self.mask_mod_msw["msw2mod_recharge"][:] * self.mf6.recharge()[:]
+            + tled * self.map_mod_msw["msw2mod_recharge"].dot(self.msw.volume())[:]
         )
 
         if self.coupling.enable_sprinkling:
             self.mf6.sprinkling_wells()[:] = (
-                self.mask_msw2mod["sprinkling"][:] * self.mf6.sprinkling_wells()[:]
-                + tled * self.map_msw2mod["sprinkling"].dot(self.msw.volume())[:]
+                self.mask_mod_msw["msw2mf6_sprinkling"][:]
+                * self.mf6.sprinkling_wells()[:]
+                + tled
+                * self.map_mod_msw["msw2mf6_sprinkling"].dot(self.msw.volume())[:]
             )
 
     def exchange_mod2msw(self) -> None:
@@ -296,8 +299,8 @@ class DfmMetaMod(Driver):
         1- Exchange of head from MF6 to MetaSWAP
         """
         self.msw.head()[:] = (
-            self.mask_mod2msw["head"][:] * self.msw.head()[:]
-            + self.map_mod2msw["head"].dot(self.mf6.head())[:]
+            self.mask_mod_msw["mod2msw_head"][:] * self.msw.head()[:]
+            + self.map_mod_msw["mod2msw_head"].dot(self.mf6.head())[:]
         )
 
     def report_timing_totals(self) -> None:

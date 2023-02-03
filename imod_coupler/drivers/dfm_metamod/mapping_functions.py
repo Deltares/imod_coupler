@@ -16,21 +16,25 @@ class Mapping:
         self.coupling = coupling
         self.mf6 = mf6_wrapper
         self.msw = msw_wrapper
+        self.get_svat_lookup()
+        self.get_dflow1d_lookup()
+        self.get_array_dims()
+        self.mf6_storage_conversion_term()
 
     def get_array_dims(self) -> None:
         array_dims = {
-            "msw_storage": self.msw.msw_storage().size,
-            "msw_head": self.msw.msw_head().size,
-            "msw_volume": self.msw.msw_volume(),
-            "mf6_storage": self.mf6.get_storage().size,
-            "mf6_head": self.mf6.get_head().size,
-            "mf6_recharge": self.mf6.get_recharge().size,
+            "msw_storage": self.msw.storage().size,
+            "msw_head": self.msw.head().size,
+            "msw_volume": self.msw.volume().size,
+            "mf6_storage": self.mf6.storage().size,
+            "mf6_head": self.mf6.head().size,
+            "mf6_recharge": self.mf6.recharge().size,
         }
         if self.coupling.enable_sprinkling:
             array_dims["mf6_sprinkling_wells"] = self.mf6.get_sprinkling().size
         self.array_dims = array_dims
 
-    def mf6_storage_conversion_term(self) -> dia_matrix[float_]:
+    def mf6_storage_conversion_term(self) -> None:
         """calculated storage conversion terms to use for exchange from metaswap to mf6
 
         Args:
@@ -41,15 +45,15 @@ class Mapping:
         """
 
         if self.mf6.has_sc1():
-            conversion_terms = 1.0 / self.mf6.get_area()
+            conversion_terms = 1.0 / self.mf6.area()
         else:
             conversion_terms = 1.0 / (
-                self.mf6.get_area() * (self.mf6.get_top() - self.mf6.get_bot())
+                self.mf6.area() * (self.mf6.top() - self.mf6.bot())
             )
 
         conversion_matrix = dia_matrix(
             (conversion_terms, [0]),
-            shape=(self.mf6.get_area().size, self.mf6.get_area().size),
+            shape=(self.mf6.area().size, self.mf6.area().size),
             dtype=float,
         )
         self.conversion_matrix = conversion_matrix
@@ -185,7 +189,7 @@ class Mapping:
 
         # MF RIV 1 -> DFLOW 1D (flux)
         table_active_mfriv2dflow1d: NDArray[np.single] = np.loadtxt(
-            self.coupling.mf6_river_to_dfm_1d_q, dtype=np.single, ndmin=2, skiprows=1
+            self.coupling.mf6_river_to_dfm_1d_q_dmm, dtype=np.single, ndmin=2, skiprows=1
         )
         mf_idx = table_active_mfriv2dflow1d[:, 2].astype(int) - 1
         dflow_idx = np.array(
@@ -553,7 +557,7 @@ class Mapping:
         """
 
         svat_lookup = {}
-        msw_mod2svat_file = self.msw.work_dir / "mod2svat.inp"
+        msw_mod2svat_file = self.msw.working_directory / "mod2svat.inp"
         if msw_mod2svat_file.is_file():
             svat_data: NDArray[np.int32] = np.loadtxt(
                 msw_mod2svat_file, dtype=np.int32, ndmin=2
