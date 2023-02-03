@@ -46,7 +46,6 @@ class MetaMod(Driver):
     msw_head: NDArray[Any]  # internal MetaSWAP groundwater head
     msw_volume: NDArray[Any]  # unsaturated zone flux (as a volume!)
     msw_storage: NDArray[Any]  # MetaSWAP storage coefficients (MODFLOW's sc1)
-    msw_time: float  # MetaSWAP current time
 
     # dictionary with mapping tables for mod=>msw coupling
     map_mod2msw: Dict[str, csr_matrix] = {}
@@ -243,7 +242,6 @@ class MetaMod(Driver):
         self.mf6.finalize_solve(1)
 
         self.mf6.finalize_time_step()
-        self.msw_time = self.mf6.get_current_time()
         self.msw.finalize_time_step()
 
     def finalize(self) -> None:
