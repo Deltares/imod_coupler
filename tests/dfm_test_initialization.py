@@ -7,7 +7,6 @@ def copy_inputfiles(
     dfm_files_dir: Path,
     tempdir: Path,
 ) -> None:
-
     """
     there are a few files that are saved in the temp directory used by the fixture
     by statements such as xyz_model.save() and  forcing_model.save(recurse=True).
@@ -21,7 +20,6 @@ def copy_inputfiles(
 
 
 def set_dfm_path(dflowfm_dll_regression: Path) -> None:
-
     os.environ["PATH"] = (
         str(dflowfm_dll_regression.absolute().parent) + os.pathsep + os.environ["PATH"]
     )

@@ -112,7 +112,6 @@ class DfmMetaMod(Driver):
         )
 
     def initialize(self) -> None:
-
         self.mf6 = Mf6Wrapper(
             lib_path=self.dfm_metamod_config.kernels.modflow6.dll,
             lib_dependency=self.dfm_metamod_config.kernels.modflow6.dll_dep_dir,
@@ -279,7 +278,6 @@ class DfmMetaMod(Driver):
             )
 
     def update(self) -> None:
-
         # heads from modflow to MetaSWAP
         self.exchange_mod2msw()
 

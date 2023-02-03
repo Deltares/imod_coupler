@@ -15,7 +15,6 @@ def test_get_snapped_flownode(
     dflowfm_dll_devel: Path,
     dflowfm_initial_inputfiles_folder: Path,
 ) -> None:
-
     prepared_dflowfm_model.save(recurse=True)
 
     set_dfm_path(dflowfm_dll_devel)
@@ -45,7 +44,6 @@ def test_get_river_stage(
     dflowfm_dll_devel: Path,
     tmp_path_dev: Path,
 ) -> None:
-
     shutil.copytree(tmodel_input_folder / "dflow-fm", tmp_path_dev)
     set_dfm_path(dflowfm_dll_devel)
 
@@ -90,7 +88,6 @@ def test_get_cumulative_fluxes_1d_nodes(
     dflowfm_dll_devel: Path,
     tmp_path_dev: Path,
 ) -> None:
-
     shutil.copytree(tmodel_input_folder / "dflow-fm", tmp_path_dev)
     set_dfm_path(dflowfm_dll_devel)
 
@@ -113,7 +110,6 @@ def test_get_1d_river_fluxes(
     dflowfm_dll_devel: Path,
     tmp_path_dev: Path,
 ) -> None:
-
     shutil.copytree(tmodel_input_folder / "dflow-fm", tmp_path_dev)
     set_dfm_path(dflowfm_dll_devel)
 
@@ -136,7 +132,6 @@ def test_set_1d_river_fluxes(
     dflowfm_dll_devel: Path,
     tmp_path_dev: Path,
 ) -> None:
-
     shutil.copytree(tmodel_input_folder / "dflow-fm", tmp_path_dev)
     set_dfm_path(dflowfm_dll_devel)
 
@@ -159,7 +154,6 @@ def test_get_node_numbers(
     dflowfm_dll_devel: Path,
     tmp_path_dev: Path,
 ) -> None:
-
     shutil.copytree(tmodel_input_folder / "dflow-fm", tmp_path_dev)
     set_dfm_path(dflowfm_dll_devel)
 
