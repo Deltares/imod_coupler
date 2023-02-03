@@ -90,7 +90,7 @@ class DfmMetaMod(Driver):
             self.coupling.mf6_model,
             self.coupling.mf6_river_pkg,
             self.coupling.mf6_wel_correction_pkg,
-            self.coupling.mf6_msw_recharge_pkg
+            self.coupling.mf6_msw_recharge_pkg,
         )
         self.msw = MswWrapper(
             self.dfm_metamod_config.kernels.metaswap.dll,
