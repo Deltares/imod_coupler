@@ -189,7 +189,10 @@ class Mapping:
 
         # MF RIV 1 -> DFLOW 1D (flux)
         table_active_mfriv2dflow1d: NDArray[np.single] = np.loadtxt(
-            self.coupling.mf6_river_to_dfm_1d_q_dmm, dtype=np.single, ndmin=2, skiprows=1
+            self.coupling.mf6_river_to_dfm_1d_q_dmm,
+            dtype=np.single,
+            ndmin=2,
+            skiprows=1,
         )
         mf_idx = table_active_mfriv2dflow1d[:, 2].astype(int) - 1
         dflow_idx = np.array(

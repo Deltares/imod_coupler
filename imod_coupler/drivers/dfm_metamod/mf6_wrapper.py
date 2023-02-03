@@ -9,18 +9,20 @@ from xmipy import XmiWrapper
 class Mf6Wrapper(XmiWrapper):
     def __init__(
         self,
-        coupling: Any,
         lib_path: Union[str, Path],
         lib_dependency: Union[str, Path, None] = None,
         working_directory: Union[str, Path, None] = None,
         timing: bool = False,
+        mf6_flowmodel_key: str = None,
+        mf6_riv1_key: str = None,
+        mf6_wel_correction_key: str = None,
+        mf6_msw_recharge_pkg: str = None,
     ):
         super().__init__(lib_path, lib_dependency, working_directory, timing)
-        self.coupling = coupling
-        self.mf6_flowmodel_key = self.coupling.mf6_model
-        self.mf6_riv1_key = self.coupling.mf6_river_pkg
-        self.mf6_riv1_correction_key = self.coupling.mf6_wel_correction_pkg
-        self.mf6_msw_recharge_pkg = self.coupling.mf6_msw_recharge_pkg
+        self.mf6_flowmodel_key = mf6_flowmodel_key
+        self.mf6_riv1_key = mf6_riv1_key
+        self.mf6_riv1_correction_key = mf6_wel_correction_key
+        self.mf6_msw_recharge_pkg = mf6_msw_recharge_pkg
 
     def head(self) -> NDArray[np.float_]:
         mf6_head_tag = self.get_var_address("X", self.mf6_flowmodel_key)

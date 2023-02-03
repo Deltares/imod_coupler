@@ -16,9 +16,12 @@ def test_mf6_set_river_stage(
 ) -> None:
 
     mf6_model_with_river.write(tmp_path_dev)
+
     mf6wrapper = Mf6Wrapper(
         lib_path=modflow_dll_devel,
         working_directory=tmp_path_dev,
+        mf6_flowmodel_key="GWF_1",
+        mf6_riv1_key="Oosterschelde",
     )
     mf6wrapper.initialize()
     mf6wrapper.prepare_time_step(0.0)
@@ -26,8 +29,6 @@ def test_mf6_set_river_stage(
     new_river_stage = NDArray[np.float_](15)
     new_river_stage[:] = range(15)
     mf6wrapper.set_river_stages(
-        "GWF_1",
-        "Oosterschelde",
         new_river_stage,
     )
 
@@ -48,6 +49,8 @@ def test_mf6_get_river_flux(
     mf6wrapper = Mf6Wrapper(
         lib_path=modflow_dll_devel,
         working_directory=tmp_path_dev,
+        mf6_flowmodel_key="GWF_1",
+        mf6_riv1_key="Oosterschelde",
     )
     mf6wrapper.initialize()
     mf6wrapper.prepare_time_step(0.0)
@@ -55,15 +58,10 @@ def test_mf6_get_river_flux(
     new_river_stage = NDArray[np.float_](15)
     new_river_stage[:] = range(15)
     mf6wrapper.set_river_stages(
-        "GWF_1",
-        "Oosterschelde",
         new_river_stage,
     )
 
-    q = mf6wrapper.get_river_flux(
-        "GWF_1",
-        "Oosterschelde",
-    )
+    q = mf6wrapper.get_river_flux()
 
     np.testing.assert_allclose(
         q,
