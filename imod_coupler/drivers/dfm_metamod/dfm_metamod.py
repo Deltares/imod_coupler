@@ -47,7 +47,7 @@ class DfmMetaMod(Driver):
     dfm: DfmWrapper  # the dflow-fm BMI kernel
 
     delt: float  # time step from MODFLOW 6 (leading)
-    msw_time: float  # MetaSWAP current time
+    # msw_time: float  # MetaSWAP current time -> niet nodig en wordt ook niet gebruikt!
 
     number_dflowsteps_per_modflowstep = (
         10  # should be replaced by msw.dtgw/msw.dtsw (maybe also set dtsw via coupler?)
@@ -168,7 +168,7 @@ class DfmMetaMod(Driver):
 
         # convergence loop modflow-metaswap
         self.mf6.prepare_solve(1)
-        for kiter in range(1, self.mf.max_iter() + 1):
+        for kiter in range(1, self.mf6.max_iter() + 1):
             has_converged = self.do_iter_mf_msw(1)
             if has_converged:
                 logger.debug(f"MF6-MSW converged in {kiter} iterations")
@@ -176,7 +176,7 @@ class DfmMetaMod(Driver):
         self.mf6.finalize_solve(1)
 
         self.mf6.finalize_time_step()
-        self.msw_time = self.mf6.get_current_time()
+        # self.msw_time = self.mf6.get_current_time() -> zie definitie
         self.msw.finalize_time_step()
 
     def finalize(self) -> None:

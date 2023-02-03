@@ -102,7 +102,6 @@ class Mf6Wrapper(XmiWrapper):
         )
         bound = self.get_value_ptr(bound_adress)
         bound[:, 0] = new_river_stages[:]
-        self.set_value(bound_adress, bound)
 
     def get_river_stages(self) -> NDArray[np.float_]:
         """returns the river stages of the modflow model
@@ -188,7 +187,7 @@ class Mf6Wrapper(XmiWrapper):
             the size of the provided flux array does not match the expected size
         """
         bound_adress = self.get_var_address(
-            "BOUND", self.mf6_flowmodel_key, self.mf6_riv1_key
+            "BOUND", self.mf6_flowmodel_key, self.mf6_riv1_correction_key
         )
         flux = self.get_value_ptr(bound_adress)
 
