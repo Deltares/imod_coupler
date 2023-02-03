@@ -4,7 +4,6 @@ from typing import List, Tuple
 
 import numpy as np
 import pandas as pd
-import pytest
 import pytest_cases
 import xarray as xr
 from hydrolib.core.dflowfm.bc.models import Astronomic, ForcingModel, QuantityUnitPair
@@ -24,16 +23,18 @@ from numpy.typing import NDArray
 from imod_coupler.utils import cd
 
 
-def grid_sizes() -> Tuple[
-    NDArray[float_],
-    NDArray[float_],
-    NDArray[int_],
-    float,
-    float,
-    NDArray[float_],
-]:
-    x = np.array([100.0, 200.0, 300.0, 400.0, 500.0])
-    y = np.array([300.0, 200.0, 100.0])
+def grid_sizes() -> (
+    Tuple[
+        List[float],
+        List[float],
+        NDArray[int_],
+        float,
+        float,
+        NDArray[float_],
+    ]
+):
+    x = [100.0, 200.0, 300.0, 400.0, 500.0]
+    y = [300.0, 200.0, 100.0]
     dz = np.array([0.2, 10.0, 100.0])
 
     layer = np.arange(len(dz)) + 1
@@ -161,11 +162,14 @@ def make_msw_model(idomain: xr.DataArray) -> msw.MetaSwapModel:
     times = get_times()
     unsaturated_database = "./unsat_database"
 
-    x, y, _, dx, dy, _ = grid_sizes()
+    x, y, layer, dx, dy, dz = grid_sizes()
     subunit = [0, 1]
 
     nrow = len(y)
     ncol = len(x)
+
+    top = 0.0
+    bottom = top - xr.DataArray(np.cumsum(dz), coords={"layer": layer}, dims="layer")
 
     # fmt: off
     relative_area = xr.DataArray(
@@ -245,9 +249,9 @@ def make_msw_model(idomain: xr.DataArray) -> msw.MetaSwapModel:
     well = create_wells(nrow, ncol, idomain)
 
     # Modflow 6
-    idomain = xr.full_like(msw_grid, 1, dtype=int).expand_dims(layer=[1, 2, 3])
+    idomain = xr.full_like(msw_grid, 1, dtype=int).expand_dims(layer=layer)
 
-    dis = mf6.StructuredDiscretization(top=1.0, bottom=0.0, idomain=idomain)
+    dis = mf6.StructuredDiscretization(idomain=idomain, top=top, bottom=bottom)
 
     # Initiate model
     msw_model = msw.MetaSwapModel(unsaturated_database=unsaturated_database)
@@ -372,7 +376,6 @@ def convert_storage_package(
     return gwf_model
 
 
-#%% Helper fixtures
 def make_idomain() -> xr.DataArray:
     x, y, layer, dx, dy, _ = grid_sizes()
 
@@ -405,7 +408,6 @@ def inactive_idomain() -> xr.DataArray:
     return idomain
 
 
-#%% Case fixtures
 @pytest_cases.fixture(scope="function")
 def coupled_mf6_model(active_idomain: xr.DataArray) -> mf6.Modflow6Simulation:
     return make_coupled_mf6_model(active_idomain)
@@ -426,9 +428,47 @@ def coupled_mf6_model_storage_coefficient(
 
 
 @pytest_cases.fixture(scope="function")
-def prepared_dflowfm_model(tmp_path_dev: Path) -> FMModel:
+def coupled_mf6_model_inactive(
+    inactive_idomain: xr.DataArray,
+) -> mf6.Modflow6Simulation:
+    """coupled mf6 model with an inactive cell"""
+    return make_coupled_mf6_model(inactive_idomain)
 
-    x, y, _, dx, dy, _ = grid_sizes()
+
+@pytest_cases.fixture(scope="function")
+def prepared_msw_model(
+    active_idomain: xr.DataArray,
+    metaswap_lookup_table: Path,
+) -> msw.MetaSwapModel:
+    msw_model = make_msw_model(active_idomain)
+    # Override unsat_svat_path with path from environment
+    msw_model.simulation_settings[
+        "unsa_svat_path"
+    ] = msw_model._render_unsaturated_database_path(metaswap_lookup_table)
+
+    return msw_model
+
+
+@pytest_cases.fixture(scope="function")
+def prepared_msw_model_inactive(
+    inactive_idomain: xr.DataArray,
+    metaswap_lookup_table: Path,
+) -> msw.MetaSwapModel:
+    msw_model = make_msw_model(inactive_idomain)
+    # Override unsat_svat_path with path from environment
+    msw_model.simulation_settings[
+        "unsa_svat_path"
+    ] = msw_model._render_unsaturated_database_path(metaswap_lookup_table)
+
+    return msw_model
+
+
+@pytest_cases.fixture(scope="function")
+def prepared_dflowfm_model(tmp_path_dev: Path) -> FMModel:
+    x_list, y_list, _, dx, dy, _ = grid_sizes()
+    x = np.array(x_list)
+    y = np.array(y_list)
+
     tmp_path_dev.mkdir()
 
     with cd(tmp_path_dev):
@@ -460,6 +500,7 @@ def prepared_dflowfm_model(tmp_path_dev: Path) -> FMModel:
             datafiletype=DataFileType.sample,
             interpolationmethod=InterpolationMethod.triangulation,
         )
+
         fm_model.geometry.inifieldfile = IniFieldModel(initial=[bed_level])
 
         # Create boundary
@@ -502,13 +543,12 @@ def prepared_dflowfm_model(tmp_path_dev: Path) -> FMModel:
 
 @pytest_cases.fixture(scope="function")
 def mf6_model_with_river(coupled_mf6_model) -> mf6.Modflow6Simulation:
-
     flow_model = coupled_mf6_model["GWF_1"]
     idomain = flow_model["dis"].dataset["idomain"]
     stage = xr.full_like(idomain.sel({"layer": 1}), dtype=np.floating, fill_value=3.1)
     conductance = xr.full_like(stage, 4.2)
     bottom_elevation = xr.full_like(stage, 0.3)
-    bottom_elevation[dict(x=2)] = -3
+    bottom_elevation[dict(x=2)] = -0.1
     river_package = mf6.River(stage, conductance, bottom_elevation)
     flow_model["Oosterschelde"] = river_package
     return coupled_mf6_model
@@ -527,7 +567,6 @@ def prepared_msw_model(
     active_idomain: xr.DataArray,
     metaswap_lookup_table: Path,
 ) -> msw.MetaSwapModel:
-
     msw_model = make_msw_model(active_idomain)
     # Override unsat_svat_path with path from environment
     msw_model.simulation_settings[
@@ -542,7 +581,6 @@ def prepared_msw_model_inactive(
     inactive_idomain: xr.DataArray,
     metaswap_lookup_table: Path,
 ) -> msw.MetaSwapModel:
-
     msw_model = make_msw_model(inactive_idomain)
     # Override unsat_svat_path with path from environment
     msw_model.simulation_settings[

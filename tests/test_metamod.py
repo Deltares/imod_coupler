@@ -44,6 +44,29 @@ def test_metamod_write_failure(
         )
 
 
+@parametrize_with_cases("metamod_model", prefix="fail_write_")
+def test_metamod_write_failure(
+    tmp_path_dev: Path,
+    metamod_model: MetaMod,
+    metaswap_dll_devel: Path,
+    metaswap_dll_dep_dir_devel: Path,
+    modflow_dll_devel: Path,
+) -> None:
+    """
+    Test if iMOD Python throws a error during writing coupled models that
+    shouldn't work.
+    """
+
+    # FUTURE: This might change to ValidationError
+    with pytest.raises(ValueError):
+        metamod_model.write(
+            tmp_path_dev,
+            modflow6_dll=modflow_dll_devel,
+            metaswap_dll=metaswap_dll_devel,
+            metaswap_dll_dependency=metaswap_dll_dep_dir_devel,
+        )
+
+
 @parametrize_with_cases("metamod_model", prefix="fail_run_")
 def test_metamod_run_failure(
     tmp_path_dev: Path,
@@ -62,6 +85,7 @@ def test_metamod_run_failure(
         modflow6_dll=modflow_dll_devel,
         metaswap_dll=metaswap_dll_devel,
         metaswap_dll_dependency=metaswap_dll_dep_dir_devel,
+        modflow6_write_kwargs={"validate": False},  # Turn off validation
     )
 
     with pytest.raises(subprocess.CalledProcessError):
