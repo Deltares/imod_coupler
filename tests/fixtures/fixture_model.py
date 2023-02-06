@@ -552,39 +552,3 @@ def mf6_model_with_river(coupled_mf6_model) -> mf6.Modflow6Simulation:
     river_package = mf6.River(stage, conductance, bottom_elevation)
     flow_model["Oosterschelde"] = river_package
     return coupled_mf6_model
-
-
-@pytest_cases.fixture(scope="function")
-def coupled_mf6_model_inactive(
-    inactive_idomain: xr.DataArray,
-) -> mf6.Modflow6Simulation:
-    """coupled mf6 model with an inactive cell"""
-    return make_coupled_mf6_model(inactive_idomain)
-
-
-@pytest_cases.fixture(scope="function")
-def prepared_msw_model(
-    active_idomain: xr.DataArray,
-    metaswap_lookup_table: Path,
-) -> msw.MetaSwapModel:
-    msw_model = make_msw_model(active_idomain)
-    # Override unsat_svat_path with path from environment
-    msw_model.simulation_settings[
-        "unsa_svat_path"
-    ] = msw_model._render_unsaturated_database_path(metaswap_lookup_table)
-
-    return msw_model
-
-
-@pytest_cases.fixture(scope="function")
-def prepared_msw_model_inactive(
-    inactive_idomain: xr.DataArray,
-    metaswap_lookup_table: Path,
-) -> msw.MetaSwapModel:
-    msw_model = make_msw_model(inactive_idomain)
-    # Override unsat_svat_path with path from environment
-    msw_model.simulation_settings[
-        "unsa_svat_path"
-    ] = msw_model._render_unsaturated_database_path(metaswap_lookup_table)
-
-    return msw_model

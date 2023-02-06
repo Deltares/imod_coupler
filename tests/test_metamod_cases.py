@@ -89,22 +89,6 @@ def fail_write_inactive_cell(
 
 
 def fail_run_msw_input(
-    prepared_msw_model: MetaSwapModel,
-) -> MetaMod:
-    """
-    Force an error by having an active MetaSWAP cell in an inactive Modflow 6
-    cell during writing.
-    """
-
-    return MetaMod(
-        prepared_msw_model,
-        coupled_mf6_model_inactive,
-        mf6_rch_pkgkey="rch_msw",
-        mf6_wel_pkgkey="wells_msw",
-    )
-
-
-def fail_run_msw_input(
     coupled_mf6_model: Modflow6Simulation,
     prepared_msw_model: MetaSwapModel,
 ) -> MetaMod:

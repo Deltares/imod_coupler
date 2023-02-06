@@ -21,27 +21,61 @@ def test_lookup_table_present(metaswap_lookup_table: Path) -> None:
     assert metaswap_lookup_table.is_dir()
 
 
-@parametrize_with_cases("metamod_model", prefix="fail_write_")
-def test_metamod_write_failure(
-    tmp_path_dev: Path,
-    metamod_model: MetaMod,
-    metaswap_dll_devel: Path,
-    metaswap_dll_dep_dir_devel: Path,
-    modflow_dll_devel: Path,
-) -> None:
-    """
-    Test if iMOD Python throws a error during writing coupled models that
-    shouldn't work.
-    """
+def test_metaswap_dll_devel_present(modflow_dll_devel: Path) -> None:
+    assert modflow_dll_devel.is_file()
 
-    # FUTURE: This might change to ValidationError
-    with pytest.raises(ValueError):
-        metamod_model.write(
-            tmp_path_dev,
-            modflow6_dll=modflow_dll_devel,
-            metaswap_dll=metaswap_dll_devel,
-            metaswap_dll_dependency=metaswap_dll_dep_dir_devel,
-        )
+
+def test_metaswap_dll_regression_present(modflow_dll_regression: Path) -> None:
+    assert modflow_dll_regression.is_file()
+
+
+def test_modflow_dll_devel_present(modflow_dll_devel: Path) -> None:
+    assert modflow_dll_devel.is_file()
+
+
+def test_modflow_dll_regression_present(modflow_dll_regression: Path) -> None:
+    assert modflow_dll_regression.is_file()
+
+
+def test_metaswap_dll_dep_dir_devel_contains_dependencies(
+    metaswap_dll_dep_dir_devel: Path,
+) -> None:
+    dep_dir_content = os.listdir(metaswap_dll_dep_dir_devel)
+    expected_dependencies = (
+        "fmpich2.dll",
+        "mpich2mpi.dll",
+        "mpich2nemesis.dll",
+        "TRANSOL.dll",
+    )
+
+    for dependency in expected_dependencies:
+        assert dependency in dep_dir_content
+
+
+def test_metaswap_dll_dep_dir_regression_contains_dependencies(
+    metaswap_dll_dep_dir_regression: Path,
+) -> None:
+    dep_dir_content = os.listdir(metaswap_dll_dep_dir_regression)
+    expected_dependencies = (
+        "fmpich2.dll",
+        "mpich2mpi.dll",
+        "mpich2nemesis.dll",
+        "TRANSOL.dll",
+    )
+
+    for dependency in expected_dependencies:
+        assert dependency in dep_dir_content
+
+
+def mf6_output_files(path: Path) -> Tuple[Path, Path, Path]:
+    """return paths to Modflow 6 output files"""
+    path_mf6 = path / "Modflow6" / "GWF_1"
+
+    return path_mf6 / "GWF_1.hds", path_mf6 / "GWF_1.cbc", path_mf6 / "dis.dis.grb"
+
+
+def test_lookup_table_present(metaswap_lookup_table: Path) -> None:
+    assert metaswap_lookup_table.is_dir()
 
 
 @parametrize_with_cases("metamod_model", prefix="fail_write_")
