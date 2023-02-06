@@ -67,17 +67,6 @@ def test_metaswap_dll_dep_dir_regression_contains_dependencies(
         assert dependency in dep_dir_content
 
 
-def mf6_output_files(path: Path) -> Tuple[Path, Path, Path]:
-    """return paths to Modflow 6 output files"""
-    path_mf6 = path / "Modflow6" / "GWF_1"
-
-    return path_mf6 / "GWF_1.hds", path_mf6 / "GWF_1.cbc", path_mf6 / "dis.dis.grb"
-
-
-def test_lookup_table_present(metaswap_lookup_table: Path) -> None:
-    assert metaswap_lookup_table.is_dir()
-
-
 @parametrize_with_cases("metamod_model", prefix="fail_write_")
 def test_metamod_write_failure(
     tmp_path_dev: Path,
