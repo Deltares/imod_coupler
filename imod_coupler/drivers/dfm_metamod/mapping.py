@@ -43,7 +43,6 @@ class Mapping:
         mf_conversion_matrix (NDArray[np.float_])
             the area conversion matrix to be used between the exchange from msw to mf6
 
-
         Returns:
             tuple[dict[str, csr_matrix], dict[str, NDArray[int_]]]: dicts with mapping and masks for exchange types
         """
