@@ -193,6 +193,7 @@ class DfmMetaMod(Driver):
         self.max_iter = self.mf6.get_value_ptr(mf6_max_iter_tag)[0]
 
         self.msw_head = self.msw.get_value_ptr("dhgwmod")
+
         self.msw_volume = self.msw.get_value_ptr("dvsim")
         self.msw_storage = self.msw.get_value_ptr("dsc1sim")
 
