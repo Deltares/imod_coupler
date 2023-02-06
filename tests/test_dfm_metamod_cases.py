@@ -17,7 +17,6 @@ def case_with_river(
     prepared_msw_model: MetaSwapModel,
     prepared_dflowfm_model: FMModel,
 ) -> DfmMetaModModel:
-
     with_river = DfmMetaModModel(
         prepared_msw_model,
         mf6_model_with_river,

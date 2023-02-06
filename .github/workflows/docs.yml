@@ -5,7 +5,7 @@ on:
     branches: [main]
 
 jobs:
-  check:
+  publish:
     runs-on: ubuntu-latest
     defaults:
       run:

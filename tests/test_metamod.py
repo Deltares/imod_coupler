@@ -62,6 +62,7 @@ def test_metamod_run_failure(
         modflow6_dll=modflow_dll_devel,
         metaswap_dll=metaswap_dll_devel,
         metaswap_dll_dependency=metaswap_dll_dep_dir_devel,
+        modflow6_write_kwargs={"validate": False},  # Turn off validation
     )
 
     with pytest.raises(subprocess.CalledProcessError):

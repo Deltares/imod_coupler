@@ -7,7 +7,6 @@ def case_sprinkling(
     coupled_mf6_model: Modflow6Simulation,
     prepared_msw_model: MetaSwapModel,
 ) -> MetaMod:
-
     return MetaMod(
         prepared_msw_model,
         coupled_mf6_model,

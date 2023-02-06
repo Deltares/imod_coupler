@@ -192,7 +192,6 @@ def mapping_msw_dflow1d(
     dflow1d_lookup: dict[tuple[float, float], int],
     msw_sprinkling_flux: Optional[NDArray[float_]] = None,
 ) -> tuple[dict[str, csr_matrix], dict[str, NDArray[int_]]]:
-
     """
     function creates dictionary with mapping tables for mapping MSW -> dflow1d
     mapping includes MSW 1D coupling:
