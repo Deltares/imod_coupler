@@ -47,20 +47,6 @@ def write_toml(
         tomli_w.dump(coupler_toml, f)
 
 
-def fill_para_sim_template(msw_folder, path_unsat_dbase):
-    """
-    Fill para_sim.inp template in the folder with the path to the unsaturated
-    zone database.
-    """
-    with open(msw_folder / "para_sim_template.inp") as f:
-        para_sim_text = f.read()
-
-    para_sim_text = para_sim_text.replace("{{unsat_path}}", f"{path_unsat_dbase}\\")
-
-    with open(msw_folder / "para_sim.inp", mode="w") as f:
-        f.write(para_sim_text)
-
-
 def total_flux_error(q_test, q_ref):
     """
     Computes total relative flux error compared to a reference flux.
