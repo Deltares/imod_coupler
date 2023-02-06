@@ -161,8 +161,8 @@ def mapping_passive_mf_dflow1d(
     ) = create_mapping(
         mf_idx,
         dflow_idx,
-        max(mf_idx) + 1,
-        max(dflow_idx) + 1,
+        len(mf_idx),
+        len(dflow1d_lookup),
         Operator.SUM,
     )
     # MF DRN -> DFLOW 1D (flux)
@@ -179,8 +179,8 @@ def mapping_passive_mf_dflow1d(
     ) = create_mapping(
         mf_idx,
         dflow_idx,
-        max(mf_idx) + 1,
-        max(dflow_idx) + 1,
+        len(mf_idx),
+        len(dflow1d_lookup),
         Operator.SUM,
     )
     return map_passive_mod_dflow1d, mask_passive_mod_dflow1d
