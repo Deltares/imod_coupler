@@ -1,64 +1,35 @@
 import errno
 import os
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Type
 
 import numpy as np
 from numpy import float_, int_
 from numpy.typing import NDArray
+from pydantic import BaseModel
 from scipy.sparse import csr_matrix, dia_matrix, diags
+from xmipy import XmiWrapper
 
+from imod_coupler.drivers.dfm_metamod.config import Coupling
 from imod_coupler.utils import Operator, create_mapping
 
 
 class Mapping:
-    def __init__(self, coupling: Any, mf6_wrapper: Any, msw_wrapper: Any) -> None:
+    def __init__(
+        self,
+        coupling: Type[Coupling],
+        msw_working_directory: Path,
+        array_dims: dict[str, int],
+    ) -> None:
         self.coupling = coupling
-        self.mf6 = mf6_wrapper
-        self.msw = msw_wrapper
+        self.msw_working_directory = msw_working_directory
+        self.array_dims = array_dims
         self.get_svat_lookup()
         self.get_dflow1d_lookup()
-        self.get_array_dims()
-        self.mf6_storage_conversion_term()
 
-    def get_array_dims(self) -> None:
-        array_dims = {
-            "msw_storage": self.msw.storage().size,
-            "msw_head": self.msw.head().size,
-            "msw_volume": self.msw.volume().size,
-            "mf6_storage": self.mf6.storage().size,
-            "mf6_head": self.mf6.head().size,
-            "mf6_recharge": self.mf6.recharge().size,
-        }
-        if self.coupling.enable_sprinkling:
-            array_dims["mf6_sprinkling_wells"] = self.mf6.get_sprinkling().size
-        self.array_dims = array_dims
-
-    def mf6_storage_conversion_term(self) -> None:
-        """calculated storage conversion terms to use for exchange from metaswap to mf6
-
-        Args:
-        none
-
-        Returns:
-            conversion_matrix (NDArray[float_]): array with conversion terms
-        """
-
-        if self.mf6.has_sc1():
-            conversion_terms = 1.0 / self.mf6.area()
-        else:
-            conversion_terms = 1.0 / (
-                self.mf6.area() * (self.mf6.top() - self.mf6.bot())
-            )
-
-        conversion_matrix = dia_matrix(
-            (conversion_terms, [0]),
-            shape=(self.mf6.area().size, self.mf6.area().size),
-            dtype=float,
-        )
-        self.conversion_matrix = conversion_matrix
-
-    def mapping_mf_msw(self) -> tuple[dict[str, csr_matrix], dict[str, NDArray[int_]]]:
+    def mapping_mf_msw(
+        self, mf6_conversion_matrix: NDArray[np.float_]
+    ) -> tuple[dict[str, csr_matrix], dict[str, NDArray[int_]]]:
         """function creates dictionary with mapping tables for mapping arrays between modflow6 and metaswap and dflow1d
         (both ways).
 
@@ -69,7 +40,9 @@ class Mapping:
             #   3 sprinkling:   msw <- mf6
 
         Args:
-        None
+        mf_conversion_matrix (NDArray[np.float_])
+            the area conversion matrix to be used between the exchange from msw to mf6
+
 
         Returns:
             tuple[dict[str, csr_matrix], dict[str, NDArray[int_]]]: dicts with mapping and masks for exchange types
@@ -101,7 +74,7 @@ class Mapping:
         # STORAGECOEFFICIENT option in the STO package, only the multiplication
         # by area needs to be undone
         map_mf_msw["msw2mf_storage"] = (
-            self.conversion_matrix * map_mf_msw["msw2mf_storage"]
+            mf6_conversion_matrix * map_mf_msw["msw2mf_storage"]
         )
 
         # head exchange from mf6 to msw
@@ -560,7 +533,7 @@ class Mapping:
         """
 
         svat_lookup = {}
-        msw_mod2svat_file = self.msw.working_directory / "mod2svat.inp"
+        msw_mod2svat_file = self.msw_working_directory / "mod2svat.inp"
         if msw_mod2svat_file.is_file():
             svat_data: NDArray[np.int32] = np.loadtxt(
                 msw_mod2svat_file, dtype=np.int32, ndmin=2

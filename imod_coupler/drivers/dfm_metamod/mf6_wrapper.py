@@ -13,53 +13,45 @@ class Mf6Wrapper(XmiWrapper):
         lib_dependency: Union[str, Path, None] = None,
         working_directory: Union[str, Path, None] = None,
         timing: bool = False,
-        mf6_flowmodel_key: str = None,
-        mf6_riv1_key: str = None,
-        mf6_wel_correction_key: str = None,
-        mf6_msw_recharge_pkg: str = None,
     ):
         super().__init__(lib_path, lib_dependency, working_directory, timing)
-        self.mf6_flowmodel_key = mf6_flowmodel_key
-        self.mf6_riv1_key = mf6_riv1_key
-        self.mf6_riv1_correction_key = mf6_wel_correction_key
-        self.mf6_msw_recharge_pkg = mf6_msw_recharge_pkg
 
-    def head(self) -> NDArray[np.float_]:
-        mf6_head_tag = self.get_var_address("X", self.mf6_flowmodel_key)
+    def get_head(self, mf6_flowmodel_key: str) -> NDArray[np.float_]:
+        mf6_head_tag = self.get_var_address("X", mf6_flowmodel_key)
         mf6_head = self.get_value_ptr(mf6_head_tag)
         return mf6_head
 
-    def recharge(self) -> NDArray[np.float_]:
+    def get_recharge(
+        self, mf6_flowmodel_key: str, mf6_msw_recharge_pkg: str
+    ) -> NDArray[np.float_]:
         mf6_recharge_tag = self.get_var_address(
-            "BOUND", self.mf6_flowmodel_key, self.mf6_msw_recharge_pkg
+            "BOUND", mf6_flowmodel_key, mf6_msw_recharge_pkg
         )
         mf6_recharge = self.get_value_ptr(mf6_recharge_tag)[:, 0]
         return mf6_recharge
 
-    def storage(self) -> NDArray[np.float_]:
-        mf6_storage_tag = self.get_var_address("SS", self.mf6_flowmodel_key, "STO")
+    def get_storage(self, mf6_flowmodel_key: str) -> NDArray[np.float_]:
+        mf6_storage_tag = self.get_var_address("SS", mf6_flowmodel_key, "STO")
         mf6_storage = self.get_value_ptr(mf6_storage_tag)
         return mf6_storage
 
-    def has_sc1(self) -> bool:
-        mf6_is_sc1_tag = self.get_var_address(
-            "ISTOR_COEF", self.mf6_flowmodel_key, "STO"
-        )
+    def has_sc1(self, mf6_flowmodel_key: str) -> bool:
+        mf6_is_sc1_tag = self.get_var_address("ISTOR_COEF", mf6_flowmodel_key, "STO")
         mf6_has_sc1 = bool(self.get_value_ptr(mf6_is_sc1_tag)[0] != 0)
         return mf6_has_sc1
 
-    def area(self) -> NDArray[np.float_]:
-        mf6_area_tag = self.get_var_address("AREA", self.mf6_flowmodel_key, "DIS")
+    def get_area(self, mf6_flowmodel_key: str) -> NDArray[np.float_]:
+        mf6_area_tag = self.get_var_address("AREA", mf6_flowmodel_key, "DIS")
         mf6_area = self.get_value_ptr(mf6_area_tag)
         return mf6_area
 
-    def top(self) -> NDArray[np.float_]:
-        mf6_top_tag = self.get_var_address("TOP", self.mf6_flowmodel_key, "DIS")
+    def get_top(self, mf6_flowmodel_key: str) -> NDArray[np.float_]:
+        mf6_top_tag = self.get_var_address("TOP", mf6_flowmodel_key, "DIS")
         mf6_top = self.get_value_ptr(mf6_top_tag)
         return mf6_top
 
-    def bot(self) -> NDArray[np.float_]:
-        mf6_bot_tag = self.get_var_address("BOT", self.mf6_flowmodel_key, "DIS")
+    def get_bot(self, mf6_flowmodel_key: str) -> NDArray[np.float_]:
+        mf6_bot_tag = self.get_var_address("BOT", mf6_flowmodel_key, "DIS")
         mf6_bot = self.get_value_ptr(mf6_bot_tag)
         return mf6_bot
 
@@ -68,18 +60,21 @@ class Mf6Wrapper(XmiWrapper):
         mf6_max_iter = self.get_value_ptr(mf6_max_iter_tag)[0]
         return mf6_max_iter
 
-    def sprinkling(
+    def get_sprinkling(
         self,
+        mf6_flowmodel_key: str,
         mf6_package_key: str,
     ) -> NDArray[np.float_]:
         mf6_sprinkling_tag = self.mf6.get_var_address(
-            "BOUND", self.mf6_flowmodel_key, mf6_package_key
+            "BOUND", mf6_flowmodel_key, mf6_package_key
         )
         mf6_sprinkling_wells = self.get_value_ptr(mf6_sprinkling_tag)[:, 0]
         return mf6_sprinkling_wells
 
     def set_river_stages(
         self,
+        mf6_flowmodel_key: str,
+        mf6_package_key: str,
         new_river_stages: Optional[NDArray[np.float_]],
     ) -> None:
         """
@@ -96,16 +91,18 @@ class Mf6Wrapper(XmiWrapper):
         ValueError
             the size of the provided stage array does not match the expected size
         """
-        stage = self.get_river_stages()
+        stage = self.get_river_stages(mf6_flowmodel_key, mf6_package_key)
         if new_river_stages is None or len(new_river_stages) != len(stage):
             raise ValueError(f"Expected size of new_river_stages is {len(stage)}")
-        bound_adress = self.get_var_address(
-            "BOUND", self.mf6_flowmodel_key, self.mf6_riv1_key
-        )
+        bound_adress = self.get_var_address("BOUND", mf6_flowmodel_key, mf6_package_key)
         bound = self.get_value_ptr(bound_adress)
         bound[:, 0] = new_river_stages[:]
 
-    def get_river_stages(self) -> NDArray[np.float_]:
+    def get_river_stages(
+        self,
+        mf6_flowmodel_key: str,
+        mf6_package_key: str,
+    ) -> NDArray[np.float64]:
         """returns the river stages of the modflow model
 
         Parameters
@@ -120,14 +117,16 @@ class Mf6Wrapper(XmiWrapper):
          NDArray[np.float_]:
             stages of the rivers in modflow
         """
-        bound_adress = self.get_var_address(
-            "BOUND", self.mf6_flowmodel_key, self.mf6_riv1_key
-        )
+        bound_adress = self.get_var_address("BOUND", mf6_flowmodel_key, mf6_package_key)
         bound = self.get_value_ptr(bound_adress)
         stage = bound[:, 0]
         return stage
 
-    def get_river_flux(self) -> NDArray[np.float_]:
+    def get_river_flux(
+        self,
+        mf6_flowmodel_key: str,
+        mf6_package_key: str,
+    ) -> NDArray[np.float_]:
         """
         returns the river fluxes consistent with current river head, river stage and conductance.
         a simple linear model is used: flux = conductance * (stage - max(head, bot))
@@ -146,15 +145,13 @@ class Mf6Wrapper(XmiWrapper):
             flux (array size = nr of river nodes)
             sign is positive for infiltration
         """
-        bound_adress = self.get_var_address(
-            "BOUND", self.mf6_flowmodel_key, self.mf6_riv1_key
-        )
+        bound_adress = self.get_var_address("BOUND", mf6_flowmodel_key, mf6_package_key)
         bound = self.get_value_ptr(bound_adress)
 
-        head_adress = self.get_var_address("X", self.mf6_flowmodel_key)
+        head_adress = self.get_var_address("X", mf6_flowmodel_key)
         head = self.get_value_ptr(head_adress)
         nodelist_adress = self.get_var_address(
-            "NODELIST", self.mf6_flowmodel_key, self.mf6_riv1_key
+            "NODELIST", mf6_flowmodel_key, mf6_package_key
         )
         nodelist = self.get_value_ptr(nodelist_adress)
 
@@ -168,6 +165,8 @@ class Mf6Wrapper(XmiWrapper):
 
     def set_correction_flux(
         self,
+        mf6_flowmodel_key: str,
+        mf6_package_key: str,
         correction_flux: Optional[NDArray[np.float_]],
     ) -> None:
         """
@@ -188,9 +187,7 @@ class Mf6Wrapper(XmiWrapper):
         ValueError
             the size of the provided flux array does not match the expected size
         """
-        bound_adress = self.get_var_address(
-            "BOUND", self.mf6_flowmodel_key, self.mf6_riv1_correction_key
-        )
+        bound_adress = self.get_var_address("BOUND", mf6_flowmodel_key, mf6_package_key)
         flux = self.get_value_ptr(bound_adress)
 
         if correction_flux is None or len(correction_flux) != len(flux):

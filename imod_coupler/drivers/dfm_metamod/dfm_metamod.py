@@ -25,13 +25,6 @@ from imod_coupler.drivers.dfm_metamod.msw_wrapper import MswWrapper
 from imod_coupler.drivers.driver import Driver
 from imod_coupler.utils import Operator, create_mapping
 
-# from imod_coupler.drivers.dfm_metamod.mapping_functions import (
-#     calc_correction,
-#     get_dflow1d_lookup,
-#     get_svat_lookup,
-#     mapping_active_mf_dflow1d,
-# )
-
 
 class DfmMetaMod(Driver):
     """The driver coupling DFLOW-FM, MetaSWAP and MODFLOW 6"""
@@ -43,7 +36,7 @@ class DfmMetaMod(Driver):
 
     timing: bool  # true, when timing is enabled
     mf6: Mf6Wrapper  # the MODFLOW 6 XMI kernel
-    msw: XmiWrapper  # the MetaSWAP XMI kernel
+    msw: MswWrapper  # the MetaSWAP XMI kernel
     dfm: DfmWrapper  # the dflow-fm BMI kernel
 
     delt: float  # time step from MODFLOW 6 (leading)
@@ -87,10 +80,6 @@ class DfmMetaMod(Driver):
             self.dfm_metamod_config.kernels.modflow6.dll_dep_dir,
             self.dfm_metamod_config.kernels.modflow6.work_dir,
             self.base_config.timing,
-            self.coupling.mf6_model,
-            self.coupling.mf6_river_pkg,
-            self.coupling.mf6_wel_correction_pkg,
-            self.coupling.mf6_msw_recharge_pkg,
         )
         self.msw = MswWrapper(
             self.dfm_metamod_config.kernels.metaswap.dll,
@@ -117,7 +106,10 @@ class DfmMetaMod(Driver):
         self.mf6.initialize()
         self.msw.initialize()
         self.dfm.initialize()
-        self.mapping = Mapping(self.coupling, self.mf6, self.msw)
+        self.get_array_dims()
+        self.mapping = Mapping(
+            self.coupling, self.msw.working_directory, self.array_dims
+        )
         self.set_mapping()
         self.log_version()
 
@@ -127,7 +119,10 @@ class DfmMetaMod(Driver):
         logger.info(f"Dflow FM version: version fetching not implemented in BMI")
 
     def set_mapping(self) -> None:
-        self.map_mod_msw, self.mask_mod_msw = self.mapping.mapping_mf_msw()
+        storage_conversion = self.mf6_storage_conversion_term()
+        self.map_mod_msw, self.mask_mod_msw = self.mapping.mapping_mf_msw(
+            storage_conversion
+        )
         (
             self.map_active_mod_dflow1d,
             self.mask_active_mod_dflow1d,
@@ -193,6 +188,54 @@ class DfmMetaMod(Driver):
     def get_end_time(self) -> float:
         return self.mf6.get_end_time()
 
+    def get_array_dims(self) -> dict(tuple(str, int)):
+        array_dims = {
+            "msw_storage": self.msw.get_storage().size,
+            "msw_head": self.msw.get_head().size,
+            "msw_volume": self.msw.get_volume().size,
+            "mf6_storage": self.mf6.get_storage(self.coupling.mf6_model).size,
+            "mf6_head": self.mf6.get_head(self.coupling.mf6_model).size,
+            "mf6_recharge": self.mf6.get_recharge(
+                self.coupling.mf6_model, self.coupling.mf6_msw_recharge_pkg
+            ).size,
+        }
+        if self.coupling.enable_sprinkling:
+            array_dims["mf6_sprinkling_wells"] = self.mf6.get_sprinkling(
+                self.coupling.mf6_model, self.coupling.mf6_msw_well_pkg
+            ).size
+        self.array_dims = array_dims
+
+    def mf6_storage_conversion_term(self) -> NDArray[np.float_]:
+        """calculated storage conversion terms to use for exchange from metaswap to mf6
+
+        Args:
+        none
+
+        Returns:
+            conversion_matrix (NDArray[float_]): array with conversion terms
+        """
+
+        if self.mf6.has_sc1(self.coupling.mf6_model):
+            conversion_terms = 1.0 / self.mf6.get_area(self.coupling.mf6_model)
+        else:
+            conversion_terms = 1.0 / (
+                self.mf6.get_area(self.coupling.mf6_model)
+                * (
+                    self.mf6.get_top(self.coupling.mf6_model)
+                    - self.mf6.get_bot(self.coupling.mf6_model)
+                )
+            )
+
+        conversion_matrix = dia_matrix(
+            (conversion_terms, [0]),
+            shape=(
+                self.mf6.get_area(self.coupling.mf6_model).size,
+                self.mf6.get_area(self.coupling.mf6_model).size,
+            ),
+            dtype=float,
+        )
+        return conversion_matrix
+
     def exchange_stage_1d_dfm2mf6(self) -> None:
         """
         From DFM to MF6.
@@ -202,7 +245,9 @@ class DfmMetaMod(Driver):
         DFM unit: ?
         """
         dfm_water_levels = self.dfm.get_waterlevels_1d()
-        mf6_river_stage = self.mf6.get_river_stages()
+        mf6_river_stage = self.mf6.get_river_stages(
+            self.coupling.mf6_model, self.coupling.mf6_river_pkg
+        )
 
         updated_river_stage = (
             self.mask_active_mod_dflow1d["dflow1d2mf-riv_stage"][:] * mf6_river_stage[:]
@@ -211,7 +256,9 @@ class DfmMetaMod(Driver):
             ]
         )
 
-        self.mf6.set_river_stages(updated_river_stage)
+        self.mf6.set_river_stages(
+            self.coupling.mf6_model, self.coupling.mf6_river_pkg, updated_river_stage
+        )
 
     def exchange_flux_1d_mf62dfm(self) -> None:
         """
@@ -223,7 +270,9 @@ class DfmMetaMod(Driver):
         MF6 unit: ?
         DFM unit: ?
         """
-        mf6_river_aquifer_flux = self.mf6.get_river_flux()
+        mf6_river_aquifer_flux = self.mf6.get_river_flux(
+            self.coupling.mf6_model, self.coupling.mf6_river_pkg
+        )
         dflow1d_flux_receive = self.dfm.get_1d_river_fluxes()
         if dflow1d_flux_receive is None:
             raise ValueError("dflow 1d river flux not found")
@@ -251,7 +300,9 @@ class DfmMetaMod(Driver):
         the drainage/inflitration flux to the 1d rivers as realised by DFM is passed to
         mf6 as a correction
         """
-        qmf6 = self.mf6.get_river_flux()  # originally sent by modflow
+        qmf6 = self.mf6.get_river_flux(
+            self.coupling.mf6_model, self.coupling.mf6_river_pkg
+        )  # originally sent by modflow
         dflow1d_flux_receive = self.dfm.get_1d_river_fluxes()
         if dflow1d_flux_receive is None:
             raise ValueError("dflow 1d river flux not found")
@@ -264,7 +315,9 @@ class DfmMetaMod(Driver):
         )
 
         assert self.coupling.mf6_msw_well_pkg
-        self.mf6.set_correction_flux(qmf_corr)
+        self.mf6.set_correction_flux(
+            self.coupling.mf6_model, self.coupling.mf6_wel_correction_pkg, qmf_corr
+        )
 
     def exchange_msw2mod(self) -> None:
         """
@@ -275,24 +328,35 @@ class DfmMetaMod(Driver):
         3- Sprinkling request from MetaSWAP to MF6
 
         """
-        self.mf6.storage()[:] = (
-            self.mask_mod_msw["msw2mf_storage"][:] * self.mf6.storage()[:]
-            + self.map_mod_msw["msw2mf_storage"].dot(self.msw.storage())[:]
+
+        self.mf6.get_storage(self.coupling.mf6_model)[:] = (
+            self.mask_mod_msw["msw2mf_storage"][:]
+            * self.mf6.get_storage(self.coupling.mf6_model)[:]
+            + self.map_mod_msw["msw2mf_storage"].dot(self.msw.get_storage())[:]
         )
 
         # Divide recharge and extraction by delta time
         tled = 1 / self.delt
-        self.mf6.recharge()[:] = (
-            self.mask_mod_msw["msw2mod_recharge"][:] * self.mf6.recharge()[:]
-            + tled * self.map_mod_msw["msw2mod_recharge"].dot(self.msw.volume())[:]
+        self.mf6.get_recharge(
+            self.coupling.mf6_model, self.coupling.mf6_msw_recharge_pkg
+        )[:] = (
+            self.mask_mod_msw["msw2mod_recharge"][:]
+            * self.mf6.get_recharge(
+                self.coupling.mf6_model, self.coupling.mf6_msw_recharge_pkg
+            )[:]
+            + tled * self.map_mod_msw["msw2mod_recharge"].dot(self.msw.get_volume())[:]
         )
 
         if self.coupling.enable_sprinkling:
-            self.mf6.sprinkling_wells()[:] = (
+            self.mf6.get_sprinkling(
+                self.coupling.mf6_model, self.coupling.mf6_msw_well_pkg
+            )[:] = (
                 self.mask_mod_msw["msw2mf6_sprinkling"][:]
-                * self.mf6.sprinkling_wells()[:]
+                * self.mf6.get_sprinkling(
+                    self.coupling.mf6_model, self.coupling.mf6_msw_well_pkg
+                )[:]
                 + tled
-                * self.map_mod_msw["msw2mf6_sprinkling"].dot(self.msw.volume())[:]
+                * self.map_mod_msw["msw2mf6_sprinkling"].dot(self.msw.get_volume())[:]
             )
 
     def exchange_mod2msw(self) -> None:
@@ -301,9 +365,11 @@ class DfmMetaMod(Driver):
 
         1- Exchange of head from MF6 to MetaSWAP
         """
-        self.msw.head()[:] = (
-            self.mask_mod_msw["mod2msw_head"][:] * self.msw.head()[:]
-            + self.map_mod_msw["mod2msw_head"].dot(self.mf6.head())[:]
+        self.msw.get_head()[:] = (
+            self.mask_mod_msw["mod2msw_head"][:] * self.msw.get_head()[:]
+            + self.map_mod_msw["mod2msw_head"].dot(
+                self.mf6.get_head(self.coupling.mf6_model)
+            )[:]
         )
 
     def report_timing_totals(self) -> None:

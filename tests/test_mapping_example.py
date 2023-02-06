@@ -16,11 +16,6 @@ from imod_coupler.drivers.dfm_metamod.mapping import (
 )
 from imod_coupler.utils import Operator, create_mapping
 
-
-def create_mapper():
-    return Mapping()
-
-
 def test_mappers_general(
     dflow1d_mapping_file,
     mapping_file_mf6_river_to_dfm_1d_q,
