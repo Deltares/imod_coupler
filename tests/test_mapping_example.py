@@ -1,4 +1,4 @@
-#%%
+# %%
 """
 from math import isclose
 from pathlib import Path
@@ -21,7 +21,6 @@ def test_mappers_general(
     mapping_file_mf6_river_to_dfm_1d_q,
     mapping_file_dfm_1d_waterlevel_to_mf6_river_stage,
 ) -> None:
-
     # Test exchange MF-DFLOW1D
     # create dummy arrays to exchange
 

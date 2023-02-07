@@ -39,7 +39,6 @@ def test_xmi_wrapper_can_be_initialized_and_finalized_multiple_times(
     modflow_dll_regression: Path,
     tmp_path_dev: Path,
 ) -> None:
-
     mf6_model_with_river.write(tmp_path_dev)
     mf6wrapper = XmiWrapper(
         lib_path=modflow_dll_regression,

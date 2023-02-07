@@ -129,7 +129,6 @@ class DfmMetaMod(Driver):
         ) = self.mapping.mapping_active_mf_dflow1d()
 
     def update(self) -> None:
-
         # heads from modflow to MetaSWAP
         self.exchange_mod2msw()
 

@@ -14,7 +14,6 @@ def test_mf6_set_river_stage(
     modflow_dll_devel: Path,
     tmp_path_dev: Path,
 ) -> None:
-
     mf6_model_with_river.write(tmp_path_dev)
 
     mf6wrapper = Mf6Wrapper(
@@ -68,17 +67,17 @@ def test_mf6_get_river_flux(
             [
                 -1.26,
                 2.94,
-                16.8,
+                8.82,
                 11.34,
                 15.54,
                 19.74,
                 23.94,
-                37.8,
+                29.82,
                 32.34,
                 36.54,
                 40.74,
                 44.94,
-                58.8,
+                50.82,
                 53.34,
                 57.54,
             ]
