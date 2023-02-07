@@ -286,7 +286,6 @@ class Mapping:
     def mapping_msw_dflow1d(
         self,
     ) -> tuple[dict[str, csr_matrix], dict[str, NDArray[int_]]]:
-
         """
         function creates dictionary with mapping tables for mapping MSW -> dflow1d
         mapping includes MSW 1D coupling:
