@@ -15,13 +15,13 @@ def test_mf6_set_river_stage(
     tmp_path_dev: Path,
 ) -> None:
     mf6_model_with_river.write(tmp_path_dev)
+
     mf6wrapper = Mf6Wrapper(
         lib_path=modflow_dll_devel,
         working_directory=tmp_path_dev,
     )
     mf6wrapper.initialize()
     mf6wrapper.prepare_time_step(0.0)
-
     new_river_stage = NDArray[np.float_](15)
     new_river_stage[:] = range(15)
     mf6wrapper.set_river_stages(
@@ -59,10 +59,7 @@ def test_mf6_get_river_flux(
         new_river_stage,
     )
 
-    q = mf6wrapper.get_river_flux(
-        "GWF_1",
-        "Oosterschelde",
-    )
+    q = mf6wrapper.get_river_flux("GWF_1", "Oosterschelde")
 
     np.testing.assert_allclose(
         q,
