@@ -17,7 +17,7 @@ from imod_coupler.utils import Operator, create_mapping
 class Mapping:
     def __init__(
         self,
-        coupling: Type[Coupling],
+        coupling: Coupling,
         msw_working_directory: Path,
         array_dims: dict[str, int],
     ) -> None:

@@ -187,7 +187,7 @@ class DfmMetaMod(Driver):
     def get_end_time(self) -> float:
         return self.mf6.get_end_time()
 
-    def get_array_dims(self) -> dict(tuple(str, int)):
+    def get_array_dims(self) -> dict[str, int]:
         array_dims = {
             "msw_storage": self.msw.get_storage().size,
             "msw_head": self.msw.get_head().size,
@@ -198,13 +198,15 @@ class DfmMetaMod(Driver):
                 self.coupling.mf6_model, self.coupling.mf6_msw_recharge_pkg
             ).size,
         }
+
         if self.coupling.enable_sprinkling:
+            assert self.coupling.mf6_msw_well_pkg is not None
             array_dims["mf6_sprinkling_wells"] = self.mf6.get_sprinkling(
                 self.coupling.mf6_model, self.coupling.mf6_msw_well_pkg
             ).size
         self.array_dims = array_dims
 
-    def mf6_storage_conversion_term(self) -> NDArray[np.float_]:
+    def mf6_storage_conversion_term(self) -> dia_matrix:
         """calculated storage conversion terms to use for exchange from metaswap to mf6
 
         Args:
@@ -347,6 +349,7 @@ class DfmMetaMod(Driver):
         )
 
         if self.coupling.enable_sprinkling:
+            assert self.coupling.mf6_msw_well_pkg is not None
             self.mf6.get_sprinkling(
                 self.coupling.mf6_model, self.coupling.mf6_msw_well_pkg
             )[:] = (
