@@ -187,7 +187,7 @@ class DfmMetaMod(Driver):
     def get_end_time(self) -> float:
         return self.mf6.get_end_time()
 
-    def get_array_dims(self) -> dict[str, int]:
+    def get_array_dims(self) -> None:
         array_dims = {
             "msw_storage": self.msw.get_storage().size,
             "msw_head": self.msw.get_head().size,
