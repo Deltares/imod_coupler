@@ -122,7 +122,7 @@ class Mf6Wrapper(XmiWrapper):
         stage = bound[:, 0]
         return stage
 
-    def get_river_flux(
+    def get_river_flux_estimate(
         self,
         mf6_flowmodel_key: str,
         mf6_package_key: str,

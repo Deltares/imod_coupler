@@ -271,7 +271,7 @@ class DfmMetaMod(Driver):
         MF6 unit: ?
         DFM unit: ?
         """
-        mf6_river_aquifer_flux = self.mf6.get_river_flux(
+        mf6_river_aquifer_flux = self.mf6.get_river_flux_estimate(
             self.coupling.mf6_model, self.coupling.mf6_river_pkg
         )
         dflow1d_flux_receive = self.dfm.get_1d_river_fluxes()
@@ -301,7 +301,7 @@ class DfmMetaMod(Driver):
         the drainage/inflitration flux to the 1d rivers as realised by DFM is passed to
         mf6 as a correction
         """
-        qmf6 = self.mf6.get_river_flux(
+        qmf6 = self.mf6.get_river_flux_estimate(
             self.coupling.mf6_model, self.coupling.mf6_river_pkg
         )  # originally sent by modflow
         dflow1d_flux_receive = self.dfm.get_1d_river_fluxes()

@@ -59,7 +59,7 @@ def test_mf6_get_river_flux(
         new_river_stage,
     )
 
-    q = mf6wrapper.get_river_flux("GWF_1", "Oosterschelde")
+    q = mf6wrapper.get_river_flux_estimate("GWF_1", "Oosterschelde")
 
     np.testing.assert_allclose(
         q,
