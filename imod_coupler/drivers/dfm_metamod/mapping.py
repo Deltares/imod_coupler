@@ -277,7 +277,7 @@ class Mapping:
         ) = create_mapping(
             mf_idx,
             dflow_idx,
-            self.array_dims["mf6_riv_passive"],
+            self.array_dims["mf6_drn"],
             self.array_dims["dfm_1d"],
             Operator.SUM,
         )
