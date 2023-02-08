@@ -155,7 +155,6 @@ class Mf6Wrapper(XmiWrapper):
             flux[i, 0] = correction_flux[i]
 
         self.set_value(bound_adress, flux)
-        
 
     def get_river_flux_estimate(
         self,
@@ -273,4 +272,3 @@ class Mf6Wrapper(XmiWrapper):
         q = package_hcof * subset_head - package_rhs
 
         return q
-
