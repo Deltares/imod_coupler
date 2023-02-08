@@ -176,8 +176,8 @@ class Mapping:
         ) = create_mapping(
             mf_idx,
             dflow_idx,
-            max(mf_idx) + 1,
-            max(dflow_idx) + 1,
+            self.array_dims["mf6_riv_active"],
+            self.array_dims["dfm_1d"],
             Operator.SUM,
         )
         # DFLOW 1D  -> MF RIV 1 (flux) (non weighted)
@@ -206,8 +206,8 @@ class Mapping:
         ) = create_mapping(
             dflow_idx,
             mf_idx,
-            max(dflow_idx) + 1,
-            max(mf_idx) + 1,
+            self.array_dims["dfm_1d"],
+            self.array_dims["mf6_riv_active"],
             Operator.WEIGHT,
             weight,
         )
@@ -256,8 +256,8 @@ class Mapping:
         ) = create_mapping(
             mf_idx,
             dflow_idx,
-            max(mf_idx) + 1,
-            max(dflow_idx) + 1,
+            self.array_dims["mf6_riv_passive"],
+            self.array_dims["dfm_1d"],
             Operator.SUM,
         )
         # MF DRN -> DFLOW 1D (flux)
@@ -277,8 +277,8 @@ class Mapping:
         ) = create_mapping(
             mf_idx,
             dflow_idx,
-            max(mf_idx) + 1,
-            max(dflow_idx) + 1,
+            self.array_dims["mf6_riv_passive"],
+            self.array_dims["dfm_1d"],
             Operator.SUM,
         )
         return map_passive_mod_dflow1d, mask_passive_mod_dflow1d
