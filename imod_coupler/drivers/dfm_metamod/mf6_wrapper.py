@@ -122,7 +122,7 @@ class Mf6Wrapper(XmiWrapper):
         stage = bound[:, 0]
         return stage
 
-    def set_correction_flux(
+    def set_well_flux(
         self,
         mf6_flowmodel_key: str,
         mf6_package_key: str,

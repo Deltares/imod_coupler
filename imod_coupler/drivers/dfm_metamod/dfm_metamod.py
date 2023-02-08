@@ -399,7 +399,7 @@ class DfmMetaMod(Driver):
         )
 
         assert self.coupling.mf6_msw_well_pkg
-        self.mf6.set_correction_flux(
+        self.mf6.set_well_flux(
             self.coupling.mf6_model, self.coupling.mf6_wel_correction_pkg, qmf_corr
         )
 
