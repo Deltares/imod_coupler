@@ -40,7 +40,7 @@ class DfmWrapper(BMIWrapper):  # type: ignore
         nr_nodes2d = self.get_var("ndx2d")  # number of 2d cells
         return int(nr_nodes2d)
 
-    def get_waterlevels_1d(self) -> Optional[NDArray[np.float_]]:
+    def get_waterlevels_1d(self) -> NDArray[np.float_]:
         """
         Returns
         -------
@@ -52,13 +52,13 @@ class DfmWrapper(BMIWrapper):  # type: ignore
         nr_nodes_1d = self.get_number_1d_nodes()
         nr_nodes_2d = self.get_number_2d_nodes()
         if nr_nodes_1d == 0:
-            raise ValueError('No dflow 1d nodes found!')
+            raise ValueError("No dflow 1d nodes found!")
         all_waterlevels = self.get_var("s1")
         return np.asarray(
             all_waterlevels[nr_nodes_2d : nr_nodes_2d + nr_nodes_1d], dtype=np.float_
         )
 
-    def get_cumulative_fluxes_1d_nodes(self) -> Optional[NDArray[np.float_]]:
+    def get_cumulative_fluxes_1d_nodes(self) -> NDArray[np.float_]:
         """
         Returns
         -------
@@ -68,7 +68,7 @@ class DfmWrapper(BMIWrapper):  # type: ignore
         """
         nr_nodes_1d = self.get_number_1d_nodes()
         if nr_nodes_1d == 0:
-            raise ValueError('No dflow 1d nodes found!')
+            raise ValueError("No dflow 1d nodes found!")
         all_cumulative_fluxes = self.get_var("vextcum")
         return np.asarray(all_cumulative_fluxes[-nr_nodes_1d:], dtype=np.float_)
 
@@ -95,7 +95,7 @@ class DfmWrapper(BMIWrapper):  # type: ignore
             )
         self.set_var_slice("qext", [nr_nodes_2d], [nr_nodes_1d], river_flux)
 
-    def get_1d_river_fluxes(self) -> Optional[NDArray[np.float_]]:
+    def get_1d_river_fluxes(self) -> NDArray[np.float_]:
         """
         Returns
         -------
@@ -104,7 +104,7 @@ class DfmWrapper(BMIWrapper):  # type: ignore
         """
         nr_nodes_1d = self.get_number_1d_nodes()
         if nr_nodes_1d == 0:
-            raise ValueError('No dflow 1d nodes found!')
+            raise ValueError("No dflow 1d nodes found!")
         q_ext = self.get_var("qext")
         return np.asarray(q_ext[-nr_nodes_1d:], dtype=np.float_)
 
