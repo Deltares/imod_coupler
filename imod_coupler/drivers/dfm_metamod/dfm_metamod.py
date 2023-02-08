@@ -218,7 +218,7 @@ class DfmMetaMod(Driver):
             ).size,
             "dfm_1d": self.dfm.get_waterlevels_1d().size,
         }
-        
+
         if self.coupling.enable_sprinkling:
             assert self.coupling.mf6_msw_well_pkg is not None
             array_dims["mf6_sprinkling_wells"] = self.mf6.get_sprinkling(
