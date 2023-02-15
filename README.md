@@ -39,7 +39,7 @@ In order to develop on `imod_coupler` locally, please follow the following steps
 conda init
 ```
 
-- Depending on your company settings, you might also have to run the following in a Powershell terminal run as administrator:
+- Depending on your company settings, you might also have to run the following in a Powershell terminal as administrator:
 
 ```
 Set-ExecutionPolicy -ExecutionPolicy RemoteSigned
