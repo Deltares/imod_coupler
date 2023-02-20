@@ -129,6 +129,7 @@ class DfmMetaMod(Driver):
             self.map_passive_mod_dflow1d,
             self.mask_passive_mod_dflow1d,
         ) = self.mapping.mapping_passive_mf_dflow1d()
+        self.map_msw_dflow1d, self.mask_msw_dflow1d = self.mapping.mapping_msw_dflow1d()
 
     def update(self) -> None:
         # heads from modflow to MetaSWAP
@@ -223,7 +224,8 @@ class DfmMetaMod(Driver):
             "mf6_drn": self.mf6.get_river_drain_flux(
                 self.coupling.mf6_model, self.coupling.mf6_drain_pkg
             ).size,
-            "dfm_1d": self.dfm.get_waterlevels_1d().size,
+            "dfm_1d": self.dfm.get_number_1d_nodes(),
+            "dfm_2d": self.dfm.get_number_2d_nodes(),
         }
 
         if self.coupling.enable_sprinkling:
