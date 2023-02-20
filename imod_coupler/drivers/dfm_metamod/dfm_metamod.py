@@ -39,12 +39,9 @@ class DfmMetaMod(Driver):
     msw: MswWrapper  # the MetaSWAP XMI kernel
     dfm: DfmWrapper  # the dflow-fm BMI kernel
 
-    delt: float  # time step from MODFLOW 6 (leading)
-    # msw_time: float  # MetaSWAP current time -> niet nodig en wordt ook niet gebruikt!
-
-    number_dflowsteps_per_modflowstep = (
-        10  # should be replaced by msw.dtgw/msw.dtsw (maybe also set dtsw via coupler?)
-    )
+    dtgw: float  # time step from MODFLOW 6 (leading)
+    dtsw: float  # timestep of fast proceses in MetaSWAP
+    number_substeps_per_modflowstep: float  # number of subtimesteps between metaSWAP-DFLOW in a single MF6 timestep
 
     # sparse matrices used for  modflow-dflow exchanges
     map_active_mod_dflow1d: dict[str, csr_matrix]
@@ -105,6 +102,7 @@ class DfmMetaMod(Driver):
         self.mf6.set_int("ISTDOUTTOFILE", 0)
         self.mf6.initialize()
         self.msw.initialize()
+        self.msw.initialize_surface_water_component()
         self.dfm.initialize()
         self.get_array_dims()
         self.mapping = Mapping(
@@ -141,8 +139,10 @@ class DfmMetaMod(Driver):
         t_begin = self.get_current_time()
         self.mf6.prepare_time_step(0.0)
 
-        self.delt = self.mf6.get_time_step()
-        self.msw.prepare_time_step(self.delt)
+        self.dtgw = self.mf6.get_time_step()
+        self.dtsw = self.msw.get_sw_time_step()
+        self.number_substeps_per_modflowstep = int(self.dtgw / self.dtsw)
+        self.msw.prepare_time_step(self.dtgw)
 
         # stage from dflow 1d to modflow active coupled riv
         self.exchange_stage_1d_dfm2mf6()
@@ -160,14 +160,19 @@ class DfmMetaMod(Driver):
 
         # sub timestepping between metaswap and dflow
         subtimestep_endtime = t_begin
-        for _ in range(self.number_dflowsteps_per_modflowstep):
-            subtimestep_endtime += self.delt / self.number_dflowsteps_per_modflowstep
+        for idtsw in range(self.number_substeps_per_modflowstep):
+            subtimestep_endtime += self.dtsw
+            self.msw.start_surface_water_time_step(idtsw)
 
             while (
                 self.dfm.get_current_time()
                 < days_to_seconds(subtimestep_endtime) - self.time_eps
             ):
                 self.dfm.update()
+
+            self.msw.finish_surface_water_time_step(idtsw)
+
+        # exchange correction flux to MSW and MF6
         self.exchange_V_dash_1D()
 
         # get cum flux new and calculate correction
@@ -420,7 +425,7 @@ class DfmMetaMod(Driver):
         )
 
         # Divide recharge and extraction by delta time
-        tled = 1 / self.delt
+        tled = 1 / self.dtgw
         self.mf6.get_recharge(
             self.coupling.mf6_model, self.coupling.mf6_msw_recharge_pkg
         )[:] = (
