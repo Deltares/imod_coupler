@@ -326,8 +326,8 @@ class Mapping:
         ) = create_mapping(
             msw_idx,
             dflow_idx,
-            max(msw_idx) + 1,
-            max(dflow_idx) + 1,
+            self.array_dims["msw_sw_sprinkling"],
+            self.array_dims["dfm_1d"],
             Operator.SUM,
         )
         # MSW -> DFLOW 1D (ponding)
