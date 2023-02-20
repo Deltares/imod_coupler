@@ -43,7 +43,8 @@ class DfmMetaModModel:
         mf6_simulation: Modflow6Simulation,
         dfm_model: FMModel,
         mf6_rch_pkgkey: str,
-        mf6_river_pkgkey: str,
+        mf6_river_active_pkgkey: str,
+        mf6_river_passive_pkgkey: str,
         mf6_wel_correction_pkgkey: str,
         mf6_wel_pkgkey: str,
         mf6_river_to_dfm_1d_q_dmm_path: Path,
@@ -55,15 +56,18 @@ class DfmMetaModModel:
         msw_ponding_to_dfm_2d_dv_dmm_path: Path,
         dfm_2d_waterlevels_to_msw_h_dmm_path: Path,
         dfm_1d_points_dat_path: Path,
+        output_config_file: Path,
     ):
         self.msw_model = msw_model
         self.mf6_simulation = mf6_simulation
         self.mf6_rch_pkgkey = mf6_rch_pkgkey
         self.mf6_wel_pkgkey = mf6_wel_pkgkey
         self.mf6_wel_correction_pkgkey = mf6_wel_correction_pkgkey
-        self.mf6_river_pkgkey = mf6_river_pkgkey
+        self.mf6_river_active_pkgkey = mf6_river_active_pkgkey
+        self.mf6_river_passive_pkgkey = mf6_river_passive_pkgkey
         self.dfm_model = dfm_model
         self.is_sprinkling = self._check_coupler_and_sprinkling()
+        self.output_config_file = output_config_file
         self.mapping_files = {}
         self.mapping_files["mf6_river_to_dfm_1d_q_dmm"] = mf6_river_to_dfm_1d_q_dmm_path
         self.mapping_files[
@@ -178,9 +182,11 @@ class DfmMetaModModel:
         coupling_dict = self._get_coupling_dict(
             exchange_dir,
             self.mf6_rch_pkgkey,
-            self.mf6_river_pkgkey,
+            self.mf6_river_active_pkgkey,
+            self.mf6_river_passive_pkgkey,
             self.mf6_wel_correction_pkgkey,
             self.mf6_wel_pkgkey,
+            self.output_config_file,
         )
 
         self.write_toml(
@@ -201,6 +207,11 @@ class DfmMetaModModel:
         dflowfm_dll: Union[str, Path],
         coupling_dict: dict[str, Union[bool, str]],
     ) -> None:
+        # force to Path
+        directory = Path(directory)
+
+        toml_path = directory / self._toml_name
+
         """
         Write .toml file which configures the imod coupler run.
 
@@ -233,6 +244,7 @@ class DfmMetaModModel:
             "timing": False,
             "log_level": "INFO",
             "driver_type": "dfm_metamod",
+            "output"
             "driver": {
                 "kernels": {
                     "modflow6": {
@@ -263,7 +275,7 @@ class DfmMetaModModel:
         return [
             key
             for key, value in self.mf6_simulation.items()
-            if value._pkg_id == "model"
+            if hasattr(value, "_pkg_id") and value._pkg_id == "model"
         ]
 
     def _get_dfm_modelname(self) -> str:
@@ -273,9 +285,11 @@ class DfmMetaModModel:
         self,
         directory: Path,
         mf6_rch_pkgkey: str,
-        mf6_riv_pkgkey: str,
+        mf6_active_riv_pkgkey: str,
+        mf6_passive_riv_pkgkey: str,
         mf6_wel_correction_pkgkey: str,
         mf6_wel_pkgkey: Optional[str],
+        output_config_file: Optional[Path],
     ) -> dict[str, Union[bool, str]]:
         """
         Get dictionary with names of coupler packages and paths to mappings.
@@ -314,7 +328,8 @@ class DfmMetaModModel:
         ] = f"./{directory.name}/{NodeSvatMapping._file_name}"
 
         coupling_dict["mf6_msw_recharge_pkg"] = mf6_rch_pkgkey
-        coupling_dict["mf6_river_pkg"] = mf6_riv_pkgkey
+        coupling_dict["mf6_river_active_pkg"] = mf6_active_riv_pkgkey
+        coupling_dict["mf6_river_passive_pkg"] = mf6_passive_riv_pkgkey
         coupling_dict["mf6_wel_correction_pkgkey"] = mf6_wel_correction_pkgkey
         coupling_dict[
             "mf6_msw_recharge_map"
@@ -332,6 +347,7 @@ class DfmMetaModModel:
             if mapping_path:
                 coupling_dict[mapping_name] = str(mapping_path)
         coupling_dict["enable_sprinkling"] = self.is_sprinkling
+        coupling_dict["output_config_file"] = str(output_config_file)
         return coupling_dict
 
     def write_exchanges(

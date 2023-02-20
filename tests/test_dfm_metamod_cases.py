@@ -22,7 +22,7 @@ def case_with_river(
         mf6_model_with_river,
         prepared_dflowfm_model,
         mf6_rch_pkgkey="rch_msw",
-        mf6_river_pkgkey="Oosterschelde",
+        mf6_river_active_pkgkey="Oosterschelde",
         mf6_wel_correction_pkgkey="RIV_CORR",
         mf6_wel_pkgkey="wells_msw",
         mf6_river_to_dfm_1d_q_dmm_path=Path("sample.xyz"),
