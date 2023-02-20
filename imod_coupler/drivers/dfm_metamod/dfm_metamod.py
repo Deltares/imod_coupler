@@ -207,7 +207,8 @@ class DfmMetaMod(Driver):
             "msw_storage": self.msw.get_storage().size,
             "msw_head": self.msw.get_head().size,
             "msw_volume": self.msw.get_volume().size,
-            "msw_sw_sprinkling": self.msw.set_surfacewater_sprinking_demand().size,
+            "msw_sw_sprinkling": self.msw.get_surfacewater_sprinking_demand().size,
+            "msw_sw_ponding": self.msw.get_surfacewater_ponding_allocation().size,
             "mf6_storage": self.mf6.get_storage(self.coupling.mf6_model).size,
             "mf6_head": self.mf6.get_head(self.coupling.mf6_model).size,
             "mf6_recharge": self.mf6.get_recharge(
