@@ -16,6 +16,20 @@ class MswWrapper(XmiWrapper):
     ):
         super().__init__(lib_path, lib_dependency, working_directory, timing)
 
+    def get_sw_time_step(self) -> float:
+        """returns the time step length for fast (surfacewater) processes from metaswap
+
+        Parameters
+        ----------
+        none
+
+        Returns
+        -------
+         float:
+            surface water timestep length in days
+        """
+        return self.get_value("dtsw")
+
     def get_surfacewater_sprinking_demand(self) -> NDArray[np.float_]:
         """returns the sprinkling volume demand from metaswap
 
