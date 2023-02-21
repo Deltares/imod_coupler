@@ -182,7 +182,9 @@ class DfmMetaModModel:
         coupling_dict = self._get_coupling_dict(
             exchange_dir,
             self.mf6_rch_pkgkey,
-            self.mf6_river_pkgkey,
+            self.mf6_river_active_pkg,
+            self.mf6_river_passive_pkg,
+            self.mf6_drain_pkg,
             self.mf6_wel_correction_pkgkey,
             self.mf6_wel_pkgkey,
         )
@@ -277,7 +279,9 @@ class DfmMetaModModel:
         self,
         directory: Path,
         mf6_rch_pkgkey: str,
-        mf6_riv_pkgkey: str,
+        mf6_river_active_pkgkey: str,
+        mf6_river_passive_pkgkey: str,
+        mf6_drain_pkgkey: str,
         mf6_wel_correction_pkgkey: str,
         mf6_wel_pkgkey: Optional[str],
     ) -> dict[str, Union[bool, str]]:
@@ -318,7 +322,10 @@ class DfmMetaModModel:
         ] = f"./{directory.name}/{NodeSvatMapping._file_name}"
 
         coupling_dict["mf6_msw_recharge_pkg"] = mf6_rch_pkgkey
-        coupling_dict["mf6_river_active_pkg"] = mf6_riv_pkgkey
+        coupling_dict["mf6_river_active_pkg"] = mf6_river_active_pkgkey
+        coupling_dict["mf6_river_passive_pkg"] = mf6_river_passive_pkgkey
+        coupling_dict["mf6_drain_pkg"] = mf6_drain_pkgkey
+
         coupling_dict["mf6_wel_correction_pkgkey"] = mf6_wel_correction_pkgkey
         coupling_dict[
             "mf6_msw_recharge_map"
