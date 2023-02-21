@@ -43,7 +43,9 @@ class DfmMetaModModel:
         mf6_simulation: Modflow6Simulation,
         dfm_model: FMModel,
         mf6_rch_pkgkey: str,
-        mf6_river_pkgkey: str,
+        mf6_river_active_pkg: str,
+        mf6_river_passive_pkg: str,
+        mf6_drain_pkg: str,
         mf6_wel_correction_pkgkey: str,
         mf6_wel_pkgkey: str,
         mf6_river_to_dfm_1d_q_dmm_path: Path,
@@ -61,7 +63,9 @@ class DfmMetaModModel:
         self.mf6_rch_pkgkey = mf6_rch_pkgkey
         self.mf6_wel_pkgkey = mf6_wel_pkgkey
         self.mf6_wel_correction_pkgkey = mf6_wel_correction_pkgkey
-        self.mf6_river_pkgkey = mf6_river_pkgkey
+        self.mf6_river_active_pkg = mf6_river_active_pkg
+        self.mf6_river_passive_pkg = mf6_river_passive_pkg
+        self.mf6_drain_pkg = mf6_drain_pkg
         self.dfm_model = dfm_model
         self.is_sprinkling = self._check_coupler_and_sprinkling()
         self.mapping_files = {}
