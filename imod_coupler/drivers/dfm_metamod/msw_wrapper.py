@@ -16,6 +16,17 @@ class MswWrapper(XmiWrapper):
     ):
         super().__init__(lib_path, lib_dependency, working_directory, timing)
 
+    def initialize_surface_water_component(self) -> None:
+        self.execute_function(self.lib.init_sw_component)
+
+    def start_surface_water_time_step(self, idtsw: int) -> None:
+        idtsw_c = c_int(idtsw)
+        self.execute_function(self.lib.perform_sw_time_step, byref(idtsw_c))
+
+    def finish_surface_water_time_step(self, idtsw: int) -> None:
+        idtsw_c = c_int(idtsw)
+        self.execute_function(self.lib.finish_sw_time_step, byref(idtsw_c))
+
     def get_sw_time_step(self) -> float:
         """returns the time step length for fast (surfacewater) processes from metaswap
 
