@@ -318,7 +318,7 @@ class DfmMetaModModel:
         ] = f"./{directory.name}/{NodeSvatMapping._file_name}"
 
         coupling_dict["mf6_msw_recharge_pkg"] = mf6_rch_pkgkey
-        coupling_dict["mf6_river_pkg"] = mf6_riv_pkgkey
+        coupling_dict["mf6_river_active_pkg"] = mf6_riv_pkgkey
         coupling_dict["mf6_wel_correction_pkgkey"] = mf6_wel_correction_pkgkey
         coupling_dict[
             "mf6_msw_recharge_map"
