@@ -22,7 +22,8 @@ def case_with_river(
         mf6_model_with_river,
         prepared_dflowfm_model,
         mf6_rch_pkgkey="rch_msw",
-        mf6_river_pkgkey="Oosterschelde",
+        mf6_river_active_pkgkey="Oosterschelde",
+        mf6_river_passive_pkgkey="Westerschelde",
         mf6_wel_correction_pkgkey="RIV_CORR",
         mf6_wel_pkgkey="wells_msw",
         mf6_river_to_dfm_1d_q_dmm_path=Path("sample.xyz"),
@@ -34,6 +35,7 @@ def case_with_river(
         msw_sprinkling_to_dfm_1d_q_dmm_path=Path("sample.xyz"),
         dfm_2d_waterlevels_to_msw_h_dmm_path=Path("sample.xyz"),
         dfm_1d_points_dat_path=Path("sample.xyz"),
+        output_config_file=Path("output_config.toml"),
     )
 
     # sample.xyz is in fact not a real mapping file- it is used here because there are no valid mapping files
