@@ -266,6 +266,13 @@ class DfmMetaMod(Driver):
         )
         return conversion_matrix
 
+    def initialise_water_balance_dflow1d(self) -> None:
+        self.water_balance_dflow1d = {
+            "positive": np.zeros(shape=self.array_dims["dfm_1d"], dtype=np.float_),
+            "negative": np.zeros(shape=self.array_dims["dfm_1d"], dtype=np.float_),
+            "total": np.zeros(shape=self.array_dims["dfm_1d"], dtype=np.float_),
+        }
+
     def exchange_stage_1d_dfm2mf6(self) -> None:
         """
         From DFM to MF6.
