@@ -310,7 +310,7 @@ class DfmMetaMod(Driver):
         mf6_river_aquifer_flux = self.mf6.get_river_flux_estimate(
             self.coupling.mf6_model, self.coupling.mf6_river_active_pkg
         )
-        mf6_river_aquifer_flux_sec = mf6_river_aquifer_flux / days_to_seconds(1.0)
+        mf6_river_aquifer_flux_sec = mf6_river_aquifer_flux / days_to_seconds(self.dtgw)
 
         dflow1d_flux_receive = self.dfm.get_1d_river_fluxes()
         if dflow1d_flux_receive is None:
@@ -321,6 +321,51 @@ class DfmMetaMod(Driver):
             + self.map_active_mod_dflow1d["mf-riv2dflow1d_flux"].dot(
                 mf6_river_aquifer_flux_sec
             )[:]
+        )
+
+    def exchange_ponding_msw2dflow1d(self) -> None:
+        # MetaSWAP delivers m3/dtsw -> m3/s
+        msw_ponding_volume = self.msw.get_surfacewater_ponding_allocation()
+        msw_ponding_flux_sec = msw_ponding_volume / days_to_seconds(self.dtsw)
+        dflow1d_flux_receive = self.dfm.get_1d_river_fluxes()
+        if dflow1d_flux_receive is None:
+            raise ValueError("dflow 1d river flux not found")
+        dflow1d_flux_receive = dflow1d_flux_receive + (
+            self.mask_msw_dflow1d["msw-ponding2dflow1d_flux"][:]
+            * dflow1d_flux_receive[:]
+            + self.map_msw_dflow1d["msw-ponding2dflow1d_flux"].dot(
+                msw_ponding_flux_sec
+            )[:]
+        )
+
+    def exchange_sprinkling_msw2dflow1d(self) -> None:
+        # MetaSWAP delivers m3/dtsw -> m3/s
+        msw_sprinkling_demand = self.msw.get_surfacewater_sprinking_demand()
+        msw_sprinkling_demand_sec = msw_sprinkling_demand / days_to_seconds(self.dtsw)
+        dflow1d_flux_receive = self.dfm.get_1d_river_fluxes()
+        if dflow1d_flux_receive is None:
+            raise ValueError("dflow 1d river flux not found")
+        dflow1d_flux_receive = dflow1d_flux_receive + (
+            self.mask_msw_dflow1d["msw-sprinkling2dflow1d_flux"][:]
+            * dflow1d_flux_receive[:]
+            + self.map_msw_dflow1d["msw-sprinkling2dflow1d_flux"].dot(
+                msw_sprinkling_demand_sec
+            )[:]
+        )
+
+    def exchange_sprinkling_dflow1d2msw(
+        self, sprinkling_dflow: NDArray[np.float_]
+    ) -> None:
+        # sprinkling_dflow array in m3/s -> m3/dtsw
+        sprinkling_msw = sprinkling_dflow * days_to_seconds(self.dtsw)
+
+        dflow1d_flux_receive = self.dfm.get_1d_river_fluxes()
+        if dflow1d_flux_receive is None:
+            raise ValueError("dflow 1d river flux not found")
+        dflow1d_flux_receive = dflow1d_flux_receive + (
+            self.mask_msw_dflow1d["msw-sprinkling2dflow1d_flux"][:]
+            * dflow1d_flux_receive[:]
+            + self.map_msw_dflow1d["msw-sprinkling2dflow1d_flux"].dot(sprinkling_msw)[:]
         )
 
     def exchange_flux_riv_passive_mf62dfm(self) -> None:
@@ -337,7 +382,7 @@ class DfmMetaMod(Driver):
             self.coupling.mf6_model, self.coupling.mf6_river_passive_pkg
         )
         # conversion now dtsw=1, dtgw=1
-        mf6_riv2_flux_sec = mf6_riv2_flux / days_to_seconds(1.0)
+        mf6_riv2_flux_sec = mf6_riv2_flux / days_to_seconds(self.dtgw)
 
         dflow1d_flux_receive = self.dfm.get_1d_river_fluxes()
         if dflow1d_flux_receive is None:
@@ -364,7 +409,7 @@ class DfmMetaMod(Driver):
             self.coupling.mf6_model, self.coupling.mf6_drain_pkg
         )
         # conversion now dtsw=1, dtgw=1
-        mf6_drn_flux_sec = mf6_drn_flux / days_to_seconds(1.0)
+        mf6_drn_flux_sec = mf6_drn_flux / days_to_seconds(self.dtgw)
 
         dflow1d_flux_receive = self.dfm.get_1d_river_fluxes()
         if dflow1d_flux_receive is None:

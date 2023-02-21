@@ -330,6 +330,16 @@ class Mapping:
             self.array_dims["dfm_1d"],
             Operator.SUM,
         )
+        (
+            map_msw_dflow1d["dflow1d_flux2sprinkling_msw"],
+            mask_msw_dflow1d["dflow1d_flux2sprinkling_msw"],
+        ) = create_mapping(
+            dflow_idx,
+            msw_idx,
+            self.array_dims["dfm_1d"],
+            self.array_dims["msw_sw_sprinkling"],
+            Operator.SUM,
+        )
         # MSW -> DFLOW 1D (ponding)
         table_mswponding2dflow1d: NDArray[np.single] = np.loadtxt(
             self.coupling.msw_runoff_to_dfm_1d_q_dmm,
