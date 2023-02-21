@@ -144,6 +144,9 @@ class DfmMetaMod(Driver):
         self.dtsw = self.msw.get_sw_time_step()
         self.number_substeps_per_modflowstep = int(self.dtgw / self.dtsw)
         self.msw.prepare_time_step(self.dtgw)
+        
+        # set waterbalance 
+        self.initialise_water_balance_dflow1d()
 
         # stage from dflow 1d to modflow active coupled riv
         self.exchange_stage_1d_dfm2mf6()
@@ -234,6 +237,22 @@ class DfmMetaMod(Driver):
                 self.coupling.mf6_model, self.coupling.mf6_msw_well_pkg
             ).size
         self.array_dims = array_dims
+
+    def initialise_water_balance_dflow1d(self) -> None:
+        self.water_balance_dflow1d = {
+            "MF6_RIV_active": np.zeros(
+                shape=self.array_dims["dfm_1d"], dtype=np.float_
+            ),
+            "MF6_RIV_passive": np.zeros(
+                shape=self.array_dims["dfm_1d"], dtype=np.float_
+            ),
+            "MF6_DRN": np.zeros(shape=self.array_dims["dfm_1d"], dtype=np.float_),
+            "MSW_ponding": np.zeros(shape=self.array_dims["dfm_1d"], dtype=np.float_),
+            "MSW_sprinkling": np.zeros(
+                shape=self.array_dims["dfm_1d"], dtype=np.float_
+            ),
+            "total": np.zeros(shape=self.array_dims["dfm_1d"], dtype=np.float_),
+        }
 
     def mf6_storage_conversion_term(self) -> dia_matrix:
         """calculated storage conversion terms to use for exchange from metaswap to mf6
