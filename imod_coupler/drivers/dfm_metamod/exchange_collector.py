@@ -19,6 +19,7 @@ class AbstractExchange(abc.ABC):
 
 class NetcdfExchangeLogger(AbstractExchange):
     output_file: Path
+    name: str
     
     def __init__(
             self, name: str, output_dir: Path, properties: dict[str, Any]):
@@ -26,6 +27,7 @@ class NetcdfExchangeLogger(AbstractExchange):
             os.mkdir(output_dir)
         output_file = Path.joinpath(output_dir, name + '.nc')
         self.ds = nc.Dataset(output_file, "w")
+        self.name=name
 
     def initfile(self, ndx: int) -> None:
         self.nodedim = self.ds.createDimension('id', ndx)
@@ -39,6 +41,8 @@ class NetcdfExchangeLogger(AbstractExchange):
                 iteration: int = 0, sync: bool = False) -> None:
         if len(self.ds.dimensions) == 0:
             self.initfile(len(exchange))
+        if time in self.timevar:
+            raise ValueError(f"flux " + self.name + " already logged for time " + str(time))
         self.timevar[self.pos] = time
         self.datavar[self.pos, :] = exchange[:]
         self.pos += 1
@@ -65,9 +69,8 @@ class ExchangeCollector:
             self.exchanges[exchange_name] = self.create_exchange_object(exchange_name, dict_def[0])
 
     def log_exchange(self, name: str, exchange: NDArray[Any] , time: float, iteration: int =0) -> None:
-        if name not in self.exchanges.keys():
-            raise ValueError(" unkwnown exchange logger: " + name)
-        self.exchanges[name].write_exchange(exchange, time, iteration)
+        if name in self.exchanges.keys():
+             self.exchanges[name].write_exchange(exchange, time, iteration)
 
     def create_exchange_object(self, flux_name: str, dict_def: dict[str, Any])->AbstractExchange:
         typename = dict_def["type"]
