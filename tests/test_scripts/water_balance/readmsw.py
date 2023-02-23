@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# type: ignore
 import os.path as osp
 import pprint as pp
 import re
