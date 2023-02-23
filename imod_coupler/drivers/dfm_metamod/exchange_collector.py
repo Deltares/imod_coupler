@@ -10,10 +10,10 @@ from numpy.typing import NDArray
 
 
 class AbstractExchange(abc.ABC):
-    def __init__(self, name:str):
+    def __init__(self, name : str):
         pass
 
-    def write_exchange(self, exchange: NDArray[Any], time: float, iteration: int = 0) -> None:
+    def write_exchange(self, exchange: NDArray[Any], time: float) -> None:
         pass
 
 
@@ -37,15 +37,16 @@ class NetcdfExchangeLogger(AbstractExchange):
         self.pos = 0
 
     def write_exchange(
-            self, exchange: NDArray[Any], time: float,
-                iteration: int = 0, sync: bool = False) -> None:
+            self, exchange: NDArray[Any], time: float, sync: bool = False) -> None:
         if len(self.ds.dimensions) == 0:
             self.initfile(len(exchange))
-        if time in self.timevar:
-            raise ValueError(f"flux " + self.name + " already logged for time " + str(time))
-        self.timevar[self.pos] = time
-        self.datavar[self.pos, :] = exchange[:]
-        self.pos += 1
+        loc = np.where(self.timevar[:] == time)
+        if np.size(loc) > 0:
+            self.datavar[loc[0], :] = exchange[:]
+        else:
+            self.timevar[self.pos] = time
+            self.datavar[self.pos, :] = exchange[:]
+            self.pos += 1
         if sync:
             self.ds.sync()
 
@@ -68,9 +69,9 @@ class ExchangeCollector:
         for exchange_name, dict_def in exchanges_config.items():           
             self.exchanges[exchange_name] = self.create_exchange_object(exchange_name, dict_def[0])
 
-    def log_exchange(self, name: str, exchange: NDArray[Any] , time: float, iteration: int =0) -> None:
+    def log_exchange(self, name: str, exchange: NDArray[Any] , time: float) -> None:
         if name in self.exchanges.keys():
-             self.exchanges[name].write_exchange(exchange, time, iteration)
+             self.exchanges[name].write_exchange(exchange, time)
 
     def create_exchange_object(self, flux_name: str, dict_def: dict[str, Any])->AbstractExchange:
         typename = dict_def["type"]
