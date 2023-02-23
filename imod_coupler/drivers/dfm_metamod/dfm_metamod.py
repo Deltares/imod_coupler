@@ -398,8 +398,8 @@ class DfmMetaMod(Driver):
         sprinkling_msw = self.msw.get_surfacewater_sprinking_realised()
         # set pointer
         sprinkling_msw = (
-            self.mask_msw_dflow1d["msw-sprinkling2dflow1d_flux"][:] * sprinkling_msw[:]
-            + self.map_msw_dflow1d["msw-sprinkling2dflow1d_flux"].dot(
+            self.mask_msw_dflow1d["dflow1d_flux2sprinkling_msw"][:] * sprinkling_msw[:]
+            + self.map_msw_dflow1d["dflow1d_flux2sprinkling_msw"].dot(
                 sprinkling_dflow_dtsw
             )[:]
         )

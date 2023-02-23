@@ -330,6 +330,7 @@ class Mapping:
             self.array_dims["dfm_1d"],
             Operator.SUM,
         )
+        # MSW <- DFLOW 1D (sprinkling)
         (
             map_msw_dflow1d["dflow1d_flux2sprinkling_msw"],
             mask_msw_dflow1d["dflow1d_flux2sprinkling_msw"],
