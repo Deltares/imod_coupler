@@ -40,7 +40,6 @@ class DfmMetaMod(Driver):
     mf6: Mf6Wrapper  # the MODFLOW 6 XMI kernel
     msw: MswWrapper  # the MetaSWAP XMI kernel
     dfm: DfmWrapper  # the dflow-fm BMI kernel
-    exchange_balans: Exchange_balans  # exchange class for exchanges between msw+mf6 and dflow
 
     dtgw: float  # time step from MODFLOW 6 (leading)
     dtsw: float  # timestep of fast proceses in MetaSWAP
@@ -113,6 +112,7 @@ class DfmMetaMod(Driver):
         )
         self.set_mapping()
         self.log_version()
+        self.exchange_balans = Exchange_balans(self.array_dims["dfm_1d"])
 
     def log_version(self) -> None:
         logger.info(f"MODFLOW version: {self.mf6.get_version()}")
