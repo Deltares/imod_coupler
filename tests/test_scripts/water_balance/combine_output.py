@@ -183,27 +183,3 @@ def combineDF(**kwargs):
         combined["t"] / 86400.0
     )  # time was the fm time in seconds, now converted into days
     return combined
-
-
-if __name__ == "__main__":
-    fm_hisfile = sys.argv[1]
-    msw_totfile = sys.argv[2]
-    mf_listfile = sys.argv[3]
-    outname = sys.argv[4]  # requires 4 arguments, three reffering to input files
-    # and one to the output name without extension
-    combined = combineDF(fm=sys.argv[1], msw=sys.argv[2], mf=sys.argv[3])
-    nc_out = outname + ".nc"
-    xls_out = outname + ".xlsx"
-    csv_out = outname + ".csv"
-
-    print("Writing NetCDF")
-    writeNC(nc_out, combined, singlevar=False)
-    print("Writing CSV")
-    writeCSV(csv_out, combined)
-    print("Writing XLSX")
-    writeXLS(xls_out, combined)
-    sys.stderr.write("done!")
-else:
-    sys.stderr.write(
-        "imported, use function CombineDF(fm_hisfile, msw_totfile, mf_listfile) to obtain the combined dataframe."
-    )
