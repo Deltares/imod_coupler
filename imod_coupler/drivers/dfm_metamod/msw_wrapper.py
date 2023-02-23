@@ -58,9 +58,7 @@ class MswWrapper(XmiWrapper):
         """
         return self.get_value_ptr("ts2dfmputsp")
 
-    def set_surfacewater_sprinking_demand(
-        self, sprinking_demand: NDArray[np.float_]
-    ) -> None:
+    def get_surfacewater_sprinking_realised(self) -> None:
         """sets the sprinkling volume demand in metaswap.
 
         Parameters
@@ -73,8 +71,7 @@ class MswWrapper(XmiWrapper):
         none
 
         """
-        msw_sprinkling = self.get_value_ptr("dfm2tsgetsp")
-        msw_sprinkling[:] = sprinking_demand[:]
+        return self.get_value_ptr("dfm2tsgetsp")
 
     def get_surfacewater_ponding_allocation(self) -> NDArray[np.float_]:
         """returns the ponding volume allocation from metaswap
