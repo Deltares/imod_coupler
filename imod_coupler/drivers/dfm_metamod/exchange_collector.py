@@ -1,4 +1,3 @@
-
 import abc
 import os
 from pathlib import Path
@@ -10,7 +9,7 @@ from numpy.typing import NDArray
 
 
 class AbstractExchange(abc.ABC):
-    def __init__(self, name : str):
+    def __init__(self, name: str):
         pass
 
     def write_exchange(self, exchange: NDArray[Any], time: float) -> None:
@@ -20,24 +19,24 @@ class AbstractExchange(abc.ABC):
 class NetcdfExchangeLogger(AbstractExchange):
     output_file: Path
     name: str
-    
-    def __init__(
-            self, name: str, output_dir: Path, properties: dict[str, Any]):
-        if not(os.path.isdir(output_dir)):
+
+    def __init__(self, name: str, output_dir: Path, properties: dict[str, Any]):
+        if not (os.path.isdir(output_dir)):
             os.mkdir(output_dir)
-        output_file = Path.joinpath(output_dir, name + '.nc')
+        output_file = Path.joinpath(output_dir, name + ".nc")
         self.ds = nc.Dataset(output_file, "w")
-        self.name=name
+        self.name = name
 
     def initfile(self, ndx: int) -> None:
-        self.nodedim = self.ds.createDimension('id', ndx)
-        self.timedim = self.ds.createDimension('time', )
-        self.timevar = self.ds.createVariable("time", "f8", ("time", ))
-        self.datavar = self.ds.createVariable('xchg', "f8", ("time", "id", ))        
+        self.nodedim = self.ds.createDimension("id", ndx)
+        self.timedim = self.ds.createDimension("time",)
+        self.timevar = self.ds.createVariable("time", "f8", ("time",))
+        self.datavar = self.ds.createVariable("xchg", "f8", ("time", "id",))
         self.pos = 0
 
     def write_exchange(
-            self, exchange: NDArray[Any], time: float, sync: bool = False) -> None:
+        self, exchange: NDArray[Any], time: float, sync: bool = False
+    ) -> None:
         if len(self.ds.dimensions) == 0:
             self.initfile(len(exchange))
         loc = np.where(self.timevar[:] == time)
@@ -59,30 +58,30 @@ class ExchangeCollector:
     output_dir: Path
 
     def __init__(self, config: dict[str, dict[str, Any]]):
-       
+
         general_settings = config["general"][0]
         self.output_dir = Path(general_settings["output_dir"])
 
         exchanges_config = config["exchanges"][0]
 
         self.exchanges = {}
-        for exchange_name, dict_def in exchanges_config.items():           
-            self.exchanges[exchange_name] = self.create_exchange_object(exchange_name, dict_def[0])
+        for exchange_name, dict_def in exchanges_config.items():
+            self.exchanges[exchange_name] = self.create_exchange_object(
+                exchange_name, dict_def[0]
+            )
 
-    def log_exchange(self, name: str, exchange: NDArray[Any] , time: float) -> None:
+    def log_exchange(self, name: str, exchange: NDArray[Any], time: float) -> None:
         if name in self.exchanges.keys():
-             self.exchanges[name].write_exchange(exchange, time)
+            self.exchanges[name].write_exchange(exchange, time)
 
-    def create_exchange_object(self, flux_name: str, dict_def: dict[str, Any])->AbstractExchange:
+    def create_exchange_object(
+        self, flux_name: str, dict_def: dict[str, Any]
+    ) -> AbstractExchange:
         typename = dict_def["type"]
-        match typename:
-            case "netcdf":
-                return NetcdfExchangeLogger(flux_name, self.output_dir, dict_def)
-            case _:
-                raise ValueError("unkwnown type of exchange logger")
+        if typename == "netcdf":
+            return NetcdfExchangeLogger(flux_name, self.output_dir, dict_def)
+        raise ValueError("unkwnown type of exchange logger")
 
     def finalize(self) -> None:
         for exchange in self.exchanges.values():
             exchange.finalize()
-        
-        
