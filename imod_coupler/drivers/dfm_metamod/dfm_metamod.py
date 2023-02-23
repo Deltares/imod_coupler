@@ -344,7 +344,6 @@ class DfmMetaMod(Driver):
         (so at the beginning of the timestep)
 
         The dflow 1d flux is set to zero, since this is the first call of the timestep
-        TODO: add fluxes to a shared waterbalanse in our driver to create a shared water volume that can be used in the msw-dflow timestepping
 
         MF6 unit: m3/d
         DFM unit: m3/s
@@ -357,12 +356,33 @@ class DfmMetaMod(Driver):
         mf6_river_aquifer_flux_sec = -mf6_river_aquifer_flux / days_to_seconds(
             self.dtgw
         )
-
         self.matrix_product(
             mf6_river_aquifer_flux_sec,
             self.map_active_mod_dflow1d,
             self.mask_active_mod_dflow1d,
             "mf-riv2dflow1d_flux",
+        )
+        # for calculating the correction flux, the flux need to be split up in positive and negative values
+        # since the sign is already swapped, positive values means drainage from mf6 to dflow and
+        # negative values mean infiltration from dflow to MF6
+        mf6_river_aquifer_flux_sec_conditions = mf6_river_aquifer_flux_sec
+        mf6_river_aquifer_flux_sec_conditions[mf6_river_aquifer_flux_sec < 0] = 0.0
+        self.exchange_balans.demand["mf-riv2dflow1d_flux_positive"][:] = (
+            self.mask_active_mod_dflow1d["mf-riv2dflow1d_flux"][:]
+            * self.exchange_balans.demand["mf-riv2dflow1d_flux"][:]
+            + self.map_active_mod_dflow1d["mf-riv2dflow1d_flux"].dot(
+                mf6_river_aquifer_flux_sec_conditions
+            )[:]
+        )
+
+        mf6_river_aquifer_flux_sec_conditions = mf6_river_aquifer_flux_sec
+        mf6_river_aquifer_flux_sec_conditions[mf6_river_aquifer_flux_sec > 0] = 0.0
+        self.exchange_balans.demand["mf-riv2dflow1d_flux_negative"][:] = (
+            self.mask_active_mod_dflow1d["mf-riv2dflow1d_flux"][:]
+            * self.exchange_balans.demand["mf-riv2dflow1d_flux"][:]
+            + self.map_active_mod_dflow1d["mf-riv2dflow1d_flux"].dot(
+                mf6_river_aquifer_flux_sec_conditions
+            )[:]
         )
 
     def exchange_ponding_msw2dflow1d(self) -> None:

@@ -10,7 +10,8 @@ class Exchange_balans:
         self
         self.dim = dim
 
-    # check swapping signs
+    # TODO: maybe this class needs a check if sign of all values is as expected
+
     def initialise(self) -> None:
         """
         function initialses the 2 water-balance dicts and sets all arrays at 0.
@@ -18,6 +19,8 @@ class Exchange_balans:
         """
         self.demand = {
             "mf-riv2dflow1d_flux": np.zeros(shape=self.dim, dtype=np.float_),
+            "mf-riv2dflow1d_flux_positive": np.zeros(shape=self.dim, dtype=np.float_),
+            "mf-riv2dflow1d_flux_negative": np.zeros(shape=self.dim, dtype=np.float_),
             "mf-riv2dflow1d_passive_flux": np.zeros(shape=self.dim, dtype=np.float_),
             "mf-drn2dflow1d_flux": np.zeros(shape=self.dim, dtype=np.float_),
             "msw-ponding2dflow1d_flux": np.zeros(shape=self.dim, dtype=np.float_),
@@ -49,18 +52,11 @@ class Exchange_balans:
         sum_dflow : NDArray[np.float]
            array as returnd by dflow after a run-cycle per dtsw-timstep
         """
-        # riv_active: NDArray[np.float_]
-        # riv_active_positive: NDArray[np.float_]
-        # always_realised: NDArray[np.float_]
-        # available: NDArray[np.float_]
-        # sum_to_dflow: NDArray[np.float_]
 
         sum_to_dflow = self.demand["sum"][:]
         riv_active = self.demand["mf-riv2dflow1d_flux"][:]
-        riv_active_positive = riv_active
-        riv_active_positive[riv_active_positive < 0.0] = 0
         always_realised = (
-            riv_active_positive[:]
+            self.demand["mf-riv2dflow1d_flux_positive"][:]
             + self.demand["mf-riv2dflow1d_passive_flux"][:]
             + self.demand["mf-drn2dflow1d_flux"][:]
             + self.demand["msw-ponding2dflow1d_flux"][:]
@@ -70,32 +66,28 @@ class Exchange_balans:
         # no shortage
         # for msw: demand = realised
         # for mf6: demand = realised
-        self.realised["dflow1d_flux2sprinkling_msw"][
-            sum_from_dflow >= sum_to_dflow
-        ] = self.demand["msw-sprinkling2dflow1d_flux"][sum_from_dflow >= sum_to_dflow]
-        self.realised["dflow1d_flux2mf-riv"][
-            sum_from_dflow >= sum_to_dflow
-        ] = self.demand["mf-riv2dflow1d_flux"][sum_from_dflow >= sum_to_dflow]
+        condition = sum_from_dflow >= sum_to_dflow
+        self.realised["dflow1d_flux2sprinkling_msw"][condition] = self.demand[
+            "msw-sprinkling2dflow1d_flux"
+        ][condition]
+        self.realised["dflow1d_flux2mf-riv"][condition] = self.demand[
+            "mf-riv2dflow1d_flux"
+        ][condition]
 
         # only MODFLOW demand could be realised
         # for msw: demand = available - riv_active
         # for mf6: demand = realised
-        left_available = available - riv_active
-        self.realised["dflow1d_flux2sprinkling_msw"][
-            (available >= riv_active) | (sum_from_dflow < sum_to_dflow)
-        ] = left_available[(available >= riv_active) | (sum_from_dflow < sum_to_dflow)]
-        self.realised["dflow1d_flux2mf-riv"][
-            (available >= riv_active) | (sum_from_dflow < sum_to_dflow)
-        ] = self.demand["mf-riv2dflow1d_flux"][
-            (available >= riv_active) | (sum_from_dflow < sum_to_dflow)
-        ]
+        condition = (available >= riv_active) | (sum_from_dflow < sum_to_dflow)
+        self.realised["dflow1d_flux2sprinkling_msw"][condition] = (
+            available[condition] - riv_active[condition]
+        )
+        self.realised["dflow1d_flux2mf-riv"][condition] = self.demand[
+            "mf-riv2dflow1d_flux"
+        ][condition]
 
         # Both MODFLOW and MetaSWAP demands can't be met
         # for msw: demand = 0
         # for mf6: return available
-        self.realised["dflow1d_flux2sprinkling_msw"][
-            (available < riv_active) | (sum_from_dflow < sum_to_dflow)
-        ] = 0
-        self.realised["dflow1d_flux2mf-riv"][
-            (available < riv_active) | (sum_from_dflow < sum_to_dflow)
-        ] = available[(available < riv_active) | (sum_from_dflow < sum_to_dflow)]
+        condition = (available < riv_active) | (sum_from_dflow < sum_to_dflow)
+        self.realised["dflow1d_flux2sprinkling_msw"][condition] = 0
+        self.realised["dflow1d_flux2mf-riv"][condition] = available[condition]
