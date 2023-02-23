@@ -54,15 +54,6 @@ class Exchange_balans:
         """
 
         sum_to_dflow = self.demand["sum"][:]
-        riv_active = self.demand["mf-riv2dflow1d_flux"][:]
-        always_realised = (
-            self.demand["mf-riv2dflow1d_flux_positive"][:]
-            + self.demand["mf-riv2dflow1d_passive_flux"][:]
-            + self.demand["mf-drn2dflow1d_flux"][:]
-            + self.demand["msw-ponding2dflow1d_flux"][:]
-        )
-        available = sum_from_dflow[:] - always_realised[:]
-
         # no shortage
         # for msw: demand = realised
         # for mf6: demand = realised
@@ -74,12 +65,27 @@ class Exchange_balans:
             "mf-riv2dflow1d_flux"
         ][condition]
 
+        # shortage because of decreased waterlevels in dflow
+        difference = sum_from_dflow - sum_to_dflow
+
+        riv_active = self.demand["mf-riv2dflow1d_flux"][:]
+        always_realised = (
+            self.demand["mf-riv2dflow1d_flux_positive"][:]
+            + self.demand["mf-riv2dflow1d_passive_flux"][:]
+            + self.demand["mf-drn2dflow1d_flux"][:]
+            + self.demand["msw-ponding2dflow1d_flux"][:]
+        )
+        demand_mf = self.demand["mf-riv2dflow1d_flux_negative"][:]
+        demand_msw = self.demand["msw-sprinkling2dflow1d_flux"][:]
+
+        available = always_realised[:] - sum_from_dflow[:]
+
         # only MODFLOW demand could be realised
         # for msw: demand = available - riv_active
         # for mf6: demand = realised
-        condition = (available >= riv_active) | (sum_from_dflow < sum_to_dflow)
+        condition = (difference < demand_mf) | (sum_from_dflow < sum_to_dflow)
         self.realised["dflow1d_flux2sprinkling_msw"][condition] = (
-            available[condition] - riv_active[condition]
+            difference[condition] - demand_mf[condition]
         )
         self.realised["dflow1d_flux2mf-riv"][condition] = self.demand[
             "mf-riv2dflow1d_flux"
@@ -88,6 +94,6 @@ class Exchange_balans:
         # Both MODFLOW and MetaSWAP demands can't be met
         # for msw: demand = 0
         # for mf6: return available
-        condition = (available < riv_active) | (sum_from_dflow < sum_to_dflow)
+        condition = (difference >= demand_mf) | (sum_from_dflow < sum_to_dflow)
         self.realised["dflow1d_flux2sprinkling_msw"][condition] = 0
         self.realised["dflow1d_flux2mf-riv"][condition] = available[condition]
