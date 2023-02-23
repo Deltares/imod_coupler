@@ -69,25 +69,27 @@ class Exchange_balans:
 
         # no shortage
         # for msw: demand = realised
-        # for mf6: return flux for correction = 0
+        # for mf6: demand = realised
         self.realised["dflow1d_flux2sprinkling_msw"][
             sum_from_dflow >= sum_to_dflow
-        ] = self.demand["msw-sprinkling2dflow1d_flux"][:]
-        self.realised["dflow1d_flux2mf-riv"][sum_from_dflow >= sum_to_dflow] = 0
+        ] = self.demand["msw-sprinkling2dflow1d_flux"]
+        self.realised["dflow1d_flux2mf-riv"][
+            sum_from_dflow >= sum_to_dflow
+        ] = self.demand["mf-riv2dflow1d_flux"]
 
         # only MODFLOW demand could be realised
         # for msw: demand = available - riv_active
-        # for mf6: return flux for correction = 0
+        # for mf6: demand = realised
         self.realised["dflow1d_flux2sprinkling_msw"][
             available >= riv_active and sum_from_dflow < sum_to_dflow
         ] = (available - riv_active)
         self.realised["dflow1d_flux2mf-riv"][
             available >= riv_active and sum_from_dflow < sum_to_dflow
-        ] = 0
+        ] = self.demand["mf-riv2dflow1d_flux"]
 
         # Both MODFLOW and MetaSWAP demands can't be met
         # for msw: demand = 0
-        # for mf6: return flux for correction = available
+        # for mf6: return available
         self.realised["dflow1d_flux2sprinkling_msw"][
             available < riv_active and sum_from_dflow < sum_to_dflow
         ] = 0
