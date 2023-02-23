@@ -251,8 +251,8 @@ class Mapping:
             [self.dflow1d_lookup[row[0], row[1]] for row in table_passive_mfriv2dflow1d]
         )
         (
-            map_passive_mod_dflow1d["mf-riv2dflow1d_flux"],
-            mask_passive_mod_dflow1d["mf-riv2dflow1d_flux"],
+            map_passive_mod_dflow1d["mf-riv2dflow1d_passive_flux"],
+            mask_passive_mod_dflow1d["mf-riv2dflow1d_passive_flux"],
         ) = create_mapping(
             mf_idx,
             dflow_idx,
