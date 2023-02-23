@@ -72,20 +72,23 @@ class Exchange_balans:
         # for mf6: demand = realised
         self.realised["dflow1d_flux2sprinkling_msw"][
             sum_from_dflow >= sum_to_dflow
-        ] = self.demand["msw-sprinkling2dflow1d_flux"]
+        ] = self.demand["msw-sprinkling2dflow1d_flux"][sum_from_dflow >= sum_to_dflow]
         self.realised["dflow1d_flux2mf-riv"][
             sum_from_dflow >= sum_to_dflow
-        ] = self.demand["mf-riv2dflow1d_flux"]
+        ] = self.demand["mf-riv2dflow1d_flux"][sum_from_dflow >= sum_to_dflow]
 
         # only MODFLOW demand could be realised
         # for msw: demand = available - riv_active
         # for mf6: demand = realised
+        left_available = available - riv_active
         self.realised["dflow1d_flux2sprinkling_msw"][
             (available >= riv_active) | (sum_from_dflow < sum_to_dflow)
-        ] = (available - riv_active)
+        ] = left_available[(available >= riv_active) | (sum_from_dflow < sum_to_dflow)]
         self.realised["dflow1d_flux2mf-riv"][
             (available >= riv_active) | (sum_from_dflow < sum_to_dflow)
-        ] = self.demand["mf-riv2dflow1d_flux"]
+        ] = self.demand["mf-riv2dflow1d_flux"][
+            (available >= riv_active) | (sum_from_dflow < sum_to_dflow)
+        ]
 
         # Both MODFLOW and MetaSWAP demands can't be met
         # for msw: demand = 0
@@ -95,4 +98,4 @@ class Exchange_balans:
         ] = 0
         self.realised["dflow1d_flux2mf-riv"][
             (available < riv_active) | (sum_from_dflow < sum_to_dflow)
-        ] = available
+        ] = available[(available < riv_active) | (sum_from_dflow < sum_to_dflow)]

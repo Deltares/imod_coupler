@@ -393,16 +393,14 @@ class DfmMetaMod(Driver):
         self, sprinkling_dflow: NDArray[np.float_]
     ) -> None:
         # conversion from (+)m3/s to (+)m3/dtsw
-        sprinkling_msw_dtsw = sprinkling_dflow * days_to_seconds(self.dtsw)
-
-        dflow1d_flux_receive = self.dfm.get_1d_river_fluxes()
-        if dflow1d_flux_receive is None:
-            raise ValueError("dflow 1d river flux not found")
-        dflow1d_flux_receive = dflow1d_flux_receive + (
-            self.mask_msw_dflow1d["msw-sprinkling2dflow1d_flux"][:]
-            * dflow1d_flux_receive[:]
+        sprinkling_dflow_dtsw = sprinkling_dflow * days_to_seconds(self.dtsw)
+        # get the realised pointer
+        sprinkling_msw = self.msw.get_surfacewater_sprinking_realised()
+        # set pointer
+        sprinkling_msw = (
+            self.mask_msw_dflow1d["msw-sprinkling2dflow1d_flux"][:] * sprinkling_msw[:]
             + self.map_msw_dflow1d["msw-sprinkling2dflow1d_flux"].dot(
-                sprinkling_msw_dtsw
+                sprinkling_dflow_dtsw
             )[:]
         )
 
