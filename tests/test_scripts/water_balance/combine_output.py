@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # type: ignore
 import re
+from pathlib import Path
 
 import netCDF4 as nc
 import numpy as np
@@ -35,8 +36,8 @@ def writeNC(ncname, df, singlevar):
     #   timevar[:] = np.array(df.index)
     if singlevar:
         namelen = 22
-        idDim = ds.createDimension("id", len(df.columns))
-        chDim = ds.createDimension("nchar", namelen)
+        _ = ds.createDimension("id", len(df.columns))
+        _ = ds.createDimension("nchar", namelen)
         xchgvar = ds.createVariable(
             "exchange",
             "f8",
@@ -74,7 +75,6 @@ def writeXLS(xlsname, df):
 def writeCSV(csvname, df):
     colsep = ";"
     colfmt = "%15.3f"
-    hdrfmt = "%15s"
 
     with open(csvname, "w") as fcsv:
         valuelist = list(df)
@@ -85,7 +85,7 @@ def writeCSV(csvname, df):
             fcsv.write("%s\n" % colsep.join(valuelist))
 
 
-def combineDF(fm_hisfile, msw_totfile, mf_listfile):
+def combineDF(fm_hisfile: Path, msw_totfile: Path, mf_listfile: Path):
     fm_interval = 1  # set to 1 to retrieve all time levels
     fm_interval = 86400
 
@@ -149,7 +149,7 @@ def combineDF(fm_hisfile, msw_totfile, mf_listfile):
     print("Reading MetaSWAP data finished")
 
     # MODFLOW in and out
-    mf_listdf, mf_listdf_cum = listfile2df(mf_listfile)
+    mf_listdf = listfile2df(mf_listfile)
 
     direction = ["IN", "OUT"]
     modflow_fields = ["STO", "STO-SS", "CHD", "DRN", "RIV", "WEL", "DXC", "RCH"]

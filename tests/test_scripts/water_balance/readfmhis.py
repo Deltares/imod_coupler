@@ -94,14 +94,3 @@ def writeXLS(xlsname, hisdf):
         col_idx = hisdf.columns.get_loc(column)
     #       writer.sheets[fm_sheet_name].set_column(col_idx, col_idx, column_length)
     writer.save()
-
-
-if __name__ == "__main__":
-    name = sys.argv[1]
-    outname = sys.argv[2]
-    hisdf, hisdf_rates = hisfile2df(hisname, 86400)
-    writeCSV(outname + ".csv", hisdf)
-    writeXLS(outname + ".xls", hisdf)
-    writeCSV(outname + "_rates.csv", hisdf_rates)
-    writeXLS(outname + "_rates.xls", hisdf_rates)
-    sys.stderr.write("Done!")

@@ -1,9 +1,8 @@
 #!/usr/bin/env python
-# type: ignore
-import os
+
 import re
-import sys
 from enum import Enum
+from pathlib import Path
 
 import pandas as pd
 
@@ -15,11 +14,10 @@ class status(Enum):
     VOLUME_OUT = 3
 
 
-def listfile2df(file_in):
+def listfile2df(file_in: Path):
     ignore = ["IN - OUT", "DISCREPANCY"]
     df_data_out = pd.DataFrame()
-    df_data_out_cumulative = pd.DataFrame()
-    data_out_cumulative = {}
+
     with open(file_in, "r") as fnin_mflist:
         stat = status.NO_OPERATION
         for regel in fnin_mflist:
@@ -59,6 +57,6 @@ def listfile2df(file_in):
                     except:
                         pass
                     df_data_out.at[stress_period, pkgname + postfix] = thisval
-                    df_data_out_cumulative.at[stress_period, pkgname + postfix] = cumval
+
                 continue
-        return df_data_out, df_data_out_cumulative
+        return df_data_out

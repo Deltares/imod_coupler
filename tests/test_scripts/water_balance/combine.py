@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # type: ignore
-import sys
 from pathlib import Path
 
 from .combine_output import combineDF, writeCSV, writeNC, writeXLS
