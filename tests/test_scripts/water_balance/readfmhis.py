@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# type: ignore
+
 from pathlib import Path
 
 import netCDF4 as nc
@@ -12,7 +12,7 @@ hdrfmt = "%15s"
 fm_sheet_name = "FM-his"
 
 
-def hisfile2df(hisname: Path, interval: Path) -> (pd.DataFrame(), pd.DataFrame()):
+def hisfile2df(hisname: Path, interval: Path) -> tuple[pd.DataFrame, pd.DataFrame]:
     fields = {
         "time": "t",
         "water_balance_boundaries_in": "bndin",
