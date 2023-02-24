@@ -14,23 +14,10 @@ from .readfmhis import hisfile2df
 from .readmsw import totfile2df
 
 
-def writeWorksheet(workbook, sheetname, df):
-    newsheet = workbook.add_sheet(sheetname)
-    nrows = len(df)
-    ncols = len(df.columns)
-    for j in range(ncols):
-        newsheet.write(0, j, j)
-        newsheet.write(1, j, df.columns[j])
-    for i in range(nrows):
-        record = list(df.iloc[i])
-        for j in range(ncols):
-            newsheet.write(i + 2, j, float(record[j]))
-
-
-def writeNC(ncname, df, singlevar):
+def writeNC(ncname: Path, df: pd.DataFrame, singlevar: bool):
     nvar = len(df.columns)
     ds = nc.Dataset(ncname, "w")
-    timeDim = ds.createDimension("time", len(df.index))
+    _ = ds.createDimension("time", len(df.index))
     #   create a separate variable "time" holding the record index
     #   timevar = ds.createVariable("time","f8",("time",))
     #   timevar[:] = np.array(df.index)
@@ -66,13 +53,13 @@ def writeNC(ncname, df, singlevar):
     ds.close()
 
 
-def writeXLS(xlsname, df):
+def writeXLS(xlsname: Path, df: pd.DataFrame) -> None:
     writer = pd.ExcelWriter(xlsname)
     df.to_excel(writer, sheet_name="combined")
     writer.save()
 
 
-def writeCSV(csvname, df):
+def writeCSV(csvname: Path, df: pd.DataFrame) -> None:
     colsep = ";"
     colfmt = "%15.3f"
 
@@ -85,7 +72,7 @@ def writeCSV(csvname, df):
             fcsv.write("%s\n" % colsep.join(valuelist))
 
 
-def combineDF(fm_hisfile: Path, msw_totfile: Path, mf_listfile: Path):
+def combineDF(fm_hisfile: Path, msw_totfile: Path, mf_listfile: Path) -> pd.DataFrame:
     fm_interval = 1  # set to 1 to retrieve all time levels
     fm_interval = 86400
 

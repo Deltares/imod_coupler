@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # type: ignore
-import sys
+from pathlib import Path
 
 import netCDF4 as nc
 import numpy as np
@@ -12,7 +12,7 @@ hdrfmt = "%15s"
 fm_sheet_name = "FM-his"
 
 
-def hisfile2df(hisname, interval):
+def hisfile2df(hisname: Path, interval: Path) -> (pd.DataFrame(), pd.DataFrame()):
     fields = {
         "time": "t",
         "water_balance_boundaries_in": "bndin",
@@ -35,7 +35,6 @@ def hisfile2df(hisname, interval):
     alltimes = ds.variables["time"][:]
 
     sel = alltimes % interval == 0
-    nsel = np.count_nonzero(sel)
     hisdf = pd.DataFrame()
     for ncname, dfname in fields.items():
         hisdf[dfname] = ds.variables[ncname][sel]
@@ -76,7 +75,7 @@ def hisfile2df(hisname, interval):
     return hisdf, hisdf_rates
 
 
-def writeCSV(csvname, hisdf):
+def writeCSV(csvname: Path, hisdf: pd.DataFrame) -> None:
     with open(csvname, "w") as fcsv:
         valuelist = list(hisdf)
         fcsv.write("%s\n" % colsep.join(valuelist))
@@ -86,11 +85,7 @@ def writeCSV(csvname, hisdf):
             fcsv.write("%s\n" % colsep.join(valuelist))
 
 
-def writeXLS(xlsname, hisdf):
+def writeXLS(xlsname: Path, hisdf: pd.DataFrame) -> None:
     writer = pd.ExcelWriter(xlsname)
     hisdf.to_excel(writer, sheet_name=fm_sheet_name)
-    for column in hisdf:
-        column_length = max(hisdf[column].astype(str).map(len).max(), len(column))
-        col_idx = hisdf.columns.get_loc(column)
-    #       writer.sheets[fm_sheet_name].set_column(col_idx, col_idx, column_length)
     writer.save()

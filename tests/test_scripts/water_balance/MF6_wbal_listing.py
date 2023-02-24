@@ -14,7 +14,7 @@ class status(Enum):
     VOLUME_OUT = 3
 
 
-def listfile2df(file_in: Path):
+def listfile2df(file_in: Path) -> pd.DataFrame:
     ignore = ["IN - OUT", "DISCREPANCY"]
     df_data_out = pd.DataFrame()
 

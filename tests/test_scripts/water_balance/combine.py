@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# type: ignore
+
 from pathlib import Path
 
 from .combine_output import combineDF, writeCSV, writeNC, writeXLS
@@ -12,7 +12,7 @@ def create_waterbalance_file(
     output_file_xlsx: Path = None,
     output_file_netcdf: Path = None,
     output_file_csv: Path = None,
-):
+) -> None:
     combined_dataframe = combineDF(fm_hisfile, msw_totfile, mf_listfile)
 
     if output_file_netcdf is not None:
