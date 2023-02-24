@@ -2,10 +2,8 @@
 # type: ignore
 import os.path as osp
 import re
-import sys
 
 import dateutil.parser as dp
-import netCDF4 as nc
 import numpy as np
 import pandas as pd
 from openpyxl import load_workbook

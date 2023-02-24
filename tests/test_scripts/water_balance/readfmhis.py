@@ -1,12 +1,10 @@
 #!/usr/bin/env python
 # type: ignore
-import os.path as osp
 import sys
 
 import netCDF4 as nc
 import numpy as np
 import pandas as pd
-from openpyxl import load_workbook
 
 colsep = ";"
 colfmt = "%15.3f"

@@ -4,10 +4,7 @@ import os
 import re
 import sys
 from enum import Enum
-from pathlib import Path
 
-import matplotlib as mpl
-import matplotlib.pyplot as plt
 import pandas as pd
 
 
@@ -65,26 +62,3 @@ def listfile2df(file_in):
                     df_data_out_cumulative.at[stress_period, pkgname + postfix] = cumval
                 continue
         return df_data_out, df_data_out_cumulative
-
-
-# output_dir = Path(r"c:\werkmap")
-# model_name = 'T-MODEL-D'
-# path_mf_listing = r"c:\werkmap\Lumbricus_MF6\test-modellen\mf6\T-MODEL-D\GWF_1"
-
-if __name__ == "__main__":
-    #   output_dir = path_mf_listing        # output dir = input dir
-    output_dir = "."  # output dir = cwd
-    if len(sys.argv) > 3:
-        output_dir = sys.argv[3]  # 3 = optional output directory
-
-    file_in = sys.argv[1]
-    df_data_out, df_data_out_cumulative = listfile2df(file_in)
-
-    df_data_out.to_csv(
-        os.path.join(output_dir, "waterbalance.csv"), float_format="%10.2f", index=True
-    )
-    df_data_out_cumulative.to_csv(
-        os.path.join(output_dir, "waterbalance_cumulative.csv"),
-        float_format="%10.2f",
-        index=True,
-    )
