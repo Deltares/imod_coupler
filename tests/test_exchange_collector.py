@@ -19,19 +19,19 @@ def test_exchange_collector_read(tmp_path_dev: Path, output_config_toml: str) ->
     try:
         config_dict = tomli.loads(output_config_toml)
         exchange_collector = ExchangeCollector(config_dict)
-    
+
         some_array0: NDArray[np.float_] = NDArray[np.float_](
             (5,), buffer=np.array([1.1, 2.0, -4.8, np.nan, 3])
         )
         some_array1: NDArray[np.float_] = NDArray[np.float_](
             (5,), buffer=np.array([1.1, 666.0, -4.8, 0.0, 3])
         )
+        exchange_collector.log_exchange("mf-ridv2dflow1d_flux_output", some_array0, 8.0)
         exchange_collector.log_exchange(
-            "mf-ridv2dflow1d_flux_output", some_array0, 8.0)
-        exchange_collector.log_exchange(
-            "mf-ridv2dflow1d_flux_output", some_array1, 23.0)
+            "mf-ridv2dflow1d_flux_output", some_array1, 23.0
+        )
         exchange_collector.finalize()
-    
+
         ds = nc.Dataset("./mf-ridv2dflow1d_flux_output.nc", "r")
         dat = ds.variables["xchg"][:]
         tim = ds.variables["time"][:]
@@ -40,7 +40,7 @@ def test_exchange_collector_read(tmp_path_dev: Path, output_config_toml: str) ->
         assert np.array_equal(tim[:], np.array([8.0, 23.0]), equal_nan=True)
     finally:
         os.chdir(cwd0)
-    
+
 
 def test_exchange_collector_ignores_unknown_exchanges(
     tmp_path_dev: Path, output_config_toml: str
@@ -77,13 +77,14 @@ def test_exchange_collector_raises_exception_when_array_size_varies(
             "mf-ridv2dflow1d_flux_output", some_smaller_array, 23.0
         )
     assert (
-        "operands could not be broadcast together with remapped shapes [original->remapped]: (4,)  and requested shape (1,5)"
+        "operands could not be broadcast together with remapped shapes "
+        + "[original->remapped]: (4,)  and requested shape (1,5)"
         in str(e.value)
     )
     exchange_collector.finalize()
 
 
-def test_exchange_collector_raises_exception_when_time_is_repeated(
+def test_exchange_collector_overwrites_when_time_is_repeated(
     tmp_path_dev: Path, output_config_toml: str
 ) -> None:
     config_dict = tomli.loads(output_config_toml)
@@ -93,7 +94,8 @@ def test_exchange_collector_raises_exception_when_time_is_repeated(
         NDArray[np.float_]((5,), buffer=np.array([1.1, 2.0, -4.8, np.nan, 1])),
         NDArray[np.float_]((5,), buffer=np.array([1.1, 2.2, -5.8, np.nan, 2])),
         NDArray[np.float_]((5,), buffer=np.array([1.1, 2.0, 8.8, np.nan, 3])),
-        NDArray[np.float_]((5,), buffer=np.array([1.5, 8.0, 2.8, 6.0, -3]))]
+        NDArray[np.float_]((5,), buffer=np.array([1.5, 8.0, 2.8, 6.0, -3])),
+    ]
 
     exchange_collector.log_exchange("mf-ridv2dflow1d_flux_output", some_arrays[0], 8.0)
     exchange_collector.log_exchange("mf-ridv2dflow1d_flux_output", some_arrays[1], 9.0)
@@ -106,4 +108,3 @@ def test_exchange_collector_raises_exception_when_time_is_repeated(
     tim = ds.variables["time"][:]
     assert np.array_equal(dat[1, :], some_arrays[3], equal_nan=True)
     assert np.array_equal(tim[:], np.array([8.0, 9.0, 10.0]), equal_nan=True)
-    pass
