@@ -205,7 +205,7 @@ class DfmMetaMod(Driver):
 
         # exchange correction flux to MF6
         self.exchange_correction_dflow2mf6(
-            self.exchange_balans.realised["dflow1d_flux2mf-riv"]
+            self.exchange_balans.realised["dflow1d_flux2mf-riv_negative"]
         )
 
         # convergence loop modflow-metaswap
