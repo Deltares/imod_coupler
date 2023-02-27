@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# type: ignore
+
 import re
 from pathlib import Path
 
