@@ -194,7 +194,7 @@ class DfmMetaMod(Driver):
 
             # calculate realised volumes by dflow
             q_dflow_realised = q_dflow1 - q_dflow0
-            self.exchange_balans.calculate_realised(q_dflow_realised)
+            self.exchange_balans.compute_realised(q_dflow_realised)
 
             # exchange realised values to metaswap before finish of surface water time-step
             self.exchange_sprinkling_dflow1d2msw(
