@@ -94,3 +94,8 @@ class Exchange_balans:
         self.realised["dflow1d_flux2mf-riv_negative"][condition] = (
             demand_mf6_negative[condition] + shortage_left[condition]
         )
+
+        # check for cases where shortage is lager than the | negative contributions |.
+        # This should not occur and will result in erroneous realised fluxes
+        if np.any(shortage > np.absolute(demand_msw + demand_mf6_negative)):
+            raise ValueError("Computed shortage is larger than negative contributions")
