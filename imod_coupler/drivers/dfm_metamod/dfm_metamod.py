@@ -170,10 +170,10 @@ class DfmMetaMod(Driver):
             subtimestep_endtime += self.dtsw
             self.msw.start_surface_water_time_step(idtsw)
             # flux from metaswap ponding to water balance
-            self.exchange_ponding_msw2dflow1d
+            self.exchange_ponding_msw2dflow1d()
 
             # flux from metaswap sprinkling to water balance
-            self.exchange_sprinkling_msw2dflow1d
+            self.exchange_sprinkling_msw2dflow1d()
 
             # exchange water balance to dlfow
             self.exchange_balans.sum_demand()
