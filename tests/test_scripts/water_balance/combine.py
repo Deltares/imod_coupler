@@ -2,7 +2,12 @@
 
 from pathlib import Path
 
-from .combine_output import combineDF, writeCSV, writeNC, writeXLS
+from test_scripts.water_balance.combine_output import (
+    combineDF,
+    writeCSV,
+    writeNC,
+    writeXLS,
+)
 
 
 def create_waterbalance_file(

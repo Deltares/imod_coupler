@@ -8,10 +8,9 @@ import numpy as np
 
 # import xlwt, xlrd
 import pandas as pd
-
-from .MF6_wbal_listing import listfile2df
-from .readfmhis import hisfile2df
-from .readmsw import totfile2df
+from test_scripts.water_balance.MF6_wbal_listing import listfile2df
+from test_scripts.water_balance.readfmhis import hisfile2df
+from test_scripts.water_balance.readmsw import totfile2df
 
 
 def writeNC(ncname: Path, df: pd.DataFrame, singlevar: bool):
