@@ -10,7 +10,7 @@ import numpy as np
 import pandas as pd
 from test_scripts.water_balance.MF6_wbal_listing import listfile2df
 from test_scripts.water_balance.readfmhis import hisfile2df
-from test_scripts.water_balance.readmsw import totfile2df
+from test_scripts.water_balance.readmsw import totfile2df  # type: ignore
 
 
 def writeNC(ncname: Path, df: pd.DataFrame, singlevar: bool):
@@ -86,7 +86,7 @@ def combineDF(fm_hisfile: Path, msw_totfile: Path, mf_listfile: Path) -> pd.Data
     # mf6_daynrs = [int(fm_hisdf.at[i,'time'] / 86400) for i in range(len(fm_hisdf))]
     # 86400 sec in dfm is at the end of the first modflow day, that is record 0 !!
     mf6_daynrs = [int(time_seconds / 86400.0 - 0.5) for time_seconds in fm_hisdf["t"]]
-    msw_totdf = totfile2df(msw_totfile).iloc[mf6_daynrs]
+    msw_totdf = totfile2df(msw_totfile).iloc[mf6_daynrs]  # type: ignore
 
     # MetaSWAP incoming
     msw_sum_in = np.zeros(len(mf6_daynrs))
