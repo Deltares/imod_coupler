@@ -1,11 +1,5 @@
-import os
-import shutil
-from pathlib import Path
-
 import numpy as np
-from dfm_test_initialization import copy_inputfiles, set_dfm_path
-from hydrolib.core.dflowfm.mdu.models import FMModel
-from numpy.testing import assert_array_equal
+import pytest
 
 from imod_coupler.drivers.dfm_metamod.exchange import Exchange_balans
 
@@ -82,7 +76,7 @@ def test_exchange_sum() -> None:
     exchange_balans.sum_demand()
     np.testing.assert_array_equal(
         exchange_balans.demand["sum"],
-        np.array([9.0, 8.0]),
+        np.array([4.0, 8.0]),
         err_msg="computed sum of arrays is incorrect",
     )
 
@@ -102,15 +96,15 @@ def test_compute_realised() -> None:
     exchange_balans.sum_demand()
     # set expected arrays
     dflow_realised = {
-        0: np.array([8.5, 8.0]),
-        1: np.array([8.0, 8.0]),
-        2: np.array([6.0, 8.0]),
-        3: np.array([4.0, 8.0]),
+        0: np.array([3.6, 8.0]),
+        1: np.array([3.0, 8.0]),
+        2: np.array([1.0, 8.0]),
+        3: np.array([0.0, 8.0]),
     }
 
     msw_expected_realised = {
-        0: np.array([-0.5, -1.0]),
-        1: np.array([-1.0, -1.0]),
+        0: np.array([-0.6, -1.0]),
+        1: np.array([0.0, -1.0]),
         2: np.array([0.0, -1.0]),
         3: np.array([0.0, -1.0]),
     }
@@ -119,18 +113,25 @@ def test_compute_realised() -> None:
         0: np.array([-4.0, 0.0]),
         1: np.array([-4.0, 0.0]),
         2: np.array([-2.0, 0.0]),
-        3: np.array([0.0, 0.0]),
+        3: np.array([-1.0, 0.0]),
     }
     # test compute realised
     for i in range(4):
         exchange_balans.compute_realised(dflow_realised[i])
-        np.testing.assert_array_equal(
+        np.testing.assert_array_almost_equal(
             exchange_balans.realised["dflow1d_flux2sprinkling_msw"],
             msw_expected_realised[i],
             err_msg="calculated msw realised sprinkling  != expected",
+            decimal=3,
         )
-        np.testing.assert_array_equal(
-            exchange_balans.realised["dflow1d_flux2mf-riv_negative"]
-            == mf6_expected_realised[i],
+        np.testing.assert_array_almost_equal(
+            exchange_balans.realised["dflow1d_flux2mf-riv_negative"],
+            mf6_expected_realised[i],
             err_msg="calculated mf6 realised negative riv1 != expected",
+            decimal=3,
         )
+
+    # final test for shortage larger than negative demands
+    dflow_realised = np.array([-2, 8.0])
+    with pytest.raises(ValueError):
+        exchange_balans.compute_realised(dflow_realised)
