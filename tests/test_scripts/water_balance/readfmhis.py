@@ -67,9 +67,9 @@ def hisfile2df(hisname: Path, interval: Path) -> tuple[pd.DataFrame, pd.DataFram
     hisdf_rates = pd.DataFrame()
     # create derived dataframes with increments day to day, except for time
     hisdf_rates["t"] = hisdf["t"]
-    fields = list(hisdf)
-    fields.remove("t")
-    for key in fields:
+    hisdf_list = list(hisdf)
+    hisdf_list.remove("t")
+    for key in hisdf_list:
         tmp = np.insert(np.array(hisdf[key]), 0, 0)
         hisdf_rates[key] = tmp[1:] - tmp[:-1]
     return hisdf, hisdf_rates
