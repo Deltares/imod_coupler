@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 from pathlib import Path
+from typing import Union
 
 from test_scripts.water_balance.combine_output import (
     combineDF,
@@ -14,9 +15,9 @@ def create_waterbalance_file(
     fm_hisfile: Path,
     msw_totfile: Path,
     mf_listfile: Path,
-    output_file_xlsx: Path = None,
-    output_file_netcdf: Path = None,
-    output_file_csv: Path = None,
+    output_file_xlsx: Union[Path, None] = None,
+    output_file_netcdf: Union[Path, None] = None,
+    output_file_csv: Union[Path, None] = None,
 ) -> None:
     combined_dataframe = combineDF(fm_hisfile, msw_totfile, mf_listfile)
 

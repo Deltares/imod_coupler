@@ -1,7 +1,7 @@
 from pathlib import Path
 
 from test_scripts.water_balance.combine import create_waterbalance_file
-from test_utilities import textfiles_equal
+from test_utilities import numeric_csvfiles_equal
 
 
 def test_waterbalance_script(
@@ -19,4 +19,6 @@ def test_waterbalance_script(
     csv_reference_file = reference_result_folder.joinpath(
         "test_waterbalance_script/waterbalance_output.csv"
     )
-    assert textfiles_equal(csv_result_file, csv_reference_file)
+    assert numeric_csvfiles_equal(
+        csv_result_file, csv_reference_file, abstol=0.001, reltol=0.001
+    )

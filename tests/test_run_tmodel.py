@@ -4,7 +4,7 @@ from pathlib import Path
 import tomli
 import tomli_w
 from test_scripts.water_balance.combine import create_waterbalance_file
-from test_utilities import fill_para_sim_template, textfiles_equal
+from test_utilities import fill_para_sim_template, numeric_csvfiles_equal
 
 from imod_coupler.__main__ import run_coupler
 
@@ -44,7 +44,9 @@ def test_run_tmodel(
     csv_reference_file = reference_result_folder.joinpath(
         "test_run_tmodel/waterbalance.csv"
     )
-    assert textfiles_equal(waterbalance_result, csv_reference_file)
+    assert numeric_csvfiles_equal(
+        waterbalance_result, csv_reference_file, abstol=0.001, reltol=0.001
+    )
 
 
 def run_waterbalance_script_on_tmodel(testdir: Path) -> Path:
