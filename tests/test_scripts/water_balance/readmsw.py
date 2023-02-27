@@ -1,12 +1,10 @@
 #!/usr/bin/env python
 # type: ignore
-import os.path as osp
 import re
 
 import dateutil.parser as dp
 import numpy as np
 import pandas as pd
-from openpyxl import load_workbook
 
 # selection of output variables from the MetaSWAP csv
 varsel = [
