@@ -36,9 +36,20 @@ def numeric_csvfiles_equal(
         file2,
         sep,
     )
-
     if df1.shape != df2.shape:
         print(f"the dataframes in {file1} and {file2} do not have the same shape")
+        return False
+    return numeric_dataframes_equal(df1, df2, abstol, reltol)
+
+
+def numeric_dataframes_equal(
+    df1: pd.DataFrame,
+    df2: pd.DataFrame,
+    abstol: float = 1e100,
+    reltol: float = 1e100,
+) -> bool:
+    if df1.shape != df2.shape:
+        print(f"the dataframes  do not have the same shape")
         return False
 
     col_titles = df1.columns
