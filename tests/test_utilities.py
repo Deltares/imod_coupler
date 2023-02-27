@@ -25,8 +25,8 @@ def numeric_csvfiles_equal(
     file1: Path,
     file2: Path,
     sep: str,
-    abstol: np.floating,
-    reltol: np.floating,
+    abstol: float,
+    reltol: float,
 ) -> bool:
     df1 = pd.read_csv(
         file1,
@@ -45,8 +45,8 @@ def numeric_csvfiles_equal(
 def numeric_dataframes_equal(
     df1: pd.DataFrame,
     df2: pd.DataFrame,
-    abstol: np.floating,
-    reltol: np.floating,
+    abstol: float,
+    reltol: float,
 ) -> bool:
     if df1.shape != df2.shape:
         print(f"the dataframes  do not have the same shape")
