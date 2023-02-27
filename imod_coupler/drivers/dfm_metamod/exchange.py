@@ -29,7 +29,7 @@ class Exchange_balans:
         }
         self.realised = {
             "dflow1d_flux2sprinkling_msw": np.zeros(shape=self.dim, dtype=np.float_),
-            "dflow1d_flux2mf-riv_negative": np.empty(shape=self.dim, dtype=np.float_),
+            "dflow1d_flux2mf-riv_negative": np.zeros(shape=self.dim, dtype=np.float_),
         }
 
     def sum_demand(self) -> None:
@@ -37,7 +37,15 @@ class Exchange_balans:
         function calculates the sum of all arrays in self.demand dict.
         The calculated flux is stored under the key "sum". This flux is used to send to dflow
         """
-        self.demand["sum"][:] = np.sum(list(self.demand.values())[:])
+        sum_keys = [
+            "mf-riv2dflow1d_flux",
+            "mf-riv2dflow1d_passive_flux",
+            "mf-drn2dflow1d_flux",
+            "msw-ponding2dflow1d_flux",
+            "msw-sprinkling2dflow1d_flux",
+        ]
+        sum_dict = {key: self.demand[key] for key in sum_keys}
+        self.demand["sum"][:] = np.sum(list(sum_dict.values())[:])
 
     def compute_realised(self, sum_from_dflow: NDArray[np.float_]) -> None:
         """
