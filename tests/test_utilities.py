@@ -27,7 +27,6 @@ def numeric_csvfiles_equal(
     sep: str,
     abstol: float,
     reltol: float,
-,
 ) -> bool:
     df1 = pd.read_csv(
         file1,
