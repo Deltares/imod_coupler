@@ -7,7 +7,6 @@ channels:
 dependencies:
   - black
   - build
-  - dateutil
   - geopandas
   - isort
   - loguru

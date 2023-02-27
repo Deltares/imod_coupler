@@ -2,9 +2,9 @@
 
 import re
 
-import dateutil.parser as dp
 import numpy as np
 import pandas as pd
+from dateutil import parser as dp
 
 # selection of output variables from the MetaSWAP csv
 varsel = [
