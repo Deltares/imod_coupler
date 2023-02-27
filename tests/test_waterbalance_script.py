@@ -20,5 +20,5 @@ def test_waterbalance_script(
         "test_waterbalance_script/waterbalance_output.csv"
     )
     assert numeric_csvfiles_equal(
-        csv_result_file, csv_reference_file, abstol=0.001, reltol=0.001
+        csv_result_file, csv_reference_file, ";", abstol=0.001, reltol=0.001
     )

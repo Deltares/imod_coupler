@@ -45,7 +45,7 @@ def test_run_tmodel(
         "test_run_tmodel/waterbalance.csv"
     )
     assert numeric_csvfiles_equal(
-        waterbalance_result, csv_reference_file, abstol=0.001, reltol=0.001
+        waterbalance_result, csv_reference_file, ";", abstol=0.001, reltol=0.001
     )
 
 

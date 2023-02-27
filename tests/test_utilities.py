@@ -24,9 +24,9 @@ def fill_para_sim_template(msw_folder: Path, path_unsat_dbase: Path) -> None:
 def numeric_csvfiles_equal(
     file1: Path,
     file2: Path,
-    sep: str = ";",
-    abstol: float = 1e100,
-    reltol: float = 1e100,
+    sep: str,
+    abstol: np.floating,
+    reltol: np.floating,
 ) -> bool:
     df1 = pd.read_csv(
         file1,
@@ -45,8 +45,8 @@ def numeric_csvfiles_equal(
 def numeric_dataframes_equal(
     df1: pd.DataFrame,
     df2: pd.DataFrame,
-    abstol: float = 1e100,
-    reltol: float = 1e100,
+    abstol: np.floating,
+    reltol: np.floating,
 ) -> bool:
     if df1.shape != df2.shape:
         print(f"the dataframes  do not have the same shape")
@@ -72,7 +72,7 @@ def numeric_dataframes_equal(
                 <= abs(0.5 * (number_df1 + number_df2)) * reltol
             )
 
-            if both_nan or (both_notnan and (abstol_succeeded or reltol_succeeded)):
+            if both_nan or (both_notnan and abstol_succeeded and reltol_succeeded):
                 continue
             else:
                 print(f"difference on col {icol} and row {irow}")
