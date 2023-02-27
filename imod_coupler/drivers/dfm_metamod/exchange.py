@@ -45,7 +45,8 @@ class Exchange_balans:
             "msw-sprinkling2dflow1d_flux",
         ]
         sum_dict = {key: self.demand[key] for key in sum_keys}
-        self.demand["sum"][:] = np.sum(list(sum_dict.values())[:])
+        sum_array = np.stack(list(sum_dict.values()))
+        self.demand["sum"][:] = sum_array.sum(axis=0)
 
     def compute_realised(self, sum_from_dflow: NDArray[np.float_]) -> None:
         """
@@ -66,12 +67,12 @@ class Exchange_balans:
         # CASE 1: no shortage
         # for msw: realised = demand
         # for mf6: realised_negative = demand_negative
-        condition = sum_from_dflow >= sum_to_dflow
+        condition = np.greater_equal(sum_from_dflow, sum_to_dflow)
         self.realised["dflow1d_flux2sprinkling_msw"][condition] = self.demand[
             "msw-sprinkling2dflow1d_flux"
         ][condition]
-        self.realised["dflow1d_flux2mf-riv"][condition] = self.demand[
-            "mf-riv2dflow1d_flux"
+        self.realised["dflow1d_flux2mf-riv_negative"][condition] = self.demand[
+            "mf-riv2dflow1d_flux_negative"
         ][condition]
 
         # shortage because of decreased waterlevels in dflow
@@ -80,14 +81,14 @@ class Exchange_balans:
         # for mf6: realised_negative = demand_negative
         shortage = sum_to_dflow - sum_from_dflow
         demand_msw = self.demand["msw-sprinkling2dflow1d_flux"]
-        condition = (shortage <= np.absolute(demand_msw)) | (
-            sum_from_dflow < sum_to_dflow
+        condition = np.logical_and(
+            shortage <= np.absolute(demand_msw), (sum_from_dflow < sum_to_dflow)
         )
         self.realised["dflow1d_flux2sprinkling_msw"][condition] = (
             demand_msw[condition] + shortage[condition]
         )
-        self.realised["dflow1d_flux2mf-riv"][condition] = self.demand[
-            "mf-riv2dflow1d_flux"
+        self.realised["dflow1d_flux2mf-riv_negative"][condition] = self.demand[
+            "mf-riv2dflow1d_flux_negative"
         ][condition]
 
         # CASE 3: both mf6 and msw demands cant be met (shortage > |msw_demand|)
@@ -95,9 +96,10 @@ class Exchange_balans:
         # for mf6: realised_negative = demand_mf6_negative + shortage_left (shortage_left = shortage - demand_msw))
         shortage_left = shortage + demand_msw
         demand_mf6_negative = self.demand["mf-riv2dflow1d_flux_negative"]
-        condition = (shortage > np.absolute(demand_msw)) | (
-            sum_from_dflow < sum_to_dflow
+        condition = np.logical_and(
+            shortage > np.absolute(demand_msw), sum_from_dflow < sum_to_dflow
         )
+
         self.realised["dflow1d_flux2sprinkling_msw"][condition] = 0
         self.realised["dflow1d_flux2mf-riv_negative"][condition] = (
             demand_mf6_negative[condition] + shortage_left[condition]
