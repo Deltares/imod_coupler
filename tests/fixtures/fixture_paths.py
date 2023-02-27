@@ -150,6 +150,7 @@ def reference_result_folder(request) -> Path:
     path_of_this_file = Path(os.path.dirname(os.path.realpath(__file__)))
     return path_of_this_file.joinpath("../test_reference_output")
 
+
 @pytest.fixture(scope="function")
 def test_data_folder(request) -> Path:
     path_of_this_file = Path(os.path.dirname(os.path.realpath(__file__)))
