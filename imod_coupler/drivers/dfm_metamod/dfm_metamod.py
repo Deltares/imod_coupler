@@ -365,7 +365,7 @@ class DfmMetaMod(Driver):
         # for calculating the correction flux, the flux need to be split up in positive and negative values
         # since the sign is already swapped, positive values means drainage from mf6 to dflow and
         # negative values mean infiltration from dflow to MF6
-        mf6_river_aquifer_flux_sec_conditions = mf6_river_aquifer_flux_sec
+        mf6_river_aquifer_flux_sec_conditions = np.copy(mf6_river_aquifer_flux_sec)
         mf6_river_aquifer_flux_sec_conditions[mf6_river_aquifer_flux_sec < 0] = 0.0
         self.exchange_balans.demand["mf-riv2dflow1d_flux_positive"][:] = (
             self.mask_active_mod_dflow1d["mf-riv2dflow1d_flux"][:]
@@ -375,7 +375,7 @@ class DfmMetaMod(Driver):
             )[:]
         )
 
-        mf6_river_aquifer_flux_sec_conditions = mf6_river_aquifer_flux_sec
+        mf6_river_aquifer_flux_sec_conditions = np.copy(mf6_river_aquifer_flux_sec)
         mf6_river_aquifer_flux_sec_conditions[mf6_river_aquifer_flux_sec > 0] = 0.0
         self.exchange_balans.demand["mf-riv2dflow1d_flux_negative"][:] = (
             self.mask_active_mod_dflow1d["mf-riv2dflow1d_flux"][:]

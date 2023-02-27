@@ -78,7 +78,7 @@ class Exchange_balans:
         # CASE 2: only msw demand can't be met (shortage <= |msw_demand|)
         # for msw: realised = demand_msw + shortage
         # for mf6: realised_negative = demand_negative
-        shortage = sum_to_dflow - sum_from_dflow
+        shortage = np.absolute(sum_to_dflow - sum_from_dflow)
         demand_msw = self.demand["msw-sprinkling2dflow1d_flux"]
         condition = np.logical_and(
             shortage <= np.absolute(demand_msw), (sum_from_dflow < sum_to_dflow)
@@ -104,7 +104,12 @@ class Exchange_balans:
             demand_mf6_negative[condition] + shortage_left[condition]
         )
 
-        # check for cases where shortage is lager than the | negative contributions |.
-        # This should not occur and will result in erroneous realised fluxes
-        if np.any(shortage > np.absolute(demand_msw + demand_mf6_negative)):
+        # aditional check for cases where sum_from_dflow < sum_to_dflow
+        # the maximum shortage can't be larger than the | negative contributions |
+        # This should not occur and will result in erroneous fluxes
+        condition = np.logical_and(
+            shortage > np.absolute(demand_msw + demand_mf6_negative),
+            sum_from_dflow < sum_to_dflow,
+        )
+        if np.any(condition):
             raise ValueError("Computed shortage is larger than negative contributions")
