@@ -9,11 +9,11 @@ def output_config_toml() -> str:
 
                         [[exchanges]]
                         
-                        [[exchanges.mf-ridv2dflow1d_flux_output]]
+                        [[exchanges.example_flux_output]]
                         type = "netcdf"
                         postfix = "in"
 
-                        [[exchanges.dflow1d2mf-riv_stage_output]]
+                        [[exchanges.example_stage_output]]
                         type = "netcdf"
                         postfix = "out"
                         """

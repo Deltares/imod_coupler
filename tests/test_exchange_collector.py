@@ -26,13 +26,11 @@ def test_exchange_collector_read(tmp_path_dev: Path, output_config_toml: str) ->
         some_array1: NDArray[np.float_] = NDArray[np.float_](
             (5,), buffer=np.array([1.1, 666.0, -4.8, 0.0, 3])
         )
-        exchange_collector.log_exchange("mf-ridv2dflow1d_flux_output", some_array0, 8.0)
-        exchange_collector.log_exchange(
-            "mf-ridv2dflow1d_flux_output", some_array1, 23.0
-        )
+        exchange_collector.log_exchange("example_flux_output", some_array0, 8.0)
+        exchange_collector.log_exchange("example_flux_output", some_array1, 23.0)
         exchange_collector.finalize()
 
-        ds = nc.Dataset("./mf-ridv2dflow1d_flux_output.nc", "r")
+        ds = nc.Dataset("./example_flux_output.nc", "r")
         dat = ds.variables["xchg"][:]
         tim = ds.variables["time"][:]
         assert np.array_equal(dat[0, :], some_array0, equal_nan=True)
@@ -71,10 +69,10 @@ def test_exchange_collector_raises_exception_when_array_size_varies(
     some_smaller_array: NDArray[np.float_] = NDArray[np.float_](
         (4,), buffer=np.array([1.1, 666.0, -4.8, 0.0])
     )
-    exchange_collector.log_exchange("mf-ridv2dflow1d_flux_output", some_array, 8.0)
+    exchange_collector.log_exchange("example_stage_output", some_array, 8.0)
     with pytest.raises(ValueError) as e:
         exchange_collector.log_exchange(
-            "mf-ridv2dflow1d_flux_output", some_smaller_array, 23.0
+            "example_stage_output", some_smaller_array, 23.0
         )
     assert (
         "operands could not be broadcast together with remapped shapes "
@@ -97,13 +95,13 @@ def test_exchange_collector_overwrites_when_time_is_repeated(
         NDArray[np.float_]((5,), buffer=np.array([1.5, 8.0, 2.8, 6.0, -3])),
     ]
 
-    exchange_collector.log_exchange("mf-ridv2dflow1d_flux_output", some_arrays[0], 8.0)
-    exchange_collector.log_exchange("mf-ridv2dflow1d_flux_output", some_arrays[1], 9.0)
-    exchange_collector.log_exchange("mf-ridv2dflow1d_flux_output", some_arrays[2], 10.0)
-    exchange_collector.log_exchange("mf-ridv2dflow1d_flux_output", some_arrays[3], 9.0)
+    exchange_collector.log_exchange("example_stage_output", some_arrays[0], 8.0)
+    exchange_collector.log_exchange("example_stage_output", some_arrays[1], 9.0)
+    exchange_collector.log_exchange("example_stage_output", some_arrays[2], 10.0)
+    exchange_collector.log_exchange("example_stage_output", some_arrays[3], 9.0)
     exchange_collector.finalize()
 
-    ds = nc.Dataset("./mf-ridv2dflow1d_flux_output.nc", "r")
+    ds = nc.Dataset("./example_stage_output.nc", "r")
     dat = ds.variables["xchg"][:]
     tim = ds.variables["time"][:]
     assert np.array_equal(dat[1, :], some_arrays[3], equal_nan=True)
