@@ -16,14 +16,14 @@ from test_scripts.water_balance.readmsw import totfile2df  # type: ignore
 def writeNC(ncname: Path, df: pd.DataFrame, singlevar: bool):
     nvar = len(df.columns)
     ds = nc.Dataset(ncname, "w")
-    _ = ds.createDimension("time", len(df.index))
+    ds.createDimension("time", len(df.index))
     #   create a separate variable "time" holding the record index
     #   timevar = ds.createVariable("time","f8",("time",))
     #   timevar[:] = np.array(df.index)
     if singlevar:
         namelen = 22
-        _ = ds.createDimension("id", len(df.columns))
-        _ = ds.createDimension("nchar", namelen)
+        ds.createDimension("id", len(df.columns))
+        ds.createDimension("nchar", namelen)
         xchgvar = ds.createVariable(
             "exchange",
             "f8",

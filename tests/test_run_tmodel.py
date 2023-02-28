@@ -41,20 +41,21 @@ def test_run_tmodel(
 
     waterbalance_result = run_waterbalance_script_on_tmodel(tmp_path_dev)
 
-    csv_reference_file = reference_result_folder.joinpath(
-        "test_run_tmodel/waterbalance.csv"
+    csv_reference_file = (
+        reference_result_folder / "test_run_tmodel" / "waterbalance.csv"
     )
+
     assert numeric_csvfiles_equal(
         waterbalance_result, csv_reference_file, ";", abstol=5600.0, reltol=3.5
     )
 
 
 def run_waterbalance_script_on_tmodel(testdir: Path) -> Path:
-    modflow_out_file = testdir.joinpath("Modflow6/GWF_1/T-MODEL-D.LST")
-    dflow_out_file = testdir.joinpath("dflow-fm/DFM_OUTPUT_FlowFM/FlowFM_his.nc")
-    metaswap_out_file = testdir.joinpath("MetaSWAP/msw/csv/tot_svat_dtgw.csv")
+    modflow_out_file = testdir / "Modflow6" / "GWF_1" / "T-MODEL-D.LST"
+    dflow_out_file = testdir / "dflow-fm" / "DFM_OUTPUT_FlowFM" / "FlowFM_his.nc"
+    metaswap_out_file = testdir / "MetaSWAP" / "msw" / "csv" / "tot_svat_dtgw.csv"
 
-    csv_file = testdir.joinpath("water_balance.csv")
+    csv_file = testdir / "water_balance.csv"
     create_waterbalance_file(
         dflow_out_file, metaswap_out_file, modflow_out_file, output_file_csv=csv_file
     )
