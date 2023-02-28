@@ -11,10 +11,8 @@ def output_config_toml() -> str:
                         
                         [[exchanges.example_flux_output]]
                         type = "netcdf"
-                        postfix = "in"
 
                         [[exchanges.example_stage_output]]
                         type = "netcdf"
-                        postfix = "out"
                         """
     return input_file_content
