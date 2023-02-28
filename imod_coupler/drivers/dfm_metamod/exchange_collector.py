@@ -15,6 +15,9 @@ class AbstractExchange(abc.ABC):
     def write_exchange(self, exchange: NDArray[Any], time: float) -> None:
         pass
 
+    def finalize(self) -> None:
+        pass
+
 
 class NetcdfExchangeLogger(AbstractExchange):
     output_file: Path
@@ -29,9 +32,18 @@ class NetcdfExchangeLogger(AbstractExchange):
 
     def initfile(self, ndx: int) -> None:
         self.nodedim = self.ds.createDimension("id", ndx)
-        self.timedim = self.ds.createDimension("time",)
+        self.timedim = self.ds.createDimension(
+            "time",
+        )
         self.timevar = self.ds.createVariable("time", "f8", ("time",))
-        self.datavar = self.ds.createVariable("xchg", "f8", ("time", "id",))
+        self.datavar = self.ds.createVariable(
+            "xchg",
+            "f8",
+            (
+                "time",
+                "id",
+            ),
+        )
         self.pos = 0
 
     def write_exchange(
@@ -58,7 +70,6 @@ class ExchangeCollector:
     output_dir: Path
 
     def __init__(self, config: dict[str, dict[str, Any]]):
-
         general_settings = config["general"][0]
         self.output_dir = Path(general_settings["output_dir"])
 
