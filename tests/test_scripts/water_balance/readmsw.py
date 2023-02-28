@@ -1,10 +1,10 @@
 #!/usr/bin/env python
-# type: ignore
+
 import re
 
 import numpy as np
 import pandas as pd
-from dateutil import parser as dp
+from dateutil import parser as dp  # type: ignore
 
 # selection of output variables from the MetaSWAP csv
 varsel = [
