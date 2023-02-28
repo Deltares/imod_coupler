@@ -53,7 +53,7 @@ class Exchange_balans:
         and returned from dflow. The realised fluxes are stored in the
         self.waterbalance_realised dict. In case of no shortage demand = realised:
         - 'dflow1d_flux2sprinkling_msw'-flux = 'msw-sprinkling2dflow1d_flux'
-        - 'dflow1d_flux2mf-riv' = 'mf-riv2dflow1d_flux'
+        - 'dflow1d_flux2mf-riv_negative' = 'mf-riv2dflow1d_flux_negative'
         In case of shortage, shortage will first be deducted to the msw-demand and after to mf6 demand.
 
         Parameters
