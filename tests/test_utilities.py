@@ -54,6 +54,7 @@ def numeric_dataframes_equal(
 
     col_titles = df1.columns
 
+    valid = True
     for icol in col_titles:
         col_df1 = pd.to_numeric(df1[icol], errors="coerce")
         col_df1_list = col_df1.to_list()
@@ -72,9 +73,9 @@ def numeric_dataframes_equal(
                 <= abs(0.5 * (number_df1 + number_df2)) * reltol
             )
 
-            if both_nan or (both_notnan and abstol_succeeded and reltol_succeeded):
+            if both_nan or (both_notnan and (abstol_succeeded or reltol_succeeded)):
                 continue
             else:
                 print(f"difference on col {icol} and row {irow}")
-                return False
-    return True
+                valid = False
+    return valid
