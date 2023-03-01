@@ -41,8 +41,8 @@ class DfmMetaMod(Driver):
     msw: MswWrapper  # the MetaSWAP XMI kernel
     dfm: DfmWrapper  # the dflow-fm BMI kernel
 
-    dtgw: float  # time step from MODFLOW 6 (leading)
-    dtsw: float  # timestep of fast proceses in MetaSWAP
+    delt_mf6: float  # time step from MODFLOW 6 (leading)
+    delt_msw_dflow: float  # timestep of fast proceses in MetaSWAP
     number_substeps_per_modflowstep: float  # number of subtimesteps between metaSWAP-DFLOW in a single MF6 timestep
 
     # sparse matrices used for  modflow-dflow exchanges
@@ -144,10 +144,10 @@ class DfmMetaMod(Driver):
         t_begin = self.get_current_time()
         self.mf6.prepare_time_step(0.0)
 
-        self.dtgw = self.mf6.get_time_step()
-        self.dtsw = self.msw.get_sw_time_step()
-        self.number_substeps_per_modflowstep = int(self.dtgw / self.dtsw)
-        self.msw.prepare_time_step(self.dtgw)
+        self.delt_mf6 = self.mf6.get_time_step()
+        self.delt_msw_dflow = self.msw.get_sw_time_step()
+        self.number_substeps_per_modflowstep = int(self.delt_mf6 / self.delt_msw_dflow)
+        self.msw.prepare_time_step(self.delt_mf6)
 
         # initialise water balance
         self.exchange_balans.initialise()
@@ -167,7 +167,7 @@ class DfmMetaMod(Driver):
         # sub timestepping between metaswap and dflow
         subtimestep_endtime = t_begin
         for idtsw in range(self.number_substeps_per_modflowstep):
-            subtimestep_endtime += self.dtsw
+            subtimestep_endtime += self.delt_msw_dflow
             self.msw.start_surface_water_time_step(idtsw)
             # flux from metaswap ponding to water balance
             self.exchange_ponding_msw2dflow1d()
@@ -350,11 +350,11 @@ class DfmMetaMod(Driver):
         """
 
         # conversion from (-)m3/dtgw to (+)m3/s
-        mf6_river_aquifer_flux = self.mf6.get_river_flux_estimate(
+        mf6_river_aquifer_flux_day = self.mf6.get_river_flux_estimate(
             self.coupling.mf6_model, self.coupling.mf6_river_active_pkg
         )
-        mf6_river_aquifer_flux_sec = -mf6_river_aquifer_flux / days_to_seconds(
-            self.dtgw
+        mf6_river_aquifer_flux_sec = -mf6_river_aquifer_flux_day / days_to_seconds(
+            self.delt_mf6
         )
         self.matrix_product(
             mf6_river_aquifer_flux_sec,
@@ -388,7 +388,7 @@ class DfmMetaMod(Driver):
     def exchange_ponding_msw2dflow1d(self) -> None:
         # conversion from (+)m3/dtsw to (+)m3/s
         msw_ponding_volume = self.msw.get_surfacewater_ponding_allocation()
-        msw_ponding_flux_sec = msw_ponding_volume / days_to_seconds(self.dtsw)
+        msw_ponding_flux_sec = msw_ponding_volume / days_to_seconds(self.delt_msw_dflow)
 
         self.matrix_product(
             msw_ponding_flux_sec,
@@ -400,7 +400,9 @@ class DfmMetaMod(Driver):
     def exchange_sprinkling_msw2dflow1d(self) -> None:
         # conversion from (+)m3/dtsw to (+)m3/s
         msw_sprinkling_demand = self.msw.get_surfacewater_sprinking_demand()
-        msw_sprinkling_flux_sec = msw_sprinkling_demand / days_to_seconds(self.dtsw)
+        msw_sprinkling_flux_sec = msw_sprinkling_demand / days_to_seconds(
+            self.delt_msw_dflow
+        )
 
         self.matrix_product(
             msw_sprinkling_flux_sec,
@@ -413,7 +415,7 @@ class DfmMetaMod(Driver):
         self, sprinkling_dflow: NDArray[np.float_]
     ) -> None:
         # conversion from (+)m3/s to (+)m3/dtsw
-        sprinkling_dflow_dtsw = sprinkling_dflow * days_to_seconds(self.dtsw)
+        sprinkling_dflow_dtsw = sprinkling_dflow * days_to_seconds(self.delt_msw_dflow)
         # get the realised pointer
         sprinkling_msw = self.msw.get_surfacewater_sprinking_realised()
         # set pointer
@@ -438,7 +440,7 @@ class DfmMetaMod(Driver):
             self.coupling.mf6_model, self.coupling.mf6_river_passive_pkg
         )
         # conversion from (-)m3/dtgw to (+)m3/s
-        mf6_riv2_flux_sec = -mf6_riv2_flux / days_to_seconds(self.dtgw)
+        mf6_riv2_flux_sec = -mf6_riv2_flux / days_to_seconds(self.delt_mf6)
 
         self.matrix_product(
             mf6_riv2_flux_sec,
@@ -461,7 +463,7 @@ class DfmMetaMod(Driver):
             self.coupling.mf6_model, self.coupling.mf6_drain_pkg
         )
         # conversion from (+)m3/dtgw to (+)m3/s
-        mf6_drn_flux_sec = -mf6_drn_flux / days_to_seconds(self.dtgw)
+        mf6_drn_flux_sec = -mf6_drn_flux / days_to_seconds(self.delt_mf6)
 
         self.matrix_product(
             mf6_drn_flux_sec,
@@ -481,7 +483,7 @@ class DfmMetaMod(Driver):
         qmf6_demand = self.mf6.get_river_flux_estimate(
             self.coupling.mf6_model, self.coupling.mf6_river_active_pkg
         )
-        qmf6_demand_sec = -qmf6_demand / days_to_seconds(self.dtgw)
+        qmf6_demand_sec = -qmf6_demand / days_to_seconds(self.delt_mf6)
 
         # mf6 riv-active demand, dims=dfm
         qdfm_demand = self.exchange_balans.demand["mf-riv2dflow1d_flux"]
@@ -515,7 +517,7 @@ class DfmMetaMod(Driver):
         )
 
         # Divide recharge and extraction by delta time
-        tled = 1 / self.dtgw
+        tled = 1 / self.delt_mf6
         self.mf6.get_recharge(
             self.coupling.mf6_model, self.coupling.mf6_msw_recharge_pkg
         )[:] = (
