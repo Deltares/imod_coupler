@@ -171,5 +171,5 @@ class Exchange_balance:
         self.set_realised_shortage_msw(sum_from_dflow, sum_to_dflow)
         # update elements for cases with shortage + shortage > msw_demand
         self.set_realised_shortage_msw_mf6(sum_from_dflow, sum_to_dflow)
-        # check if shoratge is not larger than negative demand
+        # check if shortage is not larger than negative demand
         self.check_maximum_shortage(sum_from_dflow, sum_to_dflow)
