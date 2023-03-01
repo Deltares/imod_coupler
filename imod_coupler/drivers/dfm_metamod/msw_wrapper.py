@@ -53,7 +53,7 @@ class MswWrapper(XmiWrapper):
         Returns
         -------
          NDArray[np.float_]:
-            sprinkling demand of MetaSWAP in m3/dtgw. Array as pointer of the MetaSWAP intenal array.
+            sprinkling demand of MetaSWAP in m3/ dtgw. Array as pointer of the MetaSWAP intenal array.
             Internally MetaSWAP uses a different array for get and set operations.
         """
         return self.get_value_ptr("ts2dfmputsp")
