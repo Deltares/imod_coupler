@@ -191,7 +191,7 @@ class DfmMetaMod(Driver):
 
             self.msw.finish_surface_water_time_step(idtsw)
 
-        # exchange correction flux to MSW and MF6
+            # exchange correction flux to MSW and MF6
 
             # get cummelative flux after dfm-run
             q_dflow1 = self.dfm.get_cumulative_fluxes_1d_nodes()
