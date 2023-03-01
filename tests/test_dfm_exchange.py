@@ -1,5 +1,6 @@
 import numpy as np
 import pytest
+from numpy.typing import NDArray
 
 from imod_coupler.drivers.dfm_metamod.exchange import Exchange_balance
 
@@ -136,6 +137,6 @@ def test_compute_realised() -> None:
         )
 
     # final test for shortage larger than negative demands
-    dflow_realised = np.array([-2, 8.0])
+    dflow_realised_test = np.array([-2, 8.0])
     with pytest.raises(ValueError):
-        exchange_balans.compute_realised(dflow_realised)
+        exchange_balans.compute_realised(dflow_realised_test)
