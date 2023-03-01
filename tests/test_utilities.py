@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import Dict, Tuple
 
 import numpy as np
 import pandas as pd
@@ -25,7 +26,7 @@ def compute_tolerance_per_column_csvfiles(
     file1: Path,
     file2: Path,
     sep: str,
-) -> (dict[str, float], dict[str, float]):
+) -> Tuple[Dict[str, np.float], Dict[str, np.float]]:
     df1 = pd.read_csv(
         file1,
         sep,
@@ -35,20 +36,19 @@ def compute_tolerance_per_column_csvfiles(
         sep,
     )
     if df1.shape != df2.shape:
-        print(f"the dataframes in {file1} and {file2} do not have the same shape")
-        return False
+        raise ValueError(
+            f"the dataframes in {file1} and {file2} do not have the same shape"
+        )
+
     return compute_tolerance_per_column_dataframe(df1, df2)
 
 
 def compute_tolerance_per_column_dataframe(
     df1: pd.DataFrame,
     df2: pd.DataFrame,
-    abstol: float,
-    reltol: float,
-) -> (dict[str, float], dict[str, float]):
+) -> Tuple[Dict[str, np.float], Dict[str, np.float]]:
     if df1.shape != df2.shape:
-        print(f"the dataframes  do not have the same shape")
-        return False
+        raise ValueError(f"the dataframes  do not have the same shape")
 
     col_titles = df1.columns
 
@@ -76,7 +76,9 @@ def compute_tolerance_per_column_dataframe(
                     maxreltol,
                     abs(number_df1 - number_df2) / abs(0.5 * (number_df1 + number_df2)),
                 )
-
+            if not both_nan and not both_notnan:
+                maxtol = np.nan
+                maxreltol = np.nan
             abstol_dict[colname] = maxtol
             reltol_dict[colname] = maxreltol
-    return abstol_dict, reltol_dict
+    return (abstol_dict, reltol_dict)
