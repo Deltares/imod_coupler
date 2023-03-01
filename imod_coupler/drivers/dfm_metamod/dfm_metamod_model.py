@@ -244,6 +244,7 @@ class DfmMetaModModel:
             "timing": False,
             "log_level": "INFO",
             "driver_type": "dfm_metamod",
+            "output"
             "driver": {
                 "kernels": {
                     "modflow6": {
