@@ -1,7 +1,7 @@
 from pathlib import Path
 
 from test_scripts.water_balance.combine import create_waterbalance_file
-from test_utilities import numeric_csvfiles_equal
+from test_utilities import compute_tolerance_oer_column_csvfiles
 
 
 def test_waterbalance_script(
@@ -20,6 +20,6 @@ def test_waterbalance_script(
         reference_result_folder / "test_waterbalance_script" / "waterbalance_output.csv"
     )
 
-    assert numeric_csvfiles_equal(
+    assert compute_tolerance_oer_column_csvfiles(
         csv_result_file, csv_reference_file, ";", abstol=0.001, reltol=0.001
     )

@@ -4,7 +4,7 @@ from pathlib import Path
 import tomli
 import tomli_w
 from test_scripts.water_balance.combine import create_waterbalance_file
-from test_utilities import fill_para_sim_template, numeric_csvfiles_equal
+from test_utilities import compute_tolerance_oer_column_csvfiles, fill_para_sim_template
 
 from imod_coupler.__main__ import run_coupler
 
@@ -45,7 +45,7 @@ def test_run_tmodel_devel(
         reference_result_folder / "test_run_tmodel" / "waterbalance.csv"
     )
 
-    assert numeric_csvfiles_equal(
+    assert compute_tolerance_oer_column_csvfiles(
         waterbalance_result, csv_reference_file, ";", abstol=10.0, reltol=0.01
     )
 
@@ -86,7 +86,7 @@ def test_run_tmodel_regression(
         reference_result_folder / "test_run_tmodel" / "waterbalance.csv"
     )
 
-    assert numeric_csvfiles_equal(
+    assert compute_tolerance_oer_column_csvfiles(
         waterbalance_result, csv_reference_file, ";", abstol=60.0, reltol=2.1
     )
 

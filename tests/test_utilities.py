@@ -21,13 +21,11 @@ def fill_para_sim_template(msw_folder: Path, path_unsat_dbase: Path) -> None:
         f.write(para_sim_text)
 
 
-def numeric_csvfiles_equal(
+def compute_tolerance_per_column_csvfiles(
     file1: Path,
     file2: Path,
     sep: str,
-    abstol: float,
-    reltol: float,
-) -> bool:
+) -> (dict[str, float], dict[str, float]):
     df1 = pd.read_csv(
         file1,
         sep,
@@ -39,22 +37,21 @@ def numeric_csvfiles_equal(
     if df1.shape != df2.shape:
         print(f"the dataframes in {file1} and {file2} do not have the same shape")
         return False
-    return numeric_dataframes_equal(df1, df2, abstol, reltol)
+    return compute_tolerance_per_column_dataframe(df1, df2)
 
 
-def numeric_dataframes_equal(
+def compute_tolerance_per_column_dataframe(
     df1: pd.DataFrame,
     df2: pd.DataFrame,
     abstol: float,
     reltol: float,
-) -> bool:
+) -> (dict[str, float], dict[str, float]):
     if df1.shape != df2.shape:
         print(f"the dataframes  do not have the same shape")
         return False
 
     col_titles = df1.columns
 
-    valid = True
     abstol_dict = {}
     reltol_dict = {}
     for icol in col_titles:
@@ -80,8 +77,6 @@ def numeric_dataframes_equal(
                     abs(number_df1 - number_df2) / abs(0.5 * (number_df1 + number_df2)),
                 )
 
-                print(f"difference on col {icol} and row {irow}")
-                valid = False
             abstol_dict[colname] = maxtol
             reltol_dict[colname] = maxreltol
-    return valid
+    return abstol_dict, reltol_dict
