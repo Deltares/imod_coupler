@@ -20,7 +20,7 @@ from xmipy import XmiWrapper
 from imod_coupler.config import BaseConfig
 from imod_coupler.drivers.dfm_metamod.config import Coupling, DfmMetaModConfig
 from imod_coupler.drivers.dfm_metamod.dfm_wrapper import DfmWrapper
-from imod_coupler.drivers.dfm_metamod.exchange import Exchange_balans
+from imod_coupler.drivers.dfm_metamod.exchange import Exchange_balance
 from imod_coupler.drivers.dfm_metamod.mapping import Mapping
 from imod_coupler.drivers.dfm_metamod.mf6_wrapper import Mf6Wrapper
 from imod_coupler.drivers.dfm_metamod.msw_wrapper import MswWrapper
@@ -112,7 +112,7 @@ class DfmMetaMod(Driver):
         )
         self.set_mapping()
         self.log_version()
-        self.exchange_balans = Exchange_balans(self.array_dims["dfm_1d"])
+        self.exchange_balans = Exchange_balance(self.array_dims["dfm_1d"])
 
     def log_version(self) -> None:
         logger.info(f"MODFLOW version: {self.mf6.get_version()}")
@@ -150,7 +150,7 @@ class DfmMetaMod(Driver):
         self.msw.prepare_time_step(self.delt_mf6)
 
         # initialise water balance
-        self.exchange_balans.initialise()
+        self.exchange_balans.reset()
 
         # stage from dflow 1d to modflow active coupled riv
         self.exchange_stage_1d_dfm2mf6()

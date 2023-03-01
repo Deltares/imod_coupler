@@ -1,10 +1,10 @@
 import numpy as np
 import pytest
 
-from imod_coupler.drivers.dfm_metamod.exchange import Exchange_balans
+from imod_coupler.drivers.dfm_metamod.exchange import Exchange_balance
 
 dflow_dim = 2
-exchange_balans = Exchange_balans(dflow_dim)
+exchange_balans = Exchange_balance(dflow_dim)
 
 # testdata
 mf6_riv_active_positive = np.array([6, 6])
@@ -25,19 +25,23 @@ ref_dict["msw-ponding2dflow1d_flux"] = msw_ponding
 ref_dict["msw-sprinkling2dflow1d_flux"] = msw_sprinking
 
 
-def test_exchange_initialise() -> None:
-    exchange_balans.initialise()
+def test_exchange_reset() -> None:
+    exchange_balans.reset()
     for array in exchange_balans.demand.values():
         assert array.size == dflow_dim, "array dims are not as expected"
-        assert np.max(array) == 0, "arrays is not initialised at 0"
+        assert (
+            np.max(array) == 0 and np.min(array) == 0
+        ), "arrays is not initialised at 0"
     for array in exchange_balans.realised.values():
         assert array.size == dflow_dim, "array dims are not as expected"
-        assert np.max(array) == 0, "arrays is not initialised at 0"
+        assert (
+            np.max(array) == 0 and np.min(array) == 0
+        ), "arrays is not initialised at 0"
 
 
 def test_exchange_set() -> None:
     # first initialise
-    exchange_balans.initialise()
+    exchange_balans.reset()
     # set arrays
     for i in range(3):
         exchange_balans.demand["mf-riv2dflow1d_flux"] = mf6_riv_active[:]
@@ -63,7 +67,7 @@ def test_exchange_set() -> None:
 
 def test_exchange_sum() -> None:
     # first initialise
-    exchange_balans.initialise()
+    exchange_balans.reset()
     # set arrays
     exchange_balans.demand["mf-riv2dflow1d_flux"] = mf6_riv_active[:]
     exchange_balans.demand["mf-riv2dflow1d_flux_positive"] = mf6_riv_active_positive[:]
@@ -83,7 +87,7 @@ def test_exchange_sum() -> None:
 
 def test_compute_realised() -> None:
     # first initialise
-    exchange_balans.initialise()
+    exchange_balans.reset()
     # set arrays
     exchange_balans.demand["mf-riv2dflow1d_flux"] = mf6_riv_active[:]
     exchange_balans.demand["mf-riv2dflow1d_flux_positive"] = mf6_riv_active_positive[:]
