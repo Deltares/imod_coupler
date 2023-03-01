@@ -1,3 +1,4 @@
+from ctypes import byref, c_int
 from pathlib import Path
 from typing import Any, Optional, Union
 
@@ -16,6 +17,32 @@ class MswWrapper(XmiWrapper):
     ):
         super().__init__(lib_path, lib_dependency, working_directory, timing)
 
+    def initialize_surface_water_component(self) -> None:
+        self.execute_function(self.lib.init_sw_component)
+
+    def start_surface_water_time_step(self, idtsw: int) -> None:
+        idtsw_c = c_int(idtsw)
+        self.execute_function(self.lib.perform_sw_time_step, byref(idtsw_c))
+
+    def finish_surface_water_time_step(self, idtsw: int) -> None:
+        idtsw_c = c_int(idtsw)
+        self.execute_function(self.lib.finish_sw_time_step, byref(idtsw_c))
+
+    def get_sw_time_step(self) -> float:
+        """returns the time step length for fast (surfacewater) processes from metaswap
+
+        Parameters
+        ----------
+        none
+
+        Returns
+        -------
+         NDArray[np.float_]:
+            surface water timestep length in days
+        """
+        dtsw = self.get_value("dtsw")
+        return float(dtsw[0])
+
     def get_surfacewater_sprinking_demand(self) -> NDArray[np.float_]:
         """returns the sprinkling volume demand from metaswap
 
@@ -26,15 +53,15 @@ class MswWrapper(XmiWrapper):
         Returns
         -------
          NDArray[np.float_]:
-            sprinkling demand of MetaSWAP in m3/dtgw. Array as a copy of the MetaSWAP intenal array,
-            since the set function uses a different bmi/xmi-variable
+            sprinkling demand of MetaSWAP in m3/dtgw. Array as pointer of the MetaSWAP intenal array.
+            Internally MetaSWAP uses a different array for get and set operations.
         """
-        return self.get_value("dts2dfmputsp")
+        return self.get_value_ptr("ts2dfmputsp")
 
     def set_surfacewater_sprinking_demand(
         self, sprinking_demand: NDArray[np.float_]
     ) -> None:
-        """sets the sprinkling volume demand in metaswap
+        """sets the sprinkling volume demand in metaswap.
 
         Parameters
         ----------
@@ -46,7 +73,8 @@ class MswWrapper(XmiWrapper):
         none
 
         """
-        self.set_value("dts2dfmgetsp", sprinking_demand)
+        msw_sprinkling = self.get_value_ptr("dfm2tsgetsp")
+        msw_sprinkling[:] = sprinking_demand[:]
 
     def get_surfacewater_ponding_allocation(self) -> NDArray[np.float_]:
         """returns the ponding volume allocation from metaswap
@@ -58,10 +86,10 @@ class MswWrapper(XmiWrapper):
         Returns
         -------
          NDArray[np.float_]:
-            ponding volume allocation of MetaSWAP in m3/dtsw. Array as a copy of the MetaSWAP intenal array,
-            since the set function uses a different bmi/xmi-variable
+            ponding volume allocation of MetaSWAP in m3/dtsw. Array as pointer of the MetaSWAP intenal array.
+            Internally MetaSWAP uses a different array for get and set operations.
         """
-        return self.get_value("ts2dfmput")
+        return self.get_value_ptr("ts2dfmput")
 
     def set_surfacewater_ponding_allocation(
         self, ponding_allocation: NDArray[np.float_]
@@ -77,7 +105,8 @@ class MswWrapper(XmiWrapper):
         -------
         none
         """
-        self.set_value("ts2dfmget", ponding_allocation)
+        msw_ponding_volume = self.get_value_ptr("ts2dfmget")
+        msw_ponding_volume[:] = ponding_allocation[:]
 
     def set_ponding_level_1d(self, ponding_level_1d: NDArray[np.float_]) -> None:
         """sets ponding level from dlfow-1d in metaswap
@@ -91,7 +120,8 @@ class MswWrapper(XmiWrapper):
         -------
         none
         """
-        self.set_value("dfm2lvsw1Dk", ponding_level_1d)
+        msw_ponding_level = self.get_value_ptr("dfm2lvsw1Dk")
+        msw_ponding_level[:] = ponding_level_1d[:]
 
     def set_ponding_level_2d(self, ponding_level_2d: NDArray[np.float_]) -> None:
         """sets ponding level from dlfow-2d in metaswap
@@ -105,7 +135,9 @@ class MswWrapper(XmiWrapper):
         -------
         none
         """
-        self.set_value("dfm2lvswk", ponding_level_2d)
+
+        msw_ponding_level = self.get_value_ptr("dfm2lvswk")
+        msw_ponding_level[:] = ponding_level_2d[:]
 
     def get_svat_area(self) -> NDArray[np.float_]:
         """gets area's of svats in metaswap. This can ben used to calculate ponding volumes based on dlfow ponding levels
