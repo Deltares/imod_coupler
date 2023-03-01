@@ -1,7 +1,7 @@
 import abc
 import os
 from pathlib import Path
-from typing import Any
+from typing import Any, List
 
 import netCDF4 as nc
 import numpy as np
@@ -69,7 +69,7 @@ class ExchangeCollector:
     exchanges: dict[str, AbstractExchange]
     output_dir: Path
 
-    def __init__(self, config: dict[str, dict[str, Any]]):
+    def __init__(self, config: dict[str, List[dict[str, Any]]]):
         general_settings = config["general"][0]
         self.output_dir = Path(general_settings["output_dir"])
 
