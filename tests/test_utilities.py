@@ -55,11 +55,17 @@ def numeric_dataframes_equal(
     col_titles = df1.columns
 
     valid = True
+    abstol_dict = {}
+    reltol_dict = {}
     for icol in col_titles:
+        colname = icol
         col_df1 = pd.to_numeric(df1[icol], errors="coerce")
         col_df1_list = col_df1.to_list()
         col_df2 = pd.to_numeric(df2[icol], errors="coerce")
         col_df2_list = col_df2.to_list()
+
+        maxtol = 0
+        maxreltol = 0
 
         for irow in range(len(col_df1_list)):
             number_df1 = col_df1_list[irow]
@@ -67,15 +73,15 @@ def numeric_dataframes_equal(
 
             both_notnan = not np.isnan(number_df1) and not np.isnan(number_df2)
             both_nan = np.isnan(number_df1) and np.isnan(number_df2)
-            abstol_succeeded = abs(number_df1 - number_df2) < abstol
-            reltol_succeeded = (
-                abs(number_df1 - number_df2)
-                <= abs(0.5 * (number_df1 + number_df2)) * reltol
-            )
+            if both_notnan and number_df1 != number_df2:
+                maxtol = max(maxtol, abs(number_df1 - number_df2))
+                maxreltol = max(
+                    maxreltol,
+                    abs(number_df1 - number_df2) / abs(0.5 * (number_df1 + number_df2)),
+                )
 
-            if both_nan or (both_notnan and (abstol_succeeded or reltol_succeeded)):
-                continue
-            else:
                 print(f"difference on col {icol} and row {irow}")
                 valid = False
+            abstol_dict[colname] = maxtol
+            reltol_dict[colname] = maxreltol
     return valid
