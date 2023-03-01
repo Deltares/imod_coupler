@@ -8,7 +8,6 @@ from numpy.typing import NDArray
 class Exchange_balance:
     def __init__(self, dim: int) -> None:
         self.dim = dim
-        self.reset
 
     # TODO: maybe this class needs a check if sign of all values is as expected
 
