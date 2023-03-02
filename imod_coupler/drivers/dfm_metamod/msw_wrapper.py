@@ -88,22 +88,18 @@ class MswWrapper(XmiWrapper):
         """
         return self.get_value_ptr("ts2dfmput")
 
-    def set_surfacewater_ponding_allocation(
-        self, ponding_allocation: NDArray[np.float_]
-    ) -> None:
-        """sets ponding volume allocation in metaswap
+    def get_surfacewater_ponding_realised(self) -> NDArray[np.float_]:
+        """gets ponding volume allocation pointer in metaSWAP
 
         Parameters
         ----------
-        ponding_allocation: NDArray[np.float_]
-            ponding volume allocation to set in metaswap in m3/dtsw
+        none
 
         Returns
         -------
         none
         """
-        msw_ponding_volume = self.get_value_ptr("ts2dfmget")
-        msw_ponding_volume[:] = ponding_allocation[:]
+        return self.get_value_ptr("ts2dfmget")
 
     def get_ponding_level_2d(self) -> NDArray[np.float_]:
         """get ponding level from dlfow-2d in metaswap
