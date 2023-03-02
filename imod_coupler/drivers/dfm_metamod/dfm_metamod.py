@@ -45,26 +45,26 @@ class DfmMetaMod(Driver):
     delt_msw_dflow: float  # timestep of fast proceses in MetaSWAP
     number_substeps_per_modflowstep: float  # number of subtimesteps between metaSWAP-DFLOW in a single MF6 timestep
 
-    # sparse matrices used for  modflow-dflow exchanges
-    map_active_mod_dflow1d: dict[str, csr_matrix]
-    map_passive_mod_dflow1d: dict[str, csr_matrix]
-    # masks used for  modflow-dflow exchanges
-    mask_active_mod_dflow1d: dict[str, NDArray[np.int_]]
-    mask_passive_mod_dflow1d: dict[str, NDArray[np.int_]]
-    # dictionary with mapping tables for mod=>msw coupling
-    map_mod2msw: Dict[str, csr_matrix]
-    # dictionary with mapping tables for msw=>mod coupling
-    map_msw2mod: Dict[str, csr_matrix]
-    # dict. with mask arrays for mod=>msw coupling
-    mask_mod2msw: Dict[str, NDArray[Any]]
-    # dict. with mask arrays for msw=>mod coupling
-    mask_msw2mod: Dict[str, NDArray[Any]]
-    # dictionary with mapping tables for msw-dflow coupling
-    map_msw_dflow1d: Dict[str, csr_matrix]
-    map_msw_dflow2d: Dict[str, csr_matrix]
-    # dictionary with mask arrays for msw-dflow coupling
-    mask_msw_dflow1d: Dict[str, NDArray[Any]]
-    mask_msw_dflow2d: Dict[str, NDArray[Any]]
+    ## sparse matrices used for  modflow-dflow exchanges
+    # map_active_mod_dflow1d: dict[str, csr_matrix]
+    # map_passive_mod_dflow1d: dict[str, csr_matrix]
+    ## masks used for  modflow-dflow exchanges
+    # mask_active_mod_dflow1d: dict[str, NDArray[np.int_]]
+    # mask_passive_mod_dflow1d: dict[str, NDArray[np.int_]]
+    ## dictionary with mapping tables for mod=>msw coupling
+    # map_mod2msw: Dict[str, csr_matrix]
+    ## dictionary with mapping tables for msw=>mod coupling
+    # map_msw2mod: Dict[str, csr_matrix]
+    ## dict. with mask arrays for mod=>msw coupling
+    # mask_mod2msw: Dict[str, NDArray[Any]]
+    ## dict. with mask arrays for msw=>mod coupling
+    # mask_msw2mod: Dict[str, NDArray[Any]]
+    ## dictionary with mapping tables for msw-dflow coupling
+    # map_msw_dflow1d: Dict[str, csr_matrix]
+    # map_msw_dflow2d: Dict[str, csr_matrix]
+    ## dictionary with mask arrays for msw-dflow coupling
+    # mask_msw_dflow1d: Dict[str, NDArray[Any]]
+    # mask_msw_dflow2d: Dict[str, NDArray[Any]]
 
     # tolerance for time-related comparisons
     time_eps = 1e-5
@@ -192,7 +192,7 @@ class DfmMetaMod(Driver):
             self.exchange_balans_2dfm(self.exchange_balans.demand["sum"])
 
             # exchange ponding msw to dflow 2d
-            self.exchange_ponding_msw2dflow2d
+            self.exchange_ponding_msw2dflow2d()
 
             # get cummelative flux before dfm-run
             q_dflow0_1d = self.dfm.get_cumulative_fluxes_1d_nodes()
