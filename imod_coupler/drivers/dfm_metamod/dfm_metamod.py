@@ -11,6 +11,7 @@ from typing import Any, Dict
 
 import numpy as np
 import scipy.sparse as spr
+import tomli
 from loguru import logger
 from numpy import float_, int_
 from numpy.typing import NDArray
@@ -19,13 +20,14 @@ from xmipy import XmiWrapper
 
 from imod_coupler.config import BaseConfig
 from imod_coupler.drivers.dfm_metamod.config import Coupling, DfmMetaModConfig
+from imod_coupler.drivers.dfm_metamod.dfm_metamod_output_labels import outputlabels
 from imod_coupler.drivers.dfm_metamod.dfm_wrapper import DfmWrapper
 from imod_coupler.drivers.dfm_metamod.exchange import Exchange_balance
+from imod_coupler.drivers.dfm_metamod.exchange_collector import ExchangeCollector
 from imod_coupler.drivers.dfm_metamod.mapping import Mapping
 from imod_coupler.drivers.dfm_metamod.mf6_wrapper import Mf6Wrapper
 from imod_coupler.drivers.dfm_metamod.msw_wrapper import MswWrapper
 from imod_coupler.drivers.driver import Driver
-from imod_coupler.utils import Operator, create_mapping
 
 
 class DfmMetaMod(Driver):
@@ -114,6 +116,12 @@ class DfmMetaMod(Driver):
         self.log_version()
         self.exchange_balans = Exchange_balance(self.array_dims["dfm_1d"])
 
+        output_toml_file = self.coupling.dict()["output_config_file"]
+        with open(output_toml_file, "rb") as f:
+            toml_dict = tomli.load(f)
+
+        self.exchange_logger = ExchangeCollector(toml_dict)
+
     def log_version(self) -> None:
         logger.info(f"MODFLOW version: {self.mf6.get_version()}")
         logger.info(f"MetaSWAP version: {self.msw.get_version()}")
@@ -136,7 +144,7 @@ class DfmMetaMod(Driver):
 
     def update(self) -> None:
         # heads from modflow to MetaSWAP
-        self.exchange_mod2msw()
+        self.exchange_mod2msw(self.get_current_time())
 
         # we cannot set the timestep (yet) in Modflow
         # -> set to the (dummy) value 0.0 for now
@@ -224,6 +232,7 @@ class DfmMetaMod(Driver):
         self.mf6.finalize()
         self.msw.finalize()
         self.dfm.finalize()
+        self.exchange_logger.finalize()
 
     def get_current_time(self) -> float:
         return self.mf6.get_current_time()
@@ -540,7 +549,7 @@ class DfmMetaMod(Driver):
                 * self.map_mod_msw["msw2mf6_sprinkling"].dot(self.msw.get_volume())[:]
             )
 
-    def exchange_mod2msw(self) -> None:
+    def exchange_mod2msw(self, time: float) -> None:
         """
         Exchange from MF6 to Metaswap
 
@@ -552,6 +561,7 @@ class DfmMetaMod(Driver):
                 self.mf6.get_head(self.coupling.mf6_model)
             )[:]
         )
+        self.exchange_logger.log_exchange(outputlabels["metaswap_head_in"], time)
 
     def report_timing_totals(self) -> None:
         total_mf6 = self.mf6.report_timing_totals()
