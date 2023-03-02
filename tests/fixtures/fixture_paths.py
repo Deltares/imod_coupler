@@ -143,3 +143,13 @@ def dflowfm_dll() -> Path:
 @pytest.fixture(scope="function")
 def tmodel_input_folder(request) -> Path:
     return Path(request.fspath).parent / "data" / "t_model"
+
+
+@pytest.fixture(scope="function")
+def reference_result_folder(request) -> Path:
+    return Path(request.fspath).parent / "test_reference_output"
+
+
+@pytest.fixture(scope="function")
+def test_data_folder(request) -> Path:
+    return Path(request.fspath).parent / "data"

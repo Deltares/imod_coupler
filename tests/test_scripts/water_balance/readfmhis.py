@@ -1,12 +1,10 @@
 #!/usr/bin/env python
-# type: ignore
-import os.path as osp
-import sys
+
+from pathlib import Path
 
 import netCDF4 as nc
 import numpy as np
 import pandas as pd
-from openpyxl import load_workbook
 
 colsep = ";"
 colfmt = "%15.3f"
@@ -14,7 +12,9 @@ hdrfmt = "%15s"
 fm_sheet_name = "FM-his"
 
 
-def hisfile2df(hisname, interval):
+def hisfile_to_dataframe(
+    hisname: Path, interval: int
+) -> tuple[pd.DataFrame, pd.DataFrame]:
     fields = {
         "time": "t",
         "water_balance_boundaries_in": "bndin",
@@ -37,7 +37,6 @@ def hisfile2df(hisname, interval):
     alltimes = ds.variables["time"][:]
 
     sel = alltimes % interval == 0
-    nsel = np.count_nonzero(sel)
     hisdf = pd.DataFrame()
     for ncname, dfname in fields.items():
         hisdf[dfname] = ds.variables[ncname][sel]
@@ -70,15 +69,15 @@ def hisfile2df(hisname, interval):
     hisdf_rates = pd.DataFrame()
     # create derived dataframes with increments day to day, except for time
     hisdf_rates["t"] = hisdf["t"]
-    fields = list(hisdf)
-    fields.remove("t")
-    for key in fields:
+    hisdf_list = list(hisdf)
+    hisdf_list.remove("t")
+    for key in hisdf_list:
         tmp = np.insert(np.array(hisdf[key]), 0, 0)
         hisdf_rates[key] = tmp[1:] - tmp[:-1]
     return hisdf, hisdf_rates
 
 
-def writeCSV(csvname, hisdf):
+def writeCSV(csvname: Path, hisdf: pd.DataFrame) -> None:
     with open(csvname, "w") as fcsv:
         valuelist = list(hisdf)
         fcsv.write("%s\n" % colsep.join(valuelist))
@@ -88,22 +87,7 @@ def writeCSV(csvname, hisdf):
             fcsv.write("%s\n" % colsep.join(valuelist))
 
 
-def writeXLS(xlsname, hisdf):
+def writeXLS(xlsname: Path, hisdf: pd.DataFrame) -> None:
     writer = pd.ExcelWriter(xlsname)
     hisdf.to_excel(writer, sheet_name=fm_sheet_name)
-    for column in hisdf:
-        column_length = max(hisdf[column].astype(str).map(len).max(), len(column))
-        col_idx = hisdf.columns.get_loc(column)
-    #       writer.sheets[fm_sheet_name].set_column(col_idx, col_idx, column_length)
     writer.save()
-
-
-if __name__ == "__main__":
-    name = sys.argv[1]
-    outname = sys.argv[2]
-    hisdf, hisdf_rates = hisfile2df(hisname, 86400)
-    writeCSV(outname + ".csv", hisdf)
-    writeXLS(outname + ".xls", hisdf)
-    writeCSV(outname + "_rates.csv", hisdf_rates)
-    writeXLS(outname + "_rates.xls", hisdf_rates)
-    sys.stderr.write("Done!")

@@ -1,14 +1,10 @@
 #!/usr/bin/env python
-# type: ignore
-import os.path as osp
-import re
-import sys
 
-import dateutil.parser as dp
-import netCDF4 as nc
+import re
+
 import numpy as np
 import pandas as pd
-from openpyxl import load_workbook
+from dateutil import parser as dp  # type: ignore
 
 # selection of output variables from the MetaSWAP csv
 varsel = [
@@ -21,7 +17,7 @@ varsel = [
 ]
 
 
-def totfile2df(msw_totfile):
+def totfile_to_dataframe(msw_totfile):
     df = pd.read_csv(msw_totfile, parse_dates=True)
     oldhdr = list(df)
     newhdr = [re.sub(r"\s+", "_", re.sub(r"\(.+\)", "", hdr).strip()) for hdr in oldhdr]

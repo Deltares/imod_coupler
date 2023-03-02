@@ -1,24 +1,29 @@
 #!/usr/bin/env python
-# type: ignore
-import os
-import sys
 
-from combine_output import combineDF, writeCSV, writeNC, writeXLS
+from pathlib import Path
+from typing import Union
 
-fm_hisfile = sys.argv[1]
-msw_totfile = sys.argv[2]
-mf_listfile = sys.argv[3]
-outname = sys.argv[4]  # requires 4 arguments, three reffering to input files
-# and one to the output name without extension
-combined = combineDF(fm=sys.argv[1], msw=sys.argv[2], mf=sys.argv[3])
-nc_out = outname + ".nc"
-xls_out = outname + ".xlsx"
-csv_out = outname + ".csv"
+import test_scripts.water_balance.combine_output as combine_output
 
-print("Writing NetCDF")
-writeNC(nc_out, combined, singlevar=False)
-print("Writing CSV")
-writeCSV(csv_out, combined)
-print("Writing XLSX")
-writeXLS(xls_out, combined)
-sys.stderr.write("done!")
+
+def create_waterbalance_file(
+    fm_hisfile: Path,
+    msw_totfile: Path,
+    mf_listfile: Path,
+    output_file_xlsx: Union[Path, None] = None,
+    output_file_netcdf: Union[Path, None] = None,
+    output_file_csv: Union[Path, None] = None,
+) -> None:
+    combined_dataframe = combine_output.combine_dataframe(
+        fm_hisfile, msw_totfile, mf_listfile
+    )
+
+    if output_file_netcdf is not None:
+        print("Writing NetCDF")
+        combine_output.writeNC(output_file_netcdf, combined_dataframe, singlevar=False)
+    if output_file_csv is not None:
+        print("Writing CSV")
+        combine_output.writeCSV(output_file_csv, combined_dataframe)
+    if output_file_xlsx is not None:
+        print("Writing XLSX")
+        combine_output.writeXLS(output_file_xlsx, combined_dataframe)

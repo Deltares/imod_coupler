@@ -1,45 +1,29 @@
 #!/usr/bin/env python
-# type: ignore
-import os
-import re
-import sys
 
-import MF6_wbal_listing as readmf6
+import re
+from pathlib import Path
+
 import netCDF4 as nc
 import numpy as np
 
 # import xlwt, xlrd
-import openpyxl
 import pandas as pd
-import readfmhis as readdfm
-import readmsw as readmsw
-from xlutils.copy import copy as xl_copy
+from test_scripts.water_balance.MF6_wbal_listing import listfile_to_dataframe
+from test_scripts.water_balance.readfmhis import hisfile_to_dataframe
+from test_scripts.water_balance.readmsw import totfile_to_dataframe
 
 
-def writeWorksheet(workbook, sheetname, df):
-    newsheet = workbook.add_sheet(sheetname)
-    nrows = len(df)
-    ncols = len(df.columns)
-    for j in range(ncols):
-        newsheet.write(0, j, j)
-        newsheet.write(1, j, df.columns[j])
-    for i in range(nrows):
-        record = list(df.iloc[i])
-        for j in range(ncols):
-            newsheet.write(i + 2, j, float(record[j]))
-
-
-def writeNC(ncname, df, singlevar):
+def writeNC(ncname: Path, df: pd.DataFrame, singlevar: bool):
     nvar = len(df.columns)
     ds = nc.Dataset(ncname, "w")
-    timeDim = ds.createDimension("time", len(df.index))
+    ds.createDimension("time", len(df.index))
     #   create a separate variable "time" holding the record index
     #   timevar = ds.createVariable("time","f8",("time",))
     #   timevar[:] = np.array(df.index)
     if singlevar:
         namelen = 22
-        idDim = ds.createDimension("id", len(df.columns))
-        chDim = ds.createDimension("nchar", namelen)
+        ds.createDimension("id", len(df.columns))
+        ds.createDimension("nchar", namelen)
         xchgvar = ds.createVariable(
             "exchange",
             "f8",
@@ -68,16 +52,15 @@ def writeNC(ncname, df, singlevar):
     ds.close()
 
 
-def writeXLS(xlsname, df):
+def writeXLS(xlsname: Path, df: pd.DataFrame) -> None:
     writer = pd.ExcelWriter(xlsname)
     df.to_excel(writer, sheet_name="combined")
     writer.save()
 
 
-def writeCSV(csvname, df):
+def writeCSV(csvname: Path, df: pd.DataFrame) -> None:
     colsep = ";"
     colfmt = "%15.3f"
-    hdrfmt = "%15s"
 
     with open(csvname, "w") as fcsv:
         valuelist = list(df)
@@ -88,15 +71,13 @@ def writeCSV(csvname, df):
             fcsv.write("%s\n" % colsep.join(valuelist))
 
 
-def combineDF(**kwargs):
+def combine_dataframe(
+    fm_hisfile: Path, msw_totfile: Path, mf_listfile: Path
+) -> pd.DataFrame:
     fm_interval = 1  # set to 1 to retrieve all time levels
     fm_interval = 86400
 
-    fm_hisfile = kwargs["fm"]
-    msw_totfile = kwargs["msw"]
-    mf_listfile = kwargs["mf"]
-
-    fm_hisdf, fm_hisdf_rates = readdfm.hisfile2df(fm_hisfile, fm_interval)
+    fm_hisdf, fm_hisdf_rates = hisfile_to_dataframe(fm_hisfile, fm_interval)
 
     combined = fm_hisdf_rates.copy()
 
@@ -107,7 +88,7 @@ def combineDF(**kwargs):
     # mf6_daynrs = [int(fm_hisdf.at[i,'time'] / 86400) for i in range(len(fm_hisdf))]
     # 86400 sec in dfm is at the end of the first modflow day, that is record 0 !!
     mf6_daynrs = [int(time_seconds / 86400.0 - 0.5) for time_seconds in fm_hisdf["t"]]
-    msw_totdf = readmsw.totfile2df(msw_totfile).iloc[mf6_daynrs]
+    msw_totdf = totfile_to_dataframe(msw_totfile).iloc[mf6_daynrs]
 
     # MetaSWAP incoming
     msw_sum_in = np.zeros(len(mf6_daynrs))
@@ -156,7 +137,7 @@ def combineDF(**kwargs):
     print("Reading MetaSWAP data finished")
 
     # MODFLOW in and out
-    mf_listdf, mf_listdf_cum = readmf6.listfile2df(mf_listfile)
+    mf_listdf = listfile_to_dataframe(mf_listfile)
 
     direction = ["IN", "OUT"]
     modflow_fields = ["STO", "STO-SS", "CHD", "DRN", "RIV", "WEL", "DXC", "RCH"]
