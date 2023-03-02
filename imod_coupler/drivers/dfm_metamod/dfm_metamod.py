@@ -45,26 +45,26 @@ class DfmMetaMod(Driver):
     delt_msw_dflow: float  # timestep of fast proceses in MetaSWAP
     number_substeps_per_modflowstep: float  # number of subtimesteps between metaSWAP-DFLOW in a single MF6 timestep
 
-    ## sparse matrices used for  modflow-dflow exchanges
-    # map_active_mod_dflow1d: dict[str, csr_matrix]
-    # map_passive_mod_dflow1d: dict[str, csr_matrix]
-    ## masks used for  modflow-dflow exchanges
-    # mask_active_mod_dflow1d: dict[str, NDArray[np.int_]]
-    # mask_passive_mod_dflow1d: dict[str, NDArray[np.int_]]
-    ## dictionary with mapping tables for mod=>msw coupling
-    # map_mod2msw: Dict[str, csr_matrix]
-    ## dictionary with mapping tables for msw=>mod coupling
-    # map_msw2mod: Dict[str, csr_matrix]
-    ## dict. with mask arrays for mod=>msw coupling
-    # mask_mod2msw: Dict[str, NDArray[Any]]
-    ## dict. with mask arrays for msw=>mod coupling
-    # mask_msw2mod: Dict[str, NDArray[Any]]
-    ## dictionary with mapping tables for msw-dflow coupling
-    # map_msw_dflow1d: Dict[str, csr_matrix]
-    # map_msw_dflow2d: Dict[str, csr_matrix]
-    ## dictionary with mask arrays for msw-dflow coupling
-    # mask_msw_dflow1d: Dict[str, NDArray[Any]]
-    # mask_msw_dflow2d: Dict[str, NDArray[Any]]
+    # sparse matrices used for  modflow-dflow exchanges
+    map_active_mod_dflow1d: dict[str, csr_matrix]
+    map_passive_mod_dflow1d: dict[str, csr_matrix]
+    # masks used for  modflow-dflow exchanges
+    mask_active_mod_dflow1d: dict[str, NDArray[np.int_]]
+    mask_passive_mod_dflow1d: dict[str, NDArray[np.int_]]
+    # dictionary with mapping tables for mod=>msw coupling
+    map_mod2msw: Dict[str, csr_matrix]
+    # dictionary with mapping tables for msw=>mod coupling
+    map_msw2mod: Dict[str, csr_matrix]
+    # dict. with mask arrays for mod=>msw coupling
+    mask_mod2msw: Dict[str, NDArray[Any]]
+    # dict. with mask arrays for msw=>mod coupling
+    mask_msw2mod: Dict[str, NDArray[Any]]
+    # dictionary with mapping tables for msw-dflow coupling
+    map_msw_dflow1d: Dict[str, csr_matrix]
+    map_msw_dflow2d: Dict[str, csr_matrix]
+    # dictionary with mask arrays for msw-dflow coupling
+    mask_msw_dflow1d: Dict[str, NDArray[Any]]
+    mask_msw_dflow2d: Dict[str, NDArray[Any]]
 
     # tolerance for time-related comparisons
     time_eps = 1e-5
@@ -175,13 +175,13 @@ class DfmMetaMod(Driver):
         for idtsw in range(self.number_substeps_per_modflowstep):
             subtimestep_endtime += self.delt_msw_dflow
 
-            # first update initial 2d stage from dflow 2d to msw
+            # initial 2d stage from dflow 2d to msw
             self.exchange_stage_2d_dfm2msw()
 
             # initiate surface water timestep
             self.msw.start_surface_water_time_step(idtsw)
 
-            # flux from metaswap ponding to water balance 1d
+            # flux from metaswap ponding to 1d water balance
             self.exchange_ponding_msw2dflow1d()
 
             # flux from metaswap sprinkling to water balance
@@ -211,8 +211,8 @@ class DfmMetaMod(Driver):
 
             # calculate realised volumes by dflow
             q_dflow_realised_1d = q_dflow1_1d - q_dflow0_1d
-            q_dflow_realised_2d = q_dflow1_2d - q_dflow0_2d
             self.exchange_balans.compute_realised(q_dflow_realised_1d)
+            q_dflow_realised_2d = q_dflow1_2d - q_dflow0_2d
 
             # exchange realised values to metaswap before finish of surface water time-step
             self.exchange_sprinkling_dflow1d2msw(

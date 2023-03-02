@@ -159,7 +159,7 @@ class DfmWrapper(BMIWrapper):  # type: ignore
             raise ValueError(
                 f"Expected number of river fluxes: {nr_nodes_2d}, got {len(river_flux)}"
             )
-        self.set_var_slice("qext", 0, [nr_nodes_2d], river_flux)
+        self.set_var_slice("qext", [0], [nr_nodes_2d], river_flux)
 
     def get_1d_river_fluxes(self) -> NDArray[np.float_]:
         """
