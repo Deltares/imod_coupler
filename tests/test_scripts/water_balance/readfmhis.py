@@ -12,7 +12,9 @@ hdrfmt = "%15s"
 fm_sheet_name = "FM-his"
 
 
-def hisfile2df(hisname: Path, interval: int) -> tuple[pd.DataFrame, pd.DataFrame]:
+def hisfile_to_dataframe(
+    hisname: Path, interval: int
+) -> tuple[pd.DataFrame, pd.DataFrame]:
     fields = {
         "time": "t",
         "water_balance_boundaries_in": "bndin",

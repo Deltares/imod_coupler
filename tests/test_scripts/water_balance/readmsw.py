@@ -17,7 +17,7 @@ varsel = [
 ]
 
 
-def totfile2df(msw_totfile):
+def totfile_to_dataframe(msw_totfile):
     df = pd.read_csv(msw_totfile, parse_dates=True)
     oldhdr = list(df)
     newhdr = [re.sub(r"\s+", "_", re.sub(r"\(.+\)", "", hdr).strip()) for hdr in oldhdr]

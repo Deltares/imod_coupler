@@ -8,9 +8,9 @@ import numpy as np
 
 # import xlwt, xlrd
 import pandas as pd
-from test_scripts.water_balance.MF6_wbal_listing import listfile2df
-from test_scripts.water_balance.readfmhis import hisfile2df
-from test_scripts.water_balance.readmsw import totfile2df
+from test_scripts.water_balance.MF6_wbal_listing import listfile_to_dataframe
+from test_scripts.water_balance.readfmhis import hisfile_to_dataframe
+from test_scripts.water_balance.readmsw import totfile_to_dataframe
 
 
 def writeNC(ncname: Path, df: pd.DataFrame, singlevar: bool):
@@ -71,11 +71,13 @@ def writeCSV(csvname: Path, df: pd.DataFrame) -> None:
             fcsv.write("%s\n" % colsep.join(valuelist))
 
 
-def combineDF(fm_hisfile: Path, msw_totfile: Path, mf_listfile: Path) -> pd.DataFrame:
+def combine_dataframe(
+    fm_hisfile: Path, msw_totfile: Path, mf_listfile: Path
+) -> pd.DataFrame:
     fm_interval = 1  # set to 1 to retrieve all time levels
     fm_interval = 86400
 
-    fm_hisdf, fm_hisdf_rates = hisfile2df(fm_hisfile, fm_interval)
+    fm_hisdf, fm_hisdf_rates = hisfile_to_dataframe(fm_hisfile, fm_interval)
 
     combined = fm_hisdf_rates.copy()
 
@@ -86,7 +88,7 @@ def combineDF(fm_hisfile: Path, msw_totfile: Path, mf_listfile: Path) -> pd.Data
     # mf6_daynrs = [int(fm_hisdf.at[i,'time'] / 86400) for i in range(len(fm_hisdf))]
     # 86400 sec in dfm is at the end of the first modflow day, that is record 0 !!
     mf6_daynrs = [int(time_seconds / 86400.0 - 0.5) for time_seconds in fm_hisdf["t"]]
-    msw_totdf = totfile2df(msw_totfile).iloc[mf6_daynrs]
+    msw_totdf = totfile_to_dataframe(msw_totfile).iloc[mf6_daynrs]
 
     # MetaSWAP incoming
     msw_sum_in = np.zeros(len(mf6_daynrs))
@@ -135,7 +137,7 @@ def combineDF(fm_hisfile: Path, msw_totfile: Path, mf_listfile: Path) -> pd.Data
     print("Reading MetaSWAP data finished")
 
     # MODFLOW in and out
-    mf_listdf = listfile2df(mf_listfile)
+    mf_listdf = listfile_to_dataframe(mf_listfile)
 
     direction = ["IN", "OUT"]
     modflow_fields = ["STO", "STO-SS", "CHD", "DRN", "RIV", "WEL", "DXC", "RCH"]
