@@ -1,0 +1,8 @@
+[[general]]
+output_dir = "."
+
+[[exchanges]]
+
+[[exchanges.mod2msw_head_input]]
+type = "netcdf"
+

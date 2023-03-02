@@ -11,6 +11,7 @@ from typing import Any, Dict
 
 import numpy as np
 import scipy.sparse as spr
+import tomli
 from loguru import logger
 from numpy import float_, int_
 from numpy.typing import NDArray
@@ -19,6 +20,7 @@ from xmipy import XmiWrapper
 
 from imod_coupler.config import BaseConfig
 from imod_coupler.drivers.dfm_metamod.config import Coupling, DfmMetaModConfig
+from imod_coupler.drivers.dfm_metamod.dfm_metamod_output_labels import outputlabels
 from imod_coupler.drivers.dfm_metamod.dfm_wrapper import DfmWrapper
 from imod_coupler.drivers.dfm_metamod.exchange import (
     exchange_balance_1d,
@@ -124,6 +126,12 @@ class DfmMetaMod(Driver):
         self.exchange_balans_1d = exchange_balance_1d(self.array_dims["dfm_1d"])
         self.exchange_balans_2d = exchange_balance_2d(self.array_dims["dfm_2d"])
 
+        output_toml_file = self.coupling.dict()["output_config_file"]
+        with open(output_toml_file, "rb") as f:
+            toml_dict = tomli.load(f)
+
+        self.exchange_logger = ExchangeCollector(toml_dict)
+
     def log_version(self) -> None:
         logger.info(f"MODFLOW version: {self.mf6.get_version()}")
         logger.info(f"MetaSWAP version: {self.msw.get_version()}")
@@ -147,7 +155,7 @@ class DfmMetaMod(Driver):
 
     def update(self) -> None:
         # heads from modflow to MetaSWAP
-        self.exchange_mod2msw()
+        self.exchange_mod2msw(self.get_current_time())
 
         # we cannot set the timestep (yet) in Modflow
         # -> set to the (dummy) value 0.0 for now
@@ -261,6 +269,7 @@ class DfmMetaMod(Driver):
         self.mf6.finalize()
         self.msw.finalize()
         self.dfm.finalize()
+        self.exchange_logger.finalize()
 
     def get_current_time(self) -> float:
         return self.mf6.get_current_time()
@@ -654,7 +663,7 @@ class DfmMetaMod(Driver):
                 ]
             )
 
-    def exchange_mod2msw(self) -> None:
+    def exchange_mod2msw(self, time: float) -> None:
         """
         Exchange from MF6 to Metaswap
 
@@ -666,6 +675,7 @@ class DfmMetaMod(Driver):
                 self.mf6.get_head(self.coupling.mf6_model)
             )[:]
         )
+        self.exchange_logger.log_exchange(outputlabels["metaswap_head_in"], time)
 
     def report_timing_totals(self) -> None:
         total_mf6 = self.mf6.report_timing_totals()
