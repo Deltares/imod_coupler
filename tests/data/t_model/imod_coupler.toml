@@ -37,5 +37,6 @@ msw_sprinkling_to_dfm_1d_q_dmm = "./exchanges/MSWSPRINKTODFM1D_Q.DMM"
 msw_ponding_to_dfm_2d_dv_dmm = "./exchanges/MSWPONDINGTODFM2D_DV.DMM"
 dfm_2d_waterlevels_to_msw_h_dmm = "./exchanges/DFM2DWATLEVTOMSW_H.DMM"
 dfm_1d_points_dat = "./exchanges/DFLOWFM1D_POINTS.DAT"
+dfm_2d_points_dat = "./exchanges/DFLOWFM2D_POINTS.DAT"
 enable_sprinkling = false
 output_config_file = "./output_config.toml"

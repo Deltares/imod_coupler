@@ -59,6 +59,12 @@ class DfmMetaMod(Driver):
     mask_mod2msw: Dict[str, NDArray[Any]]
     # dict. with mask arrays for msw=>mod coupling
     mask_msw2mod: Dict[str, NDArray[Any]]
+    # dictionary with mapping tables for msw-dflow coupling
+    map_msw_dflow1d: Dict[str, csr_matrix]
+    map_msw_dflow2d: Dict[str, csr_matrix]
+    # dictionary with mask arrays for msw-dflow coupling
+    mask_msw_dflow1d: Dict[str, NDArray[Any]]
+    mask_msw_dflow2d: Dict[str, NDArray[Any]]
 
     # tolerance for time-related comparisons
     time_eps = 1e-5
@@ -133,6 +139,7 @@ class DfmMetaMod(Driver):
             self.mask_passive_mod_dflow1d,
         ) = self.mapping.mapping_passive_mf_dflow1d()
         self.map_msw_dflow1d, self.mask_msw_dflow1d = self.mapping.mapping_msw_dflow1d()
+        self.map_msw_dflow2d, self.mask_msw_dflow2d = self.mapping.mapping_msw_dflow2d()
 
     def update(self) -> None:
         # heads from modflow to MetaSWAP
@@ -167,8 +174,14 @@ class DfmMetaMod(Driver):
         subtimestep_endtime = t_begin
         for idtsw in range(self.number_substeps_per_modflowstep):
             subtimestep_endtime += self.delt_msw_dflow
+
+            # first update initial 2d stage from dflow 2d to msw
+            self.exchange_stage_2d_dfm2msw()
+
+            # initiate surface water timestep
             self.msw.start_surface_water_time_step(idtsw)
-            # flux from metaswap ponding to water balance
+
+            # flux from metaswap ponding to water balance 1d
             self.exchange_ponding_msw2dflow1d()
 
             # flux from metaswap sprinkling to water balance
@@ -176,7 +189,7 @@ class DfmMetaMod(Driver):
 
             # exchange water balance to dlfow
             self.exchange_balans.sum_demand()
-            self.exchange_balans_2dflow(self.exchange_balans.demand["sum"])
+            self.exchange_balans_2dfm(self.exchange_balans.demand["sum"])
 
             # get cummelative flux before dfm-run
             q_dflow0 = self.dfm.get_cumulative_fluxes_1d_nodes()
@@ -199,6 +212,8 @@ class DfmMetaMod(Driver):
             self.exchange_sprinkling_dflow1d2msw(
                 self.exchange_balans.realised["dflow1d_flux2sprinkling_msw"]
             )
+            # exchange 2d stage to msw, so it can finish the sw-timestep (now stage at the start of next timestep)
+            self.exchange_stage_2d_dfm2msw()
 
             self.msw.finish_surface_water_time_step(idtsw)
 
@@ -306,7 +321,7 @@ class DfmMetaMod(Driver):
             + coupling[exchange_type].dot(flux)[:]
         )
 
-    def exchange_balans_2dflow(self, flux2dflow: NDArray[float_]) -> None:
+    def exchange_balans_2dfm(self, flux2dflow: NDArray[float_]) -> None:
         self.dfm.set_1d_river_fluxes(flux2dflow)
 
     def exchange_stage_1d_dfm2mf6(self) -> None:
@@ -333,6 +348,26 @@ class DfmMetaMod(Driver):
             self.coupling.mf6_model,
             self.coupling.mf6_river_active_pkg,
             updated_river_stage,
+        )
+
+    def exchange_stage_2d_dfm2msw(self) -> None:
+        """
+        Sets dfm2d-stage to msw.
+
+        MSW unit: m+DEM (depth)
+        DFM unit: m+NAP
+        """
+        dfm_water_levels = self.dfm.get_waterlevels_2d()
+        dfm_bed_level = self.dfm.get_bed_level_2d()
+        dfm_water_depth = dfm_bed_level
+        condition = dfm_water_levels > (dfm_bed_level + 0.001)
+        dfm_water_depth[condition] = dfm_water_levels[condition]
+
+        msw_water_levels = self.msw.get_ponding_level_2d()
+
+        msw_water_levels = (
+            self.mask_msw_dflow2d["dflow2d_stage2msw-ponding"][:] * msw_water_levels[:]
+            + self.map_msw_dflow2d["dflow2d_stage2msw-ponding"].dot(dfm_water_depth)[:]
         )
 
     def exchange_flux_riv_active_mf62dfm(self) -> None:

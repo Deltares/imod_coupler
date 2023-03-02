@@ -26,6 +26,7 @@ class Mapping:
         self.array_dims = array_dims
         self.get_svat_lookup()
         self.get_dflow1d_lookup()
+        self.get_dflow2d_lookup()
 
     def mapping_mf_msw(
         self, mf6_conversion_matrix: NDArray[np.float_]
@@ -531,6 +532,48 @@ class Mapping:
             )
         self.dflow1d_lookup = dflow1d_lookup
 
+    def get_dflow2d_lookup(self) -> None:
+        """
+        read file with all uniek coupled dflow 1d and 2d nodes (represented by xy pairs). After initialisation
+        of dflow, dict is filled with node-id's corresponding tot xy-pairs.
+        this functions should be called after initialisation of dflow-fm.
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        tuple[dict[tuple[float, float], int], bool]
+           The first value of the tupple is a dictionary of pairs of xy-coordinates to node numbers
+           The second value is an indicator of whether the said dictionary could be filled without issues.
+        """
+
+        dflow2d_lookup = {}
+        dflow2d_file = self.coupling.dfm_2d_points_dat
+        if dflow2d_file.is_file():
+            dflow2d_data: NDArray[np.single] = np.loadtxt(
+                dflow2d_file, dtype=np.single, ndmin=2, skiprows=0
+            )
+            dflow2d_x = dflow2d_data[:, 0]
+            dflow2d_y = dflow2d_data[:, 1]
+            # XMI/BMI call to dflow-fm with x and y list, returns id list with node numbers
+            # dflowfm_MapCoordinateTo2DCellId(x, y, id) -> id
+            dflow2d_id = dflow2d_data[:, 2].astype(int) - 1
+            nrpoints = dflow2d_data.shape[0]
+            for i in range(nrpoints):
+                if dflow2d_id[i] >= 0:
+                    dflow2d_lookup[(dflow2d_x[i], dflow2d_y[i])] = dflow2d_id[i]
+                else:
+                    raise ValueError(
+                        f"xy coordinate {dflow2d_x[i], dflow2d_y[i]} is not part of dflow's mesh"
+                    )
+        else:
+            raise FileNotFoundError(
+                errno.ENOENT, os.strerror(errno.ENOENT), dflow2d_file
+            )
+        self.dflow2d_lookup = dflow2d_lookup
+
     def get_svat_lookup(self) -> None:
         """
         read file with all coupled MetaSWAP svat. Function creates a lookup, with the svat tuples (id, lay) as keys and the metaswap internal indexes as values
@@ -561,49 +604,3 @@ class Mapping:
                 errno.ENOENT, os.strerror(errno.ENOENT), msw_mod2svat_file
             )
         self.svat_lookup = svat_lookup
-
-    def get_dflow2d_lookup(
-        self,
-        workdir: Path,
-    ) -> None:
-        """
-        read file with all uniek coupled dflow 1d and 2d nodes (represented by xy pairs). After initialisation
-        of dflow, dict is filled with node-id's corresponding tot xy-pairs.
-        this functions should be called after initialisation of dflow-fm.
-
-        Parameters
-        ----------
-        workdir : Path
-            directory where mapping input files can be found
-
-        Returns
-        -------
-        tuple[dict[tuple[float, float], int], bool]
-           The first value of the tupple is a dictionary of pairs of xy-coordinates to node numbers
-           The second value is an indicator of whether the said dictionary could be filled without issues.
-        """
-
-        dflow2d_lookup = {}
-        dflow2d_file = workdir / "DFLOWFM2D_POINTS.DAT"
-        if dflow2d_file.is_file():
-            dflow2d_data: NDArray[np.single] = np.loadtxt(
-                dflow2d_file, dtype=np.single, ndmin=2, skiprows=1
-            )
-            dflow2d_x = dflow2d_data[:, 3]
-            dflow2d_y = dflow2d_data[:, 4]
-            # XMI/BMI call to dflow-fm with x and y list, returns id list with node numbers
-            # dflowfm_MapCoordinateTo2DCellId(x, y, id) -> id
-            id_ = np.array([0])  # dummy array, check 0-indexing
-            ii = id_.shape[0]
-            for i in range(ii):
-                if id_[i] > 0:
-                    dflow2d_lookup[(dflow2d_x[i], dflow2d_y[i])] = id_[i]
-                else:
-                    raise ValueError(
-                        f"xy coordinate {dflow2d_x,dflow2d_y} is not part of dflow's mesh"
-                    )
-        else:
-            raise FileNotFoundError(
-                errno.ENOENT, os.strerror(errno.ENOENT), dflow2d_file
-            )
-        self.dflow2d_lookup = dflow2d_lookup

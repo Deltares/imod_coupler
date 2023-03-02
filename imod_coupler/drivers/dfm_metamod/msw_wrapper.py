@@ -105,36 +105,20 @@ class MswWrapper(XmiWrapper):
         msw_ponding_volume = self.get_value_ptr("ts2dfmget")
         msw_ponding_volume[:] = ponding_allocation[:]
 
-    def set_ponding_level_1d(self, ponding_level_1d: NDArray[np.float_]) -> None:
-        """sets ponding level from dlfow-1d in metaswap
+    def get_ponding_level_2d(self) -> NDArray[np.float_]:
+        """get ponding level from dlfow-2d in metaswap
 
         Parameters
         ----------
-        ponding_level_1d: NDArray[np.float_]
-            ponding level to set in metaswap in m relative to msw soil surface elevation (depth)
+        none
 
         Returns
         -------
-        none
-        """
-        msw_ponding_level = self.get_value_ptr("dfm2lvsw1Dk")
-        msw_ponding_level[:] = ponding_level_1d[:]
-
-    def set_ponding_level_2d(self, ponding_level_2d: NDArray[np.float_]) -> None:
-        """sets ponding level from dlfow-2d in metaswap
-
-        Parameters
-        ----------
         ponding_level_2d: NDArray[np.float_]
-            ponding level to set in metaswap in m relative to msw soil surface elevation (depth)
-
-        Returns
-        -------
-        none
+            ponding level 2d
         """
 
-        msw_ponding_level = self.get_value_ptr("dfm2lvswk")
-        msw_ponding_level[:] = ponding_level_2d[:]
+        return self.get_value_ptr("dfm2lvswk")
 
     def get_svat_area(self) -> NDArray[np.float_]:
         """gets area's of svats in metaswap. This can ben used to calculate ponding volumes based on dlfow ponding levels

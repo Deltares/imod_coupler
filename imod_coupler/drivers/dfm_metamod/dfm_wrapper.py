@@ -58,6 +58,37 @@ class DfmWrapper(BMIWrapper):  # type: ignore
             all_waterlevels[nr_nodes_2d : nr_nodes_2d + nr_nodes_1d], dtype=np.float_
         )
 
+    def get_waterlevels_2d(self) -> NDArray[np.float_]:
+        """
+        Returns
+        -------
+        Optional[NDArray[np.float_]]
+            an array with the waterlevels of the 2d nodes in the dflow-FM model,
+            or None if there ar no 2d nodes.
+        """
+
+        nr_nodes_2d = self.get_number_2d_nodes()
+        if nr_nodes_2d == 0:
+            raise ValueError("No dflow 1d nodes found!")
+        all_waterlevels = self.get_var("s1")
+        return np.asarray(all_waterlevels[:nr_nodes_2d], dtype=np.float_)
+    
+    
+    def get_bed_level_2d(self) -> NDArray[np.float_]:
+        """
+        Returns
+        -------
+        Optional[NDArray[np.float_]]
+            an array with the waterlevels of the 2d nodes in the dflow-FM model,
+            or None if there ar no 2d nodes.
+        """
+
+        nr_nodes_2d = self.get_number_2d_nodes()
+        if nr_nodes_2d == 0:
+            raise ValueError("No dflow 1d nodes found!")
+        all_bed_levels = self.get_var("bl")
+        return np.asarray(all_bed_levels[:nr_nodes_2d], dtype=np.float_)
+
     def get_cumulative_fluxes_1d_nodes(self) -> NDArray[np.float_]:
         """
         Returns
