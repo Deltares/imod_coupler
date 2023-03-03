@@ -11,31 +11,28 @@ from imod_coupler.drivers.dfm_metamod.dfm_wrapper import DfmWrapper
 
 
 def test_get_snapped_flownode(
-    prepared_dflowfm_model: FMModel,
     dflowfm_dll_devel: Path,
-    dflowfm_initial_inputfiles_folder: Path,
-) -> None:
-    prepared_dflowfm_model.save(recurse=True)
+    tmodel_input_folder: Path,
+    tmp_path_dev: Path) -> None:
 
     set_dfm_path(dflowfm_dll_devel)
-    copy_inputfiles(
-        dflowfm_initial_inputfiles_folder, prepared_dflowfm_model.filepath.parent
-    )
+    shutil.copytree(tmodel_input_folder, tmp_path_dev)
 
     bmiwrapper = DfmWrapper(
-        engine="dflowfm", configfile=prepared_dflowfm_model.filepath
+        engine="dflowfm", configfile=tmp_path_dev / "dflow-fm" / "FlowFM.mdu"
     )
 
     bmiwrapper.initialize()
-    input_node_x = np.array([150.0, 150.0, 450.0])
-    input_node_y = np.array([150.0, 250.0, 250.0])
-    flownode_ids = bmiwrapper.get_snapped_flownode(input_node_x, input_node_y)
+    bmiwrapper.init_kdtree()
+    input_node_x = np.array([40.0, 527.491028, 828.984985])
+    input_node_y = np.array([340.0, 540.0, 540.0])
+    dist, flownode_ids = bmiwrapper.kdtree1D.query(np.c_[input_node_x, input_node_y])
     bmiwrapper.finalize()
 
-    excepted_flownode_ids = np.array([1, 2, 8])
+    expected_flownode_ids = np.array([2, 13, 17])
     assert_array_equal(
         flownode_ids,
-        excepted_flownode_ids,
+        expected_flownode_ids,
     )
 
 

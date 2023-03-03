@@ -110,6 +110,8 @@ class DfmMetaMod(Driver):
         self.mapping = Mapping(
             self.coupling, self.msw.working_directory, self.array_dims
         )
+        self.dfm.init_kdtree()
+        self.mapping.set_dfm_lookup(self.dfm.kdtree1D, self.dfm.kdtree2D)
         self.set_mapping()
         self.log_version()
 
