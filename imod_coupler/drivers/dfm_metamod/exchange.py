@@ -5,7 +5,82 @@ from numpy import float_, int_
 from numpy.typing import NDArray
 
 
-class Exchange_balance:
+class exchange_balance_2d:
+    def __init__(self, dim: int) -> None:
+        self.dim = dim
+
+    def reset(self) -> None:
+        """
+        function initialses two water-balance dicts and sets arrays at 0.
+        The dimension of the arrays is based on the shape of dflow 2d nodes
+        """
+        self.demand = {
+            "msw-ponding2dflow2d_flux": np.zeros(shape=self.dim, dtype=np.float_),
+            "msw-ponding2dflow2d_flux_positive": np.zeros(
+                shape=self.dim, dtype=np.float_
+            ),
+            "msw-ponding2dflow2d_flux_negative": np.zeros(shape=self.dim, dtype=np.float_),
+        }
+        self.realised = {
+            "dflow2d-flux2msw-ponding": np.zeros(shape=self.dim, dtype=np.float_),
+        }
+
+    def compute_realised(self, sum_from_dflow: NDArray[np.float_]) -> None:
+        sum_to_dflow = self.demand["msw-ponding2dflow2d_flux"]
+
+        # update elements for no shortage
+        self.set_realised_no_shortage(sum_from_dflow, sum_to_dflow)
+        # update elements for shortage
+        self.set_realised_shortage_msw(sum_from_dflow, sum_to_dflow)
+
+    def set_realised_no_shortage(
+        self, sum_from_dflow: NDArray[np.float_], sum_to_dflow: NDArray[np.float_]
+    ) -> None:
+        """
+        This function sets the realised array elements on demand values for cases where no shortage is computed.
+        There is no shortage at elements where the flux realised by dflow >= than the flux send to dflow.
+
+        Parameters
+        ----------
+        sum_from_dflow : np.float_
+            flux realised by dflow
+        sum_to_dflow : np.float_
+            flux send to dflow
+        """
+        condition = np.greater_equal(sum_from_dflow, sum_to_dflow)
+        self.realised["dflow2d-flux2msw-ponding"][condition] = self.demand[
+            "msw-ponding2dflow2d_flux"
+        ][condition]
+        self.realised["dflow2d-flux2msw-ponding"][condition] = self.demand[
+            "msw-ponding2dflow2d_flux"
+        ][condition]
+
+    def set_realised_shortage_msw(
+        self, sum_from_dflow: NDArray[np.float_], sum_to_dflow: NDArray[np.float_]
+    ) -> None:
+        """
+        This function sets the realised array elements on demand or corrected values for cases where shortage is
+        computed. shortage is discounted only to the negative contributions. The realised values are:
+
+        realised = demand_positive + (demand_negative + (+)shortage)
+
+        Parameters
+        ----------
+        sum_from_dflow : np.float_
+            flux realised by dflow
+        sum_to_dflow : np.float_
+            flux send to dflow
+        """
+        demand_msw_positive = self.demand["msw-ponding2dflow2d_flux_positive"][:]
+        demand_msw_negative = self.demand["msw-ponding2dflow2d_flux_negative"][:]
+        shortage = np.absolute(sum_to_dflow - sum_from_dflow)
+        condition = np.less(sum_from_dflow, sum_to_dflow)
+        self.realised["dflow2d-flux2msw-ponding"][condition] = demand_msw_positive[
+            condition
+        ] + (demand_msw_negative[condition] + shortage[condition])
+
+
+class exchange_balance_1d:
     def __init__(self, dim: int) -> None:
         self.dim = dim
 
