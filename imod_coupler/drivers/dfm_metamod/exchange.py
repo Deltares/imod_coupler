@@ -19,7 +19,9 @@ class exchange_balance_2d:
             "msw-ponding2dflow2d_flux_positive": np.zeros(
                 shape=self.dim, dtype=np.float_
             ),
-            "msw-ponding2dflow2d_flux_negative": np.zeros(shape=self.dim, dtype=np.float_),
+            "msw-ponding2dflow2d_flux_negative": np.zeros(
+                shape=self.dim, dtype=np.float_
+            ),
         }
         self.realised = {
             "dflow2d-flux2msw-ponding": np.zeros(shape=self.dim, dtype=np.float_),
@@ -48,9 +50,6 @@ class exchange_balance_2d:
             flux send to dflow
         """
         condition = np.greater_equal(sum_from_dflow, sum_to_dflow)
-        self.realised["dflow2d-flux2msw-ponding"][condition] = self.demand[
-            "msw-ponding2dflow2d_flux"
-        ][condition]
         self.realised["dflow2d-flux2msw-ponding"][condition] = self.demand[
             "msw-ponding2dflow2d_flux"
         ][condition]
