@@ -24,7 +24,7 @@ type = "netcdf"
 [[exchanges.msw-ponding2dflow1d_flux_input]]
 type = "netcdf"
 
-[[exchanges.msw-ponding2dflow1d_flux_input]]
+[[exchanges.msw-ponding2dflow1d_flux_output]]
 type = "netcdf"
 
 [[exchanges.msw-sprinkling2dflow1d_flux_input]]
