@@ -591,12 +591,12 @@ class DfmMetaMod(Driver):
             )[:]
         )
 
-    #        self.exchange_logger.log_exchange(
-    #            "mod2msw_head_output", self.msw.get_head()[:], time
-    #        )
-    #        self.exchange_logger.log_exchange(
-    #            "mod2msw_head_input", self.mf6.get_head(self.coupling.mf6_model)[:], time
-    #        )
+        self.exchange_logger.log_exchange(
+            "mod2msw_head_output", self.msw.get_head()[:], time
+        )
+        self.exchange_logger.log_exchange(
+            "mod2msw_head_input", self.mf6.get_head(self.coupling.mf6_model)[:], time
+        )
 
     def report_timing_totals(self) -> None:
         total_mf6 = self.mf6.report_timing_totals()
