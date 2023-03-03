@@ -45,20 +45,20 @@ def test_write_toml_file(
     log_level = "INFO"
     driver_type = "dfm_metamod"
 
-    [outputdriver.kernels.modflow6]
+    [driver.kernels.modflow6]
     dll = "mf6.dll"
     work_dir = ".\Modflow6"
 
-    [outputdriver.kernels.metaswap]
+    [driver.kernels.metaswap]
     dll = "msw.dll"
     work_dir = ".\MetaSWAP"
     dll_dep_dir = "msw_dep.dll"
 
-    [outputdriver.kernels.dflowfm]
+    [driver.kernels.dflowfm]
     dll = "dflow.dll"
     work_dir = ".\dflow-fm"
 
-    [[outputdriver.coupling]]
+    [[driver.coupling]]
     dfm_model = "dfm.mdu"
     mf6_model = "GWF_1"
     mf6_msw_node_map = "./exchanges/nodenr2svat.dxc"

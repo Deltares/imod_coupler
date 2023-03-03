@@ -1,11 +1,10 @@
 import shutil
-import subprocess
 from pathlib import Path
 
-import pytest
 import tomli
 import tomli_w
-from test_utilities import fill_para_sim_template
+from test_scripts.water_balance.combine import create_waterbalance_file
+from test_utilities import fill_para_sim_template, numeric_csvfiles_equal
 
 from imod_coupler.__main__ import run_coupler
 
@@ -18,7 +17,7 @@ def test_run_tmodel(
     metaswap_dll_devel: Path,
     metaswap_dll_dep_dir_devel: Path,
     metaswap_lookup_table: Path,
-    imod_coupler_exec_devel: Path,
+    reference_result_folder: Path,
 ) -> None:
     shutil.copytree(tmodel_input_folder, tmp_path_dev)
 
@@ -37,4 +36,27 @@ def test_run_tmodel(
         tomli_w.dump(toml_dict, toml_file)
 
     fill_para_sim_template(tmp_path_dev / "MetaSWAP", metaswap_lookup_table)
+
     run_coupler(toml_file_path)
+
+    waterbalance_result = run_waterbalance_script_on_tmodel(tmp_path_dev)
+
+    csv_reference_file = (
+        reference_result_folder / "test_run_tmodel" / "waterbalance.csv"
+    )
+
+    assert numeric_csvfiles_equal(
+        waterbalance_result, csv_reference_file, ";", abstol=5600.0, reltol=3.5
+    )
+
+
+def run_waterbalance_script_on_tmodel(testdir: Path) -> Path:
+    modflow_out_file = testdir / "Modflow6" / "GWF_1" / "T-MODEL-D.LST"
+    dflow_out_file = testdir / "dflow-fm" / "DFM_OUTPUT_FlowFM" / "FlowFM_his.nc"
+    metaswap_out_file = testdir / "MetaSWAP" / "msw" / "csv" / "tot_svat_dtgw.csv"
+
+    csv_file = testdir / "water_balance.csv"
+    create_waterbalance_file(
+        dflow_out_file, metaswap_out_file, modflow_out_file, output_file_csv=csv_file
+    )
+    return csv_file

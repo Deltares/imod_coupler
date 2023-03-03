@@ -254,8 +254,8 @@ class Mapping:
         dist, dflow_idx = self.dflow1d_lookup.query(np.c_[ptx, pty])
 
         (
-            map_passive_mod_dflow1d["mf-riv2dflow1d_flux"],
-            mask_passive_mod_dflow1d["mf-riv2dflow1d_flux"],
+            map_passive_mod_dflow1d["mf-riv2dflow1d_passive_flux"],
+            mask_passive_mod_dflow1d["mf-riv2dflow1d_passive_flux"],
         ) = create_mapping(
             mf_idx,
             dflow_idx,
@@ -328,7 +328,22 @@ class Mapping:
             map_msw_dflow1d["msw-sprinkling2dflow1d_flux"],
             mask_msw_dflow1d["msw-sprinkling2dflow1d_flux"],
         ) = create_mapping(
-            msw_idx, dflow_idx, max(msw_idx) + 1, max(dflow_idx) + 1, Operator.SUM,
+            msw_idx,
+            dflow_idx,
+            self.array_dims["msw_sw_sprinkling"],
+            self.array_dims["dfm_1d"],
+            Operator.SUM,
+        )
+        # MSW <- DFLOW 1D (sprinkling)
+        (
+            map_msw_dflow1d["dflow1d_flux2sprinkling_msw"],
+            mask_msw_dflow1d["dflow1d_flux2sprinkling_msw"],
+        ) = create_mapping(
+            dflow_idx,
+            msw_idx,
+            self.array_dims["dfm_1d"],
+            self.array_dims["msw_sw_sprinkling"],
+            Operator.SUM,
         )
         # MSW -> DFLOW 1D (ponding)
         table_mswponding2dflow1d: NDArray[np.single] = np.loadtxt(
@@ -343,10 +358,14 @@ class Mapping:
         dist, dflow_idx = self.dflow1d_lookup.query(np.c_[ptx, pty])
 
         (
-            map_msw_dflow1d["msw-sprinkling2dflow1d_flux"],
-            mask_msw_dflow1d["msw-sprinkling2dflow1d_flux"],
+            map_msw_dflow1d["msw-ponding2dflow1d_flux"],
+            mask_msw_dflow1d["msw-ponding2dflow1d_flux"],
         ) = create_mapping(
-            msw_idx, dflow_idx, max(msw_idx) + 1, max(dflow_idx) + 1, Operator.SUM,
+            msw_idx,
+            dflow_idx,
+            self.array_dims["msw_sw_ponding"],
+            self.array_dims["dfm_1d"],
+            Operator.SUM,
         )
         return map_msw_dflow1d, mask_msw_dflow1d
 
@@ -393,7 +412,11 @@ class Mapping:
             map_msw_dflow2d["msw-ponding2dflow2d_flux"],
             mask_msw_dflow2d["msw-ponding2dflow2d_flux"],
         ) = create_mapping(
-            msw_idx, dflow_idx, max(msw_idx) + 1, max(dflow_idx) + 1, Operator.SUM,
+            msw_idx,
+            dflow_idx,
+            self.array_dims["msw_sw_ponding"],
+            self.array_dims["dfm_2d"],
+            Operator.SUM,
         )
         # DFLOW 2D -> MSW (ponding)
         # TODO: check if this is always, 1:1 connection, otherwise use weights
@@ -403,8 +426,8 @@ class Mapping:
         ) = create_mapping(
             dflow_idx,
             msw_idx,
-            max(dflow_idx) + 1,
-            max(msw_idx) + 1,
+            self.array_dims["dfm_2d"],
+            self.array_dims["msw_sw_ponding"],
             Operator.SUM,  # check TODO
         )
         # DFLOW 2D -> MSW (stage/innudation)
@@ -424,7 +447,12 @@ class Mapping:
             map_msw_dflow2d["dflow2d_stage2msw-ponding"],
             mask_msw_dflow2d["dflow2d_stage2msw-ponding"],
         ) = create_mapping(
-            dflow_idx, msw_idx, len(dflow_idx), len(msw_idx), Operator.WEIGHT, weight
+            dflow_idx,
+            msw_idx,
+            self.array_dims["dfm_2d"],
+            self.array_dims["msw_sw_ponding"],
+            Operator.WEIGHT,
+            weight,
         )
         return map_msw_dflow2d, mask_msw_dflow2d
 
