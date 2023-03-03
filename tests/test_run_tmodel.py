@@ -22,9 +22,13 @@ def test_run_tmodel(
     shutil.copytree(tmodel_input_folder, tmp_path_dev)
 
     toml_file_path = tmp_path_dev / "imod_coupler.toml"
+    output_config_path = tmp_path_dev / "output_config.toml"
+
     toml_dict = {}
     with open(toml_file_path, "rb") as f:
         toml_dict = tomli.load(f)
+    with open(output_config_path, "rb") as f:
+        output_dict = tomli.load(f)
 
     toml_dict["driver"]["kernels"]["modflow6"]["dll"] = str(modflow_dll_devel)
     toml_dict["driver"]["kernels"]["dflowfm"]["dll"] = str(dflowfm_dll)
@@ -32,8 +36,11 @@ def test_run_tmodel(
     toml_dict["driver"]["kernels"]["metaswap"]["dll_dep_dir"] = str(
         metaswap_dll_dep_dir_devel
     )
+    output_dict["general"][0]["output_dir"] = str(tmp_path_dev)
     with open(toml_file_path, "wb") as toml_file:
         tomli_w.dump(toml_dict, toml_file)
+    with open(output_config_path, "wb") as toml_file:
+        tomli_w.dump(output_dict, toml_file)
 
     fill_para_sim_template(tmp_path_dev / "MetaSWAP", metaswap_lookup_table)
 

@@ -155,7 +155,7 @@ class DfmMetaMod(Driver):
 
     def update(self) -> None:
         # heads from modflow to MetaSWAP
-        self.exchange_mod2msw(self.get_current_time())
+        self.exchange_mod2msw()
 
         # we cannot set the timestep (yet) in Modflow
         # -> set to the (dummy) value 0.0 for now
@@ -352,6 +352,14 @@ class DfmMetaMod(Driver):
             mask[exchange_type][:] * water_balance[exchange_type][:]
             + coupling[exchange_type].dot(flux)[:]
         )
+        self.exchange_logger.log_exchange(
+            exchange_type + "_input", flux, self.get_current_time()
+        )
+        self.exchange_logger.log_exchange(
+            exchange_type + "_output",
+            self.exchange_balans.demand[exchange_type][:],
+            self.get_current_time(),
+        )
 
     def exchange_balans_2dfm(self, flux2dflow: NDArray[float_]) -> None:
         self.dfm.set_1d_river_fluxes(flux2dflow)
@@ -380,6 +388,15 @@ class DfmMetaMod(Driver):
             self.coupling.mf6_model,
             self.coupling.mf6_river_active_pkg,
             updated_river_stage,
+        )
+
+        self.exchange_logger.log_exchange(
+            outputlabels["dflow_river_stage"], dfm_water_levels, self.get_current_time()
+        )
+        self.exchange_logger.log_exchange(
+            outputlabels["modflow_updated_river_stage"],
+            updated_river_stage,
+            self.get_current_time(),
         )
 
     def exchange_stage_2d_dfm2msw(self) -> None:
@@ -663,19 +680,23 @@ class DfmMetaMod(Driver):
                 ]
             )
 
-    def exchange_mod2msw(self, time: float) -> None:
+    def exchange_mod2msw(self) -> None:
         """
         Exchange from MF6 to Metaswap
 
         1- Exchange of head from MF6 to MetaSWAP
         """
+
+        time = self.get_current_time()
         self.msw.get_head_ptr()[:] = (
             self.mask_mod_msw["mod2msw_head"][:] * self.msw.get_head_ptr()[:]
             + self.map_mod_msw["mod2msw_head"].dot(
                 self.mf6.get_head(self.coupling.mf6_model)
             )[:]
         )
-        self.exchange_logger.log_exchange(outputlabels["metaswap_head_in"], time)
+        self.exchange_logger.log_exchange(
+            outputlabels["metaswap_head_in"], self.msw.get_head()[:], time
+        )
 
     def report_timing_totals(self) -> None:
         total_mf6 = self.mf6.report_timing_totals()
