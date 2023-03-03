@@ -313,13 +313,18 @@ class DfmMetaMod(Driver):
             mask[exchange_type][:] * self.exchange_balans.demand[exchange_type][:]
             + coupling[exchange_type].dot(flux)[:]
         )
-        self.exchange_logger.log_exchange(
-            exchange_type + "_input", flux, self.get_current_time()
-        )
+
+    def log_matrix_product(
+        self,
+        flux: NDArray[Any],
+        exchange_type: str,
+        time,
+    ) -> None:
+        self.exchange_logger.log_exchange(exchange_type + "_input", flux, time)
         self.exchange_logger.log_exchange(
             exchange_type + "_output",
             self.exchange_balans.demand[exchange_type][:],
-            self.get_current_time(),
+            time,
         )
 
     def exchange_balans_2dflow(self, flux2dflow: NDArray[float_]) -> None:
@@ -360,7 +365,7 @@ class DfmMetaMod(Driver):
             self.get_current_time(),
         )
 
-    def exchange_flux_riv_active_mf62dfm(self) -> None:
+    def exchange_flux_riv_active_mf62dfm(self, time) -> None:
         """
         From MF6 to DFM.
         requested infiltration/drainage in the coming MF6 timestep for the 1D-rivers,
@@ -385,6 +390,12 @@ class DfmMetaMod(Driver):
             self.map_active_mod_dflow1d,
             self.mask_active_mod_dflow1d,
             "mf-riv2dflow1d_flux",
+            time,
+        )
+        self.log_matrix_product(
+            mf6_river_aquifer_flux_sec,
+            "mf-riv2dflow1d_flux",
+            self.dfm.get_current_time_days(),
         )
         # for calculating the correction flux, the flux need to be split up in positive and negative values
         # since the sign is already swapped, positive values means drainage from mf6 to dflow and
@@ -420,6 +431,11 @@ class DfmMetaMod(Driver):
             self.mask_msw_dflow1d,
             "msw-ponding2dflow1d_flux",
         )
+        self.log_matrix_product(
+            msw_ponding_flux_sec,
+            "msw-ponding2dflow1d_flux",
+            self.dfm.get_current_time_days(),
+        )
 
     def exchange_sprinkling_msw2dflow1d(self) -> None:
         # conversion from (+)m3/dtsw to (+)m3/s
@@ -433,6 +449,11 @@ class DfmMetaMod(Driver):
             self.map_msw_dflow1d,
             self.mask_msw_dflow1d,
             "msw-sprinkling2dflow1d_flux",
+        )
+        self.log_matrix_product(
+            msw_sprinkling_flux_sec,
+            "msw-sprinkling2dflow1d_flux",
+            self.dfm.get_current_time_days(),
         )
 
     def exchange_sprinkling_dflow1d2msw(
@@ -453,12 +474,12 @@ class DfmMetaMod(Driver):
         self.exchange_logger.log_exchange(
             "dflow1d_flux2sprinkling_msw_input",
             sprinkling_dflow_dtsw,
-            self.get_current_time(),
+            self.dfm.get_current_time_days(),
         )
         self.exchange_logger.log_exchange(
             "dflow1d_flux2sprinkling_msw_output",
             sprinkling_msw[:],
-            self.get_current_time(),
+            self.dfm.get_current_time_days(),
         )
 
     def exchange_flux_riv_passive_mf62dfm(self) -> None:
@@ -483,8 +504,15 @@ class DfmMetaMod(Driver):
             self.mask_passive_mod_dflow1d,
             "mf-riv2dflow1d_passive_flux",
         )
+        self.log_matrix_product(
+            mf6_riv2_flux_sec,
+            "mf-riv2dflow1d_passive_flux",
+            self.dfm.get_current_time_days(),
+        )
 
-    def exchange_flux_drn_passive_mf62dfm(self) -> None:
+    def exchange_flux_drn_passive_mf62dfm(
+        self,
+    ) -> None:
         """
         From MF6 to DFM.
         Calculated DRN drainage flux from MF6 to DFLOW 1D.The flux is for now added to the DFLOW vector.
@@ -505,6 +533,9 @@ class DfmMetaMod(Driver):
             self.map_passive_mod_dflow1d,
             self.mask_passive_mod_dflow1d,
             "mf-drn2dflow1d_flux",
+        )
+        self.log_matrix_product(
+            mf6_drn_flux_sec, "mf-drn2dflow1d_flux", self.dfm.get_current_time_days()
         )
 
     def exchange_correction_dflow2mf6(self, qdfm_realised: NDArray[float_]) -> None:

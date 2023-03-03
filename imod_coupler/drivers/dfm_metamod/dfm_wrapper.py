@@ -151,3 +151,6 @@ class DfmWrapper(BMIWrapper):  # type: ignore
 
         output_ids = as_array(output_ptr_ids, shape=(output_array_length.value,))
         return output_ids
+
+    def get_current_time_days(self):
+        return super().get_current_time() / 86400.0
