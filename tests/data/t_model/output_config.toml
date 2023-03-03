@@ -3,6 +3,32 @@ output_dir = "."
 
 [[exchanges]]
 
-[[exchanges.mod2msw_head_input]]
+[[exchanges.mf-riv2dflow1d_flux_input]]
 type = "netcdf"
 
+[[exchanges.mf-riv2dflow1d_flux_output]]
+type = "netcdf"
+
+[[exchanges.mf-riv2dflow1d_passive_flux_input]]
+type = "netcdf"
+
+[[exchanges.mf-riv2dflow1d_passive_flux_output]]
+type = "netcdf"
+
+[[exchanges.mf-drn2dflow1d_flux_input]]
+type = "netcdf"
+
+[[exchanges.mf-drn2dflow1d_flux_output]]
+type = "netcdf"
+
+[[exchanges.msw-ponding2dflow1d_flux_input]]
+type = "netcdf"
+
+[[exchanges.msw-ponding2dflow1d_flux_input]]
+type = "netcdf"
+
+[[exchanges.msw-sprinkling2dflow1d_flux_input]]
+type = "netcdf"
+
+[[exchanges.msw-sprinkling2dflow1d_flux_output]]
+type = "netcdf"
