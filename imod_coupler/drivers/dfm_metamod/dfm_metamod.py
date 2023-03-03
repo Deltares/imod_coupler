@@ -20,7 +20,6 @@ from xmipy import XmiWrapper
 
 from imod_coupler.config import BaseConfig
 from imod_coupler.drivers.dfm_metamod.config import Coupling, DfmMetaModConfig
-from imod_coupler.drivers.dfm_metamod.dfm_metamod_output_labels import outputlabels
 from imod_coupler.drivers.dfm_metamod.dfm_wrapper import DfmWrapper
 from imod_coupler.drivers.dfm_metamod.exchange import (
     exchange_balance_1d,
@@ -391,10 +390,10 @@ class DfmMetaMod(Driver):
         )
 
         self.exchange_logger.log_exchange(
-            outputlabels["dflow_river_stage"], dfm_water_levels, self.get_current_time()
+            "dflow1d2mf-riv_stage_input", dfm_water_levels, self.get_current_time()
         )
         self.exchange_logger.log_exchange(
-            outputlabels["modflow_updated_river_stage"],
+            "dflow1d2mf-riv_stage_output",
             updated_river_stage,
             self.get_current_time(),
         )
@@ -560,6 +559,17 @@ class DfmMetaMod(Driver):
             )[:]
         )
 
+        self.exchange_logger.log_exchange(
+            "dflow1d_flux2sprinkling_msw_input",
+            sprinkling_dflow_dtsw,
+            self.get_current_time(),
+        )
+        self.exchange_logger.log_exchange(
+            "dflow1d_flux2sprinkling_msw_output",
+            sprinkling_msw[:],
+            self.get_current_time(),
+        )
+
     def exchange_flux_riv_passive_mf62dfm(self) -> None:
         """
         From MF6 to DFM.
@@ -694,9 +704,13 @@ class DfmMetaMod(Driver):
                 self.mf6.get_head(self.coupling.mf6_model)
             )[:]
         )
-        self.exchange_logger.log_exchange(
-            outputlabels["metaswap_head_in"], self.msw.get_head()[:], time
-        )
+
+    #        self.exchange_logger.log_exchange(
+    #            "mod2msw_head_output", self.msw.get_head()[:], time
+    #        )
+    #        self.exchange_logger.log_exchange(
+    #            "mod2msw_head_input", self.mf6.get_head(self.coupling.mf6_model)[:], time
+    #        )
 
     def report_timing_totals(self) -> None:
         total_mf6 = self.mf6.report_timing_totals()
