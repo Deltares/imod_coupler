@@ -32,3 +32,21 @@ type = "netcdf"
 
 [[exchanges.msw-sprinkling2dflow1d_flux_output]]
 type = "netcdf"
+
+[[exchanges.mod2msw_head_output]]
+type = "netcdf"
+
+[[exchanges.mod2msw_head_input]]
+type = "netcdf"
+
+[[exchanges.dflow1d2mf-riv_stage_input]]
+type = "netcdf"
+
+[[exchanges.dflow1d2mf-riv_stage_output]]
+type = "netcdf"
+
+[[exchanges.dflow1d_flux2sprinkling_msw_input]]
+type = "netcdf"
+
+[[exchanges.dflow1d_flux2sprinkling_msw_output]]
+type = "netcdf"
