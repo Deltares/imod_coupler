@@ -26,7 +26,6 @@ class Mapping:
         self.msw_working_directory = msw_working_directory
         self.array_dims = array_dims
         self.get_svat_lookup()
-        self.get_dflow1d_lookup()
 
     def mapping_mf_msw(
         self, mf6_conversion_matrix: NDArray[np.float_]
