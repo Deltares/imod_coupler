@@ -190,4 +190,3 @@ class DfmWrapper(BMIWrapper):  # type: ignore
         else:
             nx2d = self.get_number_2d_nodes()
             return output_ids - nx2d
-        return output_ids
