@@ -11,9 +11,7 @@ from imod_coupler.drivers.dfm_metamod.dfm_wrapper import DfmWrapper
 
 
 def test_get_snapped_flownode(
-    dflowfm_dll_devel: Path,
-    tmodel_input_folder: Path,
-    tmp_path_dev: Path
+    dflowfm_dll_devel: Path, tmodel_input_folder: Path, tmp_path_dev: Path
 ) -> None:
 
     set_dfm_path(dflowfm_dll_devel)
