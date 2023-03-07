@@ -11,7 +11,9 @@ from imod_coupler.drivers.dfm_metamod.dfm_wrapper import DfmWrapper
 
 
 def test_get_snapped_flownode(
-    dflowfm_dll_devel: Path, tmodel_input_folder: Path, tmp_path_dev: Path
+    dflowfm_dll_devel: Path,
+    tmodel_input_folder: Path,
+    tmp_path_dev: Path
 ) -> None:
 
     set_dfm_path(dflowfm_dll_devel)
@@ -30,13 +32,14 @@ def test_get_snapped_flownode(
 
     expected_flownode_ids = np.array([2, 13, 17])
     assert_array_equal(
-        flownode_ids, expected_flownode_ids,
+        flownode_ids,
+        expected_flownode_ids,
     )
 
 
 def test_get_river_stage(
-    tmodel_input_folder: Path, 
-    dflowfm_dll_devel: Path, 
+    tmodel_input_folder: Path,
+    dflowfm_dll_devel: Path,
     tmp_path_dev: Path,
 ) -> None:
     shutil.copytree(tmodel_input_folder / "dflow-fm", tmp_path_dev)
@@ -79,7 +82,9 @@ def test_get_river_stage(
 
 
 def test_get_cumulative_fluxes_1d_nodes(
-    tmodel_input_folder: Path, dflowfm_dll_devel: Path, tmp_path_dev: Path,
+    tmodel_input_folder: Path,
+    dflowfm_dll_devel: Path,
+    tmp_path_dev: Path,
 ) -> None:
     shutil.copytree(tmodel_input_folder / "dflow-fm", tmp_path_dev)
     set_dfm_path(dflowfm_dll_devel)
@@ -99,7 +104,9 @@ def test_get_cumulative_fluxes_1d_nodes(
 
 
 def test_get_1d_river_fluxes(
-    tmodel_input_folder: Path, dflowfm_dll_devel: Path, tmp_path_dev: Path,
+    tmodel_input_folder: Path,
+    dflowfm_dll_devel: Path,
+    tmp_path_dev: Path,
 ) -> None:
     shutil.copytree(tmodel_input_folder / "dflow-fm", tmp_path_dev)
     set_dfm_path(dflowfm_dll_devel)
@@ -119,7 +126,9 @@ def test_get_1d_river_fluxes(
 
 
 def test_set_1d_river_fluxes(
-    tmodel_input_folder: Path, dflowfm_dll_devel: Path, tmp_path_dev: Path,
+    tmodel_input_folder: Path,
+    dflowfm_dll_devel: Path,
+    tmp_path_dev: Path,
 ) -> None:
     shutil.copytree(tmodel_input_folder / "dflow-fm", tmp_path_dev)
     set_dfm_path(dflowfm_dll_devel)
@@ -139,7 +148,9 @@ def test_set_1d_river_fluxes(
 
 
 def test_get_node_numbers(
-    tmodel_input_folder: Path, dflowfm_dll_devel: Path, tmp_path_dev: Path,
+    tmodel_input_folder: Path,
+    dflowfm_dll_devel: Path,
+    tmp_path_dev: Path,
 ) -> None:
     shutil.copytree(tmodel_input_folder / "dflow-fm", tmp_path_dev)
     set_dfm_path(dflowfm_dll_devel)
