@@ -35,7 +35,9 @@ def test_get_snapped_flownode(
 
 
 def test_get_river_stage(
-    tmodel_input_folder: Path, dflowfm_dll_devel: Path, tmp_path_dev: Path,
+    tmodel_input_folder: Path, 
+    dflowfm_dll_devel: Path, 
+    tmp_path_dev: Path,
 ) -> None:
     shutil.copytree(tmodel_input_folder / "dflow-fm", tmp_path_dev)
     set_dfm_path(dflowfm_dll_devel)
