@@ -200,8 +200,8 @@ class DfmMetaMod(Driver):
             self.exchange_balans_2dfm(self.exchange_balans_1d.demand["sum"])
 
             # get cummelative flux before dfm-run
-            q_dflow0_1d = self.dfm.get_cumulative_fluxes_1d_nodes()
-            q_dflow0_2d = self.dfm.get_cumulative_fluxes_2d_nodes()
+            q_dflow_before_run_dflow_1d = self.dfm.get_cumulative_fluxes_1d_nodes()
+            q_dflow_before_run_dflow_2d = self.dfm.get_cumulative_fluxes_2d_nodes()
 
             # run dflow
             while (
@@ -211,12 +211,12 @@ class DfmMetaMod(Driver):
                 self.dfm.update()
 
             # get cummelative flux after dfm-run
-            q_dflow1_1d = self.dfm.get_cumulative_fluxes_1d_nodes()
-            q_dflow1_2d = self.dfm.get_cumulative_fluxes_2d_nodes()
+            q_dflow_after_run_dflow_1d = self.dfm.get_cumulative_fluxes_1d_nodes()
+            q_dflow1_after_run_dflow_2d = self.dfm.get_cumulative_fluxes_2d_nodes()
 
             # calculate realised volumes by dflow
-            q_dflow_realised_1d = q_dflow1_1d - q_dflow0_1d
-            q_dflow_realised_2d = q_dflow1_2d - q_dflow0_2d
+            q_dflow_realised_1d = q_dflow_after_run_dflow_1d - q_dflow_before_run_dflow_1d
+            q_dflow_realised_2d = q_dflow1_after_run_dflow_2d - q_dflow_before_run_dflow_2d
             self.exchange_balans_1d.compute_realised(q_dflow_realised_1d)
             self.exchange_balans_2d.compute_realised(q_dflow_realised_2d)
 
@@ -382,9 +382,9 @@ class DfmMetaMod(Driver):
         condition = dfm_water_levels > (dfm_bed_level + np.double(0.001))
         dfm_water_depth[condition] = dfm_water_levels[condition]
 
-        msw_water_levels = self.msw.get_ponding_level_2d()
+        msw_water_levels_ptr = self.msw.get_ponding_level_2d()
 
-        msw_water_levels = (
+        msw_water_levels_ptr = (
             self.mask_msw_dflow2d["dflow2d_stage2msw-ponding"][:] * msw_water_levels[:]
             + self.map_msw_dflow2d["dflow2d_stage2msw-ponding"].dot(dfm_water_depth)[:]
         )
