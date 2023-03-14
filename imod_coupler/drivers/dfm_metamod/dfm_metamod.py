@@ -385,7 +385,7 @@ class DfmMetaMod(Driver):
         msw_water_levels_ptr = self.msw.get_ponding_level_2d()
 
         msw_water_levels_ptr = (
-            self.mask_msw_dflow2d["dflow2d_stage2msw-ponding"][:] * msw_water_levels[:]
+            self.mask_msw_dflow2d["dflow2d_stage2msw-ponding"][:] * msw_water_levels_ptr[:]
             + self.map_msw_dflow2d["dflow2d_stage2msw-ponding"].dot(dfm_water_depth)[:]
         )
 
