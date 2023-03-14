@@ -635,7 +635,8 @@ class DfmMetaMod(Driver):
             * self.mf6.get_recharge(
                 self.coupling.mf6_model, self.coupling.mf6_msw_recharge_pkg
             )[:]
-            + tled * self.map_mod_msw["msw2mod_recharge"].dot(self.msw.get_volume_ptr())[:]
+            + tled
+            * self.map_mod_msw["msw2mod_recharge"].dot(self.msw.get_volume_ptr())[:]
         )
 
         if self.coupling.enable_sprinkling:
@@ -648,7 +649,9 @@ class DfmMetaMod(Driver):
                     self.coupling.mf6_model, self.coupling.mf6_msw_well_pkg
                 )[:]
                 + tled
-                * self.map_mod_msw["msw2mf6_sprinkling"].dot(self.msw.get_volume_ptr())[:]
+                * self.map_mod_msw["msw2mf6_sprinkling"].dot(self.msw.get_volume_ptr())[
+                    :
+                ]
             )
 
     def exchange_mod2msw(self) -> None:
