@@ -544,9 +544,7 @@ class Mapping:
 
         Returns
         -------
-        tuple[dict[tuple[float, float], int], bool]
-           The first value of the tupple is a dictionary of pairs of xy-coordinates to node numbers
-           The second value is an indicator of whether the said dictionary could be filled without issues.
+        None
         """
 
         dflow2d_lookup = {}
