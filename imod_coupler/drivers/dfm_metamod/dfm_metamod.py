@@ -270,11 +270,11 @@ class DfmMetaMod(Driver):
 
     def get_array_dims(self) -> None:
         array_dims = {
-            "msw_storage": self.msw.get_storage().size,
-            "msw_head": self.msw.get_head().size,
-            "msw_volume": self.msw.get_volume().size,
-            "msw_sw_sprinkling": self.msw.get_surfacewater_sprinking_demand().size,
-            "msw_sw_ponding": self.msw.get_surfacewater_sprinking_demand().size,
+            "msw_storage": self.msw.get_storage_ptr().size,
+            "msw_head": self.msw.get_head_ptr().size,
+            "msw_volume": self.msw.get_volume_ptr().size,
+            "msw_sw_sprinkling": self.msw.get_surfacewater_sprinking_demand_ptr().size,
+            "msw_sw_ponding": self.msw.get_surfacewater_sprinking_demand_ptr().size,
             "mf6_storage": self.mf6.get_storage(self.coupling.mf6_model).size,
             "mf6_head": self.mf6.get_head(self.coupling.mf6_model).size,
             "mf6_recharge": self.mf6.get_recharge(
@@ -386,7 +386,7 @@ class DfmMetaMod(Driver):
         condition = dfm_water_levels > (dfm_bed_level + np.double(0.001))
         dfm_water_depth[condition] = dfm_water_levels[condition]
 
-        msw_water_levels_ptr = self.msw.get_ponding_level_2d()
+        msw_water_levels_ptr = self.msw.get_ponding_level_2d_ptr()
 
         msw_water_levels_ptr = (
             self.mask_msw_dflow2d["dflow2d_stage2msw-ponding"][:]
@@ -395,7 +395,7 @@ class DfmMetaMod(Driver):
         )
 
     def exchange_ponding_msw2dflow2d(self) -> None:
-        ponding_msw_m3dtsw = self.msw.get_surfacewater_ponding_allocation()
+        ponding_msw_m3dtsw = self.msw.get_surfacewater_ponding_allocation_ptr()
         ponding_msw_m3s = ponding_msw_m3dtsw / days_to_seconds(self.delt_msw_dflow)
 
         self.matrix_product(
@@ -433,7 +433,7 @@ class DfmMetaMod(Driver):
         dfm_flux_2d_realised_m3dtsw = dfm_flux_2d_realised * days_to_seconds(
             self.delt_msw_dflow
         )
-        ponding_msw = self.msw.get_surfacewater_ponding_realised()
+        ponding_msw = self.msw.get_surfacewater_ponding_realised_ptr()
         ponding_msw = (
             self.mask_msw_dflow2d["dflow2d_flux2msw-ponding"][:] * ponding_msw[:]
             + self.map_msw_dflow2d["dflow2d_flux2msw-ponding"].dot(
@@ -493,7 +493,7 @@ class DfmMetaMod(Driver):
 
     def exchange_ponding_msw2dflow1d(self) -> None:
         # conversion from (+)m3/dtsw to (+)m3/s
-        msw_ponding_volume = self.msw.get_surfacewater_ponding_allocation()
+        msw_ponding_volume = self.msw.get_surfacewater_ponding_allocation_ptr()
         msw_ponding_flux_sec = msw_ponding_volume / days_to_seconds(self.delt_msw_dflow)
 
         self.matrix_product(
@@ -506,7 +506,7 @@ class DfmMetaMod(Driver):
 
     def exchange_sprinkling_msw2dflow1d(self) -> None:
         # conversion from (+)m3/dtsw to (+)m3/s
-        msw_sprinkling_demand = self.msw.get_surfacewater_sprinking_demand()
+        msw_sprinkling_demand = self.msw.get_surfacewater_sprinking_demand_ptr()
         msw_sprinkling_flux_sec = msw_sprinkling_demand / days_to_seconds(
             self.delt_msw_dflow
         )
@@ -525,7 +525,7 @@ class DfmMetaMod(Driver):
         # conversion from (+)m3/s to (+)m3/dtsw
         sprinkling_dflow_dtsw = sprinkling_dflow * days_to_seconds(self.delt_msw_dflow)
         # get the realised pointer
-        sprinkling_msw = self.msw.get_surfacewater_sprinking_realised()
+        sprinkling_msw = self.msw.get_surfacewater_sprinking_realised_ptr()
         # set pointer
         sprinkling_msw = (
             self.mask_msw_dflow1d["dflow1d_flux2sprinkling_msw"][:] * sprinkling_msw[:]
@@ -623,7 +623,7 @@ class DfmMetaMod(Driver):
         self.mf6.get_storage(self.coupling.mf6_model)[:] = (
             self.mask_mod_msw["msw2mf_storage"][:]
             * self.mf6.get_storage(self.coupling.mf6_model)[:]
-            + self.map_mod_msw["msw2mf_storage"].dot(self.msw.get_storage())[:]
+            + self.map_mod_msw["msw2mf_storage"].dot(self.msw.get_storage_ptr())[:]
         )
 
         # Divide recharge and extraction by delta time
@@ -635,7 +635,7 @@ class DfmMetaMod(Driver):
             * self.mf6.get_recharge(
                 self.coupling.mf6_model, self.coupling.mf6_msw_recharge_pkg
             )[:]
-            + tled * self.map_mod_msw["msw2mod_recharge"].dot(self.msw.get_volume())[:]
+            + tled * self.map_mod_msw["msw2mod_recharge"].dot(self.msw.get_volume_ptr())[:]
         )
 
         if self.coupling.enable_sprinkling:
@@ -648,7 +648,7 @@ class DfmMetaMod(Driver):
                     self.coupling.mf6_model, self.coupling.mf6_msw_well_pkg
                 )[:]
                 + tled
-                * self.map_mod_msw["msw2mf6_sprinkling"].dot(self.msw.get_volume())[:]
+                * self.map_mod_msw["msw2mf6_sprinkling"].dot(self.msw.get_volume_ptr())[:]
             )
 
     def exchange_mod2msw(self) -> None:
@@ -657,8 +657,8 @@ class DfmMetaMod(Driver):
 
         1- Exchange of head from MF6 to MetaSWAP
         """
-        self.msw.get_head()[:] = (
-            self.mask_mod_msw["mod2msw_head"][:] * self.msw.get_head()[:]
+        self.msw.get_head_ptr()[:] = (
+            self.mask_mod_msw["mod2msw_head"][:] * self.msw.get_head_ptr()[:]
             + self.map_mod_msw["mod2msw_head"].dot(
                 self.mf6.get_head(self.coupling.mf6_model)
             )[:]

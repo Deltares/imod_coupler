@@ -43,7 +43,7 @@ class MswWrapper(XmiWrapper):
         dtsw = self.get_value("dtsw")
         return float(dtsw[0])
 
-    def get_surfacewater_sprinking_demand(self) -> NDArray[np.float_]:
+    def get_surfacewater_sprinking_demand_ptr(self) -> NDArray[np.float_]:
         """returns the sprinkling volume demand from metaswap
 
         Parameters
@@ -58,7 +58,7 @@ class MswWrapper(XmiWrapper):
         """
         return self.get_value_ptr("ts2dfmputsp")
 
-    def get_surfacewater_sprinking_realised(self) -> NDArray[np.float_]:
+    def get_surfacewater_sprinking_realised_ptr(self) -> NDArray[np.float_]:
         """sets the sprinkling volume demand in metaswap.
 
         Parameters
@@ -73,8 +73,10 @@ class MswWrapper(XmiWrapper):
         """
         return self.get_value_ptr("dfm2tsgetsp")
 
-    def get_surfacewater_ponding_allocation(self) -> NDArray[np.float_]:
-        """returns the ponding volume allocation from metaswap
+    def get_surfacewater_ponding_allocation_ptr(self) -> NDArray[np.float_]:
+        """retruns the pointer to the ponding volume allocation array in MetaSWAP. 
+        MetaSWAP uses two different ponding volume arrays. One for ponding allocation at the beginning of a (sub) timestep
+        and one for the returned realised volume at the end of the (sub) timestep.
 
         Parameters
         ----------
@@ -88,8 +90,10 @@ class MswWrapper(XmiWrapper):
         """
         return self.get_value_ptr("ts2dfmput")
 
-    def get_surfacewater_ponding_realised(self) -> NDArray[np.float_]:
-        """gets ponding volume allocation pointer in metaSWAP
+    def get_surfacewater_ponding_realised_ptr(self) -> NDArray[np.float_]:
+        """ retruns the pointer to the ponding volume realised array in metaSWAP
+        MetaSWAP uses two different ponding volume arrays. One for ponding allocation at the beginning of a (sub) timestep
+        and one for the returned realised volume at the end of the (sub) timestep.
 
         Parameters
         ----------
@@ -101,7 +105,7 @@ class MswWrapper(XmiWrapper):
         """
         return self.get_value_ptr("ts2dfmget")
 
-    def get_ponding_level_2d(self) -> NDArray[np.float_]:
+    def get_ponding_level_2d_ptr(self) -> NDArray[np.float_]:
         """get ponding level from dlfow-2d in metaswap
 
         Parameters
@@ -116,7 +120,7 @@ class MswWrapper(XmiWrapper):
 
         return self.get_value_ptr("dfm2lvswk")
 
-    def get_svat_area(self) -> NDArray[np.float_]:
+    def get_svat_area_ptr(self) -> NDArray[np.float_]:
         """gets area's of svats in metaswap. This can ben used to calculate ponding volumes based on dlfow ponding levels
 
         Parameters
@@ -130,7 +134,7 @@ class MswWrapper(XmiWrapper):
         """
         return self.get_value_ptr("ark")
 
-    def get_head(self) -> NDArray[np.float_]:
+    def get_head_ptr(self) -> NDArray[np.float_]:
         """gets heads array from metaswap
 
         Parameters
@@ -144,7 +148,7 @@ class MswWrapper(XmiWrapper):
         """
         return self.get_value_ptr("dhgwmod")
 
-    def get_volume(self) -> NDArray[np.float_]:
+    def get_volume_ptr(self) -> NDArray[np.float_]:
         """gets volume array from metaswap
 
         Parameters
@@ -158,7 +162,7 @@ class MswWrapper(XmiWrapper):
         """
         return self.get_value_ptr("dvsim")
 
-    def get_storage(self) -> NDArray[np.float_]:
+    def get_storage_ptr(self) -> NDArray[np.float_]:
         """gets storage array from metaswap
 
         Parameters
