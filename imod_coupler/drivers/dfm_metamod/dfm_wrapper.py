@@ -58,6 +58,36 @@ class DfmWrapper(BMIWrapper):  # type: ignore
             all_waterlevels[nr_nodes_2d : nr_nodes_2d + nr_nodes_1d], dtype=np.float_
         )
 
+    def get_waterlevels_2d(self) -> NDArray[np.float_]:
+        """
+        Returns
+        -------
+        Optional[NDArray[np.float_]]
+            an array with the waterlevels of the 2d nodes in the dflow-FM model,
+            or None if there ar no 2d nodes.
+        """
+
+        nr_nodes_2d = self.get_number_2d_nodes()
+        if nr_nodes_2d == 0:
+            raise ValueError("No dflow 1d nodes found!")
+        all_waterlevels = self.get_var("s1")
+        return np.asarray(all_waterlevels[:nr_nodes_2d], dtype=np.float_)
+
+    def get_bed_level_2d(self) -> NDArray[np.float_]:
+        """
+        Returns
+        -------
+        Optional[NDArray[np.float_]]
+            an array with the waterlevels of the 2d nodes in the dflow-FM model,
+            or None if there ar no 2d nodes.
+        """
+
+        nr_nodes_2d = self.get_number_2d_nodes()
+        if nr_nodes_2d == 0:
+            raise ValueError("No dflow 1d nodes found!")
+        all_bed_levels = self.get_var("bl")
+        return np.asarray(all_bed_levels[:nr_nodes_2d], dtype=np.float_)
+
     def get_cumulative_fluxes_1d_nodes(self) -> NDArray[np.float_]:
         """
         Returns
@@ -71,6 +101,20 @@ class DfmWrapper(BMIWrapper):  # type: ignore
             raise ValueError("No dflow 1d nodes found!")
         all_cumulative_fluxes = self.get_var("vextcum")
         return np.asarray(all_cumulative_fluxes[-nr_nodes_1d:], dtype=np.float_)
+
+    def get_cumulative_fluxes_2d_nodes(self) -> NDArray[np.float_]:
+        """
+        Returns
+        -------
+        Optional[NDArray[np.float_]]
+            an array with the cumulative fluxes of the 2d nodes in the dflow-FM model,
+            or None if there ar no 1d nodes.
+        """
+        nr_nodes_2d = self.get_number_2d_nodes()
+        if nr_nodes_2d == 0:
+            raise ValueError("No dflow 1d nodes found!")
+        all_cumulative_fluxes = self.get_var("vextcum")
+        return np.asarray(all_cumulative_fluxes[:nr_nodes_2d], dtype=np.float_)
 
     def set_1d_river_fluxes(self, river_flux: NDArray[np.float_]) -> None:
         """
@@ -95,6 +139,28 @@ class DfmWrapper(BMIWrapper):  # type: ignore
             )
         self.set_var_slice("qext", [nr_nodes_2d], [nr_nodes_1d], river_flux)
 
+    def set_2d_fluxes(self, river_flux: NDArray[np.float_]) -> None:
+        """
+        Sets the DFLOW-FM array qext (external fluxes) for the 2d nodes
+
+        Parameters
+        ----------
+        river_flux : NDArray[np.float_]
+            the 2d fluxes that need to be set to the DFLOW-FM array "qext"
+
+        Raises
+        ------
+        ValueError
+            mismatch between expected size and actual size.
+        """
+
+        nr_nodes_2d = self.get_var("ndx2d")  # number of 2d cells
+        if len(river_flux) != nr_nodes_2d:
+            raise ValueError(
+                f"Expected number of river fluxes: {nr_nodes_2d}, got {len(river_flux)}"
+            )
+        self.set_var_slice("qext", [0], [nr_nodes_2d], river_flux)
+
     def get_1d_river_fluxes(self) -> NDArray[np.float_]:
         """
         Returns
@@ -107,6 +173,19 @@ class DfmWrapper(BMIWrapper):  # type: ignore
             raise ValueError("No dflow 1d nodes found!")
         q_ext = self.get_var("qext")
         return np.asarray(q_ext[-nr_nodes_1d:], dtype=np.float_)
+
+    def get_2d_fluxes(self) -> NDArray[np.float_]:
+        """
+        Returns
+        -------
+        Optional[NDArray[np.float_]]
+            the DFLOW_FM external fluxes ( "qext") for the 1d nodes
+        """
+        nr_nodes_2d = self.get_number_2d_nodes()
+        if nr_nodes_2d == 0:
+            raise ValueError("No dflow 2d nodes found!")
+        q_ext = self.get_var("qext")
+        return np.asarray(q_ext[:nr_nodes_2d], dtype=np.float_)
 
     def get_snapped_flownode(
         self, input_node_x: NDArray[np.float64], input_node_y: NDArray[np.float64]
