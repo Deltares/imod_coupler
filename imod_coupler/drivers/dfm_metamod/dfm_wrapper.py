@@ -232,4 +232,4 @@ class DfmWrapper(BMIWrapper):  # type: ignore
         return output_ids
 
     def get_current_time_days(self) -> float:
-        return super().get_current_time() / 86400.0
+        return (float)(super().get_current_time() / 86400.0)
