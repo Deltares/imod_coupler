@@ -22,10 +22,10 @@ from imod_coupler.config import BaseConfig
 from imod_coupler.drivers.dfm_metamod.config import Coupling, DfmMetaModConfig
 from imod_coupler.drivers.dfm_metamod.dfm_wrapper import DfmWrapper
 from imod_coupler.drivers.dfm_metamod.exchange import (
-from imod_coupler.drivers.dfm_metamod.exchange_collector import ExchangeCollector
     exchange_balance_1d,
     exchange_balance_2d,
 )
+from imod_coupler.drivers.dfm_metamod.exchange_collector import ExchangeCollector
 from imod_coupler.drivers.dfm_metamod.mapping import Mapping
 from imod_coupler.drivers.dfm_metamod.mf6_wrapper import Mf6Wrapper
 from imod_coupler.drivers.dfm_metamod.msw_wrapper import MswWrapper
@@ -124,12 +124,6 @@ class DfmMetaMod(Driver):
         self.log_version()
         self.exchange_balans_1d = exchange_balance_1d(self.array_dims["dfm_1d"])
         self.exchange_balans_2d = exchange_balance_2d(self.array_dims["dfm_2d"])
-
-        output_toml_file = self.coupling.dict()["output_config_file"]
-        with open(output_toml_file, "rb") as f:
-            toml_dict = tomli.load(f)
-
-        self.exchange_logger = ExchangeCollector(toml_dict)
 
         output_toml_file = self.coupling.dict()["output_config_file"]
         with open(output_toml_file, "rb") as f:
@@ -742,7 +736,7 @@ class DfmMetaMod(Driver):
         )
 
         self.exchange_logger.log_exchange(
-            "mod2msw_head_output", self.msw.get_head()[:], time
+            "mod2msw_head_output", self.msw.get_head_ptr()[:], time
         )
         self.exchange_logger.log_exchange(
             "mod2msw_head_input", self.mf6.get_head(self.coupling.mf6_model)[:], time
