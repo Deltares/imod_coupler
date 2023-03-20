@@ -200,8 +200,10 @@ class DfmMetaMod(Driver):
             self.exchange_balans_2dfm(self.exchange_balans_1d.demand["sum"])
 
             # get cummelative flux before dfm-run
-            q_dflow_before_run_dflow_1d = self.dfm.get_cumulative_fluxes_1d_nodes()
-            q_dflow_before_run_dflow_2d = self.dfm.get_cumulative_fluxes_2d_nodes()
+            q_dflow_before_run_dflow_1d = \
+                np.copy(self.dfm.get_cumulative_fluxes_1d_nodes_ptr())
+            q_dflow_before_run_dflow_2d = \
+                np.copy(self.dfm.get_cumulative_fluxes_2d_nodes_ptr())
 
             # run dflow
             while (
@@ -211,8 +213,10 @@ class DfmMetaMod(Driver):
                 self.dfm.update()
 
             # get cummelative flux after dfm-run
-            q_dflow_after_run_dflow_1d = self.dfm.get_cumulative_fluxes_1d_nodes()
-            q_dflow1_after_run_dflow_2d = self.dfm.get_cumulative_fluxes_2d_nodes()
+            q_dflow_after_run_dflow_1d = \
+                np.copy(self.dfm.get_cumulative_fluxes_1d_nodes_ptr())
+            q_dflow1_after_run_dflow_2d = \
+                np.copy(self.dfm.get_cumulative_fluxes_2d_nodes_ptr())
 
             # calculate realised volumes by dflow
             q_dflow_realised_1d = (
@@ -345,7 +349,9 @@ class DfmMetaMod(Driver):
         )
 
     def exchange_balans_2dfm(self, flux2dflow: NDArray[float_]) -> None:
-        self.dfm.set_1d_river_fluxes(flux2dflow)
+        fluxes = self.dfm.get_1d_river_fluxes_ptr()
+        if fluxes is not None:
+            fluxes[:] = flux2dflow[:]
 
     def exchange_stage_1d_dfm2mf6(self) -> None:
         """
@@ -355,7 +361,7 @@ class DfmMetaMod(Driver):
         MF6 unit: meters above MF6's reference plane
         DFM unit: ?
         """
-        dfm_water_levels = self.dfm.get_waterlevels_1d()
+        dfm_water_levels = self.dfm.get_waterlevels_1d_ptr()
         mf6_river_stage = self.mf6.get_river_stages(
             self.coupling.mf6_model, self.coupling.mf6_river_active_pkg
         )
@@ -380,8 +386,8 @@ class DfmMetaMod(Driver):
         MSW unit: m+DEM (depth)
         DFM unit: m+NAP
         """
-        dfm_water_levels = self.dfm.get_waterlevels_2d()
-        dfm_bed_level = self.dfm.get_bed_level_2d()
+        dfm_water_levels = self.dfm.get_waterlevels_2d_ptr()
+        dfm_bed_level = self.dfm.get_bed_level_2d_ptr()
         dfm_water_depth = dfm_bed_level
         condition = dfm_water_levels > (dfm_bed_level + np.double(0.001))
         dfm_water_depth[condition] = dfm_water_levels[condition]
@@ -523,13 +529,15 @@ class DfmMetaMod(Driver):
         self, sprinkling_dflow: NDArray[np.float_]
     ) -> None:
         # get the realised and demand pointer
-        sprinkling_msw = self.msw.get_surfacewater_sprinking_realised()
-        msw_sprinkling_demand = self.msw.get_surfacewater_sprinking_demand()
+        sprinkling_msw = self.msw.get_surfacewater_sprinking_realised_ptr()
+        msw_sprinkling_demand = self.msw.get_surfacewater_sprinking_demand_ptr()
 
         wbal = self.exchange_balans_1d
-        realised_dfm = wbal.realised["msw-sprinkling2dflow1d_flux"]
+        realised_dfm = wbal.realised["dflow1d_flux2sprinkling_msw"]
         demand = wbal.demand["msw-sprinkling2dflow1d_flux"]
-        realised_fraction = realised_dfm / demand
+        realised_fraction = realised_dfm * 0.0
+        mask = np.greater(0.0, demand)
+        realised_fraction[mask] = realised_dfm[mask] / demand[mask]
         matrix = self.map_msw_dflow1d["msw-sprinkling2dflow1d_flux"].transpose()
         sprinkling_msw[:] = msw_sprinkling_demand[:] * matrix.dot(realised_fraction)[:]
 
@@ -595,7 +603,7 @@ class DfmMetaMod(Driver):
         realised_fraction = realised_dfm * 0.0 + 1.0
         realised_fraction[mask] = (realised_dfm[mask] - demand_pos[mask]) \
             / demand_neg[mask]
-        matrix = self.map_active_mod_dflow1d["mf-riv2dflow1d_active_flux"].transpose()
+        matrix = self.map_active_mod_dflow1d["mf-riv2dflow1d_flux"].transpose()
         
         # correction only applies to Modflow cells which negatively contribute to the dflowfm volumes
         # in which case the Modflow demand was POSITIVE, otherwise the correction is 0
