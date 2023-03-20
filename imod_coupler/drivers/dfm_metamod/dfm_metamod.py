@@ -349,10 +349,10 @@ class DfmMetaMod(Driver):
         """
 
         # conversion from (-)m3/dtgw to (+)m3/s
-        mf6_river_aquifer_flux_day = self.mf6.get_river_flux_estimate(
+        self.mf6_river_aquifer_flux_day = self.mf6.get_river_flux_estimate(
             self.coupling.mf6_model, self.coupling.mf6_river_active_pkg
         )
-        mf6_river_aquifer_flux_sec = -mf6_river_aquifer_flux_day / days_to_seconds(
+        mf6_river_aquifer_flux_sec = -self.mf6_river_aquifer_flux_day / days_to_seconds(
             self.delt_mf6
         )
         self.matrix_product(
@@ -413,42 +413,16 @@ class DfmMetaMod(Driver):
     def exchange_sprinkling_dflow1d2msw(
         self, sprinkling_dflow: NDArray[np.float_]
     ) -> None:
-        # conversion from (+)m3/s to (+)m3/dtsw
-        sprinkling_dflow_dtsw = sprinkling_dflow * days_to_seconds(self.delt_msw_dflow)
-        # get the realised pointer
+        # get the realised and demand pointer
         sprinkling_msw = self.msw.get_surfacewater_sprinking_realised()
+        msw_sprinkling_demand = self.msw.get_surfacewater_sprinking_demand()
 
-        realised_dfm = wbal.realised["msw-sprinkling2dflow1d_flux"]
-
-	demand = wbal.demand["msw-sprinkling2dflow1d_flux"]
-        mask = np.less_than(0.0,demand_neg)
-	realised_dfm = wbal.realised["msw-sprinkling2dflow1d_flux"]
-        realised_fraction = realised_dfm * 0.0
-        realised_fraction[mask] = realised_dfm[mask] / demand_neg[mask]
-        matrix = self.map_active_mod_dflow1d["msw-sprinkling2dflow1d_flux"].transpose()
-        realised_msw = qmsw_demand * matrix.dot(realised_fraction) 
-
-##################################################################################
         wbal = self.exchange_balans
-        realised_dfm = wbal.realised["dflow1d_flux2mf-riv_negative"]
-        demand_mf6 = wbal.demand["mf-riv2dflow1d_flux"]
-        demand_pos = wbal.demand["mf-riv2dflow1d_flux_positive"]
-        demand_neg = wbal.demand["mf-riv2dflow1d_flux_negative"]
-        mask = np.less_than(0.0,demand_neg)
-        realised_fraction = realised_dfm * 0.0 + 1.0
-        realised_fraction[mask] = (realised_dfm[mask] - demand_pos[mask]) / demand_neg[mask]
-        matrix = self.map_active_mod_dflow1d["mf-riv2dflow1d_active_flux"].transpose()
-#       realised_mf6 = qmf6_demand * matrix.dot(realised_fraction) 
-        qmf_corr = demand_mf6 * (1 - matrix.dot(realised_fraction)) 
-##################################################################################
-
-        # set pointer
-        sprinkling_msw = (
-            self.mask_msw_dflow1d["dflow1d_flux2sprinkling_msw"][:] * sprinkling_msw[:]
-            + self.map_msw_dflow1d["dflow1d_flux2sprinkling_msw"].dot(
-                sprinkling_dflow_dtsw
-            )[:]
-        )
+        realised_dfm = wbal.realised["msw-sprinkling2dflow1d_flux"]
+        demand = wbal.demand["msw-sprinkling2dflow1d_flux"]
+        realised_fraction = realised_dfm / demand
+        matrix = self.map_msw_dflow1d["msw-sprinkling2dflow1d_flux"].transpose()
+        sprinkling_msw[:] = msw_sprinkling_demand[:] * matrix.dot(realised_fraction)[:]
 
     def exchange_flux_riv_passive_mf62dfm(self) -> None:
         """
@@ -504,15 +478,18 @@ class DfmMetaMod(Driver):
         """
         wbal = self.exchange_balans
         realised_dfm = wbal.realised["dflow1d_flux2mf-riv_negative"]
-        demand_mf6 = wbal.demand["mf-riv2dflow1d_flux"]
         demand_pos = wbal.demand["mf-riv2dflow1d_flux_positive"]
         demand_neg = wbal.demand["mf-riv2dflow1d_flux_negative"]
-        mask = np.less_than(0.0,demand_neg)
+        mask = np.less(0.0, demand_neg)
         realised_fraction = realised_dfm * 0.0 + 1.0
-        realised_fraction[mask] = (realised_dfm[mask] - demand_pos[mask]) / demand_neg[mask]
+        realised_fraction[mask] = (realised_dfm[mask] - demand_pos[mask]) \
+            / demand_neg[mask]
         matrix = self.map_active_mod_dflow1d["mf-riv2dflow1d_active_flux"].transpose()
-#       realised_mf6 = qmf6_demand * matrix.dot(realised_fraction) 
-        qmf_corr = demand_mf6 * (1 - matrix.dot(realised_fraction)) 
+        
+        # correction only applies to Modflow cells which negatively contribute to the dflowfm volumes
+        # in which case the Modflow demand was POSITIVE, otherwise the correction is 0
+        qmf_corr = np.maximum(self.mf6_river_aquifer_flux_day, 0.0) \
+            * (1 - matrix.dot(realised_fraction))
 
         assert self.coupling.mf6_msw_well_pkg
         self.mf6.set_well_flux(
