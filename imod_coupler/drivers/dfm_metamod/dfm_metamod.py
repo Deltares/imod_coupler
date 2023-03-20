@@ -355,13 +355,14 @@ class DfmMetaMod(Driver):
     def log_matrix_product(
         self,
         flux: NDArray[Any],
+        water_balance: dict[str, NDArray[float_]],
         exchange_type: str,
         time,
     ) -> None:
         self.exchange_logger.log_exchange(exchange_type + "_input", flux, time)
         self.exchange_logger.log_exchange(
             exchange_type + "_output",
-            self.exchange_balans.demand[exchange_type][:],
+            water_balance[exchange_type][:],
             time,
         )
 
@@ -471,6 +472,7 @@ class DfmMetaMod(Driver):
             )[:]
         )
 
+    def exchange_flux_riv_active_mf62dfm(self) -> None:
         """
         From MF6 to DFM.
         requested infiltration/drainage in the coming MF6 timestep for the 1D-rivers,
@@ -496,10 +498,10 @@ class DfmMetaMod(Driver):
             self.map_active_mod_dflow1d,
             self.mask_active_mod_dflow1d,
             "mf-riv2dflow1d_flux",
-            time,
         )
         self.log_matrix_product(
             mf6_river_aquifer_flux_sec,
+            self.exchange_balans_1d.demand,
             "mf-riv2dflow1d_flux",
             self.dfm.get_current_time_days(),
         )
@@ -541,6 +543,7 @@ class DfmMetaMod(Driver):
         self.log_matrix_product(
             msw_ponding_flux_sec,
             "msw-ponding2dflow1d_flux",
+            self.exchange_balans_1d.demand,
             self.dfm.get_current_time_days(),
         )
 
@@ -561,6 +564,7 @@ class DfmMetaMod(Driver):
         self.log_matrix_product(
             msw_sprinkling_flux_sec,
             "msw-sprinkling2dflow1d_flux",
+            self.exchange_balans_1d.demand,
             self.dfm.get_current_time_days(),
         )
 
@@ -582,11 +586,6 @@ class DfmMetaMod(Driver):
         self.exchange_logger.log_exchange(
             "dflow1d_flux2sprinkling_msw_input",
             sprinkling_dflow_dtsw,
-            self.dfm.get_current_time_days(),
-        )
-        self.exchange_logger.log_exchange(
-            "dflow1d_flux2sprinkling_msw_output",
-            sprinkling_msw[:],
             self.dfm.get_current_time_days(),
         )
 
@@ -615,6 +614,7 @@ class DfmMetaMod(Driver):
         )
         self.log_matrix_product(
             mf6_riv2_flux_sec,
+            self.exchange_balans_1d.demand,
             "mf-riv2dflow1d_passive_flux",
             self.dfm.get_current_time_days(),
         )
@@ -645,7 +645,10 @@ class DfmMetaMod(Driver):
             "mf-drn2dflow1d_flux",
         )
         self.log_matrix_product(
-            mf6_drn_flux_sec, "mf-drn2dflow1d_flux", self.dfm.get_current_time_days()
+            mf6_drn_flux_sec,
+            "mf-drn2dflow1d_flux",
+            self.exchange_balans_1d.demand,
+            self.dfm.get_current_time_days(),
         )
 
     def exchange_correction_dflow2mf6(self, qdfm_realised: NDArray[float_]) -> None:
