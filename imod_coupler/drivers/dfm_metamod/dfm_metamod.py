@@ -542,8 +542,8 @@ class DfmMetaMod(Driver):
         )
         self.log_matrix_product(
             msw_ponding_flux_sec,
-            "msw-ponding2dflow1d_flux",
             self.exchange_balans_1d.demand,
+            "msw-ponding2dflow1d_flux",
             self.dfm.get_current_time_days(),
         )
 
@@ -563,8 +563,8 @@ class DfmMetaMod(Driver):
         )
         self.log_matrix_product(
             msw_sprinkling_flux_sec,
-            "msw-sprinkling2dflow1d_flux",
             self.exchange_balans_1d.demand,
+            "msw-sprinkling2dflow1d_flux",
             self.dfm.get_current_time_days(),
         )
 
@@ -646,8 +646,8 @@ class DfmMetaMod(Driver):
         )
         self.log_matrix_product(
             mf6_drn_flux_sec,
-            "mf-drn2dflow1d_flux",
             self.exchange_balans_1d.demand,
+            "mf-drn2dflow1d_flux",
             self.dfm.get_current_time_days(),
         )
 
