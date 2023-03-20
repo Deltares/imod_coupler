@@ -357,7 +357,7 @@ class DfmMetaMod(Driver):
         flux: NDArray[Any],
         water_balance: dict[str, NDArray[float_]],
         exchange_type: str,
-        time,
+        time: float,
     ) -> None:
         self.exchange_logger.log_exchange(exchange_type + "_input", flux, time)
         self.exchange_logger.log_exchange(
