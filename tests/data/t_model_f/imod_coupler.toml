@@ -1,0 +1,27 @@
+# File created by iMOD versionV5_5
+
+timing = false
+log_level = "INFO"
+
+driver_type = 'metamod'
+
+# MODFLOW6
+[driver.kernels.modflow6]
+dll = 'c:\werkmap\test_freatisch\Testmodel-plateaurand\Testmodel-plateaurand\EXE\iMOD_coupler\libmf6.dll'
+work_dir = 'c:\src\GW-sobek\workspace\lumbricustests\t-model_conversie_mf6\tmodel_mf6\T-MODEL-F\MODFLOW6'
+
+# MetaSWAP
+[driver.kernels.metaswap]
+dll = 'c:\werkmap\test_freatisch\Testmodel-plateaurand\Testmodel-plateaurand\EXE\iMOD_coupler\metaswap.dll'
+dll_dep_dir = 'c:\werkmap\test_freatisch\Testmodel-plateaurand\Testmodel-plateaurand\EXE\iMOD_coupler'
+work_dir = 'c:\src\GW-sobek\workspace\lumbricustests\t-model_conversie_mf6\tmodel_mf6\T-MODEL-F\MetaSWAP\'
+
+# Inner model with sprinkling
+[[driver.coupling]]
+enable_sprinkling = false
+mf6_model = 'GWF_1'
+mf6_msw_recharge_pkg = 'RCH_MSW'
+mf6_msw_well_pkg = 'WELLS_MSW'
+mf6_msw_node_map = 'c:\src\GW-sobek\workspace\lumbricustests\t-model_conversie_mf6\tmodel_mf6\T-MODEL-F\exchanges\NODENR2SVAT.DXC'
+mf6_msw_recharge_map = 'c:\src\GW-sobek\workspace\lumbricustests\t-model_conversie_mf6\tmodel_mf6\T-MODEL-F\exchanges\RCHINDEX2SVAT.DXC'
+mf6_msw_sprinkling_map = 'c:\src\GW-sobek\workspace\lumbricustests\t-model_conversie_mf6\tmodel_mf6\T-MODEL-F\exchanges\WELLINDEX2SVAT.DXC'
