@@ -2,10 +2,10 @@ import numpy as np
 import pytest
 from numpy.typing import NDArray
 
-from imod_coupler.drivers.dfm_metamod.exchange import Exchange_balance
+from imod_coupler.drivers.dfm_metamod.exchange import exchange_balance_1d
 
 dflow_dim = 2
-exchange_balans = Exchange_balance(dflow_dim)
+exchange_balans = exchange_balance_1d(dflow_dim)
 
 # testdata
 mf6_riv_active_positive = np.array([6, 6])

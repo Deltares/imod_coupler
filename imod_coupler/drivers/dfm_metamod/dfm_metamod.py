@@ -20,7 +20,10 @@ from xmipy import XmiWrapper
 from imod_coupler.config import BaseConfig
 from imod_coupler.drivers.dfm_metamod.config import Coupling, DfmMetaModConfig
 from imod_coupler.drivers.dfm_metamod.dfm_wrapper import DfmWrapper
-from imod_coupler.drivers.dfm_metamod.exchange import Exchange_balance
+from imod_coupler.drivers.dfm_metamod.exchange import (
+    exchange_balance_1d,
+    exchange_balance_2d,
+)
 from imod_coupler.drivers.dfm_metamod.mapping import Mapping
 from imod_coupler.drivers.dfm_metamod.mf6_wrapper import Mf6Wrapper
 from imod_coupler.drivers.dfm_metamod.msw_wrapper import MswWrapper
@@ -59,6 +62,12 @@ class DfmMetaMod(Driver):
     mask_mod2msw: Dict[str, NDArray[Any]]
     # dict. with mask arrays for msw=>mod coupling
     mask_msw2mod: Dict[str, NDArray[Any]]
+    # dictionary with mapping tables for msw-dflow coupling
+    map_msw_dflow1d: Dict[str, csr_matrix]
+    map_msw_dflow2d: Dict[str, csr_matrix]
+    # dictionary with mask arrays for msw-dflow coupling
+    mask_msw_dflow1d: Dict[str, NDArray[Any]]
+    mask_msw_dflow2d: Dict[str, NDArray[Any]]
 
     # tolerance for time-related comparisons
     time_eps = 1e-5
@@ -114,7 +123,8 @@ class DfmMetaMod(Driver):
         self.mapping.set_dfm_lookup(self.dfm.kdtree1D, self.dfm.kdtree2D)
         self.set_mapping()
         self.log_version()
-        self.exchange_balans = Exchange_balance(self.array_dims["dfm_1d"])
+        self.exchange_balans_1d = exchange_balance_1d(self.array_dims["dfm_1d"])
+        self.exchange_balans_2d = exchange_balance_2d(self.array_dims["dfm_2d"])
 
     def log_version(self) -> None:
         logger.info(f"MODFLOW version: {self.mf6.get_version()}")
@@ -135,6 +145,7 @@ class DfmMetaMod(Driver):
             self.mask_passive_mod_dflow1d,
         ) = self.mapping.mapping_passive_mf_dflow1d()
         self.map_msw_dflow1d, self.mask_msw_dflow1d = self.mapping.mapping_msw_dflow1d()
+        self.map_msw_dflow2d, self.mask_msw_dflow2d = self.mapping.mapping_msw_dflow2d()
 
     def update(self) -> None:
         # heads from modflow to MetaSWAP
@@ -150,38 +161,49 @@ class DfmMetaMod(Driver):
         self.number_substeps_per_modflowstep = int(self.delt_mf6 / self.delt_msw_dflow)
         self.msw.prepare_time_step(self.delt_mf6)
 
-        # initialise water balance
-        self.exchange_balans.reset()
+        # initialise water balance 1d + 2d
+        self.exchange_balans_1d.reset()
+        self.exchange_balans_2d.reset()
 
         # stage from dflow 1d to modflow active coupled riv
         self.exchange_stage_1d_dfm2mf6()
 
-        # flux from modflow active coupled riv to water balance
+        # flux from modflow active coupled riv to water balance 1d
         self.exchange_flux_riv_active_mf62dfm()
 
-        # flux from modflow passive coupled riv to water balance
+        # flux from modflow passive coupled riv to water balance 1d
         self.exchange_flux_riv_passive_mf62dfm()
 
-        # flux from modflow passive coupled drn to water balance
+        # flux from modflow passive coupled drn to water balance 1d
         self.exchange_flux_drn_passive_mf62dfm()
 
         # sub timestepping between metaswap and dflow
         subtimestep_endtime = t_begin
         for idtsw in range(self.number_substeps_per_modflowstep):
             subtimestep_endtime += self.delt_msw_dflow
+
+            # initial 2d stage from dflow 2d to msw
+            self.exchange_stage_2d_dfm2msw()
+
+            # initiate surface water timestep
             self.msw.start_surface_water_time_step(idtsw)
-            # flux from metaswap ponding to water balance
+
+            # flux from metaswap ponding to water balance 1d
             self.exchange_ponding_msw2dflow1d()
 
-            # flux from metaswap sprinkling to water balance
+            # flux from metaswap sprinkling to water balance 1d
             self.exchange_sprinkling_msw2dflow1d()
 
-            # exchange water balance to dlfow
-            self.exchange_balans.sum_demand()
-            self.exchange_balans_2dflow(self.exchange_balans.demand["sum"])
+            # exchange ponding msw to water balance 2d
+            self.exchange_ponding_msw2dflow2d()
+
+            # exchange water balance 1d to dlfow 1d
+            self.exchange_balans_1d.sum_demand()
+            self.exchange_balans_2dfm(self.exchange_balans_1d.demand["sum"])
 
             # get cummelative flux before dfm-run
-            q_dflow0 = self.dfm.get_cumulative_fluxes_1d_nodes()
+            q_dflow_before_run_dflow_1d = self.dfm.get_cumulative_fluxes_1d_nodes()
+            q_dflow_before_run_dflow_2d = self.dfm.get_cumulative_fluxes_2d_nodes()
 
             # run dflow
             while (
@@ -191,22 +213,37 @@ class DfmMetaMod(Driver):
                 self.dfm.update()
 
             # get cummelative flux after dfm-run
-            q_dflow1 = self.dfm.get_cumulative_fluxes_1d_nodes()
+            q_dflow_after_run_dflow_1d = self.dfm.get_cumulative_fluxes_1d_nodes()
+            q_dflow1_after_run_dflow_2d = self.dfm.get_cumulative_fluxes_2d_nodes()
 
             # calculate realised volumes by dflow
-            q_dflow_realised = q_dflow1 - q_dflow0
-            self.exchange_balans.compute_realised(q_dflow_realised)
-
-            # exchange realised values to metaswap before finish of surface water time-step
-            self.exchange_sprinkling_dflow1d2msw(
-                self.exchange_balans.realised["dflow1d_flux2sprinkling_msw"]
+            q_dflow_realised_1d = (
+                q_dflow_after_run_dflow_1d - q_dflow_before_run_dflow_1d
             )
+            q_dflow_realised_2d = (
+                q_dflow1_after_run_dflow_2d - q_dflow_before_run_dflow_2d
+            )
+            self.exchange_balans_1d.compute_realised(q_dflow_realised_1d)
+            self.exchange_balans_2d.compute_realised(q_dflow_realised_2d)
+
+            # exchange realised values 1d to metaswap before finish of surface water time-step
+            self.exchange_sprinkling_dflow1d2msw(
+                self.exchange_balans_1d.realised["dflow1d_flux2sprinkling_msw"]
+            )
+
+            # exchange realised values 2d to metaswap
+            self.exchange_ponding_dflow2d2msw(
+                self.exchange_balans_2d.realised["dflow2d-flux2msw-ponding"]
+            )
+
+            # exchange 2d stage to msw, so it can finish the sw-timestep (now stage at the start of next timestep)
+            self.exchange_stage_2d_dfm2msw()
 
             self.msw.finish_surface_water_time_step(idtsw)
 
         # exchange correction flux to MF6
         self.exchange_correction_dflow2mf6(
-            self.exchange_balans.realised["dflow1d_flux2mf-riv_negative"]
+            self.exchange_balans_1d.realised["dflow1d_flux2mf-riv_negative"]
         )
 
         # convergence loop modflow-metaswap
@@ -235,11 +272,11 @@ class DfmMetaMod(Driver):
 
     def get_array_dims(self) -> None:
         array_dims = {
-            "msw_storage": self.msw.get_storage().size,
-            "msw_head": self.msw.get_head().size,
-            "msw_volume": self.msw.get_volume().size,
-            "msw_sw_sprinkling": self.msw.get_surfacewater_sprinking_demand().size,
-            "msw_sw_ponding": self.msw.get_surfacewater_sprinking_demand().size,
+            "msw_storage": self.msw.get_storage_ptr().size,
+            "msw_head": self.msw.get_head_ptr().size,
+            "msw_volume": self.msw.get_volume_ptr().size,
+            "msw_sw_sprinkling": self.msw.get_surfacewater_sprinking_demand_ptr().size,
+            "msw_sw_ponding": self.msw.get_surfacewater_sprinking_demand_ptr().size,
             "mf6_storage": self.mf6.get_storage(self.coupling.mf6_model).size,
             "mf6_head": self.mf6.get_head(self.coupling.mf6_model).size,
             "mf6_recharge": self.mf6.get_recharge(
@@ -299,16 +336,17 @@ class DfmMetaMod(Driver):
     def matrix_product(
         self,
         flux: NDArray[Any],
+        water_balance: dict[str, NDArray[float_]],
         coupling: dict[str, csr_matrix],
         mask: dict[str, NDArray[int_]],
         exchange_type: str,
     ) -> None:
-        self.exchange_balans.demand[exchange_type][:] = (
-            mask[exchange_type][:] * self.exchange_balans.demand[exchange_type][:]
+        water_balance[exchange_type][:] = (
+            mask[exchange_type][:] * water_balance[exchange_type][:]
             + coupling[exchange_type].dot(flux)[:]
         )
 
-    def exchange_balans_2dflow(self, flux2dflow: NDArray[float_]) -> None:
+    def exchange_balans_2dfm(self, flux2dflow: NDArray[float_]) -> None:
         self.dfm.set_1d_river_fluxes(flux2dflow)
 
     def exchange_stage_1d_dfm2mf6(self) -> None:
@@ -337,6 +375,74 @@ class DfmMetaMod(Driver):
             updated_river_stage,
         )
 
+    def exchange_stage_2d_dfm2msw(self) -> None:
+        """
+        Sets dfm2d-stage to msw.
+
+        MSW unit: m+DEM (depth)
+        DFM unit: m+NAP
+        """
+        dfm_water_levels = self.dfm.get_waterlevels_2d()
+        dfm_bed_level = self.dfm.get_bed_level_2d()
+        dfm_water_depth = dfm_bed_level
+        condition = dfm_water_levels > (dfm_bed_level + np.double(0.001))
+        dfm_water_depth[condition] = dfm_water_levels[condition]
+
+        msw_water_levels_ptr = self.msw.get_ponding_level_2d_ptr()
+
+        msw_water_levels_ptr = (
+            self.mask_msw_dflow2d["dflow2d_stage2msw-ponding"][:]
+            * msw_water_levels_ptr[:]
+            + self.map_msw_dflow2d["dflow2d_stage2msw-ponding"].dot(dfm_water_depth)[:]
+        )
+
+    def exchange_ponding_msw2dflow2d(self) -> None:
+        ponding_msw_m3dtsw = self.msw.get_surfacewater_ponding_allocation_ptr()
+        ponding_msw_m3s = ponding_msw_m3dtsw / days_to_seconds(self.delt_msw_dflow)
+
+        self.matrix_product(
+            ponding_msw_m3s,
+            self.exchange_balans_2d.demand,
+            self.map_msw_dflow2d,
+            self.mask_msw_dflow2d,
+            "msw-ponding2dflow2d_flux",
+        )
+        # for calculating the realised ponding volume, the flux need to be split up in positive and negative values
+        # positive values means runoff from msw to dflow
+        # negative values mean runon from dflow to msw
+        ponding_msw_m3s_conditions = np.copy(ponding_msw_m3s)
+        ponding_msw_m3s_conditions[ponding_msw_m3s < 0] = 0.0
+        self.exchange_balans_2d.demand["msw-ponding2dflow2d_flux_positive"][:] = (
+            self.mask_msw_dflow2d["msw-ponding2dflow2d_flux"][:]
+            * self.exchange_balans_2d.demand["msw-ponding2dflow2d_flux_positive"][:]
+            + self.map_msw_dflow2d["msw-ponding2dflow2d_flux"].dot(
+                ponding_msw_m3s_conditions
+            )[:]
+        )
+        ponding_msw_m3s_conditions = np.copy(ponding_msw_m3s)
+        ponding_msw_m3s_conditions[ponding_msw_m3s > 0] = 0.0
+        self.exchange_balans_2d.demand["msw-ponding2dflow2d_flux_negative"][:] = (
+            self.mask_msw_dflow2d["msw-ponding2dflow2d_flux"][:]
+            * self.exchange_balans_2d.demand["msw-ponding2dflow2d_flux_negative"][:]
+            + self.map_msw_dflow2d["msw-ponding2dflow2d_flux"].dot(
+                ponding_msw_m3s_conditions
+            )[:]
+        )
+
+    def exchange_ponding_dflow2d2msw(
+        self, dfm_flux_2d_realised: NDArray[np.float_]
+    ) -> None:
+        dfm_flux_2d_realised_m3dtsw = dfm_flux_2d_realised * days_to_seconds(
+            self.delt_msw_dflow
+        )
+        ponding_msw = self.msw.get_surfacewater_ponding_realised_ptr()
+        ponding_msw = (
+            self.mask_msw_dflow2d["dflow2d_flux2msw-ponding"][:] * ponding_msw[:]
+            + self.map_msw_dflow2d["dflow2d_flux2msw-ponding"].dot(
+                dfm_flux_2d_realised_m3dtsw
+            )[:]
+        )
+
     def exchange_flux_riv_active_mf62dfm(self) -> None:
         """
         From MF6 to DFM.
@@ -359,6 +465,7 @@ class DfmMetaMod(Driver):
         )
         self.matrix_product(
             mf6_river_aquifer_flux_sec,
+            self.exchange_balans_1d.demand,
             self.map_active_mod_dflow1d,
             self.mask_active_mod_dflow1d,
             "mf-riv2dflow1d_flux",
@@ -368,9 +475,9 @@ class DfmMetaMod(Driver):
         # negative values mean infiltration from dflow to MF6
         mf6_river_aquifer_flux_sec_conditions = np.copy(mf6_river_aquifer_flux_sec)
         mf6_river_aquifer_flux_sec_conditions[mf6_river_aquifer_flux_sec < 0] = 0.0
-        self.exchange_balans.demand["mf-riv2dflow1d_flux_positive"][:] = (
+        self.exchange_balans_1d.demand["mf-riv2dflow1d_flux_positive"][:] = (
             self.mask_active_mod_dflow1d["mf-riv2dflow1d_flux"][:]
-            * self.exchange_balans.demand["mf-riv2dflow1d_flux"][:]
+            * self.exchange_balans_1d.demand["mf-riv2dflow1d_flux"][:]
             + self.map_active_mod_dflow1d["mf-riv2dflow1d_flux"].dot(
                 mf6_river_aquifer_flux_sec_conditions
             )[:]
@@ -378,9 +485,9 @@ class DfmMetaMod(Driver):
 
         mf6_river_aquifer_flux_sec_conditions = np.copy(mf6_river_aquifer_flux_sec)
         mf6_river_aquifer_flux_sec_conditions[mf6_river_aquifer_flux_sec > 0] = 0.0
-        self.exchange_balans.demand["mf-riv2dflow1d_flux_negative"][:] = (
+        self.exchange_balans_1d.demand["mf-riv2dflow1d_flux_negative"][:] = (
             self.mask_active_mod_dflow1d["mf-riv2dflow1d_flux"][:]
-            * self.exchange_balans.demand["mf-riv2dflow1d_flux"][:]
+            * self.exchange_balans_1d.demand["mf-riv2dflow1d_flux"][:]
             + self.map_active_mod_dflow1d["mf-riv2dflow1d_flux"].dot(
                 mf6_river_aquifer_flux_sec_conditions
             )[:]
@@ -388,11 +495,12 @@ class DfmMetaMod(Driver):
 
     def exchange_ponding_msw2dflow1d(self) -> None:
         # conversion from (+)m3/dtsw to (+)m3/s
-        msw_ponding_volume = self.msw.get_surfacewater_ponding_allocation()
+        msw_ponding_volume = self.msw.get_surfacewater_ponding_allocation_ptr()
         msw_ponding_flux_sec = msw_ponding_volume / days_to_seconds(self.delt_msw_dflow)
 
         self.matrix_product(
             msw_ponding_flux_sec,
+            self.exchange_balans_1d.demand,
             self.map_msw_dflow1d,
             self.mask_msw_dflow1d,
             "msw-ponding2dflow1d_flux",
@@ -400,13 +508,14 @@ class DfmMetaMod(Driver):
 
     def exchange_sprinkling_msw2dflow1d(self) -> None:
         # conversion from (+)m3/dtsw to (+)m3/s
-        msw_sprinkling_demand = self.msw.get_surfacewater_sprinking_demand()
+        msw_sprinkling_demand = self.msw.get_surfacewater_sprinking_demand_ptr()
         msw_sprinkling_flux_sec = msw_sprinkling_demand / days_to_seconds(
             self.delt_msw_dflow
         )
 
         self.matrix_product(
             msw_sprinkling_flux_sec,
+            self.exchange_balans_1d.demand,
             self.map_msw_dflow1d,
             self.mask_msw_dflow1d,
             "msw-sprinkling2dflow1d_flux",
@@ -418,7 +527,7 @@ class DfmMetaMod(Driver):
         # conversion from (+)m3/s to (+)m3/dtsw
         sprinkling_dflow_dtsw = sprinkling_dflow * days_to_seconds(self.delt_msw_dflow)
         # get the realised pointer
-        sprinkling_msw = self.msw.get_surfacewater_sprinking_realised()
+        sprinkling_msw = self.msw.get_surfacewater_sprinking_realised_ptr()
         # set pointer
         sprinkling_msw = (
             self.mask_msw_dflow1d["dflow1d_flux2sprinkling_msw"][:] * sprinkling_msw[:]
@@ -445,6 +554,7 @@ class DfmMetaMod(Driver):
 
         self.matrix_product(
             mf6_riv2_flux_sec,
+            self.exchange_balans_1d.demand,
             self.map_passive_mod_dflow1d,
             self.mask_passive_mod_dflow1d,
             "mf-riv2dflow1d_passive_flux",
@@ -468,6 +578,7 @@ class DfmMetaMod(Driver):
 
         self.matrix_product(
             mf6_drn_flux_sec,
+            self.exchange_balans_1d.demand,
             self.map_passive_mod_dflow1d,
             self.mask_passive_mod_dflow1d,
             "mf-drn2dflow1d_flux",
@@ -487,7 +598,7 @@ class DfmMetaMod(Driver):
         qmf6_demand_sec = -qmf6_demand / days_to_seconds(self.delt_mf6)
 
         # mf6 riv-active demand, dims=dfm
-        qdfm_demand = self.exchange_balans.demand["mf-riv2dflow1d_flux"]
+        qdfm_demand = self.exchange_balans_1d.demand["mf-riv2dflow1d_flux"]
 
         qmf_corr = self.mapping.calc_correction(
             self.map_active_mod_dflow1d["mf-riv2dflow1d_flux"],
@@ -514,7 +625,7 @@ class DfmMetaMod(Driver):
         self.mf6.get_storage(self.coupling.mf6_model)[:] = (
             self.mask_mod_msw["msw2mf_storage"][:]
             * self.mf6.get_storage(self.coupling.mf6_model)[:]
-            + self.map_mod_msw["msw2mf_storage"].dot(self.msw.get_storage())[:]
+            + self.map_mod_msw["msw2mf_storage"].dot(self.msw.get_storage_ptr())[:]
         )
 
         # Divide recharge and extraction by delta time
@@ -526,7 +637,8 @@ class DfmMetaMod(Driver):
             * self.mf6.get_recharge(
                 self.coupling.mf6_model, self.coupling.mf6_msw_recharge_pkg
             )[:]
-            + tled * self.map_mod_msw["msw2mod_recharge"].dot(self.msw.get_volume())[:]
+            + tled
+            * self.map_mod_msw["msw2mod_recharge"].dot(self.msw.get_volume_ptr())[:]
         )
 
         if self.coupling.enable_sprinkling:
@@ -539,7 +651,9 @@ class DfmMetaMod(Driver):
                     self.coupling.mf6_model, self.coupling.mf6_msw_well_pkg
                 )[:]
                 + tled
-                * self.map_mod_msw["msw2mf6_sprinkling"].dot(self.msw.get_volume())[:]
+                * self.map_mod_msw["msw2mf6_sprinkling"].dot(self.msw.get_volume_ptr())[
+                    :
+                ]
             )
 
     def exchange_mod2msw(self) -> None:
@@ -548,8 +662,8 @@ class DfmMetaMod(Driver):
 
         1- Exchange of head from MF6 to MetaSWAP
         """
-        self.msw.get_head()[:] = (
-            self.mask_mod_msw["mod2msw_head"][:] * self.msw.get_head()[:]
+        self.msw.get_head_ptr()[:] = (
+            self.mask_mod_msw["mod2msw_head"][:] * self.msw.get_head_ptr()[:]
             + self.map_mod_msw["mod2msw_head"].dot(
                 self.mf6.get_head(self.coupling.mf6_model)
             )[:]
