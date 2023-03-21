@@ -8,6 +8,7 @@ from numpy import float_, int_
 from numpy.typing import NDArray
 from pydantic import BaseModel
 from scipy.sparse import csr_matrix, dia_matrix, diags
+from scipy.spatial import KDTree
 from xmipy import XmiWrapper
 
 from imod_coupler.drivers.dfm_metamod.config import Coupling
@@ -25,8 +26,6 @@ class Mapping:
         self.msw_working_directory = msw_working_directory
         self.array_dims = array_dims
         self.get_svat_lookup()
-        self.get_dflow1d_lookup()
-        self.get_dflow2d_lookup()
 
     def mapping_mf_msw(
         self, mf6_conversion_matrix: NDArray[np.float_]
@@ -167,10 +166,11 @@ class Mapping:
             ndmin=2,
             skiprows=1,
         )
+        ptx = table_active_mfriv2dflow1d[:, 0]
+        pty = table_active_mfriv2dflow1d[:, 1]
         mf_idx = table_active_mfriv2dflow1d[:, 2].astype(int) - 1
-        dflow_idx = np.array(
-            [self.dflow1d_lookup[row[0], row[1]] for row in table_active_mfriv2dflow1d]
-        )
+        _, dflow_idx = self.dflow1d_lookup.query(np.c_[ptx, pty])
+
         (
             map_active_mod_dflow1d["mf-riv2dflow1d_flux"],
             mask_active_mod_dflow1d["mf-riv2dflow1d_flux"],
@@ -197,10 +197,11 @@ class Mapping:
             skiprows=1,
         )
         mf_idx = table_active_dflow1d2mfriv[:, 0].astype(int) - 1
+        ptx = table_active_dflow1d2mfriv[:, 1]
+        pty = table_active_dflow1d2mfriv[:, 2]
         weight = table_active_dflow1d2mfriv[:, 3]
-        dflow_idx = np.array(
-            [self.dflow1d_lookup[row[1], row[2]] for row in table_active_dflow1d2mfriv]
-        )
+        _, dflow_idx = self.dflow1d_lookup.query(np.c_[ptx, pty])
+
         (
             map_active_mod_dflow1d["dflow1d2mf-riv_stage"],
             mask_active_mod_dflow1d["dflow1d2mf-riv_stage"],
@@ -247,10 +248,11 @@ class Mapping:
             ndmin=2,
             skiprows=1,
         )
+        ptx = table_passive_mfriv2dflow1d[:, 0]
+        pty = table_passive_mfriv2dflow1d[:, 1]
         mf_idx = table_passive_mfriv2dflow1d[:, 2].astype(int) - 1
-        dflow_idx = np.array(
-            [self.dflow1d_lookup[row[0], row[1]] for row in table_passive_mfriv2dflow1d]
-        )
+        _, dflow_idx = self.dflow1d_lookup.query(np.c_[ptx, pty])
+
         (
             map_passive_mod_dflow1d["mf-riv2dflow1d_passive_flux"],
             mask_passive_mod_dflow1d["mf-riv2dflow1d_passive_flux"],
@@ -268,10 +270,11 @@ class Mapping:
             ndmin=2,
             skiprows=1,
         )
+        ptx = table_passive_mfdrn2dflow1d[:, 0]
+        pty = table_passive_mfdrn2dflow1d[:, 1]
         mf_idx = table_passive_mfdrn2dflow1d[:, 2].astype(int) - 1
-        dflow_idx = np.array(
-            [self.dflow1d_lookup[row[0], row[1]] for row in table_passive_mfdrn2dflow1d]
-        )
+        _, dflow_idx = self.dflow1d_lookup.query(np.c_[ptx, pty])
+
         (
             map_passive_mod_dflow1d["mf-drn2dflow1d_flux"],
             mask_passive_mod_dflow1d["mf-drn2dflow1d_flux"],
@@ -316,11 +319,11 @@ class Mapping:
             ndmin=2,
             skiprows=1,
         )
+        ptx = table_mswsprinkling2dflow1d[:, 0]
+        pty = table_mswsprinkling2dflow1d[:, 1]
         msw_idx = table_mswsprinkling2dflow1d[:, 2].astype(int) - 1
+        _, dflow_idx = self.dflow1d_lookup.query(np.c_[ptx, pty])
 
-        dflow_idx = np.array(
-            [self.dflow1d_lookup[row[0], row[1]] for row in table_mswsprinkling2dflow1d]
-        )
         (
             map_msw_dflow1d["msw-sprinkling2dflow1d_flux"],
             mask_msw_dflow1d["msw-sprinkling2dflow1d_flux"],
@@ -349,11 +352,11 @@ class Mapping:
             ndmin=2,
             skiprows=1,
         )
+        ptx = table_mswponding2dflow1d[:, 0]
+        pty = table_mswponding2dflow1d[:, 1]
         msw_idx = table_mswponding2dflow1d[:, 2].astype(int) - 1
+        _, dflow_idx = self.dflow1d_lookup.query(np.c_[ptx, pty])
 
-        dflow_idx = np.array(
-            [self.dflow1d_lookup[row[0], row[1]] for row in table_mswponding2dflow1d]
-        )
         (
             map_msw_dflow1d["msw-ponding2dflow1d_flux"],
             mask_msw_dflow1d["msw-ponding2dflow1d_flux"],
@@ -400,10 +403,10 @@ class Mapping:
             ndmin=2,
             skiprows=1,
         )
+        ptx = table_mswponding2dflow2d[:, 0]
+        pty = table_mswponding2dflow2d[:, 1]
         msw_idx = table_mswponding2dflow2d[:, 2].astype(int) - 1
-        dflow_idx = np.array(
-            [self.dflow2d_lookup[row[0], row[1]] for row in table_mswponding2dflow2d]
-        )
+        _, dflow_idx = self.dflow2d_lookup.query(np.c_[ptx, pty])
 
         (
             map_msw_dflow2d["msw-ponding2dflow2d_flux"],
@@ -435,16 +438,11 @@ class Mapping:
             skiprows=1,
         )
         msw_idx = (table_dflow2d_stage2mswponding[:, 0] - 1).astype(int)
+        ptx = table_dflow2d_stage2mswponding[:, 1]
+        pty = table_dflow2d_stage2mswponding[:, 2]
         weight = table_dflow2d_stage2mswponding[:, 3]
-        dflow_idx = np.array(
-            [
-                self.dflow2d_lookup[
-                    table_dflow2d_stage2mswponding[ii, 1],
-                    table_dflow2d_stage2mswponding[ii, 2],
-                ]
-                for ii in range(len(table_dflow2d_stage2mswponding))
-            ]
-        )
+        _, dflow_idx = self.dflow2d_lookup.query(np.c_[ptx, pty])
+
         (
             map_msw_dflow2d["dflow2d_stage2msw-ponding"],
             mask_msw_dflow2d["dflow2d_stage2msw-ponding"],
@@ -491,87 +489,6 @@ class Mapping:
         qcorr = np.array(alpha * (mapping.dot(diags(q_pre1))))
         return qcorr
 
-    def get_dflow1d_lookup(self) -> None:
-        """
-        read file with all uniek coupled dflow 1d and 2d nodes (represented by xy pairs). After initialisation
-        of dflow, dict is filled with node-id's corresponding tot xy-pairs.
-        this functions should be called after initialisation of dflow-fm.
-
-        Parameters
-        ----------
-
-        Returns
-        -------
-        tuple[dict[tuple[float, float], int], bool]
-           The first value of the tupple is a dictionary of pairs of xy-coordinates to node numbers
-           The second value is an indicator of whether the said dictionary could be filled without issues.
-        """
-
-        dflow1d_lookup = {}
-        if self.coupling.dfm_1d_points_dat.is_file():
-            dflow1d_data: NDArray[np.single] = np.loadtxt(
-                self.coupling.dfm_1d_points_dat, dtype=np.single, ndmin=2, skiprows=0
-            )
-            dflow1d_x = dflow1d_data[:, 0]
-            dflow1d_y = dflow1d_data[:, 1]
-            # XMI/BMI call to dflow-fm with x and y list, returns id list with node numbers
-            # dflowfm_MapCoordinateTo1DCellId(x, y, id)
-            # for testing purpose, we take the id from the dat-file
-            dflow1d_id = dflow1d_data[:, 2].astype(int) - 1
-            nrpoints = dflow1d_data.shape[0]
-            for i in range(nrpoints):
-                if dflow1d_id[i] >= 0:
-                    dflow1d_lookup[(dflow1d_x[i], dflow1d_y[i])] = dflow1d_id[i]
-                else:
-                    raise ValueError(
-                        f"xy coordinate {dflow1d_x[i], dflow1d_y[i]} is not part of dflow's mesh"
-                    )
-        else:
-            raise FileNotFoundError(
-                errno.ENOENT, os.strerror(errno.ENOENT), self.coupling.dfm_1d_points_dat
-            )
-        self.dflow1d_lookup = dflow1d_lookup
-
-    def get_dflow2d_lookup(self) -> None:
-        """
-        read file with all uniek coupled dflow 1d and 2d nodes (represented by xy pairs). After initialisation
-        of dflow, dict is filled with node-id's corresponding tot xy-pairs.
-        this functions should be called after initialisation of dflow-fm.
-
-        Parameters
-        ----------
-        None
-
-        Returns
-        -------
-        None
-        """
-
-        dflow2d_lookup = {}
-        dflow2d_file = self.coupling.dfm_2d_points_dat
-        if dflow2d_file.is_file():
-            dflow2d_data: NDArray[np.single] = np.loadtxt(
-                dflow2d_file, dtype=np.single, ndmin=2, skiprows=0
-            )
-            dflow2d_x = dflow2d_data[:, 0]
-            dflow2d_y = dflow2d_data[:, 1]
-            # XMI/BMI call to dflow-fm with x and y list, returns id list with node numbers
-            # dflowfm_MapCoordinateTo2DCellId(x, y, id) -> id
-            dflow2d_id = dflow2d_data[:, 2].astype(int) - 1
-            nrpoints = dflow2d_data.shape[0]
-            for i in range(nrpoints):
-                if dflow2d_id[i] >= 0:
-                    dflow2d_lookup[(dflow2d_x[i], dflow2d_y[i])] = dflow2d_id[i]
-                else:
-                    raise ValueError(
-                        f"xy coordinate {dflow2d_x[i], dflow2d_y[i]} is not part of dflow's mesh"
-                    )
-        else:
-            raise FileNotFoundError(
-                errno.ENOENT, os.strerror(errno.ENOENT), dflow2d_file
-            )
-        self.dflow2d_lookup = dflow2d_lookup
-
     def get_svat_lookup(self) -> None:
         """
         read file with all coupled MetaSWAP svat. Function creates a lookup, with the svat tuples (id, lay) as keys and the metaswap internal indexes as values
@@ -602,3 +519,7 @@ class Mapping:
                 errno.ENOENT, os.strerror(errno.ENOENT), msw_mod2svat_file
             )
         self.svat_lookup = svat_lookup
+
+    def set_dfm_lookup(self, kdtree_1D: KDTree, kdtree_2D: KDTree) -> None:
+        self.dflow1d_lookup = kdtree_1D
+        self.dflow2d_lookup = kdtree_2D
