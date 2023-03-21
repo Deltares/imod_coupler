@@ -24,12 +24,14 @@ def test_get_snapped_flownode(
     bmiwrapper.init_kdtree()
     input_node_x_1d = np.array([40.0, 527.491028, 828.984985])
     input_node_y_1d = np.array([340.0, 540.0, 540.0])
-    _, flownode_ids_1d = bmiwrapper.kdtree1D.query(np.c_[input_node_x_1d,
-                                                         input_node_y_1d])
+    _, flownode_ids_1d = bmiwrapper.kdtree1D.query(
+        np.c_[input_node_x_1d, input_node_y_1d]
+    )
     input_node_x_2d = np.array([549.0, 251.0, 349.0, 829.0])
     input_node_y_2d = np.array([851.0, 49.0, 151.0, 540.0])
-    _, flownode_ids_2d = bmiwrapper.kdtree2D.query(np.c_[input_node_x_2d,
-                                                         input_node_y_2d])
+    _, flownode_ids_2d = bmiwrapper.kdtree2D.query(
+        np.c_[input_node_x_2d, input_node_y_2d]
+    )
     bmiwrapper.finalize()
 
     expected_flownode_ids_1d = np.array([2, 13, 17])
