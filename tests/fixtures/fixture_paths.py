@@ -146,6 +146,11 @@ def tmodel_input_folder(request) -> Path:
 
 
 @pytest.fixture(scope="function")
+def tmodel_no2d_input_folder(request) -> Path:
+    return Path(request.fspath).parent / "data" / "t_model_no_dfm2d"
+
+
+@pytest.fixture(scope="function")
 def reference_result_folder(request) -> Path:
     return Path(request.fspath).parent / "test_reference_output"
 

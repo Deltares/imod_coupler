@@ -341,10 +341,11 @@ class DfmMetaMod(Driver):
         mask: dict[str, NDArray[int_]],
         exchange_type: str,
     ) -> None:
-        water_balance[exchange_type][:] = (
-            mask[exchange_type][:] * water_balance[exchange_type][:]
-            + coupling[exchange_type].dot(flux)[:]
-        )
+        if coupling[exchange_type] is not None:
+            water_balance[exchange_type][:] = (
+                mask[exchange_type][:] * water_balance[exchange_type][:]
+                + coupling[exchange_type].dot(flux)[:]
+            )
 
     def exchange_balans_2dfm(self, flux2dflow: NDArray[float_]) -> None:
         self.dfm.set_1d_river_fluxes(flux2dflow)
@@ -390,58 +391,63 @@ class DfmMetaMod(Driver):
 
         msw_water_levels_ptr = self.msw.get_ponding_level_2d_ptr()
 
-        msw_water_levels_ptr = (
-            self.mask_msw_dflow2d["dflow2d_stage2msw-ponding"][:]
-            * msw_water_levels_ptr[:]
-            + self.map_msw_dflow2d["dflow2d_stage2msw-ponding"].dot(dfm_water_depth)[:]
-        )
+        if self.map_msw_dflow2d["dflow2d_stage2msw-ponding"] is not None:
+            msw_water_levels_ptr = (
+                self.mask_msw_dflow2d["dflow2d_stage2msw-ponding"][:]
+                * msw_water_levels_ptr[:]
+                + self.map_msw_dflow2d["dflow2d_stage2msw-ponding"].dot(
+                    dfm_water_depth
+                )[:]
+            )
 
     def exchange_ponding_msw2dflow2d(self) -> None:
         ponding_msw_m3dtsw = self.msw.get_surfacewater_ponding_allocation_ptr()
         ponding_msw_m3s = ponding_msw_m3dtsw / days_to_seconds(self.delt_msw_dflow)
 
-        self.matrix_product(
-            ponding_msw_m3s,
-            self.exchange_balans_2d.demand,
-            self.map_msw_dflow2d,
-            self.mask_msw_dflow2d,
-            "msw-ponding2dflow2d_flux",
-        )
-        # for calculating the realised ponding volume, the flux need to be split up in positive and negative values
-        # positive values means runoff from msw to dflow
-        # negative values mean runon from dflow to msw
-        ponding_msw_m3s_conditions = np.copy(ponding_msw_m3s)
-        ponding_msw_m3s_conditions[ponding_msw_m3s < 0] = 0.0
-        self.exchange_balans_2d.demand["msw-ponding2dflow2d_flux_positive"][:] = (
-            self.mask_msw_dflow2d["msw-ponding2dflow2d_flux"][:]
-            * self.exchange_balans_2d.demand["msw-ponding2dflow2d_flux_positive"][:]
-            + self.map_msw_dflow2d["msw-ponding2dflow2d_flux"].dot(
-                ponding_msw_m3s_conditions
-            )[:]
-        )
-        ponding_msw_m3s_conditions = np.copy(ponding_msw_m3s)
-        ponding_msw_m3s_conditions[ponding_msw_m3s > 0] = 0.0
-        self.exchange_balans_2d.demand["msw-ponding2dflow2d_flux_negative"][:] = (
-            self.mask_msw_dflow2d["msw-ponding2dflow2d_flux"][:]
-            * self.exchange_balans_2d.demand["msw-ponding2dflow2d_flux_negative"][:]
-            + self.map_msw_dflow2d["msw-ponding2dflow2d_flux"].dot(
-                ponding_msw_m3s_conditions
-            )[:]
-        )
+        if self.map_msw_dflow2d["msw-ponding2dflow2d_flux"] is not None:
+            self.matrix_product(
+                ponding_msw_m3s,
+                self.exchange_balans_2d.demand,
+                self.map_msw_dflow2d,
+                self.mask_msw_dflow2d,
+                "msw-ponding2dflow2d_flux",
+            )
+            # for calculating the realised ponding volume, the flux need to be split up in positive and negative values
+            # positive values means runoff from msw to dflow
+            # negative values mean runon from dflow to msw
+            ponding_msw_m3s_conditions = np.copy(ponding_msw_m3s)
+            ponding_msw_m3s_conditions[ponding_msw_m3s < 0] = 0.0
+            self.exchange_balans_2d.demand["msw-ponding2dflow2d_flux_positive"][:] = (
+                self.mask_msw_dflow2d["msw-ponding2dflow2d_flux"][:]
+                * self.exchange_balans_2d.demand["msw-ponding2dflow2d_flux_positive"][:]
+                + self.map_msw_dflow2d["msw-ponding2dflow2d_flux"].dot(
+                    ponding_msw_m3s_conditions
+                )[:]
+            )
+            ponding_msw_m3s_conditions = np.copy(ponding_msw_m3s)
+            ponding_msw_m3s_conditions[ponding_msw_m3s > 0] = 0.0
+            self.exchange_balans_2d.demand["msw-ponding2dflow2d_flux_negative"][:] = (
+                self.mask_msw_dflow2d["msw-ponding2dflow2d_flux"][:]
+                * self.exchange_balans_2d.demand["msw-ponding2dflow2d_flux_negative"][:]
+                + self.map_msw_dflow2d["msw-ponding2dflow2d_flux"].dot(
+                    ponding_msw_m3s_conditions
+                )[:]
+            )
 
     def exchange_ponding_dflow2d2msw(
         self, dfm_flux_2d_realised: NDArray[np.float_]
     ) -> None:
-        dfm_flux_2d_realised_m3dtsw = dfm_flux_2d_realised * days_to_seconds(
-            self.delt_msw_dflow
-        )
-        ponding_msw = self.msw.get_surfacewater_ponding_realised_ptr()
-        ponding_msw = (
-            self.mask_msw_dflow2d["dflow2d_flux2msw-ponding"][:] * ponding_msw[:]
-            + self.map_msw_dflow2d["dflow2d_flux2msw-ponding"].dot(
-                dfm_flux_2d_realised_m3dtsw
-            )[:]
-        )
+        if self.map_msw_dflow2d["dflow2d_flux2msw-ponding"] is not None:
+            dfm_flux_2d_realised_m3dtsw = dfm_flux_2d_realised * days_to_seconds(
+                self.delt_msw_dflow
+            )
+            ponding_msw = self.msw.get_surfacewater_ponding_realised_ptr()
+            ponding_msw = (
+                self.mask_msw_dflow2d["dflow2d_flux2msw-ponding"][:] * ponding_msw[:]
+                + self.map_msw_dflow2d["dflow2d_flux2msw-ponding"].dot(
+                    dfm_flux_2d_realised_m3dtsw
+                )[:]
+            )
 
     def exchange_flux_riv_active_mf62dfm(self) -> None:
         """
