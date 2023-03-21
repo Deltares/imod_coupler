@@ -200,6 +200,7 @@ class DfmMetaMod(Driver):
             self.exchange_balans_2dfm(self.exchange_balans_1d.demand["sum"])
 
             # get cummelative flux before dfm-run
+            time_before = self.dfm.get_current_time()
             q_dflow_before_run_dflow_1d = \
                 np.copy(self.dfm.get_cumulative_fluxes_1d_nodes_ptr())
             q_dflow_before_run_dflow_2d = \
@@ -213,6 +214,7 @@ class DfmMetaMod(Driver):
                 self.dfm.update()
 
             # get cummelative flux after dfm-run
+            time_after = self.dfm.get_current_time()
             q_dflow_after_run_dflow_1d = \
                 np.copy(self.dfm.get_cumulative_fluxes_1d_nodes_ptr())
             q_dflow1_after_run_dflow_2d = \
@@ -221,10 +223,10 @@ class DfmMetaMod(Driver):
             # calculate realised volumes by dflow
             q_dflow_realised_1d = (
                 q_dflow_after_run_dflow_1d - q_dflow_before_run_dflow_1d
-            )
+            )/(time_after - time_before)
             q_dflow_realised_2d = (
                 q_dflow1_after_run_dflow_2d - q_dflow_before_run_dflow_2d
-            )
+            )/(time_after - time_before)
             self.exchange_balans_1d.compute_realised(q_dflow_realised_1d)
             self.exchange_balans_2d.compute_realised(q_dflow_realised_2d)
 

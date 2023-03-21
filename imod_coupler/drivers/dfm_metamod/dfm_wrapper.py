@@ -97,10 +97,12 @@ class DfmWrapper(BMIWrapper):  # type: ignore
             or None if there ar no 1d nodes.
         """
         nr_nodes_1d = self.get_number_1d_nodes()
+        nr_nodes_2d = self.get_number_2d_nodes()
         if nr_nodes_1d == 0:
             raise ValueError("No dflow 1d nodes found!")
         all_cumulative_fluxes = self.get_var("vextcum")
-        return np.asarray(all_cumulative_fluxes[-nr_nodes_1d:], dtype=np.float_)
+        return np.asarray(all_cumulative_fluxes[nr_nodes_2d:nr_nodes_1d + nr_nodes_2d],
+                          dtype=np.float_)
 
     def get_cumulative_fluxes_2d_nodes_ptr(self) -> NDArray[np.float_]:
         """
@@ -131,13 +133,12 @@ class DfmWrapper(BMIWrapper):  # type: ignore
             mismatch between expected size and actual size.
         """
 
-        nr_nodes_2d = self.get_var("ndx2d")  # number of 2d cells
         nr_nodes_1d = self.get_number_1d_nodes()
         if len(river_flux) != nr_nodes_1d:
             raise ValueError(
                 f"Expected number of river fluxes: {nr_nodes_1d}, got {len(river_flux)}"
             )
-        dfm_river_flux = self.get_1d_river_fluxes_ptr(self)
+        dfm_river_flux = self.get_1d_river_fluxes_ptr()
         if dfm_river_flux is not None:
             dfm_river_flux[:] = river_flux[:]
 
@@ -173,10 +174,11 @@ class DfmWrapper(BMIWrapper):  # type: ignore
             the DFLOW_FM external fluxes ( "qext") for the 1d nodes
         """
         nr_nodes_1d = self.get_number_1d_nodes()
+        nr_nodes_2d = self.get_number_2d_nodes()
         if nr_nodes_1d == 0:
             raise ValueError("No dflow 1d nodes found!")
         q_ext = self.get_var("qext")
-        return np.asarray(q_ext[-nr_nodes_1d:], dtype=np.float_)
+        return np.asarray(q_ext[nr_nodes_2d:nr_nodes_1d + nr_nodes_2d], dtype=np.float_)
 
     def get_2d_fluxes_ptr(self) -> NDArray[np.float_]:
         """
