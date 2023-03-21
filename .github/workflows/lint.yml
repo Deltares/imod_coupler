@@ -18,6 +18,12 @@ jobs:
         with:
           cache-downloads: true
           cache-env: true
+      - name: Run black version
+        run: |
+          black --version
+      - name: Run black diff
+        run: |
+          black --diff .
       - name: Run black
         run: |
           black --check .
