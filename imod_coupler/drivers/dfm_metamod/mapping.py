@@ -169,7 +169,7 @@ class Mapping:
         ptx = table_active_mfriv2dflow1d[:, 0]
         pty = table_active_mfriv2dflow1d[:, 1]
         mf_idx = table_active_mfriv2dflow1d[:, 2].astype(int) - 1
-        dist, dflow_idx = self.dflow1d_lookup.query(np.c_[ptx, pty])
+        _, dflow_idx = self.dflow1d_lookup.query(np.c_[ptx, pty])
 
         (
             map_active_mod_dflow1d["mf-riv2dflow1d_flux"],
@@ -200,7 +200,7 @@ class Mapping:
         ptx = table_active_dflow1d2mfriv[:, 1]
         pty = table_active_dflow1d2mfriv[:, 2]
         weight = table_active_dflow1d2mfriv[:, 3]
-        dist, dflow_idx = self.dflow1d_lookup.query(np.c_[ptx, pty])
+        _, dflow_idx = self.dflow1d_lookup.query(np.c_[ptx, pty])
 
         (
             map_active_mod_dflow1d["dflow1d2mf-riv_stage"],
@@ -251,7 +251,7 @@ class Mapping:
         ptx = table_passive_mfriv2dflow1d[:, 0]
         pty = table_passive_mfriv2dflow1d[:, 1]
         mf_idx = table_passive_mfriv2dflow1d[:, 2].astype(int) - 1
-        dist, dflow_idx = self.dflow1d_lookup.query(np.c_[ptx, pty])
+        _, dflow_idx = self.dflow1d_lookup.query(np.c_[ptx, pty])
 
         (
             map_passive_mod_dflow1d["mf-riv2dflow1d_passive_flux"],
@@ -273,7 +273,7 @@ class Mapping:
         ptx = table_passive_mfdrn2dflow1d[:, 0]
         pty = table_passive_mfdrn2dflow1d[:, 1]
         mf_idx = table_passive_mfdrn2dflow1d[:, 2].astype(int) - 1
-        dist, dflow_idx = self.dflow1d_lookup.query(np.c_[ptx, pty])
+        _, dflow_idx = self.dflow1d_lookup.query(np.c_[ptx, pty])
 
         (
             map_passive_mod_dflow1d["mf-drn2dflow1d_flux"],
@@ -322,7 +322,7 @@ class Mapping:
         ptx = table_mswsprinkling2dflow1d[:, 0]
         pty = table_mswsprinkling2dflow1d[:, 1]
         msw_idx = table_mswsprinkling2dflow1d[:, 2].astype(int) - 1
-        dist, dflow_idx = self.dflow1d_lookup.query(np.c_[ptx, pty])
+        _, dflow_idx = self.dflow1d_lookup.query(np.c_[ptx, pty])
 
         (
             map_msw_dflow1d["msw-sprinkling2dflow1d_flux"],
@@ -355,7 +355,7 @@ class Mapping:
         ptx = table_mswponding2dflow1d[:, 0]
         pty = table_mswponding2dflow1d[:, 1]
         msw_idx = table_mswponding2dflow1d[:, 2].astype(int) - 1
-        dist, dflow_idx = self.dflow1d_lookup.query(np.c_[ptx, pty])
+        _, dflow_idx = self.dflow1d_lookup.query(np.c_[ptx, pty])
 
         (
             map_msw_dflow1d["msw-ponding2dflow1d_flux"],
@@ -406,7 +406,7 @@ class Mapping:
         ptx = table_mswponding2dflow2d[:, 0]
         pty = table_mswponding2dflow2d[:, 1]
         msw_idx = table_mswponding2dflow2d[:, 2].astype(int) - 1
-        dist, dflow_idx = self.dflow2d_lookup.query(np.c_[ptx, pty])
+        _, dflow_idx = self.dflow2d_lookup.query(np.c_[ptx, pty])
 
         (
             map_msw_dflow2d["msw-ponding2dflow2d_flux"],
@@ -441,7 +441,7 @@ class Mapping:
         ptx = table_dflow2d_stage2mswponding[:, 1]
         pty = table_dflow2d_stage2mswponding[:, 2]
         weight = table_dflow2d_stage2mswponding[:, 3]
-        dist, dflow_idx = self.dflow2d_lookup.query(np.c_[ptx, pty])
+        _, dflow_idx = self.dflow2d_lookup.query(np.c_[ptx, pty])
 
         (
             map_msw_dflow2d["dflow2d_stage2msw-ponding"],

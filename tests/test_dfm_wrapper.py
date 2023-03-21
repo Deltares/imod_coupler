@@ -22,15 +22,25 @@ def test_get_snapped_flownode(
 
     bmiwrapper.initialize()
     bmiwrapper.init_kdtree()
-    input_node_x = np.array([40.0, 527.491028, 828.984985])
-    input_node_y = np.array([340.0, 540.0, 540.0])
-    dist, flownode_ids = bmiwrapper.kdtree1D.query(np.c_[input_node_x, input_node_y])
+    input_node_x_1d = np.array([40.0, 527.491028, 828.984985])
+    input_node_y_1d = np.array([340.0, 540.0, 540.0])
+    _, flownode_ids_1d = bmiwrapper.kdtree1D.query(np.c_[input_node_x_1d,
+                                                         input_node_y_1d])
+    input_node_x_2d = np.array([549.0, 251.0, 349.0, 829.0])
+    input_node_y_2d = np.array([851.0, 49.0, 151.0, 540.0])
+    _, flownode_ids_2d = bmiwrapper.kdtree2D.query(np.c_[input_node_x_2d,
+                                                         input_node_y_2d])
     bmiwrapper.finalize()
 
-    expected_flownode_ids = np.array([2, 13, 17])
+    expected_flownode_ids_1d = np.array([2, 13, 17])
     assert_array_equal(
-        flownode_ids,
-        expected_flownode_ids,
+        flownode_ids_1d,
+        expected_flownode_ids_1d,
+    )
+    expected_flownode_ids_2d = np.array([84, 5, 13, 87])
+    assert_array_equal(
+        flownode_ids_2d,
+        expected_flownode_ids_2d,
     )
 
 

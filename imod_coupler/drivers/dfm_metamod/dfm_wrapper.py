@@ -59,7 +59,7 @@ class DfmWrapper(BMIWrapper):  # type: ignore
             all_waterlevels[nr_nodes_2d : nr_nodes_2d + nr_nodes_1d], dtype=np.float_
         )
 
-    def get_internal_node_coordinates(self) -> NDArray[np.double]:
+    def __get_internal_node_coordinates__(self) -> NDArray[np.double]:
         """
         Returns
         -------
@@ -196,7 +196,7 @@ class DfmWrapper(BMIWrapper):  # type: ignore
     def init_kdtree(self) -> None:
         nx1d = self.get_number_1d_nodes()
         nx2d = self.get_number_2d_nodes()
-        flowelem_xy = self.get_internal_node_coordinates()
+        flowelem_xy = self.__get_internal_node_coordinates__()
         self.kdtree1D = KDTree(flowelem_xy[nx2d : nx2d + nx1d])
         self.kdtree2D = KDTree(flowelem_xy[:nx2d])
 
