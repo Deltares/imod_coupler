@@ -10,7 +10,7 @@ END OPTIONS
 #Time Dimensions
 
 BEGIN DIMENSIONS
- NPER 365
+ NPER 31
 END DIMENSIONS
 
 #Stress periods
