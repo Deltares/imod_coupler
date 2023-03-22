@@ -62,6 +62,7 @@ class Coupling(BaseModel):
     mf6_msw_sprinkling_map: Optional[
         FilePath
     ] = None  # the pach to the sprinkling map file
+    output_config_file: FilePath
 
     class Config:
         arbitrary_types_allowed = True  # Needed for `mf6_msw_sprinkling_map`
@@ -126,6 +127,12 @@ class Coupling(BaseModel):
         if dfm_model[-3:].lower() != "mdu":
             raise ValueError("the dflow fm model name should end in mdu")
         return dfm_model
+
+    @validator("output_config_file")
+    def validate_toml_file(cls, filename: FilePath) -> FilePath:
+        if os.path.splitext(filename.name)[1].lower() != ".toml":
+            raise ValueError("expected a toml file")
+        return filename.resolve()
 
 
 class DfmMetaModConfig(BaseModel):

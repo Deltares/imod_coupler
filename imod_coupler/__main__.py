@@ -34,7 +34,8 @@ def run_coupler(config_path: Path) -> None:
         config_dict = tomllib.load(f)
 
     config_dir = config_path.parent
-    base_config = BaseConfig(config_dir=config_dir, **config_dict)
+    config_dict["config_dir"] = config_dir
+    base_config = BaseConfig(**config_dict)
 
     setup_logger(base_config.log_level, config_dir / "imod_coupler.log")
     logger.info(f"iMOD Coupler {__version__}")
