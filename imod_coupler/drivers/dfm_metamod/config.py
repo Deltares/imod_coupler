@@ -52,9 +52,9 @@ class Coupling(BaseModel):
     dfm_1d_waterlevel_to_mf6_river_stage_dmm: FilePath
     mf6_river2_to_dmf_1d_q_dmm: FilePath
     mf6_drainage_to_dfm_1d_q_dmm: FilePath
-    msw_runoff_to_dfm_1d_q_dmm: FilePath
+    msw_runoff_to_dfm_1d_q_dmm: Optional[FilePath]
 
-    msw_sprinkling_to_dfm_1d_q_dmm: FilePath
+    msw_sprinkling_to_dfm_1d_q_dmm: Optional[FilePath]
 
     dfm_1d_points_dat: FilePath
     dfm_2d_points_dat: FilePath

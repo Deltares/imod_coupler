@@ -503,14 +503,14 @@ class DfmMetaMod(Driver):
         # conversion from (+)m3/dtsw to (+)m3/s
         msw_ponding_volume = self.msw.get_surfacewater_ponding_allocation_ptr()
         msw_ponding_flux_sec = msw_ponding_volume / days_to_seconds(self.delt_msw_dflow)
-
-        self.matrix_product(
-            msw_ponding_flux_sec,
-            self.exchange_balans_1d.demand,
-            self.map_msw_dflow1d,
-            self.mask_msw_dflow1d,
-            "msw-ponding2dflow1d_flux",
-        )
+        if self.map_msw_dflow1d is not None:
+            self.matrix_product(
+                msw_ponding_flux_sec,
+                self.exchange_balans_1d.demand,
+                self.map_msw_dflow1d,
+                self.mask_msw_dflow1d,
+                "msw-ponding2dflow1d_flux",
+            )
 
     def exchange_sprinkling_msw2dflow1d(self) -> None:
         # conversion from (+)m3/dtsw to (+)m3/s
@@ -530,17 +530,21 @@ class DfmMetaMod(Driver):
     def exchange_sprinkling_dflow1d2msw(
         self, sprinkling_dflow: NDArray[np.float_]
     ) -> None:
-        # conversion from (+)m3/s to (+)m3/dtsw
-        sprinkling_dflow_dtsw = sprinkling_dflow * days_to_seconds(self.delt_msw_dflow)
-        # get the realised pointer
-        sprinkling_msw = self.msw.get_surfacewater_sprinking_realised_ptr()
-        # set pointer
-        sprinkling_msw = (
-            self.mask_msw_dflow1d["dflow1d_flux2sprinkling_msw"][:] * sprinkling_msw[:]
-            + self.map_msw_dflow1d["dflow1d_flux2sprinkling_msw"].dot(
-                sprinkling_dflow_dtsw
-            )[:]
-        )
+        if self.map_msw_dflow1d["dflow1d_flux2sprinkling_msw"] is not None:
+            # conversion from (+)m3/s to (+)m3/dtsw
+            sprinkling_dflow_dtsw = sprinkling_dflow * days_to_seconds(
+                self.delt_msw_dflow
+            )
+            # get the realised pointer
+            sprinkling_msw = self.msw.get_surfacewater_sprinking_realised_ptr()
+            # set pointer
+            sprinkling_msw = (
+                self.mask_msw_dflow1d["dflow1d_flux2sprinkling_msw"][:]
+                * sprinkling_msw[:]
+                + self.map_msw_dflow1d["dflow1d_flux2sprinkling_msw"].dot(
+                    sprinkling_dflow_dtsw
+                )[:]
+            )
 
     def exchange_flux_riv_passive_mf62dfm(self) -> None:
         """
