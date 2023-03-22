@@ -506,12 +506,12 @@ class DfmMetaMod(Driver):
                 self.mask_active_mod_dflow1d,
                 "mf-riv2dflow1d_flux",
             )
-        self.log_matrix_product(
-            mf6_river_aquifer_flux_sec,
-            self.exchange_balans_1d.demand,
-            "mf-riv2dflow1d_flux",
-            self.dfm.get_current_time_days(),
-        )
+            self.log_matrix_product(
+                mf6_river_aquifer_flux_sec,
+                self.exchange_balans_1d.demand,
+                "mf-riv2dflow1d_flux",
+                self.dfm.get_current_time_days(),
+            )
             # for calculating the correction flux, the flux need to be split up in positive and negative values
             # since the sign is already swapped, positive values means drainage from mf6 to dflow and
             # negative values mean infiltration from dflow to MF6
@@ -547,12 +547,12 @@ class DfmMetaMod(Driver):
                 self.mask_msw_dflow1d,
                 "msw-ponding2dflow1d_flux",
             )
-        self.log_matrix_product(
-            msw_ponding_flux_sec,
-            self.exchange_balans_1d.demand,
-            "msw-ponding2dflow1d_flux",
-            self.dfm.get_current_time_days(),
-        )
+            self.log_matrix_product(
+                msw_ponding_flux_sec,
+                self.exchange_balans_1d.demand,
+                "msw-ponding2dflow1d_flux",
+                self.dfm.get_current_time_days(),
+            )
 
     def exchange_sprinkling_msw2dflow1d(self) -> None:
         # conversion from (+)m3/dtsw to (+)m3/s
