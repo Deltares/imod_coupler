@@ -21,44 +21,30 @@ def test_run_tmodel(
 ) -> None:
     shutil.copytree(tmodel_input_folder, tmp_path_dev)
 
-
-
-    set_kernels_paths_into_toml_file(
-        toml_file_path,
+    toml_file_path = set_toml_file_tmodel(
+        tmp_path_dev,
         modflow_dll_devel,
         dflowfm_dll,
         metaswap_dll_devel,
         metaswap_dll_dep_dir_devel,
     )
 
-    set_output_directory_into_toml_file(output_config_path, tmp_path_dev)
-
+    set_toml_file_logging(tmp_path_dev)
     fill_para_sim_template(tmp_path_dev / "MetaSWAP", metaswap_lookup_table)
-
     run_coupler(toml_file_path)
-
-    waterbalance_result = run_waterbalance_script_on_tmodel(tmp_path_dev)
-
-    csv_reference_file = (
-        reference_result_folder / "test_run_tmodel" / "waterbalance.csv"
-    )
-
-    assert numeric_csvfiles_equal(
-        waterbalance_result, csv_reference_file, ";", abstol=5600.0, reltol=3.5
-    )
+    
+    evaluate_waterbalance(tmp_path_dev)
 
 
-def init_toml_file_tmodel(
+
+def set_toml_file_tmodel(
     tmp_path_dev : Path,
     modflow_dll_devel: Path,
     dflowfm_dll: Path,
     metaswap_dll_devel: Path,
     metaswap_dll_dep_dir_devel: Path,
-) -> None:
-    
+) -> Path:
     toml_file_path = tmp_path_dev / "imod_coupler.toml"
-    output_config_path = tmp_path_dev / "output_config.toml"
-
     with open(toml_file_path, "rb") as f:
         toml_dict = tomli.load(f)
 
@@ -68,17 +54,21 @@ def init_toml_file_tmodel(
     toml_dict["driver"]["kernels"]["metaswap"]["dll_dep_dir"] = str(
         metaswap_dll_dep_dir_devel
     )
-    toml_dict["general"][0]["output_dir"] = str(tmp_path_dev)
-    
     with open(toml_file_path, "wb") as toml_file:
         tomli_w.dump(toml_dict, toml_file)
-        
     return toml_file_path
 
+def set_toml_file_logging(
+    tmp_path_dev: Path
+) -> None:
+    output_config_path = tmp_path_dev / "output_config.toml"
+    output_dict = {}
+    with open(output_config_path, "rb") as f:
+        output_dict = tomli.load(f)
+    output_dict["general"][0]["output_dir"] = str(tmp_path_dev)
 
-
-
-
+    with open(output_config_path, "wb") as toml_file:
+        tomli_w.dump(output_dict, toml_file)
 
 def run_waterbalance_script_on_tmodel(testdir: Path) -> Path:
     modflow_out_file = testdir / "Modflow6" / "GWF_1" / "T-MODEL-D.LST"
@@ -91,6 +81,14 @@ def run_waterbalance_script_on_tmodel(testdir: Path) -> Path:
     )
     return csv_file
 
+def evaluate_waterbalance(tmp_path_dev:Path) -> None:
+    waterbalance_result = run_waterbalance_script_on_tmodel(tmp_path_dev)
+    csv_reference_file = (
+        reference_result_folder / "test_run_tmodel" / "waterbalance.csv"
+    )
 
+    assert numeric_csvfiles_equal(
+        waterbalance_result, csv_reference_file, ";", abstol=5600.0, reltol=3.5
+    )
 
 
