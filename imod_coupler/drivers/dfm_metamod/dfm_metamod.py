@@ -11,7 +11,6 @@ from typing import Any, Dict
 
 import numpy as np
 import scipy.sparse as spr
-import tomli
 from loguru import logger
 from numpy import float_, int_
 from numpy.typing import NDArray
@@ -128,10 +127,7 @@ class DfmMetaMod(Driver):
         self.exchange_balans_2d = exchange_balance_2d(self.array_dims["dfm_2d"])
 
         output_toml_file = self.coupling.dict()["output_config_file"]
-        with open(output_toml_file, "rb") as f:
-            toml_dict = tomli.load(f)
-
-        self.exchange_logger = ExchangeCollector(toml_dict)
+        self.exchange_logger = ExchangeCollector.from_file(output_toml_file)
 
     def log_version(self) -> None:
         logger.info(f"MODFLOW version: {self.mf6.get_version()}")

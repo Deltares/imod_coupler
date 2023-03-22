@@ -130,7 +130,7 @@ class Coupling(BaseModel):
 
     @validator("output_config_file")
     def validate_toml_file(cls, filename: FilePath) -> FilePath:
-        if filename.name[-4:].lower() != "toml":
+        if os.path.splitext(filename.name)[1].lower() != ".toml":
             raise ValueError("expected a toml file")
         return filename.resolve()
 

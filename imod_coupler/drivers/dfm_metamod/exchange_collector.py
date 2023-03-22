@@ -5,7 +5,9 @@ from typing import Any, List
 
 import netCDF4 as nc
 import numpy as np
+import tomli
 from numpy.typing import NDArray
+from typing_extensions import Self
 
 
 class AbstractExchange(abc.ABC):
@@ -80,6 +82,12 @@ class ExchangeCollector:
             self.exchanges[exchange_name] = self.create_exchange_object(
                 exchange_name, dict_def[0]
             )
+
+    @classmethod
+    def from_file(cls, output_toml_file: str) -> Self:
+        with open(output_toml_file, "rb") as f:
+            toml_dict = tomli.load(f)
+        return cls(toml_dict)
 
     def log_exchange(self, name: str, exchange: NDArray[Any], time: float) -> None:
         if name in self.exchanges.keys():
