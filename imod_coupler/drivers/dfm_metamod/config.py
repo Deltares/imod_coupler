@@ -48,10 +48,10 @@ class Coupling(BaseModel):
     mf6_msw_node_map: FilePath  # the path to the node map file
     mf6_msw_recharge_map: FilePath  # the pach to the recharge map file
 
-    mf6_river_to_dfm_1d_q_dmm: FilePath
-    dfm_1d_waterlevel_to_mf6_river_stage_dmm: FilePath
-    mf6_river2_to_dmf_1d_q_dmm: FilePath
-    mf6_drainage_to_dfm_1d_q_dmm: FilePath
+    mf6_river_to_dfm_1d_q_dmm: Optional[FilePath]
+    dfm_1d_waterlevel_to_mf6_river_stage_dmm: Optional[FilePath]
+    mf6_river2_to_dmf_1d_q_dmm: Optional[FilePath]
+    mf6_drainage_to_dfm_1d_q_dmm: Optional[FilePath]
     msw_runoff_to_dfm_1d_q_dmm: Optional[FilePath]
 
     msw_sprinkling_to_dfm_1d_q_dmm: Optional[FilePath]

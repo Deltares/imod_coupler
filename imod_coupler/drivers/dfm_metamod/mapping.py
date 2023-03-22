@@ -160,59 +160,68 @@ class Mapping:
         mask_active_mod_dflow1d: Dict[str, NDArray[Any]] = {}
 
         # MF RIV 1 -> DFLOW 1D (flux)
-        table_active_mfriv2dflow1d: NDArray[np.single] = np.loadtxt(
-            self.coupling.mf6_river_to_dfm_1d_q_dmm,
-            dtype=np.single,
-            ndmin=2,
-            skiprows=1,
-        )
-        ptx = table_active_mfriv2dflow1d[:, 0]
-        pty = table_active_mfriv2dflow1d[:, 1]
-        mf_idx = table_active_mfriv2dflow1d[:, 2].astype(int) - 1
-        _, dflow_idx = self.dflow1d_lookup.query(np.c_[ptx, pty])
+        map_active_mod_dflow1d["mf-riv2dflow1d_flux"] = None
+        mask_active_mod_dflow1d["mf-riv2dflow1d_flux"] = np.array([])
+        map_active_mod_dflow1d["dflow1d2mf-riv_flux"] = None
+        mask_active_mod_dflow1d["dflow1d2mf-riv_flux"] = np.array([])
 
-        (
-            map_active_mod_dflow1d["mf-riv2dflow1d_flux"],
-            mask_active_mod_dflow1d["mf-riv2dflow1d_flux"],
-        ) = create_mapping(
-            mf_idx,
-            dflow_idx,
-            self.array_dims["mf6_riv_active"],
-            self.array_dims["dfm_1d"],
-            Operator.SUM,
-        )
-        # DFLOW 1D  -> MF RIV 1 (flux) (non weighted)
-        (
-            map_active_mod_dflow1d["dflow1d2mf-riv_flux"],
-            mask_active_mod_dflow1d["dflow1d2mf-riv_flux"],
-        ) = create_mapping(
-            dflow_idx, mf_idx, max(dflow_idx) + 1, max(mf_idx) + 1, Operator.SUM
-        )
+        if self.coupling.mf6_river_to_dfm_1d_q_dmm is not None:
+            table_active_mfriv2dflow1d: NDArray[np.single] = np.loadtxt(
+                self.coupling.mf6_river_to_dfm_1d_q_dmm,
+                dtype=np.single,
+                ndmin=2,
+                skiprows=1,
+            )
+            ptx = table_active_mfriv2dflow1d[:, 0]
+            pty = table_active_mfriv2dflow1d[:, 1]
+            mf_idx = table_active_mfriv2dflow1d[:, 2].astype(int) - 1
+            _, dflow_idx = self.dflow1d_lookup.query(np.c_[ptx, pty])
+
+            (
+                map_active_mod_dflow1d["mf-riv2dflow1d_flux"],
+                mask_active_mod_dflow1d["mf-riv2dflow1d_flux"],
+            ) = create_mapping(
+                mf_idx,
+                dflow_idx,
+                self.array_dims["mf6_riv_active"],
+                self.array_dims["dfm_1d"],
+                Operator.SUM,
+            )
+            # DFLOW 1D  -> MF RIV 1 (flux) (non weighted)
+            (
+                map_active_mod_dflow1d["dflow1d2mf-riv_flux"],
+                mask_active_mod_dflow1d["dflow1d2mf-riv_flux"],
+            ) = create_mapping(
+                dflow_idx, mf_idx, max(dflow_idx) + 1, max(mf_idx) + 1, Operator.SUM
+            )
 
         # DFLOW 1D -> MF RIV 1 (stage)
-        table_active_dflow1d2mfriv: NDArray[np.single] = np.loadtxt(
-            self.coupling.dfm_1d_waterlevel_to_mf6_river_stage_dmm,
-            dtype=np.single,
-            ndmin=2,
-            skiprows=1,
-        )
-        mf_idx = table_active_dflow1d2mfriv[:, 0].astype(int) - 1
-        ptx = table_active_dflow1d2mfriv[:, 1]
-        pty = table_active_dflow1d2mfriv[:, 2]
-        weight = table_active_dflow1d2mfriv[:, 3]
-        _, dflow_idx = self.dflow1d_lookup.query(np.c_[ptx, pty])
+        map_active_mod_dflow1d["dflow1d2mf-riv_stage"] = None
+        mask_active_mod_dflow1d["dflow1d2mf-riv_stage"] = np.array([])
+        if self.coupling.mf6_river_to_dfm_1d_q_dmm is not None:
+            table_active_dflow1d2mfriv: NDArray[np.single] = np.loadtxt(
+                self.coupling.dfm_1d_waterlevel_to_mf6_river_stage_dmm,
+                dtype=np.single,
+                ndmin=2,
+                skiprows=1,
+            )
+            mf_idx = table_active_dflow1d2mfriv[:, 0].astype(int) - 1
+            ptx = table_active_dflow1d2mfriv[:, 1]
+            pty = table_active_dflow1d2mfriv[:, 2]
+            weight = table_active_dflow1d2mfriv[:, 3]
+            _, dflow_idx = self.dflow1d_lookup.query(np.c_[ptx, pty])
 
-        (
-            map_active_mod_dflow1d["dflow1d2mf-riv_stage"],
-            mask_active_mod_dflow1d["dflow1d2mf-riv_stage"],
-        ) = create_mapping(
-            dflow_idx,
-            mf_idx,
-            self.array_dims["dfm_1d"],
-            self.array_dims["mf6_riv_active"],
-            Operator.WEIGHT,
-            weight,
-        )
+            (
+                map_active_mod_dflow1d["dflow1d2mf-riv_stage"],
+                mask_active_mod_dflow1d["dflow1d2mf-riv_stage"],
+            ) = create_mapping(
+                dflow_idx,
+                mf_idx,
+                self.array_dims["dfm_1d"],
+                self.array_dims["mf6_riv_active"],
+                Operator.WEIGHT,
+                weight,
+            )
         return map_active_mod_dflow1d, mask_active_mod_dflow1d
 
     def mapping_passive_mf_dflow1d(
@@ -242,49 +251,55 @@ class Mapping:
         mask_passive_mod_dflow1d: Dict[str, NDArray[Any]] = {}
 
         # MF RIV 2 -> DFLOW 1D (flux)
-        table_passive_mfriv2dflow1d: NDArray[np.single] = np.loadtxt(
-            self.coupling.mf6_river2_to_dmf_1d_q_dmm,
-            dtype=np.single,
-            ndmin=2,
-            skiprows=1,
-        )
-        ptx = table_passive_mfriv2dflow1d[:, 0]
-        pty = table_passive_mfriv2dflow1d[:, 1]
-        mf_idx = table_passive_mfriv2dflow1d[:, 2].astype(int) - 1
-        _, dflow_idx = self.dflow1d_lookup.query(np.c_[ptx, pty])
+        map_passive_mod_dflow1d["mf-riv2dflow1d_passive_flux"] = None
+        mask_passive_mod_dflow1d["mf-riv2dflow1d_passive_flux"] = np.array([])
+        if self.coupling.mf6_river2_to_dmf_1d_q_dmm is not None:
+            table_passive_mfriv2dflow1d: NDArray[np.single] = np.loadtxt(
+                self.coupling.mf6_river2_to_dmf_1d_q_dmm,
+                dtype=np.single,
+                ndmin=2,
+                skiprows=1,
+            )
+            ptx = table_passive_mfriv2dflow1d[:, 0]
+            pty = table_passive_mfriv2dflow1d[:, 1]
+            mf_idx = table_passive_mfriv2dflow1d[:, 2].astype(int) - 1
+            _, dflow_idx = self.dflow1d_lookup.query(np.c_[ptx, pty])
 
-        (
-            map_passive_mod_dflow1d["mf-riv2dflow1d_passive_flux"],
-            mask_passive_mod_dflow1d["mf-riv2dflow1d_passive_flux"],
-        ) = create_mapping(
-            mf_idx,
-            dflow_idx,
-            self.array_dims["mf6_riv_passive"],
-            self.array_dims["dfm_1d"],
-            Operator.SUM,
-        )
+            (
+                map_passive_mod_dflow1d["mf-riv2dflow1d_passive_flux"],
+                mask_passive_mod_dflow1d["mf-riv2dflow1d_passive_flux"],
+            ) = create_mapping(
+                mf_idx,
+                dflow_idx,
+                self.array_dims["mf6_riv_passive"],
+                self.array_dims["dfm_1d"],
+                Operator.SUM,
+            )
         # MF DRN -> DFLOW 1D (flux)
-        table_passive_mfdrn2dflow1d: NDArray[np.single] = np.loadtxt(
-            self.coupling.mf6_drainage_to_dfm_1d_q_dmm,
-            dtype=np.single,
-            ndmin=2,
-            skiprows=1,
-        )
-        ptx = table_passive_mfdrn2dflow1d[:, 0]
-        pty = table_passive_mfdrn2dflow1d[:, 1]
-        mf_idx = table_passive_mfdrn2dflow1d[:, 2].astype(int) - 1
-        _, dflow_idx = self.dflow1d_lookup.query(np.c_[ptx, pty])
+        map_passive_mod_dflow1d["mf-drn2dflow1d_flux"] = None
+        mask_passive_mod_dflow1d["mf-drn2dflow1d_flux"] = np.array([])
+        if self.coupling.mf6_drainage_to_dfm_1d_q_dmm is not None:
+            table_passive_mfdrn2dflow1d: NDArray[np.single] = np.loadtxt(
+                self.coupling.mf6_drainage_to_dfm_1d_q_dmm,
+                dtype=np.single,
+                ndmin=2,
+                skiprows=1,
+            )
+            ptx = table_passive_mfdrn2dflow1d[:, 0]
+            pty = table_passive_mfdrn2dflow1d[:, 1]
+            mf_idx = table_passive_mfdrn2dflow1d[:, 2].astype(int) - 1
+            _, dflow_idx = self.dflow1d_lookup.query(np.c_[ptx, pty])
 
-        (
-            map_passive_mod_dflow1d["mf-drn2dflow1d_flux"],
-            mask_passive_mod_dflow1d["mf-drn2dflow1d_flux"],
-        ) = create_mapping(
-            mf_idx,
-            dflow_idx,
-            self.array_dims["mf6_drn"],
-            self.array_dims["dfm_1d"],
-            Operator.SUM,
-        )
+            (
+                map_passive_mod_dflow1d["mf-drn2dflow1d_flux"],
+                mask_passive_mod_dflow1d["mf-drn2dflow1d_flux"],
+            ) = create_mapping(
+                mf_idx,
+                dflow_idx,
+                self.array_dims["mf6_drn"],
+                self.array_dims["dfm_1d"],
+                Operator.SUM,
+            )
         return map_passive_mod_dflow1d, mask_passive_mod_dflow1d
 
     def mapping_msw_dflow1d(

@@ -78,6 +78,13 @@ def test_run_tmodel_no_2d(
     toml_dict["driver"]["coupling"][0].pop("msw_sprinkling_to_dfm_1d_q_dmm", None)
     toml_dict["driver"]["coupling"][0].pop("msw_runoff_to_dfm_1d_q_dmm", None)
 
+    toml_dict["driver"]["coupling"][0].pop("mf6_drainage_to_dfm_1d_q_dmm", None)
+    toml_dict["driver"]["coupling"][0].pop("mf6_river2_to_dmf_1d_q_dmm", None)
+    toml_dict["driver"]["coupling"][0].pop("mf6_river_to_dfm_1d_q_dmm", None)
+    toml_dict["driver"]["coupling"][0].pop(
+        "dfm_1d_waterlevel_to_mf6_river_stage_dmm", None
+    )
+
     with open(toml_file_path, "wb") as toml_file:
         tomli_w.dump(toml_dict, toml_file)
 
