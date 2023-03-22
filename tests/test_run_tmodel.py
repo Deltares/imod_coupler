@@ -21,8 +21,7 @@ def test_run_tmodel(
 ) -> None:
     shutil.copytree(tmodel_input_folder, tmp_path_dev)
 
-    toml_file_path = tmp_path_dev / "imod_coupler.toml"
-    output_config_path = tmp_path_dev / "output_config.toml"
+
 
     set_kernels_paths_into_toml_file(
         toml_file_path,
@@ -49,6 +48,38 @@ def test_run_tmodel(
     )
 
 
+def init_toml_file_tmodel(
+    tmp_path_dev : Path,
+    modflow_dll_devel: Path,
+    dflowfm_dll: Path,
+    metaswap_dll_devel: Path,
+    metaswap_dll_dep_dir_devel: Path,
+) -> None:
+    
+    toml_file_path = tmp_path_dev / "imod_coupler.toml"
+    output_config_path = tmp_path_dev / "output_config.toml"
+
+    with open(toml_file_path, "rb") as f:
+        toml_dict = tomli.load(f)
+
+    toml_dict["driver"]["kernels"]["modflow6"]["dll"] = str(modflow_dll_devel)
+    toml_dict["driver"]["kernels"]["dflowfm"]["dll"] = str(dflowfm_dll)
+    toml_dict["driver"]["kernels"]["metaswap"]["dll"] = str(metaswap_dll_devel)
+    toml_dict["driver"]["kernels"]["metaswap"]["dll_dep_dir"] = str(
+        metaswap_dll_dep_dir_devel
+    )
+    toml_dict["general"][0]["output_dir"] = str(tmp_path_dev)
+    
+    with open(toml_file_path, "wb") as toml_file:
+        tomli_w.dump(toml_dict, toml_file)
+        
+    return toml_file_path
+
+
+
+
+
+
 def run_waterbalance_script_on_tmodel(testdir: Path) -> Path:
     modflow_out_file = testdir / "Modflow6" / "GWF_1" / "T-MODEL-D.LST"
     dflow_out_file = testdir / "dflow-fm" / "DFM_OUTPUT_FlowFM" / "FlowFM_his.nc"
@@ -61,33 +92,5 @@ def run_waterbalance_script_on_tmodel(testdir: Path) -> Path:
     return csv_file
 
 
-def set_kernels_paths_into_toml_file(
-    toml_file_path: Path,
-    modflow_dll_devel: Path,
-    dflowfm_dll: Path,
-    metaswap_dll_devel: Path,
-    metaswap_dll_dep_dir_devel: Path,
-) -> None:
-    with open(toml_file_path, "rb") as f:
-        toml_dict = tomli.load(f)
-
-    toml_dict["driver"]["kernels"]["modflow6"]["dll"] = str(modflow_dll_devel)
-    toml_dict["driver"]["kernels"]["dflowfm"]["dll"] = str(dflowfm_dll)
-    toml_dict["driver"]["kernels"]["metaswap"]["dll"] = str(metaswap_dll_devel)
-    toml_dict["driver"]["kernels"]["metaswap"]["dll_dep_dir"] = str(
-        metaswap_dll_dep_dir_devel
-    )
-    with open(toml_file_path, "wb") as toml_file:
-        tomli_w.dump(toml_dict, toml_file)
 
 
-def set_output_directory_into_toml_file(
-    output_config_path: Path, tmp_path_dev: Path
-) -> None:
-    output_dict = {}
-    with open(output_config_path, "rb") as f:
-        output_dict = tomli.load(f)
-    output_dict["general"][0]["output_dir"] = str(tmp_path_dev)
-
-    with open(output_config_path, "wb") as toml_file:
-        tomli_w.dump(output_dict, toml_file)
