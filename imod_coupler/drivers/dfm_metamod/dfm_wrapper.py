@@ -269,3 +269,6 @@ class DfmWrapper(BMIWrapper):  # type: ignore
         else:
             nx2d = self.get_number_2d_nodes()
             return output_ids - nx2d
+
+    def get_current_time_days(self) -> float:
+        return (float)(super().get_current_time() / 86400.0)

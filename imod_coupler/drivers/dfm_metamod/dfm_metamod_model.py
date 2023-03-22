@@ -274,7 +274,7 @@ class DfmMetaModModel:
         return [
             key
             for key, value in self.mf6_simulation.items()
-            if hasattr(value, "_pkg_id") and value._pkg_id == "model"
+            if type(value).__name__ == "GroundwaterFlowModel"
         ]
 
     def _get_dfm_modelname(self) -> str:

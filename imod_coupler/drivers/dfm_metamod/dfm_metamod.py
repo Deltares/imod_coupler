@@ -24,11 +24,11 @@ from imod_coupler.drivers.dfm_metamod.exchange import (
     exchange_balance_1d,
     exchange_balance_2d,
 )
+from imod_coupler.drivers.dfm_metamod.exchange_collector import ExchangeCollector
 from imod_coupler.drivers.dfm_metamod.mapping import Mapping
 from imod_coupler.drivers.dfm_metamod.mf6_wrapper import Mf6Wrapper
 from imod_coupler.drivers.dfm_metamod.msw_wrapper import MswWrapper
 from imod_coupler.drivers.driver import Driver
-from imod_coupler.utils import Operator, create_mapping
 
 
 class DfmMetaMod(Driver):
@@ -125,6 +125,9 @@ class DfmMetaMod(Driver):
         self.log_version()
         self.exchange_balans_1d = exchange_balance_1d(self.array_dims["dfm_1d"])
         self.exchange_balans_2d = exchange_balance_2d(self.array_dims["dfm_2d"])
+
+        output_toml_file = self.coupling.dict()["output_config_file"]
+        self.exchange_logger = ExchangeCollector.from_file(output_toml_file)
 
     def log_version(self) -> None:
         logger.info(f"MODFLOW version: {self.mf6.get_version()}")
@@ -263,6 +266,7 @@ class DfmMetaMod(Driver):
         self.mf6.finalize()
         self.msw.finalize()
         self.dfm.finalize()
+        self.exchange_logger.finalize()
 
     def get_current_time(self) -> float:
         return self.mf6.get_current_time()
@@ -347,6 +351,20 @@ class DfmMetaMod(Driver):
                 + coupling[exchange_type].dot(flux)[:]
             )
 
+    def log_matrix_product(
+        self,
+        flux: NDArray[Any],
+        water_balance: dict[str, NDArray[float_]],
+        exchange_type: str,
+        time: float,
+    ) -> None:
+        self.exchange_logger.log_exchange(exchange_type + "_input", flux, time)
+        self.exchange_logger.log_exchange(
+            exchange_type + "_output",
+            water_balance[exchange_type][:],
+            time,
+        )
+
     def exchange_balans_2dfm(self, flux2dflow: NDArray[float_]) -> None:
         self.dfm.set_1d_river_fluxes(flux2dflow)
 
@@ -378,6 +396,15 @@ class DfmMetaMod(Driver):
                 self.coupling.mf6_river_active_pkg,
                 updated_river_stage,
             )
+
+        self.exchange_logger.log_exchange(
+            "dflow1d2mf-riv_stage_input", dfm_water_levels, self.get_current_time()
+        )
+        self.exchange_logger.log_exchange(
+            "dflow1d2mf-riv_stage_output",
+            updated_river_stage,
+            self.get_current_time(),
+        )
 
     def exchange_stage_2d_dfm2msw(self) -> None:
         """
@@ -479,6 +506,12 @@ class DfmMetaMod(Driver):
                 self.mask_active_mod_dflow1d,
                 "mf-riv2dflow1d_flux",
             )
+        self.log_matrix_product(
+            mf6_river_aquifer_flux_sec,
+            self.exchange_balans_1d.demand,
+            "mf-riv2dflow1d_flux",
+            self.dfm.get_current_time_days(),
+        )
             # for calculating the correction flux, the flux need to be split up in positive and negative values
             # since the sign is already swapped, positive values means drainage from mf6 to dflow and
             # negative values mean infiltration from dflow to MF6
@@ -514,6 +547,12 @@ class DfmMetaMod(Driver):
                 self.mask_msw_dflow1d,
                 "msw-ponding2dflow1d_flux",
             )
+        self.log_matrix_product(
+            msw_ponding_flux_sec,
+            self.exchange_balans_1d.demand,
+            "msw-ponding2dflow1d_flux",
+            self.dfm.get_current_time_days(),
+        )
 
     def exchange_sprinkling_msw2dflow1d(self) -> None:
         # conversion from (+)m3/dtsw to (+)m3/s
@@ -528,6 +567,12 @@ class DfmMetaMod(Driver):
             self.map_msw_dflow1d,
             self.mask_msw_dflow1d,
             "msw-sprinkling2dflow1d_flux",
+        )
+        self.log_matrix_product(
+            msw_sprinkling_flux_sec,
+            self.exchange_balans_1d.demand,
+            "msw-sprinkling2dflow1d_flux",
+            self.dfm.get_current_time_days(),
         )
 
     def exchange_sprinkling_dflow1d2msw(
@@ -548,6 +593,12 @@ class DfmMetaMod(Driver):
                     sprinkling_dflow_dtsw
                 )[:]
             )
+
+        self.exchange_logger.log_exchange(
+            "dflow1d_flux2sprinkling_msw_input",
+            sprinkling_dflow_dtsw,
+            self.dfm.get_current_time_days(),
+        )
 
     def exchange_flux_riv_passive_mf62dfm(self) -> None:
         """
@@ -572,8 +623,16 @@ class DfmMetaMod(Driver):
             self.mask_passive_mod_dflow1d,
             "mf-riv2dflow1d_passive_flux",
         )
+        self.log_matrix_product(
+            mf6_riv2_flux_sec,
+            self.exchange_balans_1d.demand,
+            "mf-riv2dflow1d_passive_flux",
+            self.dfm.get_current_time_days(),
+        )
 
-    def exchange_flux_drn_passive_mf62dfm(self) -> None:
+    def exchange_flux_drn_passive_mf62dfm(
+        self,
+    ) -> None:
         """
         From MF6 to DFM.
         Calculated DRN drainage flux from MF6 to DFLOW 1D.The flux is for now added to the DFLOW vector.
@@ -595,6 +654,12 @@ class DfmMetaMod(Driver):
             self.map_passive_mod_dflow1d,
             self.mask_passive_mod_dflow1d,
             "mf-drn2dflow1d_flux",
+        )
+        self.log_matrix_product(
+            mf6_drn_flux_sec,
+            self.exchange_balans_1d.demand,
+            "mf-drn2dflow1d_flux",
+            self.dfm.get_current_time_days(),
         )
 
     def exchange_correction_dflow2mf6(self, qdfm_realised: NDArray[float_]) -> None:
@@ -676,11 +741,20 @@ class DfmMetaMod(Driver):
 
         1- Exchange of head from MF6 to MetaSWAP
         """
+
+        time = self.get_current_time()
         self.msw.get_head_ptr()[:] = (
             self.mask_mod_msw["mod2msw_head"][:] * self.msw.get_head_ptr()[:]
             + self.map_mod_msw["mod2msw_head"].dot(
                 self.mf6.get_head(self.coupling.mf6_model)
             )[:]
+        )
+
+        self.exchange_logger.log_exchange(
+            "mod2msw_head_output", self.msw.get_head_ptr()[:], time
+        )
+        self.exchange_logger.log_exchange(
+            "mod2msw_head_input", self.mf6.get_head(self.coupling.mf6_model)[:], time
         )
 
     def report_timing_totals(self) -> None:
