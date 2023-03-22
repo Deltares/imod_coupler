@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <build-type xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" uuid="7fb612e7-b206-4372-acd9-c7d9bc8aeb47" xsi:noNamespaceSchemaLocation="https://www.jetbrains.com/teamcity/schemas/2021.1/project-config.xsd">
   <name>Testbench Coupler Win64 Lumbricus</name>
-  <description>Win64 Regression testbench for MODFLOW6/MetaSWAP coupler</description>
+  <description>Win64 testbench for MODFLOW6/MetaSWAP/DflowFM coupler aka Lumbricus</description>
   <settings>
     <options>
       <option name="artifactRules" value="imod_coupler\tests\temp =&gt; test_output.zip" />
