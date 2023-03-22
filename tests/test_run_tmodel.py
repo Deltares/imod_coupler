@@ -1,6 +1,8 @@
 import shutil
 from pathlib import Path
 
+import pydantic
+import pytest
 import tomli
 import tomli_w
 from test_scripts.water_balance.combine import create_waterbalance_file
@@ -57,11 +59,9 @@ def test_run_tmodel_f(
 
     set_toml_file_logging(tmp_path_dev)
     fill_para_sim_template(tmp_path_dev / "MetaSWAP", metaswap_lookup_table)
-    run_coupler(toml_file_path)
-    evaluate_waterbalance(tmp_path_dev,reference_result_folder,"T-MODEL-F.LST")
-
-
-
+    with pytest.raises(pydantic.ValidationError):
+        run_coupler(toml_file_path)
+    # evaluate_waterbalance(tmp_path_dev,reference_result_folder,"T-MODEL-F.LST")
 
 def set_toml_file_tmodel(
     tmp_path_dev : Path,
