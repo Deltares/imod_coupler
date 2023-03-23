@@ -198,7 +198,7 @@ class Mapping:
         # DFLOW 1D -> MF RIV 1 (stage)
         map_active_mod_dflow1d["dflow1d2mf-riv_stage"] = None
         mask_active_mod_dflow1d["dflow1d2mf-riv_stage"] = np.array([])
-        if self.coupling.mf6_river_to_dfm_1d_q_dmm is not None:
+        if self.coupling.dfm_1d_waterlevel_to_mf6_river_stage_dmm is not None:
             table_active_dflow1d2mfriv: NDArray[np.single] = np.loadtxt(
                 self.coupling.dfm_1d_waterlevel_to_mf6_river_stage_dmm,
                 dtype=np.single,

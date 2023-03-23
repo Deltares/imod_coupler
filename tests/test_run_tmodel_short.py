@@ -9,7 +9,7 @@ from pytest_cases import parametrize_with_cases
 from test_utilities import fill_para_sim_template
 
 
-@parametrize_with_cases("files_to_skip", prefix="case_skip_")
+@parametrize_with_cases("files_to_skip", prefix="case_skiptest_")
 def test_run_tmodel_not_all_exchanges(
     tmp_path_dev: Path,
     tmodel_short_input_folder: Path,
