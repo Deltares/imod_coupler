@@ -11,32 +11,36 @@ from test_utilities import fill_para_sim_template, numeric_csvfiles_equal
 
 from imod_coupler.__main__ import run_coupler
 
- def test_run_tmodel(
-     tmp_path_dev: Path,
-     tmodel_input_folder: Path,
-     modflow_dll_devel: Path,
-     dflowfm_dll: Path,
-     metaswap_dll_devel: Path,
-     metaswap_dll_dep_dir_devel: Path,
-     metaswap_lookup_table: Path,
-     reference_result_folder: Path,
-     imod_coupler_exec_devel: Path,
- ) -> None:
-     shutil.copytree(tmodel_input_folder, tmp_path_dev)
- 
-     toml_file_path = set_toml_file_tmodel(
-         tmp_path_dev,
-         modflow_dll_devel,
-         dflowfm_dll,
-         metaswap_dll_devel,
-         metaswap_dll_dep_dir_devel,
-     )
- 
-     set_toml_file_logging(tmp_path_dev)
-     fill_para_sim_template(tmp_path_dev / "MetaSWAP", metaswap_lookup_table)
-     
-     subprocess.run([imod_coupler_exec_devel, toml_file_path],check=True,)
-     evaluate_waterbalance(tmp_path_dev, reference_result_folder, "T-MODEL-D.LST")
+
+def test_run_tmodel(
+    tmp_path_dev: Path,
+    tmodel_input_folder: Path,
+    modflow_dll_devel: Path,
+    dflowfm_dll: Path,
+    metaswap_dll_devel: Path,
+    metaswap_dll_dep_dir_devel: Path,
+    metaswap_lookup_table: Path,
+    reference_result_folder: Path,
+    imod_coupler_exec_devel: Path,
+) -> None:
+    shutil.copytree(tmodel_input_folder, tmp_path_dev)
+
+    toml_file_path = set_toml_file_tmodel(
+        tmp_path_dev,
+        modflow_dll_devel,
+        dflowfm_dll,
+        metaswap_dll_devel,
+        metaswap_dll_dep_dir_devel,
+    )
+
+    set_toml_file_logging(tmp_path_dev)
+    fill_para_sim_template(tmp_path_dev / "MetaSWAP", metaswap_lookup_table)
+
+    subprocess.run(
+        [imod_coupler_exec_devel, toml_file_path],
+        check=True,
+    )
+    evaluate_waterbalance(tmp_path_dev, reference_result_folder, "T-MODEL-D.LST")
 
 
 def test_run_tmodel_f(
@@ -63,10 +67,10 @@ def test_run_tmodel_f(
     set_toml_file_logging(tmp_path_dev)
     fill_para_sim_template(tmp_path_dev / "MetaSWAP", metaswap_lookup_table)
     with pytest.raises(subprocess.CalledProcessError):
-        subprocess.run([str(imod_coupler_exec_devel), toml_file_path],
+        subprocess.run(
+            [str(imod_coupler_exec_devel), toml_file_path],
             check=True,
         )
-    # evaluate_waterbalance(tmp_path_dev,reference_result_folder,"T-MODEL-F.LST")
 
 
 def set_toml_file_tmodel(
@@ -114,7 +118,6 @@ def run_waterbalance_script_on_tmodel(testdir: Path, name: str) -> Path:
     return csv_file
 
 
-
 def evaluate_waterbalance(
     tmp_path_dev: Path, reference_result_folder: Path, name: str
 ) -> None:
@@ -122,6 +125,6 @@ def evaluate_waterbalance(
     csv_reference_file = (
         reference_result_folder / "test_run_tmodel" / "waterbalance.csv"
     )
-    #assert numeric_csvfiles_equal(
-    #    waterbalance_result, csv_reference_file, ";", abstol=5600.0, reltol=3.5
-    #)
+    # assert numeric_csvfiles_equal(
+    #     waterbalance_result, csv_reference_file, ";", abstol=5600.0, reltol=3.5
+    # )
