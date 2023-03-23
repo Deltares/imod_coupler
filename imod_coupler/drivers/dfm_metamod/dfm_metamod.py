@@ -589,7 +589,7 @@ class DfmMetaMod(Driver):
         realised_dfm = wbal.realised["dflow1d_flux2sprinkling_msw"]
         demand = wbal.demand["msw-sprinkling2dflow1d_flux"]
         realised_fraction = realised_dfm * 0.0
-        mask = np.greater(0.0, demand)
+        mask = np.less(demand, 0.0)
         realised_fraction[mask] = realised_dfm[mask] / demand[mask]
         matrix = self.map_msw_dflow1d["msw-sprinkling2dflow1d_flux"].transpose()
         sprinkling_msw[:] = msw_sprinkling_demand[:] * matrix.dot(realised_fraction)[:]
