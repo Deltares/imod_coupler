@@ -34,7 +34,7 @@ def test_run_tmodel(
     set_toml_file_logging(tmp_path_dev)
     fill_para_sim_template(tmp_path_dev / "MetaSWAP", metaswap_lookup_table)
     run_coupler(toml_file_path)
-    evaluate_waterbalance(tmp_path_dev,reference_result_folder,"T-MODEL-D.LST")
+    evaluate_waterbalance(tmp_path_dev, reference_result_folder, "T-MODEL-D.LST")
 
 
 def test_run_tmodel_f(
@@ -63,8 +63,9 @@ def test_run_tmodel_f(
         run_coupler(toml_file_path)
     # evaluate_waterbalance(tmp_path_dev,reference_result_folder,"T-MODEL-F.LST")
 
+
 def set_toml_file_tmodel(
-    tmp_path_dev : Path,
+    tmp_path_dev: Path,
     modflow_dll_devel: Path,
     dflowfm_dll: Path,
     metaswap_dll_devel: Path,
@@ -84,9 +85,8 @@ def set_toml_file_tmodel(
         tomli_w.dump(toml_dict, toml_file)
     return toml_file_path
 
-def set_toml_file_logging(
-    tmp_path_dev: Path
-) -> None:
+
+def set_toml_file_logging(tmp_path_dev: Path) -> None:
     output_config_path = tmp_path_dev / "output_config.toml"
     output_dict = {}
     with open(output_config_path, "rb") as f:
@@ -96,7 +96,8 @@ def set_toml_file_logging(
     with open(output_config_path, "wb") as toml_file:
         tomli_w.dump(output_dict, toml_file)
 
-def run_waterbalance_script_on_tmodel(testdir: Path, name:str) -> Path:
+
+def run_waterbalance_script_on_tmodel(testdir: Path, name: str) -> Path:
     modflow_out_file = testdir / "Modflow6" / "GWF_1" / name
     dflow_out_file = testdir / "dflow-fm" / "DFM_OUTPUT_FlowFM" / "FlowFM_his.nc"
     metaswap_out_file = testdir / "MetaSWAP" / "msw" / "csv" / "tot_svat_dtgw.csv"
@@ -107,13 +108,14 @@ def run_waterbalance_script_on_tmodel(testdir: Path, name:str) -> Path:
     )
     return csv_file
 
-def evaluate_waterbalance(tmp_path_dev:Path,reference_result_folder:Path,name:str) -> None:
-    waterbalance_result = run_waterbalance_script_on_tmodel(tmp_path_dev,name)
+
+def evaluate_waterbalance(
+    tmp_path_dev: Path, reference_result_folder: Path, name: str
+) -> None:
+    waterbalance_result = run_waterbalance_script_on_tmodel(tmp_path_dev, name)
     csv_reference_file = (
         reference_result_folder / "test_run_tmodel" / "waterbalance.csv"
     )
     # assert numeric_csvfiles_equal(
     #     waterbalance_result, csv_reference_file, ";", abstol=5600.0, reltol=3.5
     # )
-
-
