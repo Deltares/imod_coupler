@@ -10,6 +10,8 @@ from fixtures.fixture_model import (
 from pytest_cases import parametrize_with_cases
 from test_utilities import fill_para_sim_template
 
+from imod_coupler.__main__ import run_coupler
+
 
 @parametrize_with_cases("files_to_skip", prefix="case_skiptest_")
 def test_run_tmodel_not_all_exchanges(
@@ -43,3 +45,5 @@ def test_run_tmodel_not_all_exchanges(
         [imod_coupler_exec_devel, toml_file_path],
         check=True,
     )
+
+    # run_coupler(toml_file_path)
