@@ -5,7 +5,6 @@
   <settings>
     <options>
       <option name="artifactRules" value="imod_coupler\tests\temp =&gt; test_output.zip" />
-      <option name="branchFilter" value="+:lumbricus" />
     </options>
     <parameters>
       <param name="conda_env_path" value="%system.teamcity.build.checkoutDir%/imod_coupler_testbench_env" />
