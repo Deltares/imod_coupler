@@ -1,15 +1,15 @@
 from typing import Set
 
 
-def xcase_skip_2d_coupling() -> Set[str]:
+def case_skip_2d_coupling() -> Set[str]:
     return {"msw_ponding_to_dfm_2d_dv_dmm", "dfm_2d_waterlevels_to_msw_h_dmm"}
 
 
-def xcase_skip_river2_drain() -> Set[str]:
+def case_skip_river2_drain() -> Set[str]:
     return {"mf6_river2_to_dmf_1d_q_dmm", "mf6_drainage_to_dfm_1d_q_dmm"}
 
 
-def xcase_skip_sprinkling_and_drain() -> Set[str]:
+def case_skip_sprinkling_and_drain() -> Set[str]:
     return {"msw_sprinkling_to_dfm_1d_q_dmm", "mf6_drainage_to_dfm_1d_q_dmm"}
 
 

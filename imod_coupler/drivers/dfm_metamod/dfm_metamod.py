@@ -83,6 +83,7 @@ class DfmMetaMod(Driver):
         ]  # Adapt as soon as we have multimodel support
 
     def initialize(self) -> None:
+        print("vraag maar aan je grootje")
         self.mf6 = Mf6Wrapper(
             self.dfm_metamod_config.kernels.modflow6.dll,
             self.dfm_metamod_config.kernels.modflow6.dll_dep_dir,
@@ -397,14 +398,14 @@ class DfmMetaMod(Driver):
                 updated_river_stage,
             )
 
-        self.exchange_logger.log_exchange(
-            "dflow1d2mf-riv_stage_input", dfm_water_levels, self.get_current_time()
-        )
-        self.exchange_logger.log_exchange(
-            "dflow1d2mf-riv_stage_output",
-            updated_river_stage,
-            self.get_current_time(),
-        )
+            self.exchange_logger.log_exchange(
+                "dflow1d2mf-riv_stage_input", dfm_water_levels, self.get_current_time()
+            )
+            self.exchange_logger.log_exchange(
+                "dflow1d2mf-riv_stage_output",
+                updated_river_stage,
+                self.get_current_time(),
+            )
 
     def exchange_stage_2d_dfm2msw(self) -> None:
         """
@@ -594,11 +595,11 @@ class DfmMetaMod(Driver):
                 )[:]
             )
 
-        self.exchange_logger.log_exchange(
-            "dflow1d_flux2sprinkling_msw_input",
-            sprinkling_dflow_dtsw,
-            self.dfm.get_current_time_days(),
-        )
+            self.exchange_logger.log_exchange(
+                "dflow1d_flux2sprinkling_msw_input",
+                sprinkling_dflow_dtsw,
+                self.dfm.get_current_time_days(),
+            )
 
     def exchange_flux_riv_passive_mf62dfm(self) -> None:
         """
