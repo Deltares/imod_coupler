@@ -26,7 +26,6 @@ def test_run_tmodel_not_all_exchanges(
     shutil.copytree(tmodel_short_input_folder, tmp_path_dev)
 
     toml_file_path = tmp_path_dev / "imod_coupler.toml"
-    toml_dict = {}
 
     set_kernels_paths_into_toml_file(
         toml_file_path,
