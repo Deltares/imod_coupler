@@ -42,5 +42,3 @@ def test_run_tmodel_not_all_exchanges(
         [imod_coupler_exec_devel, toml_file_path],
         check=True,
     )
-
-    # run_coupler(toml_file_path)
