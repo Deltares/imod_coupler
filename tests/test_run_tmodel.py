@@ -1,4 +1,5 @@
 import shutil
+import subprocess
 from pathlib import Path
 
 import pydantic
@@ -20,6 +21,7 @@ def test_run_tmodel(
     metaswap_dll_dep_dir_devel: Path,
     metaswap_lookup_table: Path,
     reference_result_folder: Path,
+    imod_coupler_exec_devel: Path,
 ) -> None:
     shutil.copytree(tmodel_input_folder, tmp_path_dev)
 
@@ -33,7 +35,10 @@ def test_run_tmodel(
 
     set_toml_file_logging(tmp_path_dev)
     fill_para_sim_template(tmp_path_dev / "MetaSWAP", metaswap_lookup_table)
-    run_coupler(toml_file_path)
+
+    subprocess.run([imod_coupler_exec_devel, toml_file_path],
+        check=True,
+    )
     evaluate_waterbalance(tmp_path_dev, reference_result_folder, "T-MODEL-D.LST")
 
 
@@ -59,9 +64,11 @@ def test_run_tmodel_f(
 
     set_toml_file_logging(tmp_path_dev)
     fill_para_sim_template(tmp_path_dev / "MetaSWAP", metaswap_lookup_table)
-    with pytest.raises(pydantic.ValidationError):
-        run_coupler(toml_file_path)
-    # evaluate_waterbalance(tmp_path_dev,reference_result_folder,"T-MODEL-F.LST")
+    with pytest.raises(subprocess.CalledProcessError):
+        subprocess.run([imod_coupler_exec_devel, toml_file_path],
+            check=True,
+        )
+    evaluate_waterbalance(tmp_path_dev,reference_result_folder,"T-MODEL-F.LST")
 
 
 def set_toml_file_tmodel(
@@ -109,6 +116,9 @@ def run_waterbalance_script_on_tmodel(testdir: Path, name: str) -> Path:
     return csv_file
 
 
+@pytest.mark.skip(
+    "disabled because of changing reference values"
+)
 def evaluate_waterbalance(
     tmp_path_dev: Path, reference_result_folder: Path, name: str
 ) -> None:
@@ -116,6 +126,6 @@ def evaluate_waterbalance(
     csv_reference_file = (
         reference_result_folder / "test_run_tmodel" / "waterbalance.csv"
     )
-    # assert numeric_csvfiles_equal(
-    #     waterbalance_result, csv_reference_file, ";", abstol=5600.0, reltol=3.5
-    # )
+    assert numeric_csvfiles_equal(
+        waterbalance_result, csv_reference_file, ";", abstol=5600.0, reltol=3.5
+    )
