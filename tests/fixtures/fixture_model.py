@@ -21,6 +21,7 @@ from hydrolib.core.dflowfm.xyz.models import XYZModel, XYZPoint
 from imod import mf6, msw
 from numpy import float_, int_, nan
 from numpy.typing import NDArray
+from test_scripts.water_balance.combine import create_waterbalance_file
 
 from imod_coupler.utils import cd
 
@@ -556,7 +557,7 @@ def mf6_model_with_river(coupled_mf6_model) -> mf6.Modflow6Simulation:
     return coupled_mf6_model
 
 
-def set_kernels_paths_into_toml_file(
+def set_toml_file_tmodel(
     toml_file_path: Path,
     modflow_dll_devel: Path,
     dflowfm_dll: Path,
@@ -576,6 +577,19 @@ def set_kernels_paths_into_toml_file(
         tomli_w.dump(toml_dict, toml_file)
 
 
+def set_workdir_in_logging_config_file(
+    output_config_path: Path,
+    workdir: Path,
+) -> None:
+    output_dict = {}
+    with open(output_config_path, "rb") as f:
+        output_dict = tomli.load(f)
+    output_dict["general"][0]["output_dir"] = str(workdir)
+
+    with open(output_config_path, "wb") as toml_file:
+        tomli_w.dump(output_dict, toml_file)
+
+
 def remove_exchange_file_references(
     toml_file_path: Path, filekeys_to_be_removed: Set[str]
 ):
@@ -587,3 +601,27 @@ def remove_exchange_file_references(
 
     with open(toml_file_path, "wb") as toml_file:
         tomli_w.dump(toml_dict, toml_file)
+
+
+def evaluate_waterbalance(
+    tmp_path_dev: Path, reference_result_folder: Path, name: str
+) -> None:
+    waterbalance_result = run_waterbalance_script_on_tmodel(tmp_path_dev, name)
+    csv_reference_file = (
+        reference_result_folder / "test_run_tmodel" / "waterbalance.csv"
+    )
+    # assert numeric_csvfiles_equal(
+    #     waterbalance_result, csv_reference_file, ";", abstol=5600.0, reltol=3.5
+    # )
+
+
+def run_waterbalance_script_on_tmodel(testdir: Path, name: str) -> Path:
+    modflow_out_file = testdir / "Modflow6" / "GWF_1" / name
+    dflow_out_file = testdir / "dflow-fm" / "DFM_OUTPUT_FlowFM" / "FlowFM_his.nc"
+    metaswap_out_file = testdir / "MetaSWAP" / "msw" / "csv" / "tot_svat_dtgw.csv"
+
+    csv_file = testdir / "water_balance.csv"
+    create_waterbalance_file(
+        dflow_out_file, metaswap_out_file, modflow_out_file, output_file_csv=csv_file
+    )
+    return csv_file

@@ -3,10 +3,7 @@ import subprocess
 from pathlib import Path
 from typing import Set
 
-from fixtures.fixture_model import (
-    remove_exchange_file_references,
-    set_kernels_paths_into_toml_file,
-)
+from fixtures.fixture_model import remove_exchange_file_references, set_toml_file_tmodel
 from pytest_cases import parametrize_with_cases
 from test_utilities import fill_para_sim_template
 
@@ -29,7 +26,7 @@ def test_run_tmodel_not_all_exchanges(
 
     toml_file_path = tmp_path_dev / "imod_coupler.toml"
 
-    set_kernels_paths_into_toml_file(
+    set_toml_file_tmodel(
         toml_file_path,
         modflow_dll_devel,
         dflowfm_dll,
