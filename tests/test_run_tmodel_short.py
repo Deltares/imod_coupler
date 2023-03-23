@@ -8,6 +8,11 @@ import tomli_w
 from pytest_cases import parametrize_with_cases
 from test_utilities import fill_para_sim_template
 
+from tests.fixtures.fixture_model import (
+    remove_exchange_file_references,
+    set_kernels_paths_into_toml_file,
+)
+
 
 @parametrize_with_cases("files_to_skip", prefix="case_skiptest_")
 def test_run_tmodel_not_all_exchanges(
@@ -25,15 +30,17 @@ def test_run_tmodel_not_all_exchanges(
 
     toml_file_path = tmp_path_dev / "imod_coupler.toml"
     toml_dict = {}
-    with open(toml_file_path, "rb") as f:
-        toml_dict = tomli.load(f)
 
-    toml_dict["driver"]["kernels"]["modflow6"]["dll"] = str(modflow_dll_devel)
-    toml_dict["driver"]["kernels"]["dflowfm"]["dll"] = str(dflowfm_dll)
-    toml_dict["driver"]["kernels"]["metaswap"]["dll"] = str(metaswap_dll_devel)
-    toml_dict["driver"]["kernels"]["metaswap"]["dll_dep_dir"] = str(
-        metaswap_dll_dep_dir_devel
+    set_kernels_paths_into_toml_file(
+        toml_file_path,
+        modflow_dll_devel,
+        dflowfm_dll,
+        metaswap_dll_devel,
+        metaswap_dll_dep_dir_devel,
     )
+
+    remove_exchange_file_references(toml_file_path, files_to_skip)
+
     for filekey in files_to_skip:
         toml_dict["driver"]["coupling"][0].pop(filekey, None)
 

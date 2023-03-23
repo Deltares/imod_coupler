@@ -7,6 +7,7 @@ from test_scripts.water_balance.combine import create_waterbalance_file
 from test_utilities import fill_para_sim_template, numeric_csvfiles_equal
 
 from imod_coupler.__main__ import run_coupler
+from tests.fixtures.fixture_model import set_kernels_paths_into_toml_file
 
 
 def test_run_tmodel(
@@ -59,26 +60,6 @@ def run_waterbalance_script_on_tmodel(testdir: Path) -> Path:
         dflow_out_file, metaswap_out_file, modflow_out_file, output_file_csv=csv_file
     )
     return csv_file
-
-
-def set_kernels_paths_into_toml_file(
-    toml_file_path: Path,
-    modflow_dll_devel: Path,
-    dflowfm_dll: Path,
-    metaswap_dll_devel: Path,
-    metaswap_dll_dep_dir_devel: Path,
-) -> None:
-    with open(toml_file_path, "rb") as f:
-        toml_dict = tomli.load(f)
-
-    toml_dict["driver"]["kernels"]["modflow6"]["dll"] = str(modflow_dll_devel)
-    toml_dict["driver"]["kernels"]["dflowfm"]["dll"] = str(dflowfm_dll)
-    toml_dict["driver"]["kernels"]["metaswap"]["dll"] = str(metaswap_dll_devel)
-    toml_dict["driver"]["kernels"]["metaswap"]["dll_dep_dir"] = str(
-        metaswap_dll_dep_dir_devel
-    )
-    with open(toml_file_path, "wb") as toml_file:
-        tomli_w.dump(toml_dict, toml_file)
 
 
 def set_output_directory_into_toml_file(
