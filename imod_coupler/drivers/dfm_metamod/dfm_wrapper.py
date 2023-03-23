@@ -5,6 +5,7 @@ import numpy as np
 from bmi.wrapper import BMIWrapper, create_string_buffer
 from numpy.ctypeslib import as_array, ndpointer
 from numpy.typing import NDArray
+from scipy.spatial import KDTree
 
 
 class DfmWrapper(BMIWrapper):  # type: ignore
@@ -55,8 +56,26 @@ class DfmWrapper(BMIWrapper):  # type: ignore
             raise ValueError("No dflow 1d nodes found!")
         all_waterlevels = self.get_var("s1")
         return np.asarray(
-            all_waterlevels[nr_nodes_2d: nr_nodes_2d + nr_nodes_1d], dtype=np.float_
+            all_waterlevels[nr_nodes_2d : nr_nodes_2d + nr_nodes_1d], dtype=np.float_
         )
+
+    def __get_internal_node_coordinates__(self) -> NDArray[np.double]:
+        """
+        Returns
+        -------
+        Optional[NDArray[np.float_]]
+            an array with the x-coordinates of all internal nodes
+        Optional[NDArray[np.float_]]
+            an array with the y-coordinates of all internal nodes
+        """
+
+        nr_nodes_1d = self.get_number_1d_nodes()
+        nr_nodes_2d = self.get_number_2d_nodes()
+        xz = self.get_var("xz")
+        npxz = np.asarray(xz[: nr_nodes_2d + nr_nodes_1d], dtype=np.double)
+        yz = self.get_var("yz")
+        npyz = np.asarray(yz[: nr_nodes_2d + nr_nodes_1d], dtype=np.double)
+        return np.array(np.c_[npxz, npyz])
 
     def get_waterlevels_2d_ptr(self) -> NDArray[np.float_]:
         """
@@ -101,8 +120,10 @@ class DfmWrapper(BMIWrapper):  # type: ignore
         if nr_nodes_1d == 0:
             raise ValueError("No dflow 1d nodes found!")
         all_cumulative_fluxes = self.get_var("vextcum")
-        return np.asarray(all_cumulative_fluxes[nr_nodes_2d:nr_nodes_1d + nr_nodes_2d],
-                          dtype=np.float_)
+        return np.asarray(
+            all_cumulative_fluxes[nr_nodes_2d : nr_nodes_1d + nr_nodes_2d],
+            dtype=np.float_,
+        )
 
     def get_cumulative_fluxes_2d_nodes_ptr(self) -> NDArray[np.float_]:
         """
@@ -178,7 +199,16 @@ class DfmWrapper(BMIWrapper):  # type: ignore
         if nr_nodes_1d == 0:
             raise ValueError("No dflow 1d nodes found!")
         q_ext = self.get_var("qext")
-        return np.asarray(q_ext[nr_nodes_2d:nr_nodes_1d + nr_nodes_2d], dtype=np.float_)
+        return np.asarray(
+            q_ext[nr_nodes_2d : nr_nodes_1d + nr_nodes_2d], dtype=np.float_
+        )
+
+    def init_kdtree(self) -> None:
+        nx1d = self.get_number_1d_nodes()
+        nx2d = self.get_number_2d_nodes()
+        flowelem_xy = self.__get_internal_node_coordinates__()
+        self.kdtree1D = KDTree(flowelem_xy[nx2d : nx2d + nx1d])
+        self.kdtree2D = KDTree(flowelem_xy[:nx2d])
 
     def get_2d_fluxes_ptr(self) -> NDArray[np.float_]:
         """
@@ -194,7 +224,10 @@ class DfmWrapper(BMIWrapper):  # type: ignore
         return np.asarray(q_ext[:nr_nodes_2d], dtype=np.float_)
 
     def get_snapped_flownode(
-        self, input_node_x: NDArray[np.float64], input_node_y: NDArray[np.float64]
+        self,
+        input_node_x: NDArray[np.float64],
+        input_node_y: NDArray[np.float64],
+        indtp: str,
     ) -> NDArray[np.int_]:
         """Calculates the flownodes near the given x-y coordinates
 
@@ -210,7 +243,13 @@ class DfmWrapper(BMIWrapper):  # type: ignore
         NDArray[np.int_]
             flownodes near the given x-y coordinates
         """
-        feature_type = create_string_buffer("flownode")
+
+        if indtp == "1D":
+            feature_type = create_string_buffer("flownode1d")
+        elif indtp == "2D":
+            feature_type = create_string_buffer("flownode2d")
+        else:
+            feature_type = create_string_buffer("flownode")
         assert len(input_node_x) == len(input_node_y)
 
         input_array_length = c_int(len(input_node_x))
@@ -235,4 +274,11 @@ class DfmWrapper(BMIWrapper):  # type: ignore
             raise RuntimeError("The `get_snapped_flownode` call failed.")
 
         output_ids = as_array(output_ptr_ids, shape=(output_array_length.value,))
-        return output_ids
+        if indtp == "1D":
+            return output_ids
+        else:
+            nx2d = self.get_number_2d_nodes()
+            return output_ids - nx2d
+
+    def get_current_time_days(self) -> float:
+        return (float)(super().get_current_time() / 86400.0)
