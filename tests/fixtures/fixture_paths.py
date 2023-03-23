@@ -148,6 +148,9 @@ def tmodel_input_folder(request) -> Path:
 @pytest.fixture(scope="function")
 def tmodel_short_input_folder(request) -> Path:
     return Path(request.fspath).parent / "data" / "t_model_short"
+    
+def tmodel_f_input_folder(request) -> Path:
+    return Path(request.fspath).parent / "data" / "t_model_f"
 
 
 @pytest.fixture(scope="function")
