@@ -594,6 +594,7 @@ class DfmMetaMod(Driver):
         matrix = self.map_msw_dflow1d["msw-sprinkling2dflow1d_flux"].transpose()
         sprinkling_msw[:] = msw_sprinkling_demand[:] * matrix.dot(realised_fraction)[:]
 
+        sprinkling_dflow_dtsw = realised_dfm * days_to_seconds(self.delt_msw_dflow)
         self.exchange_logger.log_exchange(
             "dflow1d_flux2sprinkling_msw_input",
             sprinkling_dflow_dtsw,
