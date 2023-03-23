@@ -83,7 +83,6 @@ class DfmMetaMod(Driver):
         ]  # Adapt as soon as we have multimodel support
 
     def initialize(self) -> None:
-        print("vraag maar aan je grootje")
         self.mf6 = Mf6Wrapper(
             self.dfm_metamod_config.kernels.modflow6.dll,
             self.dfm_metamod_config.kernels.modflow6.dll_dep_dir,
