@@ -58,7 +58,7 @@ def test_get_river_stage(
 
     bmiwrapper.initialize()
     bmiwrapper.update()
-    water_levels_1d = bmiwrapper.get_waterlevels_1d()
+    water_levels_1d = bmiwrapper.get_waterlevels_1d_ptr()
     bmiwrapper.finalize()
 
     assert water_levels_1d is not None
@@ -103,7 +103,7 @@ def test_get_cumulative_fluxes_1d_nodes(
     bmiwrapper.initialize()
     bmiwrapper.update()
 
-    cumul_fluxes = bmiwrapper.get_cumulative_fluxes_1d_nodes()
+    cumul_fluxes = bmiwrapper.get_cumulative_fluxes_1d_nodes_ptr()
     bmiwrapper.finalize()
     assert cumul_fluxes is not None
     assert len(cumul_fluxes) == 20
@@ -112,7 +112,7 @@ def test_get_cumulative_fluxes_1d_nodes(
     np.testing.assert_allclose(cumul_fluxes, 0)
 
 
-def test_get_1d_river_fluxes(
+def test_get_1d_river_fluxes_ptr(
     tmodel_input_folder: Path,
     dflowfm_dll_devel: Path,
     tmp_path_dev: Path,
@@ -126,7 +126,7 @@ def test_get_1d_river_fluxes(
 
     bmiwrapper.initialize()
     bmiwrapper.update()
-    fluxes = bmiwrapper.get_1d_river_fluxes()
+    fluxes = bmiwrapper.get_1d_river_fluxes_ptr()
     assert fluxes is not None
     assert len(fluxes) == 20
     # @TODO
@@ -146,11 +146,11 @@ def test_set_1d_river_fluxes(
 
     bmiwrapper.initialize()
     bmiwrapper.update()
-    fluxes = bmiwrapper.get_1d_river_fluxes()
+    fluxes = bmiwrapper.get_1d_river_fluxes_ptr()
     assert fluxes is not None
     fluxes[:] = 20
     bmiwrapper.set_1d_river_fluxes(fluxes)
-    new_fluxes = bmiwrapper.get_1d_river_fluxes()
+    new_fluxes = bmiwrapper.get_1d_river_fluxes_ptr()
     bmiwrapper.finalize()
     assert new_fluxes is not None
     np.testing.assert_allclose(fluxes, new_fluxes)
