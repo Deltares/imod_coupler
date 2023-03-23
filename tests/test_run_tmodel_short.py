@@ -3,15 +3,12 @@ import subprocess
 from pathlib import Path
 from typing import Set
 
-import tomli
-import tomli_w
-from pytest_cases import parametrize_with_cases
-from test_utilities import fill_para_sim_template
-
-from tests.fixtures.fixture_model import (
+from fixtures.fixture_model import (
     remove_exchange_file_references,
     set_kernels_paths_into_toml_file,
 )
+from pytest_cases import parametrize_with_cases
+from test_utilities import fill_para_sim_template
 
 
 @parametrize_with_cases("files_to_skip", prefix="case_skiptest_")
@@ -40,12 +37,6 @@ def test_run_tmodel_not_all_exchanges(
     )
 
     remove_exchange_file_references(toml_file_path, files_to_skip)
-
-    for filekey in files_to_skip:
-        toml_dict["driver"]["coupling"][0].pop(filekey, None)
-
-    with open(toml_file_path, "wb") as toml_file:
-        tomli_w.dump(toml_dict, toml_file)
 
     fill_para_sim_template(tmp_path_dev / "MetaSWAP", metaswap_lookup_table)
 

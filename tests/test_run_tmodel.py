@@ -3,11 +3,11 @@ from pathlib import Path
 
 import tomli
 import tomli_w
+from fixtures.fixture_model import set_kernels_paths_into_toml_file
 from test_scripts.water_balance.combine import create_waterbalance_file
 from test_utilities import fill_para_sim_template, numeric_csvfiles_equal
 
 from imod_coupler.__main__ import run_coupler
-from tests.fixtures.fixture_model import set_kernels_paths_into_toml_file
 
 
 def test_run_tmodel(
