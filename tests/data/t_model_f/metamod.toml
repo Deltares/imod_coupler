@@ -1,0 +1,21 @@
+timing = false
+log_level = "INFO"
+driver_type = "metamod"
+
+[driver.kernels.modflow6]
+dll = "D:\\dev\\imod_collector\\regression\\modflow6\\libmf6.dll"
+work_dir = ".\\Modflow6"
+
+[driver.kernels.metaswap]
+dll = "D:\\dev\\imod_collector\\devel\\metaswap\\MetaSWAP.dll"
+work_dir = ".\\MetaSWAP"
+dll_dep_dir = "D:\\dev\\imod_collector\\devel\\metaswap"
+
+[[driver.coupling]]
+mf6_model = "GWF_1"
+mf6_msw_node_map = "./exchanges/nodenr2svat.dxc"
+mf6_msw_recharge_pkg = "rch_msw"
+mf6_msw_recharge_map = "./exchanges/rchindex2svat.dxc"
+enable_sprinkling = false
+mf6_msw_well_pkg = "wells_msw"
+mf6_msw_sprinkling_map = "./exchanges/wellindex2svat.dxc"
