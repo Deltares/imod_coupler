@@ -56,8 +56,6 @@ class Coupling(BaseModel):
 
     msw_sprinkling_to_dfm_1d_q_dmm: Optional[FilePath]
 
-    dfm_1d_points_dat: FilePath
-    dfm_2d_points_dat: FilePath
     dfm_2d_waterlevels_to_msw_h_dmm: Optional[FilePath]
     msw_ponding_to_dfm_2d_dv_dmm: Optional[FilePath]
     mf6_msw_sprinkling_map: Optional[
@@ -103,8 +101,6 @@ class Coupling(BaseModel):
         "msw_ponding_to_dfm_2d_dv_dmm",
         "dfm_2d_waterlevels_to_msw_h_dmm",
         "msw_ponding_to_dfm_2d_dv_dmm",
-        "dfm_1d_points_dat",
-        "dfm_2d_points_dat",
     )
     def resolve_mapping_files(cls, mapping_file: FilePath) -> FilePath:
         return mapping_file.resolve()

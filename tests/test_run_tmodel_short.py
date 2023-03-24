@@ -7,8 +7,6 @@ from fixtures.fixture_model import remove_exchange_file_references, set_toml_fil
 from pytest_cases import parametrize_with_cases
 from test_utilities import fill_para_sim_template
 
-from imod_coupler.__main__ import run_coupler
-
 
 @parametrize_with_cases("files_to_skip", prefix="case_skiptest_")
 def test_run_tmodel_not_all_exchanges(
