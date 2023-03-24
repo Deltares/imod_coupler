@@ -73,8 +73,7 @@ def test_run_tmodel_f(
     set_workdir_in_logging_config_file(output_config_path, tmp_path_dev)
     fill_para_sim_template(tmp_path_dev / "MetaSWAP", metaswap_lookup_table)
 
-    with pytest.raises(subprocess.CalledProcessError):
-        subprocess.run(
-            [str(imod_coupler_exec_devel), toml_file_path],
-            check=True,
-        )
+    subprocess.run(
+        [str(imod_coupler_exec_devel), toml_file_path],
+        check=True,
+    )
