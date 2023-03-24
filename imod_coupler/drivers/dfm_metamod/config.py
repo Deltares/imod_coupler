@@ -48,17 +48,16 @@ class Coupling(BaseModel):
     mf6_msw_node_map: FilePath  # the path to the node map file
     mf6_msw_recharge_map: FilePath  # the pach to the recharge map file
 
-    mf6_river_to_dfm_1d_q_dmm: FilePath
-    dfm_1d_waterlevel_to_mf6_river_stage_dmm: FilePath
-    mf6_river2_to_dmf_1d_q_dmm: FilePath
-    mf6_drainage_to_dfm_1d_q_dmm: FilePath
-    msw_runoff_to_dfm_1d_q_dmm: FilePath
-    dfm_2d_waterlevels_to_msw_h_dmm: FilePath
-    msw_sprinkling_to_dfm_1d_q_dmm: FilePath
-    msw_ponding_to_dfm_2d_dv_dmm: FilePath
-    dfm_1d_points_dat: FilePath
-    dfm_2d_points_dat: FilePath
+    mf6_river_to_dfm_1d_q_dmm: Optional[FilePath]
+    dfm_1d_waterlevel_to_mf6_river_stage_dmm: Optional[FilePath]
+    mf6_river2_to_dmf_1d_q_dmm: Optional[FilePath]
+    mf6_drainage_to_dfm_1d_q_dmm: Optional[FilePath]
+    msw_runoff_to_dfm_1d_q_dmm: Optional[FilePath]
 
+    msw_sprinkling_to_dfm_1d_q_dmm: Optional[FilePath]
+
+    dfm_2d_waterlevels_to_msw_h_dmm: Optional[FilePath]
+    msw_ponding_to_dfm_2d_dv_dmm: Optional[FilePath]
     mf6_msw_sprinkling_map: Optional[
         FilePath
     ] = None  # the pach to the sprinkling map file
@@ -100,8 +99,8 @@ class Coupling(BaseModel):
         "dfm_2d_waterlevels_to_msw_h_dmm",
         "msw_sprinkling_to_dfm_1d_q_dmm",
         "msw_ponding_to_dfm_2d_dv_dmm",
-        "dfm_1d_points_dat",
-        "dfm_2d_points_dat",
+        "dfm_2d_waterlevels_to_msw_h_dmm",
+        "msw_ponding_to_dfm_2d_dv_dmm",
     )
     def resolve_mapping_files(cls, mapping_file: FilePath) -> FilePath:
         return mapping_file.resolve()

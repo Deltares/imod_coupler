@@ -87,8 +87,6 @@ class DfmWrapper(BMIWrapper):  # type: ignore
         """
 
         nr_nodes_2d = self.get_number_2d_nodes()
-        if nr_nodes_2d == 0:
-            raise ValueError("No dflow 1d nodes found!")
         all_waterlevels = self.get_var("s1")
         return np.asarray(all_waterlevels[:nr_nodes_2d], dtype=np.float_)
 
@@ -102,8 +100,6 @@ class DfmWrapper(BMIWrapper):  # type: ignore
         """
 
         nr_nodes_2d = self.get_number_2d_nodes()
-        if nr_nodes_2d == 0:
-            raise ValueError("No dflow 1d nodes found!")
         all_bed_levels = self.get_var("bl")
         return np.asarray(all_bed_levels[:nr_nodes_2d], dtype=np.float_)
 
@@ -134,8 +130,6 @@ class DfmWrapper(BMIWrapper):  # type: ignore
             or None if there ar no 1d nodes.
         """
         nr_nodes_2d = self.get_number_2d_nodes()
-        if nr_nodes_2d == 0:
-            raise ValueError("No dflow 1d nodes found!")
         all_cumulative_fluxes = self.get_var("vextcum")
         return np.asarray(all_cumulative_fluxes[:nr_nodes_2d], dtype=np.float_)
 
