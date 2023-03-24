@@ -25,8 +25,8 @@ def fill_para_sim_template(msw_folder: Path, path_unsat_dbase: Path) -> None:
 def diff_per_column_dataframe(
     df1: pd.DataFrame,
     df2: pd.DataFrame,
-    tolerance: Dict[str, tuple[np.float]]
-) -> Dict[np.Any]:
+    tolerance: Dict[str, tuple[np.float_, np.float_]],
+) -> tuple[Dict[str, list[int]], Dict[str, list[int]], Dict[str, tuple[bool, bool]]]:
     failed = {}
     for varname in list(df1):
         if varname not in df2:
@@ -40,13 +40,14 @@ def diff_per_column_dataframe(
         absfailedndx = s2[~(abs(s2 - s1) > tol[0])].index
         relfailedndx = s2[~(abs(s2 - s1) > abs(s1 * tol[1]))].index
         failed[varname] = (absfailedndx.any(), relfailedndx.any())
+    return absfailedndx, relfailedndx, failed
 
 
 def numeric_csvfiles_equal(
     file1: Path,
     file2: Path,
     sep: str,
-    tolerance: Dict[tuple[float]],
+    tolerance: Dict[str, tuple[np.float_, np.float_]],
 ) -> bool:
     df1 = pd.read_csv(
         file1,
@@ -57,13 +58,13 @@ def numeric_csvfiles_equal(
         sep,
     )
     if df1.shape[0] != df2.shape[0]:
-        print(f"the dataframes in {file1} and {file2} do not have the same number of rows")
+        print(f"the dataframes in {file1} and {file2} differ in length")
         return False
 
     # rownumbers with significant difference per variable
-    diffs = diff_per_column_dataframe(df1, df2, tolerance)
+    absfailedndx, relfailedndx, failed = diff_per_column_dataframe(df1, df2, tolerance)
     # is there any significant difference whatsoever?
-    isDifferent = any([bool(lst) for lst in diffs.values()])
+    isDifferent = any(failed.values())
 
     return isDifferent
 
