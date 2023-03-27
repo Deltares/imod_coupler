@@ -702,7 +702,7 @@ class DfmMetaMod(Driver):
                 1 - matrix.dot(realised_fraction)
             )
 
-            assert self.coupling.mf6_msw_well_pkg
+            assert self.coupling.mf6_wel_correction_pkg
             self.mf6.set_well_flux(
                 self.coupling.mf6_model, self.coupling.mf6_wel_correction_pkg, qmf_corr
             )
@@ -736,7 +736,7 @@ class DfmMetaMod(Driver):
             * self.map_mod_msw["msw2mod_recharge"].dot(self.msw.get_volume_ptr())[:]
         )
 
-        if self.coupling.enable_sprinkling:
+        if self.coupling.enable_sprinkling():
             assert self.coupling.mf6_msw_well_pkg is not None
             self.mf6.get_sprinkling(
                 self.coupling.mf6_model, self.coupling.mf6_msw_well_pkg

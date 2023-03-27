@@ -14,7 +14,7 @@ from test_utilities import fill_para_sim_template, numeric_csvfiles_equal
 from imod_coupler.__main__ import run_coupler
 
 
-def test_run_tmodel(
+def test_run_tmodel_no_sprinkling(
     tmp_path_dev: Path,
     tmodel_input_folder: Path,
     modflow_dll_devel: Path,
@@ -38,6 +38,13 @@ def test_run_tmodel(
         dflowfm_dll,
     )
 
+    files_to_skip = {
+        "msw_sprinkling_to_dfm_1d_q_dmm",
+        "mf6_msw_sprinkling_map",
+        "mf6_msw_well_pkg",
+    }
+    remove_exchange_file_references(toml_file_path, files_to_skip)
+
     set_workdir_in_logging_config_file(output_config_path, tmp_path_dev)
     fill_para_sim_template(tmp_path_dev / "MetaSWAP", metaswap_lookup_table)
 
@@ -49,7 +56,7 @@ def test_run_tmodel(
     evaluate_waterbalance(tmp_path_dev, reference_result_folder, "T-MODEL-D.LST")
 
 
-def test_run_tmodel_f(
+def test_run_tmodel_f_no_sprinkling(
     tmp_path_dev: Path,
     tmodel_f_input_folder: Path,
     modflow_dll_devel: Path,
@@ -72,6 +79,12 @@ def test_run_tmodel_f(
         dflowfm_dll,
     )
 
+    files_to_skip = {
+        "msw_sprinkling_to_dfm_1d_q_dmm",
+        "mf6_msw_sprinkling_map",
+        "mf6_msw_well_pkg",
+    }
+    remove_exchange_file_references(toml_file_path, files_to_skip)
     set_workdir_in_logging_config_file(output_config_path, tmp_path_dev)
     fill_para_sim_template(tmp_path_dev / "MetaSWAP", metaswap_lookup_table)
     run_coupler(toml_file_path)
@@ -150,7 +163,10 @@ def test_run_tmodel_f_without_dflow(
         "msw_runoff_to_dfm_1d_q_dmm",
         "mf6_river_to_dfm_1d_q_dmm",
         "dfm_1d_waterlevel_to_mf6_river_stage_dmm",
+        "mf6_msw_sprinkling_map",
+        "mf6_msw_well_pkg",
     }
+
     remove_exchange_file_references(toml_file_path, files_to_skip)
 
     set_workdir_in_logging_config_file(output_config_path, tmp_path_dev)
