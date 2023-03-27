@@ -75,11 +75,11 @@ def test_run_tmodel_f(
     fill_para_sim_template(tmp_path_dev / "MetaSWAP", metaswap_lookup_table)
 
     subprocess.run(
-        [str(imod_coupler_exec_devel), toml_file_path],
+        [imod_coupler_exec_devel, toml_file_path],
         check=True,
     )
 
-
+@pytest.mark.maintenance
 def test_run_tmodel_f_with_metamod(
     tmp_path_dev: Path,
     tmodel_f_input_folder: Path,
@@ -90,9 +90,13 @@ def test_run_tmodel_f_with_metamod(
     reference_result_folder: Path,
     imod_coupler_exec_devel: Path,
 ) -> None:
+    '''
+    this test runs t_model_f with the metamod driver (so without dflow)
+    It can be used to compare the test results of the metamod simulation with the dfm_metamod simulation in which we disable 
+    all the dfm-related couplings. 
+    '''
     shutil.copytree(tmodel_f_input_folder, tmp_path_dev)
     toml_file_path = tmp_path_dev / "metamod.toml"
-    output_config_path = tmp_path_dev / "output_config.toml"
 
     set_toml_file_tmodel(
         toml_file_path,
@@ -103,11 +107,10 @@ def test_run_tmodel_f_with_metamod(
 
     fill_para_sim_template(tmp_path_dev / "MetaSWAP", metaswap_lookup_table)
 
-    run_coupler(toml_file_path)
-    """ subprocess.run(
+    subprocess.run(
         [str(imod_coupler_exec_devel), toml_file_path],
         check=True,
-    )   """
+    )
 
 
 def test_run_tmodel_f_without_dflow(
@@ -121,6 +124,10 @@ def test_run_tmodel_f_without_dflow(
     reference_result_folder: Path,
     imod_coupler_exec_devel: Path,
 ) -> None:
+    '''
+    This test aims to remove all the exchanges that involve dflow, so that we can compare the result of 
+    the simulation with the metamod driver's result for the same setup.
+    '''
     shutil.copytree(tmodel_f_input_folder, tmp_path_dev)
     toml_file_path = tmp_path_dev / "imod_coupler.toml"
     output_config_path = tmp_path_dev / "output_config.toml"
@@ -147,9 +154,8 @@ def test_run_tmodel_f_without_dflow(
     set_workdir_in_logging_config_file(output_config_path, tmp_path_dev)
     fill_para_sim_template(tmp_path_dev / "MetaSWAP", metaswap_lookup_table)
 
-    run_coupler(toml_file_path)
-    """ subprocess.run(
+    subprocess.run(
         [str(imod_coupler_exec_devel), toml_file_path],
         check=True,
-    )   """
+    )
 
