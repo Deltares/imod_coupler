@@ -79,6 +79,7 @@ def test_run_tmodel_f(
         check=True,
     )
 
+
 @pytest.mark.maintenance
 def test_run_tmodel_f_with_metamod(
     tmp_path_dev: Path,
@@ -90,11 +91,11 @@ def test_run_tmodel_f_with_metamod(
     reference_result_folder: Path,
     imod_coupler_exec_devel: Path,
 ) -> None:
-    '''
+    """
     this test runs t_model_f with the metamod driver (so without dflow)
-    It can be used to compare the test results of the metamod simulation with the dfm_metamod simulation in which we disable 
-    all the dfm-related couplings. 
-    '''
+    It can be used to compare the test results of the metamod simulation with the dfm_metamod simulation in which we disable
+    all the dfm-related couplings.
+    """
     shutil.copytree(tmodel_f_input_folder, tmp_path_dev)
     toml_file_path = tmp_path_dev / "metamod.toml"
 
@@ -124,10 +125,10 @@ def test_run_tmodel_f_without_dflow(
     reference_result_folder: Path,
     imod_coupler_exec_devel: Path,
 ) -> None:
-    '''
-    This test aims to remove all the exchanges that involve dflow, so that we can compare the result of 
+    """
+    This test aims to remove all the exchanges that involve dflow, so that we can compare the result of
     the simulation with the metamod driver's result for the same setup.
-    '''
+    """
     shutil.copytree(tmodel_f_input_folder, tmp_path_dev)
     toml_file_path = tmp_path_dev / "imod_coupler.toml"
     output_config_path = tmp_path_dev / "output_config.toml"
@@ -158,4 +159,3 @@ def test_run_tmodel_f_without_dflow(
         [str(imod_coupler_exec_devel), toml_file_path],
         check=True,
     )
-

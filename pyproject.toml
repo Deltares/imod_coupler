@@ -5,5 +5,4 @@ multi_line_output = 3
 [tool.pytest.ini_options]
 markers = [
     "maintenance: marks tests that are used for maintenance (eg generating reference results) and not for code testing (deselect with '-m \"not maintenance\"')",
-\"')",
 ]
