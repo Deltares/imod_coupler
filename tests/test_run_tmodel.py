@@ -48,11 +48,10 @@ def test_run_tmodel_no_sprinkling(
     set_workdir_in_logging_config_file(output_config_path, tmp_path_dev)
     fill_para_sim_template(tmp_path_dev / "MetaSWAP", metaswap_lookup_table)
 
-    run_coupler(toml_file_path)
-    """subprocess.run(
-        [imod_coupler_exec_devel, toml_file_path],
+    subprocess.run(
+        [str(imod_coupler_exec_devel), toml_file_path],
         check=True,
-    )"""
+    )
     evaluate_waterbalance(tmp_path_dev, reference_result_folder, "T-MODEL-D.LST")
 
 
@@ -87,11 +86,10 @@ def test_run_tmodel_f_no_sprinkling(
     remove_exchange_file_references(toml_file_path, files_to_skip)
     set_workdir_in_logging_config_file(output_config_path, tmp_path_dev)
     fill_para_sim_template(tmp_path_dev / "MetaSWAP", metaswap_lookup_table)
-    run_coupler(toml_file_path)
-    """subprocess.run(
-        [imod_coupler_exec_devel, toml_file_path],
+    subprocess.run(
+        [str(imod_coupler_exec_devel), toml_file_path],
         check=True,
-    )"""
+    )
 
 
 @pytest.mark.maintenance
