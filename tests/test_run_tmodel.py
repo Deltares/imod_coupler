@@ -165,6 +165,7 @@ def test_run_tmodel_f_without_dflow(
 
     remove_exchange_file_references(toml_file_path, files_to_skip)
 
+    set_workdir_in_logging_config_file(output_config_path, tmp_path_dev)
     fill_para_sim_template(tmp_path_dev / "MetaSWAP", metaswap_lookup_table)
 
     subprocess.run(
