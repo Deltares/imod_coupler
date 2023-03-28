@@ -741,12 +741,12 @@ class DfmMetaMod(Driver):
             self.mf6.get_sprinkling(
                 self.coupling.mf6_model, self.coupling.mf6_msw_well_pkg
             )[:] = (
-                self.mask_mod_msw["msw2mf6_sprinkling"][:]
+                self.mask_mod_msw["msw2mod_sprinkling"][:]
                 * self.mf6.get_sprinkling(
                     self.coupling.mf6_model, self.coupling.mf6_msw_well_pkg
                 )[:]
                 + tled
-                * self.map_mod_msw["msw2mf6_sprinkling"].dot(self.msw.get_volume_ptr())[
+                * self.map_mod_msw["msw2mod_sprinkling"].dot(self.msw.get_volume_ptr())[
                     :
                 ]
             )
