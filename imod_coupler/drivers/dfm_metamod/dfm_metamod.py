@@ -195,8 +195,7 @@ class DfmMetaMod(Driver):
             self.exchange_ponding_msw2dflow1d()
 
             # flux from metaswap sprinkling to water balance 1d
-            if self.coupling.enable_sprinkling():
-                self.exchange_sprinkling_msw2dflow1d()
+            self.exchange_sprinkling_msw2dflow1d()
 
             # exchange ponding msw to water balance 2d
             self.exchange_ponding_msw2dflow2d()
@@ -241,10 +240,9 @@ class DfmMetaMod(Driver):
             self.exchange_balans_2d.compute_realised(q_dflow_realised_2d)
 
             # exchange realised values 1d to metaswap before finish of surface water time-step
-            if self.coupling.enable_sprinkling():
-                self.exchange_sprinkling_dflow1d2msw(
-                    self.exchange_balans_1d.realised["dflow1d_flux2sprinkling_msw"]
-                )
+            self.exchange_sprinkling_dflow1d2msw(
+                self.exchange_balans_1d.realised["dflow1d_flux2sprinkling_msw"]
+            )
 
             # exchange realised values 2d to metaswap
             self.exchange_ponding_dflow2d2msw(
