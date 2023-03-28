@@ -39,7 +39,6 @@ def test_run_tmodel_no_sprinkling(
     )
 
     files_to_skip = {
-        "msw_sprinkling_to_dfm_1d_q_dmm",
         "mf6_msw_sprinkling_map",
         "mf6_msw_well_pkg",
     }
@@ -79,7 +78,6 @@ def test_run_tmodel_f_no_sprinkling(
     )
 
     files_to_skip = {
-        "msw_sprinkling_to_dfm_1d_q_dmm",
         "mf6_msw_sprinkling_map",
         "mf6_msw_well_pkg",
     }
