@@ -105,7 +105,7 @@ class Mapping:
             Operator.SUM,
         )
         # optional sprinkling from mf6 to msw
-        if self.coupling.enable_sprinkling:
+        if self.coupling.enable_sprinkling():
             assert isinstance(self.coupling.mf6_msw_well_pkg, str)
             assert isinstance(self.coupling.mf6_msw_sprinkling_map, Path)
 
