@@ -65,16 +65,6 @@ class Coupling(BaseModel):
     class Config:
         arbitrary_types_allowed = True  # Needed for `mf6_msw_sprinkling_map`
 
-    @validator("mf6_msw_well_pkg")
-    def validate_mf6_msw_well_pkg(
-        cls, mf6_msw_well_pkg: Optional[str], values: Any
-    ) -> Optional[str]:
-        if values.get("enable_sprinkling") and mf6_msw_well_pkg is None:
-            raise ValueError(
-                "If `enable_sprinkling` is True, then `mf6_msw_well_pkg` needs to be set."
-            )
-        return mf6_msw_well_pkg
-
     @validator("mf6_wel_correction_pkg")
     def validate_mf6_wel_correction_pkg(
         cls, mf6_wel_correction_pkg: str, values: Any
