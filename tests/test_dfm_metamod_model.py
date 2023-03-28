@@ -78,7 +78,6 @@ def test_write_toml_file(
     msw_ponding_to_dfm_2d_dv_dmm = "msw_ponding_to_dfm_2d_dv_dmm_path"
     dfm_2d_waterlevels_to_msw_h_dmm = "dfm_2d_waterlevels_to_msw_h_dmm_path"
     dfm_1d_points_dat = "dfm_1d_points_dat_path"
-    enable_sprinkling = true
     output_config_file = "output_config_file"
     """
     )
