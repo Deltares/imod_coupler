@@ -16,6 +16,4 @@ mf6_model = "GWF_1"
 mf6_msw_node_map = "./exchanges/nodenr2svat.dxc"
 mf6_msw_recharge_pkg = "rch_msw"
 mf6_msw_recharge_map = "./exchanges/rchindex2svat.dxc"
-enable_sprinkling = true
-mf6_msw_well_pkg = "MSW_WELL"
-mf6_msw_sprinkling_map = "./exchanges/wellindex2svat.dxc"
+enable_sprinkling = false
