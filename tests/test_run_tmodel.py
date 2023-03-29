@@ -1,10 +1,15 @@
 import shutil
 from pathlib import Path
 
+import numpy as np
 import tomli
 import tomli_w
 from test_scripts.water_balance.combine import create_waterbalance_file
-from test_utilities import fill_para_sim_template, numeric_csvfiles_equal
+from test_utilities import (
+    fill_para_sim_template,
+    numeric_csvfiles_equal,
+    tolerance_balance_file,
+)
 
 from imod_coupler.__main__ import run_coupler
 
@@ -45,7 +50,7 @@ def test_run_tmodel(
     )
 
     assert numeric_csvfiles_equal(
-        waterbalance_result, csv_reference_file, ";", abstol=5600.0, reltol=3.5
+        waterbalance_result, csv_reference_file, ";", tolerance_balance_file
     )
 
 

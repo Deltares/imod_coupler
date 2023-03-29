@@ -1,6 +1,8 @@
+from typing import Dict, Tuple
+
 import numpy as np
 import pandas as pd
-from test_utilities import numeric_dataframes_equal, diff_per_column_dataframe
+from test_utilities import diff_per_column_dataframe, numeric_dataframes_equal
 
 
 def test_compare_absolute_fail():
@@ -64,7 +66,7 @@ def test_compare_varying_tolerances():
     #    absolute errors in 0 and 2
     # Var A, larger absolute tolerance:
     #    relative errors in 0 and 3
-    tol = {
+    tol: Dict[str, Tuple[np.float_, np.float_]] = {
         "default": (1.0, 0.1),
         "Var A": (10.0, 0.1),
         "Var B": (1.0, 1000),
