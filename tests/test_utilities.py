@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Dict
+from typing import Dict, Optional
 
 import numpy as np
 import pandas as pd
@@ -28,18 +28,29 @@ def diff_per_column_dataframe(
     tolerance: Dict[str, tuple[np.float_, np.float_]],
 ) -> tuple[Dict[str, list[int]], Dict[str, list[int]], Dict[str, tuple[bool, bool]]]:
     failed = {}
+    absfailedndx = {}
+    relfailedndx = {}
     for varname in list(df1):
         if varname not in df2:
             failed[varname] = (True, True)
         s1 = df1[varname]
         s2 = df2[varname]
-        if varname in tolerance[varname]:
+        if varname in tolerance:
             tol = tolerance[varname]
         else:
-            tol = tolerance['default']
-        absfailedndx = s2[~(abs(s2 - s1) > tol[0])].index
-        relfailedndx = s2[~(abs(s2 - s1) > abs(s1 * tol[1]))].index
-        failed[varname] = (absfailedndx.any(), relfailedndx.any())
+            tol = tolerance["default"]
+        # only where both are nan
+        nan_match = np.logical_and(np.isnan(s1), np.isnan(s2))
+        # where abolute matches, but the matching nans are excused
+        abs_match = np.logical_or((abs(s2 - s1) <= tol[0]), nan_match)
+        # where relative matches, but the matching nans are excused
+        rel_match = np.logical_or((abs(s2 - s1) <= abs(s1 * tol[1])), nan_match)
+        absfailedndx[varname] = list(s2[~abs_match].index)
+        relfailedndx[varname] = list(s2[~rel_match].index)
+        failed[varname] = (
+            len(absfailedndx[varname]) > 0,
+            len(relfailedndx[varname]) > 0,
+        )
     return absfailedndx, relfailedndx, failed
 
 
@@ -66,10 +77,25 @@ def numeric_csvfiles_equal(
     # is there any significant difference whatsoever?
     isDifferent = any(failed.values())
 
-    return isDifferent
+    return not isDifferent
 
 
 def numeric_dataframes_equal(
+    df1: pd.DataFrame,
+    df2: pd.DataFrame,
+    abstol: float,
+    reltol: float,
+    tol: Optional[Dict[str, tuple[np.float_, np.float_]]] = None,
+) -> bool:
+    if tol is None:
+        tol = {}
+    tol["default"] = (abstol, reltol)
+    absfailedndx, relfailedndx, failed = diff_per_column_dataframe(df1, df2, tol)
+    any_failure = any([any(ff) for ff in failed.values()])
+    return not any_failure
+
+
+def numeric_dataframes_equal_(
     df1: pd.DataFrame,
     df2: pd.DataFrame,
     abstol: float,
