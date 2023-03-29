@@ -1,9 +1,17 @@
 import shutil
+import subprocess
 from pathlib import Path
 
 import numpy as np
 import tomli
 import tomli_w
+from fixtures.fixture_model import (
+    evaluate_waterbalance,
+    remove_exchange_file_references,
+    run_waterbalance_script_on_tmodel,
+    set_toml_file_tmodel,
+    set_workdir_in_logging_config_file,
+)
 from test_scripts.water_balance.combine import create_waterbalance_file
 from test_utilities import (
     fill_para_sim_template,
@@ -14,7 +22,7 @@ from test_utilities import (
 from imod_coupler.__main__ import run_coupler
 
 
-def test_run_tmodel(
+def test_run_tmodel_no_sprinkling(
     tmp_path_dev: Path,
     tmodel_input_folder: Path,
     modflow_dll_devel: Path,
@@ -23,27 +31,39 @@ def test_run_tmodel(
     metaswap_dll_dep_dir_devel: Path,
     metaswap_lookup_table: Path,
     reference_result_folder: Path,
+    imod_coupler_exec_devel: Path,
 ) -> None:
     shutil.copytree(tmodel_input_folder, tmp_path_dev)
 
     toml_file_path = tmp_path_dev / "imod_coupler.toml"
     output_config_path = tmp_path_dev / "output_config.toml"
 
-    set_kernels_paths_into_toml_file(
+    set_toml_file_tmodel(
         toml_file_path,
         modflow_dll_devel,
-        dflowfm_dll,
         metaswap_dll_devel,
         metaswap_dll_dep_dir_devel,
+        dflowfm_dll,
     )
 
-    set_output_directory_into_toml_file(output_config_path, tmp_path_dev)
+    files_to_skip = {
+        "mf6_msw_sprinkling_map",
+        "mf6_msw_well_pkg",
+    }
+    remove_exchange_file_references(toml_file_path, files_to_skip)
 
+    set_workdir_in_logging_config_file(output_config_path, tmp_path_dev)
     fill_para_sim_template(tmp_path_dev / "MetaSWAP", metaswap_lookup_table)
 
-    run_coupler(toml_file_path)
+    subprocess.run(
+        [str(imod_coupler_exec_devel), toml_file_path],
+        check=True,
+    )
+    evaluate_waterbalance(tmp_path_dev, reference_result_folder, "T-MODEL-D.LST")
 
-    waterbalance_result = run_waterbalance_script_on_tmodel(tmp_path_dev)
+    waterbalance_result = run_waterbalance_script_on_tmodel(
+        tmp_path_dev, "T-MODEL-D.LST"
+    )
 
     csv_reference_file = (
         reference_result_folder / "test_run_tmodel" / "waterbalance.csv"
@@ -54,45 +74,121 @@ def test_run_tmodel(
     )
 
 
-def run_waterbalance_script_on_tmodel(testdir: Path) -> Path:
-    modflow_out_file = testdir / "Modflow6" / "GWF_1" / "T-MODEL-D.LST"
-    dflow_out_file = testdir / "dflow-fm" / "DFM_OUTPUT_FlowFM" / "FlowFM_his.nc"
-    metaswap_out_file = testdir / "MetaSWAP" / "msw" / "csv" / "tot_svat_dtgw.csv"
-
-    csv_file = testdir / "water_balance.csv"
-    create_waterbalance_file(
-        dflow_out_file, metaswap_out_file, modflow_out_file, output_file_csv=csv_file
-    )
-    return csv_file
-
-
-def set_kernels_paths_into_toml_file(
-    toml_file_path: Path,
+def test_run_tmodel_f_no_sprinkling(
+    tmp_path_dev: Path,
+    tmodel_f_input_folder: Path,
     modflow_dll_devel: Path,
     dflowfm_dll: Path,
     metaswap_dll_devel: Path,
     metaswap_dll_dep_dir_devel: Path,
+    metaswap_lookup_table: Path,
+    reference_result_folder: Path,
+    imod_coupler_exec_devel: Path,
 ) -> None:
-    with open(toml_file_path, "rb") as f:
-        toml_dict = tomli.load(f)
+    shutil.copytree(tmodel_f_input_folder, tmp_path_dev)
+    toml_file_path = tmp_path_dev / "imod_coupler.toml"
+    output_config_path = tmp_path_dev / "output_config.toml"
 
-    toml_dict["driver"]["kernels"]["modflow6"]["dll"] = str(modflow_dll_devel)
-    toml_dict["driver"]["kernels"]["dflowfm"]["dll"] = str(dflowfm_dll)
-    toml_dict["driver"]["kernels"]["metaswap"]["dll"] = str(metaswap_dll_devel)
-    toml_dict["driver"]["kernels"]["metaswap"]["dll_dep_dir"] = str(
-        metaswap_dll_dep_dir_devel
+    set_toml_file_tmodel(
+        toml_file_path,
+        modflow_dll_devel,
+        metaswap_dll_devel,
+        metaswap_dll_dep_dir_devel,
+        dflowfm_dll,
     )
-    with open(toml_file_path, "wb") as toml_file:
-        tomli_w.dump(toml_dict, toml_file)
+
+    files_to_skip = {
+        "mf6_msw_sprinkling_map",
+        "mf6_msw_well_pkg",
+    }
+    remove_exchange_file_references(toml_file_path, files_to_skip)
+    set_workdir_in_logging_config_file(output_config_path, tmp_path_dev)
+    fill_para_sim_template(tmp_path_dev / "MetaSWAP", metaswap_lookup_table)
+    subprocess.run(
+        [str(imod_coupler_exec_devel), toml_file_path],
+        check=True,
+    )
 
 
-def set_output_directory_into_toml_file(
-    output_config_path: Path, tmp_path_dev: Path
+@pytest.mark.maintenance
+def test_run_tmodel_f_with_metamod(
+    tmp_path_dev: Path,
+    tmodel_f_input_folder: Path,
+    modflow_dll_devel: Path,
+    metaswap_dll_devel: Path,
+    metaswap_dll_dep_dir_devel: Path,
+    metaswap_lookup_table: Path,
+    reference_result_folder: Path,
+    imod_coupler_exec_devel: Path,
 ) -> None:
-    output_dict = {}
-    with open(output_config_path, "rb") as f:
-        output_dict = tomli.load(f)
-    output_dict["general"][0]["output_dir"] = str(tmp_path_dev)
+    """
+    this test runs t_model_f with the metamod driver (so without dflow)
+    It can be used to compare the test results of the metamod simulation with the dfm_metamod simulation in which we disable
+    all the dfm-related couplings.
+    """
+    shutil.copytree(tmodel_f_input_folder, tmp_path_dev)
+    toml_file_path = tmp_path_dev / "metamod.toml"
 
-    with open(output_config_path, "wb") as toml_file:
-        tomli_w.dump(output_dict, toml_file)
+    set_toml_file_tmodel(
+        toml_file_path,
+        modflow_dll_devel,
+        metaswap_dll_devel,
+        metaswap_dll_dep_dir_devel,
+    )
+
+    fill_para_sim_template(tmp_path_dev / "MetaSWAP", metaswap_lookup_table)
+
+    subprocess.run(
+        [str(imod_coupler_exec_devel), toml_file_path],
+        check=True,
+    )
+
+
+def test_run_tmodel_f_without_dflow(
+    tmp_path_dev: Path,
+    tmodel_f_input_folder: Path,
+    modflow_dll_devel: Path,
+    dflowfm_dll: Path,
+    metaswap_dll_devel: Path,
+    metaswap_dll_dep_dir_devel: Path,
+    metaswap_lookup_table: Path,
+    reference_result_folder: Path,
+    imod_coupler_exec_devel: Path,
+) -> None:
+    """
+    This test aims to remove all the exchanges that involve dflow, so that we can compare the result of
+    the simulation with the metamod driver's result for the same setup.
+    """
+    shutil.copytree(tmodel_f_input_folder, tmp_path_dev)
+    toml_file_path = tmp_path_dev / "imod_coupler.toml"
+    output_config_path = tmp_path_dev / "output_config.toml"
+
+    set_toml_file_tmodel(
+        toml_file_path,
+        modflow_dll_devel,
+        metaswap_dll_devel,
+        metaswap_dll_dep_dir_devel,
+        dflowfm_dll,
+    )
+    files_to_skip = {
+        "msw_ponding_to_dfm_2d_dv_dmm",
+        "dfm_2d_waterlevels_to_msw_h_dmm",
+        "mf6_river2_to_dmf_1d_q_dmm",
+        "mf6_drainage_to_dfm_1d_q_dmm",
+        "msw_sprinkling_to_dfm_1d_q_dmm",
+        "msw_runoff_to_dfm_1d_q_dmm",
+        "mf6_river_to_dfm_1d_q_dmm",
+        "dfm_1d_waterlevel_to_mf6_river_stage_dmm",
+        "mf6_msw_sprinkling_map",
+        "mf6_msw_well_pkg",
+    }
+
+    remove_exchange_file_references(toml_file_path, files_to_skip)
+
+    set_workdir_in_logging_config_file(output_config_path, tmp_path_dev)
+    fill_para_sim_template(tmp_path_dev / "MetaSWAP", metaswap_lookup_table)
+
+    subprocess.run(
+        [str(imod_coupler_exec_devel), toml_file_path],
+        check=True,
+    )

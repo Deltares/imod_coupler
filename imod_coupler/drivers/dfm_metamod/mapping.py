@@ -105,7 +105,7 @@ class Mapping:
             Operator.SUM,
         )
         # optional sprinkling from mf6 to msw
-        if self.coupling.enable_sprinkling:
+        if self.coupling.enable_sprinkling():
             assert isinstance(self.coupling.mf6_msw_well_pkg, str)
             assert isinstance(self.coupling.mf6_msw_sprinkling_map, Path)
 
@@ -160,59 +160,68 @@ class Mapping:
         mask_active_mod_dflow1d: Dict[str, NDArray[Any]] = {}
 
         # MF RIV 1 -> DFLOW 1D (flux)
-        table_active_mfriv2dflow1d: NDArray[np.single] = np.loadtxt(
-            self.coupling.mf6_river_to_dfm_1d_q_dmm,
-            dtype=np.single,
-            ndmin=2,
-            skiprows=1,
-        )
-        ptx = table_active_mfriv2dflow1d[:, 0]
-        pty = table_active_mfriv2dflow1d[:, 1]
-        mf_idx = table_active_mfriv2dflow1d[:, 2].astype(int) - 1
-        _, dflow_idx = self.dflow1d_lookup.query(np.c_[ptx, pty])
+        map_active_mod_dflow1d["mf-riv2dflow1d_flux"] = None
+        mask_active_mod_dflow1d["mf-riv2dflow1d_flux"] = np.array([])
+        map_active_mod_dflow1d["dflow1d2mf-riv_flux"] = None
+        mask_active_mod_dflow1d["dflow1d2mf-riv_flux"] = np.array([])
 
-        (
-            map_active_mod_dflow1d["mf-riv2dflow1d_flux"],
-            mask_active_mod_dflow1d["mf-riv2dflow1d_flux"],
-        ) = create_mapping(
-            mf_idx,
-            dflow_idx,
-            self.array_dims["mf6_riv_active"],
-            self.array_dims["dfm_1d"],
-            Operator.SUM,
-        )
-        # DFLOW 1D  -> MF RIV 1 (flux) (non weighted)
-        (
-            map_active_mod_dflow1d["dflow1d2mf-riv_flux"],
-            mask_active_mod_dflow1d["dflow1d2mf-riv_flux"],
-        ) = create_mapping(
-            dflow_idx, mf_idx, max(dflow_idx) + 1, max(mf_idx) + 1, Operator.SUM
-        )
+        if self.coupling.mf6_river_to_dfm_1d_q_dmm is not None:
+            table_active_mfriv2dflow1d: NDArray[np.single] = np.loadtxt(
+                self.coupling.mf6_river_to_dfm_1d_q_dmm,
+                dtype=np.single,
+                ndmin=2,
+                skiprows=1,
+            )
+            ptx = table_active_mfriv2dflow1d[:, 0]
+            pty = table_active_mfriv2dflow1d[:, 1]
+            mf_idx = table_active_mfriv2dflow1d[:, 2].astype(int) - 1
+            _, dflow_idx = self.dflow1d_lookup.query(np.c_[ptx, pty])
+
+            (
+                map_active_mod_dflow1d["mf-riv2dflow1d_flux"],
+                mask_active_mod_dflow1d["mf-riv2dflow1d_flux"],
+            ) = create_mapping(
+                mf_idx,
+                dflow_idx,
+                self.array_dims["mf6_riv_active"],
+                self.array_dims["dfm_1d"],
+                Operator.SUM,
+            )
+            # DFLOW 1D  -> MF RIV 1 (flux) (non weighted)
+            (
+                map_active_mod_dflow1d["dflow1d2mf-riv_flux"],
+                mask_active_mod_dflow1d["dflow1d2mf-riv_flux"],
+            ) = create_mapping(
+                dflow_idx, mf_idx, max(dflow_idx) + 1, max(mf_idx) + 1, Operator.SUM
+            )
 
         # DFLOW 1D -> MF RIV 1 (stage)
-        table_active_dflow1d2mfriv: NDArray[np.single] = np.loadtxt(
-            self.coupling.dfm_1d_waterlevel_to_mf6_river_stage_dmm,
-            dtype=np.single,
-            ndmin=2,
-            skiprows=1,
-        )
-        mf_idx = table_active_dflow1d2mfriv[:, 0].astype(int) - 1
-        ptx = table_active_dflow1d2mfriv[:, 1]
-        pty = table_active_dflow1d2mfriv[:, 2]
-        weight = table_active_dflow1d2mfriv[:, 3]
-        _, dflow_idx = self.dflow1d_lookup.query(np.c_[ptx, pty])
+        map_active_mod_dflow1d["dflow1d2mf-riv_stage"] = None
+        mask_active_mod_dflow1d["dflow1d2mf-riv_stage"] = np.array([])
+        if self.coupling.dfm_1d_waterlevel_to_mf6_river_stage_dmm is not None:
+            table_active_dflow1d2mfriv: NDArray[np.single] = np.loadtxt(
+                self.coupling.dfm_1d_waterlevel_to_mf6_river_stage_dmm,
+                dtype=np.single,
+                ndmin=2,
+                skiprows=1,
+            )
+            mf_idx = table_active_dflow1d2mfriv[:, 0].astype(int) - 1
+            ptx = table_active_dflow1d2mfriv[:, 1]
+            pty = table_active_dflow1d2mfriv[:, 2]
+            weight = table_active_dflow1d2mfriv[:, 3]
+            _, dflow_idx = self.dflow1d_lookup.query(np.c_[ptx, pty])
 
-        (
-            map_active_mod_dflow1d["dflow1d2mf-riv_stage"],
-            mask_active_mod_dflow1d["dflow1d2mf-riv_stage"],
-        ) = create_mapping(
-            dflow_idx,
-            mf_idx,
-            self.array_dims["dfm_1d"],
-            self.array_dims["mf6_riv_active"],
-            Operator.WEIGHT,
-            weight,
-        )
+            (
+                map_active_mod_dflow1d["dflow1d2mf-riv_stage"],
+                mask_active_mod_dflow1d["dflow1d2mf-riv_stage"],
+            ) = create_mapping(
+                dflow_idx,
+                mf_idx,
+                self.array_dims["dfm_1d"],
+                self.array_dims["mf6_riv_active"],
+                Operator.WEIGHT,
+                weight,
+            )
         return map_active_mod_dflow1d, mask_active_mod_dflow1d
 
     def mapping_passive_mf_dflow1d(
@@ -242,49 +251,55 @@ class Mapping:
         mask_passive_mod_dflow1d: Dict[str, NDArray[Any]] = {}
 
         # MF RIV 2 -> DFLOW 1D (flux)
-        table_passive_mfriv2dflow1d: NDArray[np.single] = np.loadtxt(
-            self.coupling.mf6_river2_to_dmf_1d_q_dmm,
-            dtype=np.single,
-            ndmin=2,
-            skiprows=1,
-        )
-        ptx = table_passive_mfriv2dflow1d[:, 0]
-        pty = table_passive_mfriv2dflow1d[:, 1]
-        mf_idx = table_passive_mfriv2dflow1d[:, 2].astype(int) - 1
-        _, dflow_idx = self.dflow1d_lookup.query(np.c_[ptx, pty])
+        map_passive_mod_dflow1d["mf-riv2dflow1d_passive_flux"] = None
+        mask_passive_mod_dflow1d["mf-riv2dflow1d_passive_flux"] = np.array([])
+        if self.coupling.mf6_river2_to_dmf_1d_q_dmm is not None:
+            table_passive_mfriv2dflow1d: NDArray[np.single] = np.loadtxt(
+                self.coupling.mf6_river2_to_dmf_1d_q_dmm,
+                dtype=np.single,
+                ndmin=2,
+                skiprows=1,
+            )
+            ptx = table_passive_mfriv2dflow1d[:, 0]
+            pty = table_passive_mfriv2dflow1d[:, 1]
+            mf_idx = table_passive_mfriv2dflow1d[:, 2].astype(int) - 1
+            _, dflow_idx = self.dflow1d_lookup.query(np.c_[ptx, pty])
 
-        (
-            map_passive_mod_dflow1d["mf-riv2dflow1d_passive_flux"],
-            mask_passive_mod_dflow1d["mf-riv2dflow1d_passive_flux"],
-        ) = create_mapping(
-            mf_idx,
-            dflow_idx,
-            self.array_dims["mf6_riv_passive"],
-            self.array_dims["dfm_1d"],
-            Operator.SUM,
-        )
+            (
+                map_passive_mod_dflow1d["mf-riv2dflow1d_passive_flux"],
+                mask_passive_mod_dflow1d["mf-riv2dflow1d_passive_flux"],
+            ) = create_mapping(
+                mf_idx,
+                dflow_idx,
+                self.array_dims["mf6_riv_passive"],
+                self.array_dims["dfm_1d"],
+                Operator.SUM,
+            )
         # MF DRN -> DFLOW 1D (flux)
-        table_passive_mfdrn2dflow1d: NDArray[np.single] = np.loadtxt(
-            self.coupling.mf6_drainage_to_dfm_1d_q_dmm,
-            dtype=np.single,
-            ndmin=2,
-            skiprows=1,
-        )
-        ptx = table_passive_mfdrn2dflow1d[:, 0]
-        pty = table_passive_mfdrn2dflow1d[:, 1]
-        mf_idx = table_passive_mfdrn2dflow1d[:, 2].astype(int) - 1
-        _, dflow_idx = self.dflow1d_lookup.query(np.c_[ptx, pty])
+        map_passive_mod_dflow1d["mf-drn2dflow1d_flux"] = None
+        mask_passive_mod_dflow1d["mf-drn2dflow1d_flux"] = np.array([])
+        if self.coupling.mf6_drainage_to_dfm_1d_q_dmm is not None:
+            table_passive_mfdrn2dflow1d: NDArray[np.single] = np.loadtxt(
+                self.coupling.mf6_drainage_to_dfm_1d_q_dmm,
+                dtype=np.single,
+                ndmin=2,
+                skiprows=1,
+            )
+            ptx = table_passive_mfdrn2dflow1d[:, 0]
+            pty = table_passive_mfdrn2dflow1d[:, 1]
+            mf_idx = table_passive_mfdrn2dflow1d[:, 2].astype(int) - 1
+            _, dflow_idx = self.dflow1d_lookup.query(np.c_[ptx, pty])
 
-        (
-            map_passive_mod_dflow1d["mf-drn2dflow1d_flux"],
-            mask_passive_mod_dflow1d["mf-drn2dflow1d_flux"],
-        ) = create_mapping(
-            mf_idx,
-            dflow_idx,
-            self.array_dims["mf6_drn"],
-            self.array_dims["dfm_1d"],
-            Operator.SUM,
-        )
+            (
+                map_passive_mod_dflow1d["mf-drn2dflow1d_flux"],
+                mask_passive_mod_dflow1d["mf-drn2dflow1d_flux"],
+            ) = create_mapping(
+                mf_idx,
+                dflow_idx,
+                self.array_dims["mf6_drn"],
+                self.array_dims["dfm_1d"],
+                Operator.SUM,
+            )
         return map_passive_mod_dflow1d, mask_passive_mod_dflow1d
 
     def mapping_msw_dflow1d(
@@ -312,61 +327,70 @@ class Mapping:
         map_msw_dflow1d: Dict[str, csr_matrix] = {}
         mask_msw_dflow1d: Dict[str, NDArray[int_]] = {}
 
+        map_msw_dflow1d["msw-sprinkling2dflow1d_flux"] = None
+        mask_msw_dflow1d["msw-sprinkling2dflow1d_flux"] = np.array([])
+        map_msw_dflow1d["dflow1d_flux2sprinkling_msw"] = None
+        mask_msw_dflow1d["dflow1d_flux2sprinkling_msw"] = np.array([])
+
         # MSW -> DFLOW 1D (sprinkling)
-        table_mswsprinkling2dflow1d: NDArray[np.single] = np.loadtxt(
-            self.coupling.msw_sprinkling_to_dfm_1d_q_dmm,
-            dtype=np.single,
-            ndmin=2,
-            skiprows=1,
-        )
-        ptx = table_mswsprinkling2dflow1d[:, 0]
-        pty = table_mswsprinkling2dflow1d[:, 1]
-        msw_idx = table_mswsprinkling2dflow1d[:, 2].astype(int) - 1
-        _, dflow_idx = self.dflow1d_lookup.query(np.c_[ptx, pty])
+        if self.coupling.msw_sprinkling_to_dfm_1d_q_dmm is not None:
+            table_mswsprinkling2dflow1d: NDArray[np.single] = np.loadtxt(
+                self.coupling.msw_sprinkling_to_dfm_1d_q_dmm,
+                dtype=np.single,
+                ndmin=2,
+                skiprows=1,
+            )
+            ptx = table_mswsprinkling2dflow1d[:, 0]
+            pty = table_mswsprinkling2dflow1d[:, 1]
+            msw_idx = table_mswsprinkling2dflow1d[:, 2].astype(int) - 1
+            _, dflow_idx = self.dflow1d_lookup.query(np.c_[ptx, pty])
 
-        (
-            map_msw_dflow1d["msw-sprinkling2dflow1d_flux"],
-            mask_msw_dflow1d["msw-sprinkling2dflow1d_flux"],
-        ) = create_mapping(
-            msw_idx,
-            dflow_idx,
-            self.array_dims["msw_sw_sprinkling"],
-            self.array_dims["dfm_1d"],
-            Operator.SUM,
-        )
-        # MSW <- DFLOW 1D (sprinkling)
-        (
-            map_msw_dflow1d["dflow1d_flux2sprinkling_msw"],
-            mask_msw_dflow1d["dflow1d_flux2sprinkling_msw"],
-        ) = create_mapping(
-            dflow_idx,
-            msw_idx,
-            self.array_dims["dfm_1d"],
-            self.array_dims["msw_sw_sprinkling"],
-            Operator.SUM,
-        )
-        # MSW -> DFLOW 1D (ponding)
-        table_mswponding2dflow1d: NDArray[np.single] = np.loadtxt(
-            self.coupling.msw_runoff_to_dfm_1d_q_dmm,
-            dtype=np.single,
-            ndmin=2,
-            skiprows=1,
-        )
-        ptx = table_mswponding2dflow1d[:, 0]
-        pty = table_mswponding2dflow1d[:, 1]
-        msw_idx = table_mswponding2dflow1d[:, 2].astype(int) - 1
-        _, dflow_idx = self.dflow1d_lookup.query(np.c_[ptx, pty])
+            (
+                map_msw_dflow1d["msw-sprinkling2dflow1d_flux"],
+                mask_msw_dflow1d["msw-sprinkling2dflow1d_flux"],
+            ) = create_mapping(
+                msw_idx,
+                dflow_idx,
+                self.array_dims["msw_sw_sprinkling"],
+                self.array_dims["dfm_1d"],
+                Operator.SUM,
+            )
+            # MSW <- DFLOW 1D (sprinkling)
+            (
+                map_msw_dflow1d["dflow1d_flux2sprinkling_msw"],
+                mask_msw_dflow1d["dflow1d_flux2sprinkling_msw"],
+            ) = create_mapping(
+                dflow_idx,
+                msw_idx,
+                self.array_dims["dfm_1d"],
+                self.array_dims["msw_sw_sprinkling"],
+                Operator.SUM,
+            )
+        map_msw_dflow1d["msw-ponding2dflow1d_flux"] = None
+        mask_msw_dflow1d["msw-ponding2dflow1d_flux"] = np.array([])
+        if self.coupling.msw_runoff_to_dfm_1d_q_dmm is not None:
+            # MSW -> DFLOW 1D (ponding)
+            table_mswponding2dflow1d: NDArray[np.single] = np.loadtxt(
+                self.coupling.msw_runoff_to_dfm_1d_q_dmm,
+                dtype=np.single,
+                ndmin=2,
+                skiprows=1,
+            )
+            ptx = table_mswponding2dflow1d[:, 0]
+            pty = table_mswponding2dflow1d[:, 1]
+            msw_idx = table_mswponding2dflow1d[:, 2].astype(int) - 1
+            _, dflow_idx = self.dflow1d_lookup.query(np.c_[ptx, pty])
 
-        (
-            map_msw_dflow1d["msw-ponding2dflow1d_flux"],
-            mask_msw_dflow1d["msw-ponding2dflow1d_flux"],
-        ) = create_mapping(
-            msw_idx,
-            dflow_idx,
-            self.array_dims["msw_sw_ponding"],
-            self.array_dims["dfm_1d"],
-            Operator.SUM,
-        )
+            (
+                map_msw_dflow1d["msw-ponding2dflow1d_flux"],
+                mask_msw_dflow1d["msw-ponding2dflow1d_flux"],
+            ) = create_mapping(
+                msw_idx,
+                dflow_idx,
+                self.array_dims["msw_sw_ponding"],
+                self.array_dims["dfm_1d"],
+                Operator.SUM,
+            )
         return map_msw_dflow1d, mask_msw_dflow1d
 
     def mapping_msw_dflow2d(
@@ -397,63 +421,80 @@ class Mapping:
         # MSW -> DFLOW 2D (ponding)
 
         # ---mapping of msw poning to dflow2d---
-        table_mswponding2dflow2d: NDArray[np.single] = np.loadtxt(
-            self.coupling.msw_ponding_to_dfm_2d_dv_dmm,
-            dtype=np.single,
-            ndmin=2,
-            skiprows=1,
-        )
-        ptx = table_mswponding2dflow2d[:, 0]
-        pty = table_mswponding2dflow2d[:, 1]
-        msw_idx = table_mswponding2dflow2d[:, 2].astype(int) - 1
-        _, dflow_idx = self.dflow2d_lookup.query(np.c_[ptx, pty])
+        table_mswponding2dflow2d = np.array([], dtype=np.single)
+        map_msw_dflow2d["msw-ponding2dflow2d_flux"] = None
+        mask_msw_dflow2d["msw-ponding2dflow2d_flux"] = np.array([])
+        map_msw_dflow2d["dflow2d_flux2msw-ponding"] = None
+        mask_msw_dflow2d["dflow2d_flux2msw-ponding"] = np.array([])
 
-        (
-            map_msw_dflow2d["msw-ponding2dflow2d_flux"],
-            mask_msw_dflow2d["msw-ponding2dflow2d_flux"],
-        ) = create_mapping(
-            msw_idx,
-            dflow_idx,
-            self.array_dims["msw_sw_ponding"],
-            self.array_dims["dfm_2d"],
-            Operator.SUM,
-        )
-        # DFLOW 2D -> MSW (ponding)
-        # TODO: check if this is always, 1:1 connection, otherwise use weights
-        (
-            map_msw_dflow2d["dflow2d_flux2msw-ponding"],
-            mask_msw_dflow2d["dflow2d_flux2msw-ponding"],
-        ) = create_mapping(
-            dflow_idx,
-            msw_idx,
-            self.array_dims["dfm_2d"],
-            self.array_dims["msw_sw_ponding"],
-            Operator.SUM,  # check TODO
-        )
+        if self.coupling.msw_ponding_to_dfm_2d_dv_dmm is not None:
+            table_mswponding2dflow2d = np.loadtxt(
+                self.coupling.msw_ponding_to_dfm_2d_dv_dmm,
+                dtype=np.single,
+                ndmin=2,
+                skiprows=1,
+            )
+
+        if table_mswponding2dflow2d.size > 0:
+            ptx = table_mswponding2dflow2d[:, 0]
+            pty = table_mswponding2dflow2d[:, 1]
+
+            msw_idx = table_mswponding2dflow2d[:, 2].astype(int) - 1
+            _, dflow_idx = self.dflow2d_lookup.query(np.c_[ptx, pty])
+
+            (
+                map_msw_dflow2d["msw-ponding2dflow2d_flux"],
+                mask_msw_dflow2d["msw-ponding2dflow2d_flux"],
+            ) = create_mapping(
+                msw_idx,
+                dflow_idx,
+                self.array_dims["msw_sw_ponding"],
+                self.array_dims["dfm_2d"],
+                Operator.SUM,
+            )
+            # DFLOW 2D -> MSW (ponding)
+            # TODO: check if this is always, 1:1 connection, otherwise use weights
+            (
+                map_msw_dflow2d["dflow2d_flux2msw-ponding"],
+                mask_msw_dflow2d["dflow2d_flux2msw-ponding"],
+            ) = create_mapping(
+                dflow_idx,
+                msw_idx,
+                self.array_dims["dfm_2d"],
+                self.array_dims["msw_sw_ponding"],
+                Operator.SUM,  # check TODO
+            )
         # DFLOW 2D -> MSW (stage/innudation)
-        table_dflow2d_stage2mswponding: NDArray[np.single] = np.loadtxt(
-            self.coupling.dfm_2d_waterlevels_to_msw_h_dmm,
-            dtype=np.single,
-            ndmin=2,
-            skiprows=1,
-        )
-        msw_idx = (table_dflow2d_stage2mswponding[:, 0] - 1).astype(int)
-        ptx = table_dflow2d_stage2mswponding[:, 1]
-        pty = table_dflow2d_stage2mswponding[:, 2]
-        weight = table_dflow2d_stage2mswponding[:, 3]
-        _, dflow_idx = self.dflow2d_lookup.query(np.c_[ptx, pty])
+        table_dflow2d_stage2mswponding = np.array([], dtype=np.single)
+        map_msw_dflow2d["dflow2d_stage2msw-ponding"] = None
+        mask_msw_dflow2d["dflow2d_stage2msw-ponding"] = np.array([])
 
-        (
-            map_msw_dflow2d["dflow2d_stage2msw-ponding"],
-            mask_msw_dflow2d["dflow2d_stage2msw-ponding"],
-        ) = create_mapping(
-            dflow_idx,
-            msw_idx,
-            self.array_dims["dfm_2d"],
-            self.array_dims["msw_sw_ponding"],
-            Operator.WEIGHT,
-            weight,
-        )
+        if self.coupling.dfm_2d_waterlevels_to_msw_h_dmm is not None:
+            table_dflow2d_stage2mswponding = np.loadtxt(
+                self.coupling.dfm_2d_waterlevels_to_msw_h_dmm,
+                dtype=np.single,
+                ndmin=2,
+                skiprows=1,
+            )
+
+        if table_dflow2d_stage2mswponding.size > 0:
+            msw_idx = (table_dflow2d_stage2mswponding[:, 0] - 1).astype(int)
+            ptx = table_dflow2d_stage2mswponding[:, 1]
+            pty = table_dflow2d_stage2mswponding[:, 2]
+            weight = table_dflow2d_stage2mswponding[:, 3]
+            _, dflow_idx = self.dflow2d_lookup.query(np.c_[ptx, pty])
+
+            (
+                map_msw_dflow2d["dflow2d_stage2msw-ponding"],
+                mask_msw_dflow2d["dflow2d_stage2msw-ponding"],
+            ) = create_mapping(
+                dflow_idx,
+                msw_idx,
+                self.array_dims["dfm_2d"],
+                self.array_dims["msw_sw_ponding"],
+                Operator.WEIGHT,
+                weight,
+            )
         return map_msw_dflow2d, mask_msw_dflow2d
 
     def calc_correction(

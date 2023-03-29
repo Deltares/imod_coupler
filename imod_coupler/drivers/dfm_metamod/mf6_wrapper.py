@@ -65,7 +65,7 @@ class Mf6Wrapper(XmiWrapper):
         mf6_flowmodel_key: str,
         mf6_package_key: str,
     ) -> NDArray[np.float_]:
-        mf6_sprinkling_tag = self.mf6.get_var_address(
+        mf6_sprinkling_tag = self.get_var_address(
             "BOUND", mf6_flowmodel_key, mf6_package_key
         )
         mf6_sprinkling_wells = self.get_value_ptr(mf6_sprinkling_tag)[:, 0]

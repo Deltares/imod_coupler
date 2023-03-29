@@ -221,7 +221,7 @@ class exchange_balance_1d:
         demand_mf6_negative = self.demand["mf-riv2dflow1d_flux_negative"]
         condition = np.logical_and(
             shortage > np.absolute(demand_msw + demand_mf6_negative),
-            sum_from_dflow < sum_to_dflow,
+            np.less(sum_from_dflow.astype(np.float32), sum_to_dflow.astype(np.float32)),
         )
         if np.any(condition):
             raise ValueError("Computed shortage is larger than negative contributions")

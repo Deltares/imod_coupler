@@ -1,4 +1,4 @@
-from ctypes import POINTER, byref, c_char_p, c_double, c_int, pointer
+from ctypes import POINTER, byref, c_char_p, c_double, c_int, c_void_p, pointer
 from typing import Optional
 
 import numpy as np
@@ -41,7 +41,7 @@ class DfmWrapper(BMIWrapper):  # type: ignore
         nr_nodes2d = self.get_var("ndx2d")  # number of 2d cells
         return int(nr_nodes2d)
 
-    def get_waterlevels_1d(self) -> NDArray[np.float_]:
+    def get_waterlevels_1d_ptr(self) -> NDArray[np.float_]:
         """
         Returns
         -------
@@ -77,7 +77,7 @@ class DfmWrapper(BMIWrapper):  # type: ignore
         npyz = np.asarray(yz[: nr_nodes_2d + nr_nodes_1d], dtype=np.double)
         return np.array(np.c_[npxz, npyz])
 
-    def get_waterlevels_2d(self) -> NDArray[np.float_]:
+    def get_waterlevels_2d_ptr(self) -> NDArray[np.float_]:
         """
         Returns
         -------
@@ -87,12 +87,10 @@ class DfmWrapper(BMIWrapper):  # type: ignore
         """
 
         nr_nodes_2d = self.get_number_2d_nodes()
-        if nr_nodes_2d == 0:
-            raise ValueError("No dflow 1d nodes found!")
         all_waterlevels = self.get_var("s1")
         return np.asarray(all_waterlevels[:nr_nodes_2d], dtype=np.float_)
 
-    def get_bed_level_2d(self) -> NDArray[np.float_]:
+    def get_bed_level_2d_ptr(self) -> NDArray[np.float_]:
         """
         Returns
         -------
@@ -102,12 +100,10 @@ class DfmWrapper(BMIWrapper):  # type: ignore
         """
 
         nr_nodes_2d = self.get_number_2d_nodes()
-        if nr_nodes_2d == 0:
-            raise ValueError("No dflow 1d nodes found!")
         all_bed_levels = self.get_var("bl")
         return np.asarray(all_bed_levels[:nr_nodes_2d], dtype=np.float_)
 
-    def get_cumulative_fluxes_1d_nodes(self) -> NDArray[np.float_]:
+    def get_cumulative_fluxes_1d_nodes_ptr(self) -> NDArray[np.float_]:
         """
         Returns
         -------
@@ -116,12 +112,16 @@ class DfmWrapper(BMIWrapper):  # type: ignore
             or None if there ar no 1d nodes.
         """
         nr_nodes_1d = self.get_number_1d_nodes()
+        nr_nodes_2d = self.get_number_2d_nodes()
         if nr_nodes_1d == 0:
             raise ValueError("No dflow 1d nodes found!")
         all_cumulative_fluxes = self.get_var("vextcum")
-        return np.asarray(all_cumulative_fluxes[-nr_nodes_1d:], dtype=np.float_)
+        return np.asarray(
+            all_cumulative_fluxes[nr_nodes_2d : nr_nodes_1d + nr_nodes_2d],
+            dtype=np.float_,
+        )
 
-    def get_cumulative_fluxes_2d_nodes(self) -> NDArray[np.float_]:
+    def get_cumulative_fluxes_2d_nodes_ptr(self) -> NDArray[np.float_]:
         """
         Returns
         -------
@@ -130,8 +130,6 @@ class DfmWrapper(BMIWrapper):  # type: ignore
             or None if there ar no 1d nodes.
         """
         nr_nodes_2d = self.get_number_2d_nodes()
-        if nr_nodes_2d == 0:
-            raise ValueError("No dflow 1d nodes found!")
         all_cumulative_fluxes = self.get_var("vextcum")
         return np.asarray(all_cumulative_fluxes[:nr_nodes_2d], dtype=np.float_)
 
@@ -150,13 +148,14 @@ class DfmWrapper(BMIWrapper):  # type: ignore
             mismatch between expected size and actual size.
         """
 
-        nr_nodes_2d = self.get_var("ndx2d")  # number of 2d cells
         nr_nodes_1d = self.get_number_1d_nodes()
         if len(river_flux) != nr_nodes_1d:
             raise ValueError(
                 f"Expected number of river fluxes: {nr_nodes_1d}, got {len(river_flux)}"
             )
-        self.set_var_slice("qext", [nr_nodes_2d], [nr_nodes_1d], river_flux)
+        dfm_river_flux = self.get_1d_river_fluxes_ptr()
+        if dfm_river_flux is not None:
+            dfm_river_flux[:] = river_flux[:]
 
     def set_2d_fluxes(self, river_flux: NDArray[np.float_]) -> None:
         """
@@ -178,9 +177,11 @@ class DfmWrapper(BMIWrapper):  # type: ignore
             raise ValueError(
                 f"Expected number of river fluxes: {nr_nodes_2d}, got {len(river_flux)}"
             )
-        self.set_var_slice("qext", [0], [nr_nodes_2d], river_flux)
+        dfm_river_flux = self.get_2d_river_fluxes_ptr(self)
+        if dfm_river_flux is not None:
+            dfm_river_flux[:] = river_flux[:]
 
-    def get_1d_river_fluxes(self) -> NDArray[np.float_]:
+    def get_1d_river_fluxes_ptr(self) -> NDArray[np.float_]:
         """
         Returns
         -------
@@ -188,10 +189,13 @@ class DfmWrapper(BMIWrapper):  # type: ignore
             the DFLOW_FM external fluxes ( "qext") for the 1d nodes
         """
         nr_nodes_1d = self.get_number_1d_nodes()
+        nr_nodes_2d = self.get_number_2d_nodes()
         if nr_nodes_1d == 0:
             raise ValueError("No dflow 1d nodes found!")
         q_ext = self.get_var("qext")
-        return np.asarray(q_ext[-nr_nodes_1d:], dtype=np.float_)
+        return np.asarray(
+            q_ext[nr_nodes_2d : nr_nodes_1d + nr_nodes_2d], dtype=np.float_
+        )
 
     def init_kdtree(self) -> None:
         nx1d = self.get_number_1d_nodes()
@@ -200,7 +204,7 @@ class DfmWrapper(BMIWrapper):  # type: ignore
         self.kdtree1D = KDTree(flowelem_xy[nx2d : nx2d + nx1d])
         self.kdtree2D = KDTree(flowelem_xy[:nx2d])
 
-    def get_2d_fluxes(self) -> NDArray[np.float_]:
+    def get_2d_fluxes_ptr(self) -> NDArray[np.float_]:
         """
         Returns
         -------

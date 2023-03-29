@@ -34,7 +34,6 @@ class Kernels(BaseModel):
 
 
 class Coupling(BaseModel):
-    enable_sprinkling: bool  # true whemn sprinkling is active
     mf6_model: str  # the MODFLOW 6 model that will be coupled
     dfm_model: str  # the dflow-fm model that will be coupled
     mf6_msw_recharge_pkg: str  # the recharge package that will be used for coupling
@@ -48,34 +47,23 @@ class Coupling(BaseModel):
     mf6_msw_node_map: FilePath  # the path to the node map file
     mf6_msw_recharge_map: FilePath  # the pach to the recharge map file
 
-    mf6_river_to_dfm_1d_q_dmm: FilePath
-    dfm_1d_waterlevel_to_mf6_river_stage_dmm: FilePath
-    mf6_river2_to_dmf_1d_q_dmm: FilePath
-    mf6_drainage_to_dfm_1d_q_dmm: FilePath
-    msw_runoff_to_dfm_1d_q_dmm: FilePath
-    dfm_2d_waterlevels_to_msw_h_dmm: FilePath
-    msw_sprinkling_to_dfm_1d_q_dmm: FilePath
-    msw_ponding_to_dfm_2d_dv_dmm: FilePath
-    dfm_1d_points_dat: FilePath
-    dfm_2d_points_dat: FilePath
+    mf6_river_to_dfm_1d_q_dmm: Optional[FilePath]
+    dfm_1d_waterlevel_to_mf6_river_stage_dmm: Optional[FilePath]
+    mf6_river2_to_dmf_1d_q_dmm: Optional[FilePath]
+    mf6_drainage_to_dfm_1d_q_dmm: Optional[FilePath]
+    msw_runoff_to_dfm_1d_q_dmm: Optional[FilePath]
 
+    msw_sprinkling_to_dfm_1d_q_dmm: Optional[FilePath]
+
+    dfm_2d_waterlevels_to_msw_h_dmm: Optional[FilePath]
+    msw_ponding_to_dfm_2d_dv_dmm: Optional[FilePath]
     mf6_msw_sprinkling_map: Optional[
         FilePath
-    ] = None  # the pach to the sprinkling map file
+    ] = None  # the path to the sprinkling map file
     output_config_file: FilePath
 
     class Config:
         arbitrary_types_allowed = True  # Needed for `mf6_msw_sprinkling_map`
-
-    @validator("mf6_msw_well_pkg")
-    def validate_mf6_msw_well_pkg(
-        cls, mf6_msw_well_pkg: Optional[str], values: Any
-    ) -> Optional[str]:
-        if values.get("enable_sprinkling") and mf6_msw_well_pkg is None:
-            raise ValueError(
-                "If `enable_sprinkling` is True, then `mf6_msw_well_pkg` needs to be set."
-            )
-        return mf6_msw_well_pkg
 
     @validator("mf6_wel_correction_pkg")
     def validate_mf6_wel_correction_pkg(
@@ -100,8 +88,8 @@ class Coupling(BaseModel):
         "dfm_2d_waterlevels_to_msw_h_dmm",
         "msw_sprinkling_to_dfm_1d_q_dmm",
         "msw_ponding_to_dfm_2d_dv_dmm",
-        "dfm_1d_points_dat",
-        "dfm_2d_points_dat",
+        "dfm_2d_waterlevels_to_msw_h_dmm",
+        "msw_ponding_to_dfm_2d_dv_dmm",
     )
     def resolve_mapping_files(cls, mapping_file: FilePath) -> FilePath:
         return mapping_file.resolve()
@@ -116,10 +104,6 @@ class Coupling(BaseModel):
     ) -> Optional[FilePath]:
         if mf6_msw_sprinkling_map:
             return mf6_msw_sprinkling_map.resolve()
-        elif values.get("enable_sprinkling"):
-            raise ValueError(
-                "If `enable_sprinkling` is True, then `mf6_msw_sprinkling_map` needs to be set."
-            )
         return mf6_msw_sprinkling_map
 
     @validator("dfm_model")
@@ -133,6 +117,25 @@ class Coupling(BaseModel):
         if os.path.splitext(filename.name)[1].lower() != ".toml":
             raise ValueError("expected a toml file")
         return filename.resolve()
+
+    def validate_sprinkling_settings(self) -> None:
+        sprinkling_settings_present = [
+            self.mf6_msw_well_pkg is not None,
+            self.mf6_msw_sprinkling_map is not None,
+        ]
+        if all(setting is True for setting in sprinkling_settings_present) or all(
+            setting is False for setting in sprinkling_settings_present
+        ):
+            return
+        raise ValueError(
+            "mf6_msw_sprinkling_map and mf6_msw_well_pkg must both be present or both be absent "
+        )
+
+    def enable_sprinkling(self) -> bool:
+        return (
+            self.mf6_msw_well_pkg is not None
+            and self.mf6_msw_sprinkling_map is not None
+        )
 
 
 class DfmMetaModConfig(BaseModel):
