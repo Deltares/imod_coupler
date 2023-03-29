@@ -686,7 +686,7 @@ class DfmMetaMod(Driver):
             realised_dfm = wbal.realised["dflow1d_flux2mf-riv_negative"]
             demand_pos = wbal.demand["mf-riv2dflow1d_flux_positive"]
             demand_neg = wbal.demand["mf-riv2dflow1d_flux_negative"]
-            mask = np.less(0.0, demand_neg)
+            mask = np.not_equal(0.0, demand_neg)  # prevent zero devision
             realised_fraction = realised_dfm * 0.0 + 1.0
             realised_fraction[mask] = (
                 realised_dfm[mask] - demand_pos[mask]
@@ -699,7 +699,7 @@ class DfmMetaMod(Driver):
                 1 - matrix.dot(realised_fraction)
             )
 
-            assert self.coupling.mf6_msw_well_pkg
+            assert self.coupling.mf6_drain_pkg
             self.mf6.set_well_flux(
                 self.coupling.mf6_model, self.coupling.mf6_wel_correction_pkg, qmf_corr
             )
