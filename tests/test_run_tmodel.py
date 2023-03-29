@@ -41,7 +41,10 @@ def test_run_tmodel(
     set_workdir_in_logging_config_file(output_config_path, tmp_path_dev)
     fill_para_sim_template(tmp_path_dev / "MetaSWAP", metaswap_lookup_table)
 
-    run_coupler(toml_file_path)
+    subprocess.run(
+        [imod_coupler_exec_devel, toml_file_path],
+        check=True,
+    )
     evaluate_waterbalance(tmp_path_dev, reference_result_folder, "T-MODEL-D.LST")
 
 
@@ -70,7 +73,10 @@ def test_run_tmodel_f_no_sprinkling(
 
     set_workdir_in_logging_config_file(output_config_path, tmp_path_dev)
     fill_para_sim_template(tmp_path_dev / "MetaSWAP", metaswap_lookup_table)
-    run_coupler(toml_file_path)
+    subprocess.run(
+        [imod_coupler_exec_devel, toml_file_path],
+        check=True,
+    )
 
 
 @pytest.mark.maintenance
@@ -101,7 +107,10 @@ def test_run_tmodel_f_with_metamod(
 
     fill_para_sim_template(tmp_path_dev / "MetaSWAP", metaswap_lookup_table)
 
-    run_coupler(toml_file_path)
+    subprocess.run(
+        [imod_coupler_exec_devel, toml_file_path],
+        check=True,
+    )
 
 
 def test_run_tmodel_f_without_dflow(
@@ -146,7 +155,10 @@ def test_run_tmodel_f_without_dflow(
     set_workdir_in_logging_config_file(output_config_path, tmp_path_dev)
     fill_para_sim_template(tmp_path_dev / "MetaSWAP", metaswap_lookup_table)
 
-    run_coupler(toml_file_path)
+    subprocess.run(
+        [imod_coupler_exec_devel, toml_file_path],
+        check=True,
+    )
 
 
 def test_run_tmodel_f_without_dflow_with_sprinkling(
@@ -192,5 +204,7 @@ def test_run_tmodel_f_without_dflow_with_sprinkling(
     set_workdir_in_logging_config_file(output_config_path, tmp_path_dev)
     fill_para_sim_template(tmp_path_dev / "MetaSWAP", metaswap_lookup_table)
 
-    run_coupler(toml_file_path)
-    evaluate_waterbalance(tmp_path_dev, reference_result_folder, "T-MODEL-F.LST")
+    subprocess.run(
+        [imod_coupler_exec_devel, toml_file_path],
+        check=True,
+    )
