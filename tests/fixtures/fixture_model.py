@@ -605,19 +605,6 @@ def remove_exchange_file_references(
     with open(toml_file_path, "wb") as toml_file:
         tomli_w.dump(toml_dict, toml_file)
 
-
-def evaluate_waterbalance(
-    tmp_path_dev: Path, reference_result_folder: Path, name: str
-) -> None:
-    waterbalance_result = run_waterbalance_script_on_tmodel(tmp_path_dev, name)
-    csv_reference_file = (
-        reference_result_folder / "test_run_tmodel" / "waterbalance.csv"
-    )
-    # assert numeric_csvfiles_equal(
-    #     waterbalance_result, csv_reference_file, ";", abstol=5600.0, reltol=3.5
-    # )
-
-
 def run_waterbalance_script_on_tmodel(testdir: Path, name: str) -> Path:
     modflow_out_file = testdir / "Modflow6" / "GWF_1" / name
     dflow_out_file = testdir / "dflow-fm" / "DFM_OUTPUT_FlowFM" / "FlowFM_his.nc"

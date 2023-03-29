@@ -2,11 +2,8 @@ import shutil
 import subprocess
 from pathlib import Path
 
-import numpy as np
-import tomli
-import tomli_w
+import pytest
 from fixtures.fixture_model import (
-    evaluate_waterbalance,
     remove_exchange_file_references,
     run_waterbalance_script_on_tmodel,
     set_toml_file_tmodel,
@@ -59,7 +56,6 @@ def test_run_tmodel_no_sprinkling(
         [str(imod_coupler_exec_devel), toml_file_path],
         check=True,
     )
-    evaluate_waterbalance(tmp_path_dev, reference_result_folder, "T-MODEL-D.LST")
 
     waterbalance_result = run_waterbalance_script_on_tmodel(
         tmp_path_dev, "T-MODEL-D.LST"
