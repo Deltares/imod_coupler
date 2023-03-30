@@ -19,12 +19,11 @@ sep = ";"
 
 
 @parametrize_with_cases(
-    "files_to_skip,mf6_model_rootname,csv_reference_filename,tolerance_balance",
+    "tmodel_input_folder,files_to_skip,mf6_model_rootname,csv_reference_filename,tolerance_balance",
     prefix="case_tmodel_",
 )
 def test_run_tmodel(
     tmp_path_dev: Path,
-    tmodel_input_folder: Path,
     modflow_dll_devel: Path,
     dflowfm_dll: Path,
     metaswap_dll_devel: Path,
@@ -32,6 +31,7 @@ def test_run_tmodel(
     metaswap_lookup_table: Path,
     reference_result_folder: Path,
     imod_coupler_exec_devel: Path,
+    tmodel_input_folder: Path,
     files_to_skip: Set[str],
     mf6_model_rootname: str,
     csv_reference_filename: str,
@@ -58,11 +58,9 @@ def test_run_tmodel(
         [str(imod_coupler_exec_devel), toml_file_path],
         check=True,
     )
-
     waterbalance_result = run_waterbalance_script_on_tmodel(
         tmp_path_dev, mf6_model_rootname
     )
-
     csv_reference_file = (
         reference_result_folder / "test_run_tmodel" / csv_reference_filename
     )

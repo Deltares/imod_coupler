@@ -1,3 +1,4 @@
+from pathlib import Path
 from typing import Dict, Set, Tuple
 
 import numpy as np
@@ -29,9 +30,11 @@ default_tolerance_balance: Dict[str, Tuple[float, float]] = {
 }
 
 
-def case_tmodel_d_no_sprinkling() -> (
-    Tuple[Set[str], str, str, Dict[str, Tuple[float, float]]]
-):
+def case_tmodel_d_no_sprinkling(
+    test_data_folder: Path,
+) -> Tuple[Path, Set[str], str, str, Dict[str, Tuple[float, float]]]:
+    tmodel_input_folder = test_data_folder / "t_model"
+
     files_to_skip = {
         "mf6_msw_sprinkling_map",
         "mf6_msw_well_pkg",
@@ -44,6 +47,7 @@ def case_tmodel_d_no_sprinkling() -> (
     tolerance_balance = default_tolerance_balance
 
     return (
+        tmodel_input_folder,
         files_to_skip,
         mf6_model_rootname,
         csv_reference_file,
@@ -51,9 +55,10 @@ def case_tmodel_d_no_sprinkling() -> (
     )
 
 
-def case_tmodel_f_no_sprinkling() -> (
-    Tuple[Set[str], str, str, Dict[str, Tuple[float, float]]]
-):
+def case_tmodel_f_no_sprinkling(
+    test_data_folder: Path,
+) -> Tuple[Path, Set[str], str, str, Dict[str, Tuple[float, float]]]:
+    tmodel_input_folder = test_data_folder / "t_model_f"
     files_to_skip = {
         "mf6_msw_sprinkling_map",
         "mf6_msw_well_pkg",
@@ -64,6 +69,7 @@ def case_tmodel_f_no_sprinkling() -> (
     tolerance_balance = default_tolerance_balance
 
     return (
+        tmodel_input_folder,
         files_to_skip,
         mf6_model_rootname,
         csv_reference_file,
@@ -71,9 +77,10 @@ def case_tmodel_f_no_sprinkling() -> (
     )
 
 
-def case_tmodel_f_without_dflow() -> (
-    Tuple[Set[str], str, str, Dict[str, Tuple[float, float]]]
-):
+def case_tmodel_f_without_dflow(
+    test_data_folder: Path,
+) -> Tuple[Path, Set[str], str, str, Dict[str, Tuple[float, float]]]:
+    tmodel_input_folder = test_data_folder / "t_model_f"
     files_to_skip = {
         "msw_ponding_to_dfm_2d_dv_dmm",
         "dfm_2d_waterlevels_to_msw_h_dmm",
@@ -92,6 +99,7 @@ def case_tmodel_f_without_dflow() -> (
     tolerance_balance = default_tolerance_balance
 
     return (
+        tmodel_input_folder,
         files_to_skip,
         mf6_model_rootname,
         csv_reference_file,
