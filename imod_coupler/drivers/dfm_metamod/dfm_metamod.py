@@ -683,8 +683,8 @@ class DfmMetaMod(Driver):
 
         if self.map_active_mod_dflow1d["mf-riv2dflow1d_flux"] is not None:
             wbal = self.exchange_balans_1d
-            realised_dfm = wbal.realised["dflow1d_flux2mf-riv_negative"]
             demand_pos = wbal.demand["mf-riv2dflow1d_flux_positive"]
+            realised_dfm = wbal.realised["dflow1d_flux2mf-riv_negative"] + demand_pos
             demand_neg = wbal.demand["mf-riv2dflow1d_flux_negative"]
             mask = np.not_equal(0.0, demand_neg)  # prevent zero devision
             realised_fraction = realised_dfm * 0.0 + 1.0
@@ -695,7 +695,7 @@ class DfmMetaMod(Driver):
 
             # correction only applies to Modflow cells which negatively contribute to the dflowfm volumes
             # in which case the Modflow demand was POSITIVE, otherwise the correction is 0
-            qmf_corr = np.maximum(self.mf6_river_aquifer_flux_day, 0.0) * (
+            qmf_corr = -np.maximum(self.mf6_river_aquifer_flux_day, 0.0) * (
                 1 - matrix.dot(realised_fraction)
             )
 
