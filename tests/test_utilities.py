@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 
 eps = np.finfo(np.float_).eps
-tolerance_balance_file: Dict[str, Tuple[np.float64, np.float64]] = {
+tolerance_balance: Dict[str, Tuple[float, float]] = {
     "default": (2 * eps, 2 * eps),
     "msw_decSpdmac_in": (58.39, 0.44),
     "msw_decSpdmic_in": (13.50, 2.0),
@@ -56,21 +56,21 @@ def diff_per_column_dataframe(
     failed = {}
     absfailedndx = {}
     relfailedndx = {}
-    for varname in list(df1):
+    for varname in list(df1)[1:]:
         if varname not in df2:
             failed[varname] = (True, True)
         s1 = df1[varname]
         s2 = df2[varname]
         if varname in tolerance:
-            tol = tolerance[varname]
+            (abstol, reltol) = tolerance[varname]
         else:
-            tol = tolerance["default"]
+            (abstol, reltol) = tolerance["default"]
         # only where both are nan
         nan_match = np.logical_and(s1.isna(), s2.isna())
         # where abolute matches, but the matching nans are excused
-        abs_match = np.logical_or((abs(s2 - s1) <= tol[0]), nan_match)
+        abs_match = np.logical_or((abs(s2 - s1) <= abstol), nan_match)
         # where relative matches, but the matching nans are excused
-        rel_match = np.logical_or((abs(s2 - s1) <= abs(s1 * tol[1])), nan_match)
+        rel_match = np.logical_or((abs(s2 - s1) <= abs(s1 * reltol)), nan_match)
         absfailedndx[varname] = list(s2[~abs_match].index)
         relfailedndx[varname] = list(s2[~rel_match].index)
         failed[varname] = (
@@ -84,7 +84,7 @@ def numeric_csvfiles_equal(
     file1: Path,
     file2: Path,
     sep: str,
-    tolerance: Dict[str, tuple[np.float_, np.float_]],
+    tolerance: Dict[str, tuple[float, float]],
 ) -> bool:
     df1 = pd.read_csv(
         file1,
@@ -101,7 +101,7 @@ def numeric_csvfiles_equal(
     # rownumbers with significant difference per variable
     absfailedndx, relfailedndx, failed = diff_per_column_dataframe(df1, df2, tolerance)
     # is there any significant difference whatsoever?
-    isDifferent = any(failed.values())
+    isDifferent = any([v != (False, False) for v in failed.values()])
 
     return not isDifferent
 

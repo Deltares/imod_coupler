@@ -1,8 +1,14 @@
+import os
+from pathlib import Path
 from typing import Dict, Tuple
 
 import numpy as np
 import pandas as pd
-from test_utilities import diff_per_column_dataframe, numeric_dataframes_equal
+from test_utilities import (
+    diff_per_column_dataframe,
+    numeric_csvfiles_equal,
+    numeric_dataframes_equal,
+)
 
 
 def test_compare_absolute_fail():
@@ -80,3 +86,33 @@ def test_compare_varying_tolerances():
         "Var B": (True, False),
         "Var C": (True, True),
     }
+
+
+def test_write_and_read_dataframe(
+    tmp_path_dev: Path,
+):
+    os.mkdir(tmp_path_dev)
+    frame1 = pd.DataFrame([[np.nan, -10], [1, -1]])
+    frame1.to_csv(tmp_path_dev / "frame1.csv", sep=";", na_rep="nan")
+    df1 = pd.read_csv(
+        tmp_path_dev / "frame1.csv", ";", keep_default_na=True, skiprows=[0]
+    )
+
+    assert frame1 == df1
+
+
+def test_compare_waterbalance_files(
+    tmp_path_dev: Path,
+):
+    os.mkdir(tmp_path_dev)
+    frame1 = pd.DataFrame([[8, -10, 1], [1, -10, 1]])
+    frame2 = pd.DataFrame([[np.nan, -10, 1], [1, -10, 1]])
+    frame1.to_csv(tmp_path_dev / "frame1.csv", sep=";", na_rep="nan")
+    frame2.to_csv(tmp_path_dev / "frame2.csv", sep=";", na_rep="nan")
+
+    numeric_csvfiles_equal(
+        tmp_path_dev / "frame1.csv",
+        tmp_path_dev / "frame2.csv",
+        ";",
+        {"0": (0.0, 0.0), "1": (1.0, 1.0), "C": (0.1, 0.0), "default": (0.0, 0.0)},
+    )

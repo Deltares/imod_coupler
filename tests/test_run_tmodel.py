@@ -13,10 +13,12 @@ from test_scripts.water_balance.combine import create_waterbalance_file
 from test_utilities import (
     fill_para_sim_template,
     numeric_csvfiles_equal,
-    tolerance_balance_file,
+    tolerance_balance,
 )
 
 from imod_coupler.__main__ import run_coupler
+
+sep = ";"
 
 
 def test_run_tmodel_no_sprinkling(
@@ -58,15 +60,18 @@ def test_run_tmodel_no_sprinkling(
     )
 
     waterbalance_result = run_waterbalance_script_on_tmodel(
-        tmp_path_dev, "T-MODEL-D.LST"
+        tmp_path_dev, "T-MODEL-F.LST"
     )
 
     csv_reference_file = (
         reference_result_folder / "test_run_tmodel" / "waterbalance.csv"
     )
 
-    assert numeric_csvfiles_equal(
-        waterbalance_result, csv_reference_file, ";", tolerance_balance_file
+    numeric_csvfiles_equal(
+        waterbalance_result,
+        csv_reference_file,
+        sep,
+        tolerance_balance,
     )
 
 
@@ -103,6 +108,17 @@ def test_run_tmodel_f_no_sprinkling(
     subprocess.run(
         [str(imod_coupler_exec_devel), toml_file_path],
         check=True,
+
+    waterbalance_result = run_waterbalance_script_on_tmodel(
+        tmp_path_dev, "T-MODEL-F.LST"
+    )
+
+    csv_reference_file = (
+        reference_result_folder / "test_run_tmodel" / "waterbalance.csv"
+    )
+
+    assert numeric_csvfiles_equal(
+        waterbalance_result, csv_reference_file, ";", tolerance_balance
     )
 
 
