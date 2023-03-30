@@ -78,16 +78,16 @@ def combine_dataframe(
     fm_interval = 86400
 
     fm_hisdf, fm_hisdf_rates = hisfile_to_dataframe(fm_hisfile, fm_interval)
-
     combined = fm_hisdf_rates.copy()
 
     renaming = {key: "fm_" + key for key in list(combined) if key not in ["t"]}
     combined.rename(columns=renaming, inplace=True)
     print("Reading DFlowFM data finished")
 
-    # mf6_daynrs = [int(fm_hisdf.at[i,'time'] / 86400) for i in range(len(fm_hisdf))]
-    # 86400 sec in dfm is at the end of the first modflow day, that is record 0 !!
-    mf6_daynrs = [int(time_seconds / 86400.0 - 0.5) for time_seconds in fm_hisdf["t"]]
+    # 86400 sec in dfm is at the end of the first modflow day, that is record 0 in MODFLOW!!
+    times = fm_hisdf["t"].copy()
+    dfm_time_seconds=times[(times%86400==0) & (times>0)]
+    mf6_daynrs = [int(time_seconds / 86400.0 - 1) for time_seconds in dfm_time_seconds]
     msw_totdf = totfile_to_dataframe(msw_totfile).iloc[mf6_daynrs]
 
     # MetaSWAP incoming

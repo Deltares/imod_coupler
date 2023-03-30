@@ -36,7 +36,7 @@ def hisfile_to_dataframe(
     ds = nc.Dataset(hisname, "r")
     alltimes = ds.variables["time"][:]
 
-    sel = alltimes % interval == 0
+    sel = (alltimes % interval == 0) & (alltimes > 0)
     hisdf = pd.DataFrame()
     for ncname, dfname in fields.items():
         hisdf[dfname] = ds.variables[ncname][sel]
