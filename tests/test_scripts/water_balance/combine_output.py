@@ -8,9 +8,9 @@ import numpy as np
 
 # import xlwt, xlrd
 import pandas as pd
-from test_scripts.water_balance.MF6_wbal_listing import listfile_to_dataframe
-from test_scripts.water_balance.readfmhis import hisfile_to_dataframe
-from test_scripts.water_balance.readmsw import totfile_to_dataframe
+from .MF6_wbal_listing import listfile_to_dataframe
+from .readfmhis import hisfile_to_dataframe
+from .readmsw import totfile_to_dataframe
 
 
 def writeNC(ncname: Path, df: pd.DataFrame, singlevar: bool):
@@ -103,10 +103,10 @@ def combine_dataframe(
         "qdr",
         "qmodf",
     ]:
-        tmp = msw_totdf[key].values
+        tmp = msw_totdf[key].values.copy()
         tmp[tmp < 0.0] = 0.0
         combined["msw_" + key + "_in"] = tmp
-        msw_sum_in = msw_sum_in + msw_totdf[key].values
+        msw_sum_in = msw_sum_in + tmp
     combined["msw_decS_in"] = msw_totdf["decS_in"].values
     msw_sum_in = msw_sum_in + msw_totdf["decS_in"].values
     combined["msw_sum_in"] = msw_sum_in
@@ -127,10 +127,10 @@ def combine_dataframe(
         "qspgw",
         "qmodf",
     ]:
-        tmp = msw_totdf[key].values
+        tmp = msw_totdf[key].values.copy()
         tmp[tmp > 0.0] = 0.0
         combined["msw_" + key + "_out"] = tmp
-        msw_sum_out = msw_sum_out + msw_totdf[key].values
+        msw_sum_out = msw_sum_out + tmp
     combined["msw_decS_out"] = msw_totdf["decS_out"].values
     msw_sum_out = msw_sum_out + msw_totdf["decS_out"].values
     combined["msw_sum_out"] = msw_sum_out
@@ -148,14 +148,16 @@ def combine_dataframe(
             combinedname = "mf_%s_%s" % (key2, key1)
             combined[combinedname] = np.NaN  # 0.0
 
+
     # total by package type and direction
     for lbl in list(mf_listdf):
         m = re.match(r"(.*):.*_((IN|OUT)$)", lbl)
         if m:
             combinedname = "mf_%s_%s" % (m.group(1), m.group(2))
-            if all(np.isnan(combined[combinedname])):
-                combined[combinedname] = 0.0
-            combined[combinedname] += mf_listdf[lbl]
+            if combinedname in combined:
+                if all(np.isnan(combined[combinedname])):
+                    combined[combinedname] = 0.0
+                combined[combinedname] += mf_listdf[lbl]
 
     print("Reading ModFLOW data finished")
 
