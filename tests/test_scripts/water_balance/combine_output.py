@@ -86,7 +86,7 @@ def combine_dataframe(
 
     # 86400 sec in dfm is at the end of the first modflow day, that is record 0 in MODFLOW!!
     times = fm_hisdf["t"].copy()
-    dfm_time_seconds=times[(times%86400==0) & (times>0)]
+    dfm_time_seconds = times[(times % 86400 == 0) & (times > 0)]
     mf6_daynrs = [int(time_seconds / 86400.0 - 1) for time_seconds in dfm_time_seconds]
     msw_totdf = totfile_to_dataframe(msw_totfile).iloc[mf6_daynrs]
 
@@ -147,7 +147,6 @@ def combine_dataframe(
         for key2 in modflow_fields:
             combinedname = "mf_%s_%s" % (key2, key1)
             combined[combinedname] = np.NaN  # 0.0
-
 
     # total by package type and direction
     for lbl in list(mf_listdf):

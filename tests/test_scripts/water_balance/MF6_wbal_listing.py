@@ -16,11 +16,11 @@ class status(Enum):
 
 
 defined_pkg_type = {
-    'STORAGE':'STO-SS',
-    'DRAINS':'DRN',
-    'RIVER_LEAKAGE':'RIV',
-    'DXC_FLUXES': 'RCH',
-    'CONSTANT_HEAD':'CHD',
+    "STORAGE": "STO-SS",
+    "DRAINS": "DRN",
+    "RIVER_LEAKAGE": "RIV",
+    "DXC_FLUXES": "RCH",
+    "CONSTANT_HEAD": "CHD",
 }
 
 
@@ -59,14 +59,14 @@ def listfile_to_dataframe(file_in: Path) -> pd.DataFrame:
                     pkg1 = re.sub(r"\s+", "_", re.sub(r"\s*=\s*", "", splitter))
                     pkg2 = pkg1
                     try:
-                        pkg2 = part2.split()[1],
-                        pkgname = "%s:%s" % (pkg1,pkg2)  # modflow6 format
+                        pkg2 = part2.split()[1]
+                        pkgname = "%s:%s" % (pkg1, pkg2)  # modflow6 format
                     except:
                         if pkg1 in defined_pkg_type:
-                           pkg2 = defined_pkg_type[pkg1]
+                            pkg2 = defined_pkg_type[pkg1]
                         else:
-                           pkg2 = pkg1
-                        pkgname = "%s:%s" % (pkg2,pkg1)  # modflow5 format
+                            pkg2 = pkg1
+                        pkgname = "%s:%s" % (pkg2, pkg1)  # modflow5 format
                     df_data_out.at[stress_period, pkgname + postfix] = thisval
                 continue
         return df_data_out

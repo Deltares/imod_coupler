@@ -14,9 +14,7 @@ def create_waterbalance_file(
     output_file_netcdf: Union[Path, None] = None,
     output_file_csv: Union[Path, None] = None,
 ) -> None:
-    combined_dataframe = combine_dataframe(
-        fm_hisfile, msw_totfile, mf_listfile
-    )
+    combined_dataframe = combine_dataframe(fm_hisfile, msw_totfile, mf_listfile)
 
     if output_file_netcdf is not None:
         print("Writing NetCDF")
