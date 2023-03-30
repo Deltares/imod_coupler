@@ -51,7 +51,7 @@ def fill_para_sim_template(msw_folder: Path, path_unsat_dbase: Path) -> None:
 def diff_per_column_dataframe(
     df1: pd.DataFrame,
     df2: pd.DataFrame,
-    tolerance: Dict[str, tuple[np.float_, np.float_]],
+    tolerance: Dict[str, tuple[float, float]],
 ) -> tuple[Dict[str, list[int]], Dict[str, list[int]], Dict[str, tuple[bool, bool]]]:
     failed = {}
     absfailedndx = {}

@@ -1,7 +1,7 @@
 from pathlib import Path
 
 from test_scripts.water_balance.combine import create_waterbalance_file
-from test_utilities import numeric_csvfiles_equal
+from test_utilities import numeric_csvfiles_equal, tolerance_balance
 
 
 def test_waterbalance_script_case_1(
@@ -23,7 +23,7 @@ def test_waterbalance_script_case_1(
     )
 
     assert numeric_csvfiles_equal(
-        csv_result_file, csv_reference_file, ";", abstol=0.001, reltol=0.001
+        csv_result_file, csv_reference_file, ";", tolerance_balance
     )
 
 
@@ -46,5 +46,5 @@ def test_waterbalance_script_case_2(
     )
 
     assert numeric_csvfiles_equal(
-        csv_result_file, csv_reference_file, ";", abstol=0.001, reltol=0.001
+        csv_result_file, csv_reference_file, ";", tolerance_balance
     )

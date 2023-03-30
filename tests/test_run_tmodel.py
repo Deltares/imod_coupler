@@ -60,7 +60,7 @@ def test_run_tmodel_no_sprinkling(
     )
 
     waterbalance_result = run_waterbalance_script_on_tmodel(
-        tmp_path_dev, "T-MODEL-F.LST"
+        tmp_path_dev, "T-MODEL-D.LST"
     )
 
     csv_reference_file = (
@@ -108,6 +108,7 @@ def test_run_tmodel_f_no_sprinkling(
     subprocess.run(
         [str(imod_coupler_exec_devel), toml_file_path],
         check=True,
+    )
 
     waterbalance_result = run_waterbalance_script_on_tmodel(
         tmp_path_dev, "T-MODEL-F.LST"
