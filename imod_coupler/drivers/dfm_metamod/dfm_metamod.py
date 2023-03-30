@@ -116,9 +116,22 @@ class DfmMetaMod(Driver):
         self.msw.initialize_surface_water_component()
         self.dfm.initialize()
         self.get_array_dims()
+        
+        #self.dfm.get_waterlevels_1d_ptr()
+        
         self.mapping = Mapping(
             self.coupling, self.msw.working_directory, self.array_dims
         )
+        
+        
+        while (
+            self.dfm.get_current_time()
+            < 2 - self.time_eps
+        ):
+            self.dfm.update()        
+        
+        
+        
         self.dfm.init_kdtree()
         self.mapping.set_dfm_lookup(self.dfm.kdtree1D, self.dfm.kdtree2D)
         self.set_mapping()
