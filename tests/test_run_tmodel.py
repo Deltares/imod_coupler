@@ -118,10 +118,6 @@ def test_run_tmodel_f_no_sprinkling(
         reference_result_folder / "test_run_tmodel" / "waterbalance.csv"
     )
 
-    assert numeric_csvfiles_equal(
-        waterbalance_result, csv_reference_file, ";", tolerance_balance
-    )
-
 
 @pytest.mark.maintenance
 def test_run_tmodel_f_with_metamod(

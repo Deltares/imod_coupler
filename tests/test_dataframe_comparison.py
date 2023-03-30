@@ -56,11 +56,13 @@ def test_compare_with_nan_fails():
 
 def test_compare_varying_tolerances():
     frame1 = pd.DataFrame()
+    frame1["index"] = [0, 1, 2, 3, 4]
     frame1["Var A"] = [0.01, 0.013, -50.06, -0.04, 0.001]
     frame1["Var B"] = [0.01, 0.013, -50.06, -0.04, 0.001]
     frame1["Var C"] = [0.01, 0.013, -50.06, -0.04, 0.001]
 
     frame2 = pd.DataFrame()
+    frame2["index"] = [0, 1, 2, 3, 4]
     frame2["Var A"] = [2.01, 0.013, -55.06, 0.04, 0.001]
     frame2["Var B"] = [2.01, 0.013, -55.06, 0.04, 0.001]
     frame2["Var C"] = [2.01, 0.013, -55.06, 0.04, 0.001]
