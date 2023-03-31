@@ -45,7 +45,7 @@ def test_compare_relative_fail(tmp_path_dev: Path):
     )
 
 
-def test_compare_absolute_succeed(tmp_path_dev: Path):
+def test_compare_relative_succeed(tmp_path_dev: Path):
     frame1 = pd.DataFrame([[10, -10], [1, -1]])
     frame2 = pd.DataFrame([[10.01, -10.01], [1.01, -1.01]])
     os.mkdir(tmp_path_dev)
