@@ -1,6 +1,6 @@
 timing = false
 log_level = "INFO"
-driver_type = "dfm_metamod"
+driver_type = "metamod"
 
 
 [driver.kernels.modflow6]

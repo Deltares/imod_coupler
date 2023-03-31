@@ -116,22 +116,10 @@ class DfmMetaMod(Driver):
         self.msw.initialize_surface_water_component()
         self.dfm.initialize()
         self.get_array_dims()
-        
-        #self.dfm.get_waterlevels_1d_ptr()
-        
+
         self.mapping = Mapping(
             self.coupling, self.msw.working_directory, self.array_dims
         )
-        
-        
-        while (
-            self.dfm.get_current_time()
-            < 2 - self.time_eps
-        ):
-            self.dfm.update()        
-        
-        
-        
         self.dfm.init_kdtree()
         self.mapping.set_dfm_lookup(self.dfm.kdtree1D, self.dfm.kdtree2D)
         self.set_mapping()
@@ -182,7 +170,7 @@ class DfmMetaMod(Driver):
         self.exchange_balans_2d.reset()
 
         # stage from dflow 1d to modflow active coupled riv
-        self.exchange_stage_1d_dfm2mf6()
+        # self.exchange_stage_1d_dfm2mf6()
 
         # flux from modflow active coupled riv to water balance 1d
         self.exchange_flux_riv_active_mf62dfm()
@@ -279,9 +267,10 @@ class DfmMetaMod(Driver):
             if has_converged:
                 logger.debug(f"MF6-MSW converged in {kiter} iterations")
                 break
+        
         self.mf6.finalize_solve(1)
-
         self.mf6.finalize_time_step()
+
         # self.msw_time = self.mf6.get_current_time() -> zie definitie
         self.msw.finalize_time_step()
 
@@ -407,19 +396,22 @@ class DfmMetaMod(Driver):
             mf6_river_stage = self.mf6.get_river_stages(
                 self.coupling.mf6_model, self.coupling.mf6_river_active_pkg
             )
+            mf6_river_bot = self.mf6.get_river_bot(
+                self.coupling.mf6_model, self.coupling.mf6_river_active_pkg
+            )
 
-            updated_river_stage = (
-                self.mask_active_mod_dflow1d["dflow1d2mf-riv_stage"][:]
-                * mf6_river_stage[:]
-                + self.map_active_mod_dflow1d["dflow1d2mf-riv_stage"].dot(
-                    dfm_water_levels
-                )[:]
+            updated_river_stage = self.mask_active_mod_dflow1d["dflow1d2mf-riv_stage"][
+                :
+            ] * mf6_river_stage[:] + self.map_active_mod_dflow1d[
+                "dflow1d2mf-riv_stage"
+            ].dot(
+                dfm_water_levels
             )
 
             self.mf6.set_river_stages(
                 self.coupling.mf6_model,
                 self.coupling.mf6_river_active_pkg,
-                updated_river_stage,
+                np.maximum(updated_river_stage, mf6_river_bot),
             )
 
             self.exchange_logger.log_exchange(

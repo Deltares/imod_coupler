@@ -122,6 +122,30 @@ class Mf6Wrapper(XmiWrapper):
         stage = bound[:, 0]
         return stage
 
+    def get_river_bot(
+        self,
+        mf6_flowmodel_key: str,
+        mf6_package_key: str,
+    ) -> NDArray[np.float64]:
+        """returns the river bot of the modflow model
+
+        Parameters
+        ----------
+        mf6_flowmodel_key : str
+            flowmodel key
+        mf6_river_pkg_key : str
+            river package key
+
+        Returns
+        -------
+         NDArray[np.float_]:
+            bots of the rivers in modflow
+        """
+        bound_adress = self.get_var_address("BOUND", mf6_flowmodel_key, mf6_package_key)
+        bound = self.get_value_ptr(bound_adress)
+        bot = bound[:, 2]
+        return bot
+
     def set_well_flux(
         self,
         mf6_flowmodel_key: str,

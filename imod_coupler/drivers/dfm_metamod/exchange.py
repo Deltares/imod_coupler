@@ -135,7 +135,7 @@ class exchange_balance_1d:
         sum_to_dflow : np.float_
             flux send to dflow
         """
-        condition = np.greater_equal(sum_to_dflow,sum_from_dflow)
+        condition = np.greater_equal(sum_to_dflow, sum_from_dflow)
         self.realised["dflow1d_flux2sprinkling_msw"][condition] = self.demand[
             "msw-sprinkling2dflow1d_flux"
         ][condition]
