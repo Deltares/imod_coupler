@@ -78,18 +78,3 @@ def numeric_csvfiles_equal(
     isDifferent = any([v != (False, False) for v in failed.values()])
 
     return not isDifferent
-
-
-def numeric_dataframes_equal(
-    df1: pd.DataFrame,
-    df2: pd.DataFrame,
-    abstol: float,
-    reltol: float,
-    tol: Optional[Dict[str, tuple[float, float]]] = None,
-) -> bool:
-    if tol is None:
-        tol = {}
-    tol["default"] = (abstol, reltol)
-    absfailedndx, relfailedndx, failed = diff_per_column_dataframe(df1, df2, tol)
-    any_failure = any([any(ff) for ff in failed.values()])
-    return not any_failure

@@ -4,54 +4,81 @@ from typing import Dict, Tuple
 
 import numpy as np
 import pandas as pd
-from test_utilities import (
-    diff_per_column_dataframe,
-    numeric_csvfiles_equal,
-    numeric_dataframes_equal,
-)
+from test_utilities import diff_per_column_dataframe, numeric_csvfiles_equal
+
+sep = ";"
 
 
-def test_compare_absolute_fail():
+def test_compare_absolute_fail(tmp_path_dev: Path):
     frame1 = pd.DataFrame([[10, -10], [1, -1]])
     frame2 = pd.DataFrame([[10.01, -10.01], [1.01, -1.01]])
+    os.mkdir(tmp_path_dev)
+    frame1.to_csv(tmp_path_dev / "frame1.csv", sep=sep)
+    frame2.to_csv(tmp_path_dev / "frame2.csv", sep=sep)
+    tol = {"default": (0.009, 100.0)}
+    assert not numeric_csvfiles_equal(
+        tmp_path_dev / "frame1.csv", tmp_path_dev / "frame2.csv", sep, tol
+    )
 
-    assert not numeric_dataframes_equal(frame1, frame2, abstol=0.009, reltol=100)
 
-
-def test_compare_absolute_succeed():
+def test_compare_absolute_succeed(tmp_path_dev: Path):
     frame1 = pd.DataFrame([[10, -10], [1, -1]])
     frame2 = pd.DataFrame([[10.01, -10.01], [1.01, -1.01]])
+    os.mkdir(tmp_path_dev)
+    frame1.to_csv(tmp_path_dev / "frame1.csv", sep=sep)
+    frame2.to_csv(tmp_path_dev / "frame2.csv", sep=sep)
+    tol = {"default": (0.011, 100.0)}
+    assert numeric_csvfiles_equal(
+        tmp_path_dev / "frame1.csv", tmp_path_dev / "frame2.csv", sep, tol
+    )
 
-    assert numeric_dataframes_equal(frame1, frame2, abstol=0.011, reltol=100)
 
-
-def test_compare_relative_fail():
+def test_compare_relative_fail(tmp_path_dev: Path):
     frame1 = pd.DataFrame([[10, -10], [1, -1]])
     frame2 = pd.DataFrame([[10.01, -10.01], [1.01, -1.01]])
+    os.mkdir(tmp_path_dev)
+    frame1.to_csv(tmp_path_dev / "frame1.csv", sep=sep)
+    frame2.to_csv(tmp_path_dev / "frame2.csv", sep=sep)
+    tol = {"default": (100.0, 0.001)}
+    assert not numeric_csvfiles_equal(
+        tmp_path_dev / "frame1.csv", tmp_path_dev / "frame2.csv", sep, tol
+    )
 
-    frame1 = pd.DataFrame([[10, -10], [1, -1]])
-    assert not numeric_dataframes_equal(frame1, frame2, abstol=100, reltol=0.001)
 
-
-def test_compare_relative_succeed():
+def test_compare_absolute_succeed(tmp_path_dev: Path):
     frame1 = pd.DataFrame([[10, -10], [1, -1]])
     frame2 = pd.DataFrame([[10.01, -10.01], [1.01, -1.01]])
+    os.mkdir(tmp_path_dev)
+    frame1.to_csv(tmp_path_dev / "frame1.csv", sep=sep)
+    frame2.to_csv(tmp_path_dev / "frame2.csv", sep=sep)
+    tol = {"default": (100.0, 0.011)}
+    assert numeric_csvfiles_equal(
+        tmp_path_dev / "frame1.csv", tmp_path_dev / "frame2.csv", sep, tol
+    )
 
-    assert numeric_dataframes_equal(frame1, frame2, abstol=100, reltol=0.011)
 
-
-def test_compare_with_nan():
+def test_compare_with_nan(tmp_path_dev: Path):
     frame1 = pd.DataFrame([[np.nan, -10], [1, -1]])
     frame2 = pd.DataFrame([[np.nan, -10.01], [1.01, -1.01]])
+    os.mkdir(tmp_path_dev)
+    frame1.to_csv(tmp_path_dev / "frame1.csv", sep=sep)
+    frame2.to_csv(tmp_path_dev / "frame2.csv", sep=sep)
+    tol = {"default": (100.0, 0.011)}
+    assert numeric_csvfiles_equal(
+        tmp_path_dev / "frame1.csv", tmp_path_dev / "frame2.csv", sep, tol
+    )
 
-    assert numeric_dataframes_equal(frame1, frame2, abstol=100, reltol=0.011)
 
-
-def test_compare_with_nan_fails():
+def test_compare_with_nan_fails(tmp_path_dev: Path):
     frame1 = pd.DataFrame([[np.nan, -10], [1, -1]])
     frame2 = pd.DataFrame([[10, np.nan], [1, -1]])
-
-    assert not numeric_dataframes_equal(frame1, frame2, abstol=100, reltol=0.011)
+    os.mkdir(tmp_path_dev)
+    frame1.to_csv(tmp_path_dev / "frame1.csv", sep=sep)
+    frame2.to_csv(tmp_path_dev / "frame2.csv", sep=sep)
+    tol = {"default": (100.0, 0.011)}
+    assert not numeric_csvfiles_equal(
+        tmp_path_dev / "frame1.csv", tmp_path_dev / "frame2.csv", sep, tol
+    )
 
 
 def test_compare_varying_tolerances():
