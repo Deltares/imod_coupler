@@ -5,7 +5,7 @@ import numpy as np
 
 eps = np.finfo(np.float_).eps
 default_tolerance_balance: Dict[str, Tuple[float, float]] = {
-    "default": (2 * eps, 2 * eps),
+    "default": (float(2 * eps), float(2 * eps)),
     "msw_decSpdmac_in": (58.39, 0.44),
     "msw_decSpdmic_in": (13.50, 2.0),
     "msw_Psgw_in": (750.0, 2.0),
