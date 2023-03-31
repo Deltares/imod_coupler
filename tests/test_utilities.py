@@ -85,7 +85,7 @@ def numeric_dataframes_equal(
     df2: pd.DataFrame,
     abstol: float,
     reltol: float,
-    tol: Optional[Dict[str, tuple[np.float_, np.float_]]] = None,
+    tol: Optional[Dict[str, tuple[float, float]]] = None,
 ) -> bool:
     if tol is None:
         tol = {}
