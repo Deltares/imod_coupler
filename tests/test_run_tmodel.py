@@ -76,7 +76,7 @@ def test_run_tmodel(
 @pytest.mark.maintenance
 def test_run_tmodel_f_with_metamod(
     tmp_path_dev: Path,
-    tmodel_f_input_folder: Path,
+    test_data_folder: Path,
     modflow_dll_devel: Path,
     metaswap_dll_devel: Path,
     metaswap_dll_dep_dir_devel: Path,
@@ -89,7 +89,9 @@ def test_run_tmodel_f_with_metamod(
     It can be used to compare the test results of the metamod simulation with the dfm_metamod simulation in which we disable
     all the dfm-related couplings.
     """
-    shutil.copytree(tmodel_f_input_folder, tmp_path_dev)
+
+    tmodel_input_folder = test_data_folder / "t_model_f"
+    shutil.copytree(tmodel_input_folder, tmp_path_dev)
     toml_file_path = tmp_path_dev / "metamod.toml"
 
     set_toml_file_tmodel(
