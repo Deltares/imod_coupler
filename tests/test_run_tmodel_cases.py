@@ -65,7 +65,7 @@ def case_tmodel_f_no_sprinkling(
     }
     mf6_model_rootname = "T-MODEL-F.LST"
 
-    csv_reference_file = "does not exist.csv"
+    csv_reference_file = "waterbalance_tmodel_f_no_sprinkling.csv"
     tolerance_balance = default_tolerance_balance
 
     return (
@@ -95,7 +95,7 @@ def case_tmodel_f_without_dflow(
     }
     mf6_model_rootname = "T-MODEL-F.LST"
 
-    csv_reference_file = "does not exist.csv"
+    csv_reference_file = "waterbalance_tmodel_f_without_dflow.csv"
     tolerance_balance = default_tolerance_balance
 
     return (
