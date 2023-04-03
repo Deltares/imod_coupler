@@ -116,7 +116,6 @@ class DfmMetaMod(Driver):
         self.msw.initialize_surface_water_component()
         self.dfm.initialize()
         self.get_array_dims()
-
         self.mapping = Mapping(
             self.coupling, self.msw.working_directory, self.array_dims
         )
@@ -203,7 +202,10 @@ class DfmMetaMod(Driver):
 
             # exchange water balance 1d to dlfow 1d
             self.exchange_balans_1d.sum_demand()
-            self.exchange_balans_2dfm(self.exchange_balans_1d.demand["sum"])
+            self.exchange_balans1d_todfm(self.exchange_balans_1d.demand["sum"])
+
+            # exchange water balance 2d to dlfow 2d
+            self.exchange_balans2d_todfm(self.exchange_balans_2d.demand["msw-ponding2dflow2d_flux"])
 
             # get cummelative flux before dfm-run
             time_before = self.dfm.get_current_time()
@@ -267,10 +269,9 @@ class DfmMetaMod(Driver):
             if has_converged:
                 logger.debug(f"MF6-MSW converged in {kiter} iterations")
                 break
-        
         self.mf6.finalize_solve(1)
-        self.mf6.finalize_time_step()
 
+        self.mf6.finalize_time_step()
         # self.msw_time = self.mf6.get_current_time() -> zie definitie
         self.msw.finalize_time_step()
 
@@ -310,8 +311,9 @@ class DfmMetaMod(Driver):
             "dfm_1d": self.dfm.get_number_1d_nodes(),
             "dfm_2d": self.dfm.get_number_2d_nodes(),
         }
+        self.coupling.validate_sprinkling_settings()
 
-        if self.coupling.enable_sprinkling:
+        if self.coupling.enable_sprinkling():
             assert self.coupling.mf6_msw_well_pkg is not None
             array_dims["mf6_sprinkling_wells"] = self.mf6.get_sprinkling(
                 self.coupling.mf6_model, self.coupling.mf6_msw_well_pkg
@@ -377,8 +379,13 @@ class DfmMetaMod(Driver):
             time,
         )
 
-    def exchange_balans_2dfm(self, flux2dflow: NDArray[float_]) -> None:
+    def exchange_balans1d_todfm(self, flux2dflow: NDArray[float_]) -> None:
         fluxes = self.dfm.get_1d_river_fluxes_ptr()
+        if fluxes is not None:
+            fluxes[:] = flux2dflow[:]
+
+    def exchange_balans2d_todfm(self, flux2dflow: NDArray[float_]) -> None:
+        fluxes = self.dfm.get_2d_river_fluxes_ptr()
         if fluxes is not None:
             fluxes[:] = flux2dflow[:]
 
@@ -396,22 +403,19 @@ class DfmMetaMod(Driver):
             mf6_river_stage = self.mf6.get_river_stages(
                 self.coupling.mf6_model, self.coupling.mf6_river_active_pkg
             )
-            mf6_river_bot = self.mf6.get_river_bot(
-                self.coupling.mf6_model, self.coupling.mf6_river_active_pkg
-            )
 
-            updated_river_stage = self.mask_active_mod_dflow1d["dflow1d2mf-riv_stage"][
-                :
-            ] * mf6_river_stage[:] + self.map_active_mod_dflow1d[
-                "dflow1d2mf-riv_stage"
-            ].dot(
-                dfm_water_levels
+            updated_river_stage = (
+                self.mask_active_mod_dflow1d["dflow1d2mf-riv_stage"][:]
+                * mf6_river_stage[:]
+                + self.map_active_mod_dflow1d["dflow1d2mf-riv_stage"].dot(
+                    dfm_water_levels
+                )[:]
             )
 
             self.mf6.set_river_stages(
                 self.coupling.mf6_model,
                 self.coupling.mf6_river_active_pkg,
-                np.maximum(updated_river_stage, mf6_river_bot),
+                updated_river_stage,
             )
 
             self.exchange_logger.log_exchange(
@@ -688,10 +692,10 @@ class DfmMetaMod(Driver):
 
         if self.map_active_mod_dflow1d["mf-riv2dflow1d_flux"] is not None:
             wbal = self.exchange_balans_1d
+            realised_dfm = wbal.realised["dflow1d_flux2mf-riv_negative"]
             demand_pos = wbal.demand["mf-riv2dflow1d_flux_positive"]
-            realised_dfm = wbal.realised["dflow1d_flux2mf-riv_negative"] + demand_pos
             demand_neg = wbal.demand["mf-riv2dflow1d_flux_negative"]
-            mask = np.not_equal(0.0, demand_neg)  # prevent zero devision
+            mask = np.less(0.0, demand_neg)
             realised_fraction = realised_dfm * 0.0 + 1.0
             realised_fraction[mask] = (
                 realised_dfm[mask] - demand_pos[mask]
@@ -700,11 +704,11 @@ class DfmMetaMod(Driver):
 
             # correction only applies to Modflow cells which negatively contribute to the dflowfm volumes
             # in which case the Modflow demand was POSITIVE, otherwise the correction is 0
-            qmf_corr = -np.maximum(self.mf6_river_aquifer_flux_day, 0.0) * (
+            qmf_corr = np.maximum(self.mf6_river_aquifer_flux_day, 0.0) * (
                 1 - matrix.dot(realised_fraction)
             )
 
-            assert self.coupling.mf6_drain_pkg
+            assert self.coupling.mf6_wel_correction_pkg
             self.mf6.set_well_flux(
                 self.coupling.mf6_model, self.coupling.mf6_wel_correction_pkg, qmf_corr
             )
@@ -738,7 +742,7 @@ class DfmMetaMod(Driver):
             * self.map_mod_msw["msw2mod_recharge"].dot(self.msw.get_volume_ptr())[:]
         )
 
-        if self.coupling.enable_sprinkling:
+        if self.coupling.enable_sprinkling():
             assert self.coupling.mf6_msw_well_pkg is not None
             self.mf6.get_sprinkling(
                 self.coupling.mf6_model, self.coupling.mf6_msw_well_pkg
