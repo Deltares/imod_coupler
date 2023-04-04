@@ -205,7 +205,9 @@ class DfmMetaMod(Driver):
             self.exchange_balans1d_todfm(self.exchange_balans_1d.demand["sum"])
 
             # exchange water balance 2d to dlfow 2d
-            self.exchange_balans2d_todfm(self.exchange_balans_2d.demand["msw-ponding2dflow2d_flux"])
+            self.exchange_balans2d_todfm(
+                self.exchange_balans_2d.demand["msw-ponding2dflow2d_flux"]
+            )
 
             # get cummelative flux before dfm-run
             time_before = self.dfm.get_current_time()
@@ -694,7 +696,7 @@ class DfmMetaMod(Driver):
             realised_dfm = wbal.realised["dflow1d_flux2mf-riv_negative"]
             demand_pos = wbal.demand["mf-riv2dflow1d_flux_positive"]
             demand_neg = wbal.demand["mf-riv2dflow1d_flux_negative"]
-            mask = np.nonzero(demand_neg)  #prevent zero division
+            mask = np.nonzero(demand_neg)  # prevent zero division
             realised_fraction = realised_dfm * 0.0 + 1.0
             realised_fraction[mask] = (
                 realised_dfm[mask] - demand_pos[mask]
@@ -703,9 +705,10 @@ class DfmMetaMod(Driver):
 
             # correction only applies to Modflow cells which negatively contribute to the dflowfm volumes
             # in which case the Modflow demand was POSITIVE, otherwise the correction is 0
-            qmf_corr = -(np.maximum(self.mf6_river_aquifer_flux_day, 0.0) * (
-                1 - matrix.dot(realised_fraction)
-            ))
+            qmf_corr = -(
+                np.maximum(self.mf6_river_aquifer_flux_day, 0.0)
+                * (1 - matrix.dot(realised_fraction))
+            )
 
             assert self.coupling.mf6_wel_correction_pkg
             self.mf6.set_well_flux(

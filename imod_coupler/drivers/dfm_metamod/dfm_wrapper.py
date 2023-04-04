@@ -214,7 +214,7 @@ class DfmWrapper(BMIWrapper):  # type: ignore
         return np.asarray(
             q_ext[nr_nodes_2d : nr_nodes_1d + nr_nodes_2d], dtype=np.float_
         )
-        
+
     def get_2d_river_fluxes_ptr(self) -> NDArray[np.float_]:
         """
         Returns
@@ -227,10 +227,8 @@ class DfmWrapper(BMIWrapper):  # type: ignore
         if nr_nodes_1d == 0:
             raise ValueError("No dflow 2d nodes found!")
         q_ext = self.get_var("qext")
-        return np.asarray(
-            q_ext[:nr_nodes_2d], dtype=np.float_
-        )
-    
+        return np.asarray(q_ext[:nr_nodes_2d], dtype=np.float_)
+
     def init_kdtree(self) -> None:
         nx1d = self.get_number_1d_nodes()
         nx2d = self.get_number_2d_nodes()
