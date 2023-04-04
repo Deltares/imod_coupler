@@ -195,7 +195,7 @@ class DfmWrapper(BMIWrapper):  # type: ignore
             raise ValueError(
                 f"Expected number of river fluxes: {nr_nodes_2d}, got {len(river_flux)}"
             )
-        dfm_river_flux = self.get_2d_river_fluxes_ptr(self)
+        dfm_river_flux = self.get_2d_river_fluxes_ptr()
         if dfm_river_flux is not None:
             dfm_river_flux[:] = river_flux[:]
 
