@@ -169,7 +169,7 @@ class DfmMetaMod(Driver):
         self.exchange_balans_2d.reset()
 
         # stage from dflow 1d to modflow active coupled riv
-        # self.exchange_stage_1d_dfm2mf6()
+        self.exchange_stage_1d_dfm2mf6()
 
         # flux from modflow active coupled riv to water balance 1d
         self.exchange_flux_riv_active_mf62dfm()
@@ -311,9 +311,8 @@ class DfmMetaMod(Driver):
             "dfm_1d": self.dfm.get_number_1d_nodes(),
             "dfm_2d": self.dfm.get_number_2d_nodes(),
         }
-        self.coupling.validate_sprinkling_settings()
 
-        if self.coupling.enable_sprinkling():
+        if self.coupling.enable_sprinkling:
             assert self.coupling.mf6_msw_well_pkg is not None
             array_dims["mf6_sprinkling_wells"] = self.mf6.get_sprinkling(
                 self.coupling.mf6_model, self.coupling.mf6_msw_well_pkg
@@ -695,7 +694,7 @@ class DfmMetaMod(Driver):
             realised_dfm = wbal.realised["dflow1d_flux2mf-riv_negative"]
             demand_pos = wbal.demand["mf-riv2dflow1d_flux_positive"]
             demand_neg = wbal.demand["mf-riv2dflow1d_flux_negative"]
-            mask = np.less(0.0, demand_neg)
+            mask = np.nonzero(demand_neg)  #prevent zero division
             realised_fraction = realised_dfm * 0.0 + 1.0
             realised_fraction[mask] = (
                 realised_dfm[mask] - demand_pos[mask]
@@ -704,9 +703,9 @@ class DfmMetaMod(Driver):
 
             # correction only applies to Modflow cells which negatively contribute to the dflowfm volumes
             # in which case the Modflow demand was POSITIVE, otherwise the correction is 0
-            qmf_corr = np.maximum(self.mf6_river_aquifer_flux_day, 0.0) * (
+            qmf_corr = -(np.maximum(self.mf6_river_aquifer_flux_day, 0.0) * (
                 1 - matrix.dot(realised_fraction)
-            )
+            ))
 
             assert self.coupling.mf6_wel_correction_pkg
             self.mf6.set_well_flux(
@@ -742,7 +741,7 @@ class DfmMetaMod(Driver):
             * self.map_mod_msw["msw2mod_recharge"].dot(self.msw.get_volume_ptr())[:]
         )
 
-        if self.coupling.enable_sprinkling():
+        if self.coupling.enable_sprinkling:
             assert self.coupling.mf6_msw_well_pkg is not None
             self.mf6.get_sprinkling(
                 self.coupling.mf6_model, self.coupling.mf6_msw_well_pkg
