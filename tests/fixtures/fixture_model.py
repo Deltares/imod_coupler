@@ -1,6 +1,6 @@
 import tempfile
 from pathlib import Path
-from typing import List, Set, Tuple
+from typing import List, Optional, Set, Tuple
 
 import numpy as np
 import pandas as pd
@@ -560,19 +560,22 @@ def mf6_model_with_river(coupled_mf6_model) -> mf6.Modflow6Simulation:
 def set_toml_file_tmodel(
     toml_file_path: Path,
     modflow_dll_devel: Path,
-    dflowfm_dll: Path,
     metaswap_dll_devel: Path,
     metaswap_dll_dep_dir_devel: Path,
+    dflowfm_dll: Optional[Path] = None,
 ) -> None:
     with open(toml_file_path, "rb") as f:
         toml_dict = tomli.load(f)
 
     toml_dict["driver"]["kernels"]["modflow6"]["dll"] = str(modflow_dll_devel)
-    toml_dict["driver"]["kernels"]["dflowfm"]["dll"] = str(dflowfm_dll)
     toml_dict["driver"]["kernels"]["metaswap"]["dll"] = str(metaswap_dll_devel)
     toml_dict["driver"]["kernels"]["metaswap"]["dll_dep_dir"] = str(
         metaswap_dll_dep_dir_devel
     )
+
+    if dflowfm_dll is not None:
+        toml_dict["driver"]["kernels"]["dflowfm"]["dll"] = str(dflowfm_dll)
+
     with open(toml_file_path, "wb") as toml_file:
         tomli_w.dump(toml_dict, toml_file)
 
@@ -601,18 +604,6 @@ def remove_exchange_file_references(
 
     with open(toml_file_path, "wb") as toml_file:
         tomli_w.dump(toml_dict, toml_file)
-
-
-def evaluate_waterbalance(
-    tmp_path_dev: Path, reference_result_folder: Path, name: str
-) -> None:
-    waterbalance_result = run_waterbalance_script_on_tmodel(tmp_path_dev, name)
-    csv_reference_file = (
-        reference_result_folder / "test_run_tmodel" / "waterbalance.csv"
-    )
-    # assert numeric_csvfiles_equal(
-    #     waterbalance_result, csv_reference_file, ";", abstol=5600.0, reltol=3.5
-    # )
 
 
 def run_waterbalance_script_on_tmodel(testdir: Path, name: str) -> Path:

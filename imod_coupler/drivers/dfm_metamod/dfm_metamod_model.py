@@ -345,7 +345,6 @@ class DfmMetaModModel:
         for mapping_name, mapping_path in self.mapping_files.items():
             if mapping_path:
                 coupling_dict[mapping_name] = str(mapping_path)
-        coupling_dict["enable_sprinkling"] = self.is_sprinkling
         coupling_dict["output_config_file"] = str(output_config_file)
         return coupling_dict
 

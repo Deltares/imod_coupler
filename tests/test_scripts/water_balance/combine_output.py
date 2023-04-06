@@ -60,15 +60,8 @@ def writeXLS(xlsname: Path, df: pd.DataFrame) -> None:
 
 def writeCSV(csvname: Path, df: pd.DataFrame) -> None:
     colsep = ";"
-    colfmt = "%15.3f"
 
-    with open(csvname, "w") as fcsv:
-        valuelist = list(df)
-        fcsv.write("%s\n" % colsep.join(valuelist))
-        for ndx in range(len(df)):
-            record = list(df.iloc[ndx])
-            valuelist = [colfmt % float(var) for var in record]
-            fcsv.write("%s\n" % colsep.join(valuelist))
+    df.to_csv(csvname, sep=colsep, na_rep="nan")
 
 
 def combine_dataframe(

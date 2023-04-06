@@ -313,8 +313,9 @@ class DfmMetaMod(Driver):
             "dfm_1d": self.dfm.get_number_1d_nodes(),
             "dfm_2d": self.dfm.get_number_2d_nodes(),
         }
+        self.coupling.validate_sprinkling_settings()
 
-        if self.coupling.enable_sprinkling:
+        if self.coupling.enable_sprinkling():
             assert self.coupling.mf6_msw_well_pkg is not None
             array_dims["mf6_sprinkling_wells"] = self.mf6.get_sprinkling(
                 self.coupling.mf6_model, self.coupling.mf6_msw_well_pkg
@@ -744,7 +745,7 @@ class DfmMetaMod(Driver):
             * self.map_mod_msw["msw2mod_recharge"].dot(self.msw.get_volume_ptr())[:]
         )
 
-        if self.coupling.enable_sprinkling:
+        if self.coupling.enable_sprinkling():
             assert self.coupling.mf6_msw_well_pkg is not None
             self.mf6.get_sprinkling(
                 self.coupling.mf6_model, self.coupling.mf6_msw_well_pkg

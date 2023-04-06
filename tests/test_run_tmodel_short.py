@@ -27,9 +27,9 @@ def test_run_tmodel_not_all_exchanges(
     set_toml_file_tmodel(
         toml_file_path,
         modflow_dll_devel,
-        dflowfm_dll,
         metaswap_dll_devel,
         metaswap_dll_dep_dir_devel,
+        dflowfm_dll,
     )
 
     remove_exchange_file_references(toml_file_path, files_to_skip)
