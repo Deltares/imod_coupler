@@ -1,7 +1,13 @@
 from pathlib import Path
+from typing import Dict, Set, Tuple
 
 from test_scripts.water_balance.combine import create_waterbalance_file
 from test_utilities import numeric_csvfiles_equal
+
+eps = 1e-4
+tolerance_balance: Dict[str, Tuple[float, float]] = {
+    "default": (2 * eps, 2 * eps),
+}
 
 
 def test_waterbalance_script_case_1(
@@ -23,7 +29,7 @@ def test_waterbalance_script_case_1(
     )
 
     assert numeric_csvfiles_equal(
-        csv_result_file, csv_reference_file, ";", abstol=0.001, reltol=0.001
+        csv_result_file, csv_reference_file, ";", tolerance_balance
     )
 
 
@@ -46,5 +52,5 @@ def test_waterbalance_script_case_2(
     )
 
     assert numeric_csvfiles_equal(
-        csv_result_file, csv_reference_file, ";", abstol=0.001, reltol=0.001
+        csv_result_file, csv_reference_file, ";", tolerance_balance
     )

@@ -123,7 +123,9 @@ class Coupling(BaseModel):
             self.mf6_msw_well_pkg is not None,
             self.mf6_msw_sprinkling_map is not None,
         ]
-        if all(sprinkling_settings_present) or not any(sprinkling_settings_present):
+        if all(setting is True for setting in sprinkling_settings_present) or all(
+            setting is False for setting in sprinkling_settings_present
+        ):
             return
         raise ValueError(
             "mf6_msw_sprinkling_map and mf6_msw_well_pkg must both be present or both be absent "
