@@ -224,7 +224,7 @@ class DfmWrapper(BMIWrapper):  # type: ignore
         """
         nr_nodes_1d = self.get_number_1d_nodes()
         nr_nodes_2d = self.get_number_2d_nodes()
-        if nr_nodes_1d == 0:
+        if nr_nodes_2d == 0:
             raise ValueError("No dflow 2d nodes found!")
         q_ext = self.get_var("qext")
         return np.asarray(q_ext[:nr_nodes_2d], dtype=np.float_)
