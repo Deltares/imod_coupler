@@ -204,8 +204,8 @@ class DfmMetaMod(Driver):
             self.exchange_balans_1d.sum_demand()
             self.exchange_balans1d_todfm(self.exchange_balans_1d.demand["sum"])
 
-            # exchange water balance 2d to dlfow 2d
             self.exchange_balans2d_todfm(
+            # exchange water balance 2d to dlfow 2d
                 self.exchange_balans_2d.demand["msw-ponding2dflow2d_flux"]
             )
 
@@ -387,9 +387,10 @@ class DfmMetaMod(Driver):
             fluxes[:] = flux2dflow[:]
 
     def exchange_balans2d_todfm(self, flux2dflow: NDArray[float_]) -> None:
-        fluxes = self.dfm.get_2d_river_fluxes_ptr()
-        if fluxes is not None:
-            fluxes[:] = flux2dflow[:]
+        if self.dfm.get_number_2d_nodes():
+            fluxes = self.dfm.get_2d_river_fluxes_ptr()
+            if fluxes is not None:
+                fluxes[:] = flux2dflow[:]
 
     def exchange_stage_1d_dfm2mf6(self) -> None:
         """
