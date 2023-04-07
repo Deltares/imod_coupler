@@ -58,7 +58,7 @@ def test_run_tmodel(
         [str(imod_coupler_exec_devel), toml_file_path],
         check=True,
     )
-  
+
     waterbalance_result = run_waterbalance_script_on_tmodel(
         tmp_path_dev, mf6_model_rootname
     )
