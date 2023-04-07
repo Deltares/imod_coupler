@@ -13,6 +13,7 @@ MAXBOUND 55
 END DIMENSIONS
 
 BEGIN PERIOD 1
+#                                  hriv    cond        bot
          1        10         1     9.200   891.421     8.200   
          1        10         1     9.200   178.284     8.200   
          1         9         1     9.200   713.137     8.200   

@@ -122,6 +122,7 @@ def test_compute_realised() -> None:
     }
     # test compute realised
     for i in range(4):
+        print(i)
         exchange_balans.compute_realised(dflow_realised[i])
         np.testing.assert_array_almost_equal(
             exchange_balans.realised["dflow1d_flux2sprinkling_msw"],

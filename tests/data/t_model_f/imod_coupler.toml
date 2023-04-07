@@ -17,6 +17,7 @@ dll = "D:\\dev\\imod_coupler_test\\dflowfm_dll\\dflowfm.dll"
 work_dir = ".\\dflow-fm"
 
 [[driver.coupling]]
+enable_sprinkling = false
 dfm_model = "FlowFM.mdu"
 mf6_model = "GWF_1"
 mf6_msw_node_map = "./exchanges/nodenr2svat.dxc"

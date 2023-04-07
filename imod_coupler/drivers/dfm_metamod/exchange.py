@@ -135,7 +135,7 @@ class exchange_balance_1d:
         sum_to_dflow : np.float_
             flux send to dflow
         """
-        condition = np.greater_equal(sum_from_dflow, sum_to_dflow)
+        condition = np.greater_equal(sum_to_dflow, sum_from_dflow)
         self.realised["dflow1d_flux2sprinkling_msw"][condition] = self.demand[
             "msw-sprinkling2dflow1d_flux"
         ][condition]
@@ -162,7 +162,8 @@ class exchange_balance_1d:
         shortage = np.absolute(sum_to_dflow - sum_from_dflow)
         demand_msw = self.demand["msw-sprinkling2dflow1d_flux"]
         condition = np.logical_and(
-            shortage <= np.absolute(demand_msw), (sum_from_dflow < sum_to_dflow)
+            shortage <= np.absolute(demand_msw),
+            np.absolute(sum_to_dflow) > np.absolute(sum_from_dflow),
         )
         self.realised["dflow1d_flux2sprinkling_msw"][condition] = (
             demand_msw[condition] + shortage[condition]
@@ -192,7 +193,8 @@ class exchange_balance_1d:
         shortage_left = shortage + demand_msw
         demand_mf6_negative = self.demand["mf-riv2dflow1d_flux_negative"]
         condition = np.logical_and(
-            shortage > np.absolute(demand_msw), sum_from_dflow < sum_to_dflow
+            shortage > np.absolute(demand_msw),
+            np.absolute(sum_to_dflow) > np.absolute(sum_from_dflow),
         )
         self.realised["dflow1d_flux2sprinkling_msw"][condition] = 0
         self.realised["dflow1d_flux2mf-riv_negative"][condition] = (

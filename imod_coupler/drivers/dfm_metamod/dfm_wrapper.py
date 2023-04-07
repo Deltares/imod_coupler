@@ -59,6 +59,24 @@ class DfmWrapper(BMIWrapper):  # type: ignore
             all_waterlevels[nr_nodes_2d : nr_nodes_2d + nr_nodes_1d], dtype=np.float_
         )
 
+    def get_bedlevels_1d_ptr(self) -> NDArray[np.float_]:
+        """
+        Returns
+        -------
+        Optional[NDArray[np.float_]]
+            an array with the bedlevels of the 1d nodes in the dflow-FM model,
+            or None if there ar no 1d nodes.
+        """
+
+        nr_nodes_1d = self.get_number_1d_nodes()
+        nr_nodes_2d = self.get_number_2d_nodes()
+        if nr_nodes_1d == 0:
+            raise ValueError("No dflow 1d nodes found!")
+        all_bedlevels = self.get_var("bl")
+        return np.asarray(
+            all_bedlevels[nr_nodes_2d : nr_nodes_2d + nr_nodes_1d], dtype=np.float_
+        )
+
     def __get_internal_node_coordinates__(self) -> NDArray[np.double]:
         """
         Returns
@@ -177,7 +195,7 @@ class DfmWrapper(BMIWrapper):  # type: ignore
             raise ValueError(
                 f"Expected number of river fluxes: {nr_nodes_2d}, got {len(river_flux)}"
             )
-        dfm_river_flux = self.get_2d_river_fluxes_ptr(self)
+        dfm_river_flux = self.get_2d_river_fluxes_ptr()
         if dfm_river_flux is not None:
             dfm_river_flux[:] = river_flux[:]
 
@@ -196,6 +214,20 @@ class DfmWrapper(BMIWrapper):  # type: ignore
         return np.asarray(
             q_ext[nr_nodes_2d : nr_nodes_1d + nr_nodes_2d], dtype=np.float_
         )
+
+    def get_2d_river_fluxes_ptr(self) -> NDArray[np.float_]:
+        """
+        Returns
+        -------
+        Optional[NDArray[np.float_]]
+            the DFLOW_FM external fluxes ( "qext") for the 2d nodes
+        """
+        nr_nodes_1d = self.get_number_1d_nodes()
+        nr_nodes_2d = self.get_number_2d_nodes()
+        if nr_nodes_2d == 0:
+            raise ValueError("No dflow 2d nodes found!")
+        q_ext = self.get_var("qext")
+        return np.asarray(q_ext[:nr_nodes_2d], dtype=np.float_)
 
     def init_kdtree(self) -> None:
         nx1d = self.get_number_1d_nodes()
