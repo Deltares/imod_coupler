@@ -100,13 +100,13 @@ call pytest tests -s -n=%npar% --basetemp=tests/temp --junitxml="report.xml"]]><
       </extension>
     </build-extensions>
     <artifact-dependencies>
-      <dependency id="ARTIFACT_DEPENDENCY_570" sourceBuildTypeId="iMOD6_IMOD6collectorDaily_ReleaseX64" cleanDestination="true">
-        <revisionRule name="sameChainOrLastFinished" revision="latest.sameChainOrLastFinished" />
-        <artifact sourcePath="imod_collector.zip!** =&gt;imod_collector_devel&#xD;&#xA;" />
-      </dependency>
       <dependency id="ARTIFACT_DEPENDENCY_66" sourceBuildTypeId="iMOD6_IMOD6collectorDaily_ReleaseX64" cleanDestination="true">
         <revisionRule name="buildTag" revision="regression.tcbuildtag" />
         <artifact sourcePath="imod_collector.zip!** =&gt;imod_collector_regression" />
+      </dependency>
+      <dependency id="ARTIFACT_DEPENDENCY_570" sourceBuildTypeId="iMOD6_IMOD6collectorDaily_X64lumbricus" cleanDestination="true">
+        <revisionRule name="sameChainOrLastFinished" revision="latest.sameChainOrLastFinished" />
+        <artifact sourcePath="imod_collector.zip!** =&gt;imod_collector_devel&#xD;&#xA;" />
       </dependency>
     </artifact-dependencies>
     <dependencies>
