@@ -448,3 +448,16 @@ def prepared_msw_model_inactive(
     ] = msw_model._render_unsaturated_database_path(metaswap_lookup_table)
 
     return msw_model
+
+
+@pytest_cases.fixture(scope="function")
+def mf6_model_with_river(coupled_mf6_model) -> mf6.Modflow6Simulation:
+    flow_model = coupled_mf6_model["GWF_1"]
+    idomain = flow_model["dis"].dataset["idomain"]
+    stage = xr.full_like(idomain.sel({"layer": 1}), dtype=np.floating, fill_value=3.1)
+    conductance = xr.full_like(stage, 4.2)
+    bottom_elevation = xr.full_like(stage, 0.3)
+    bottom_elevation[dict(x=2)] = -0.1
+    river_package = mf6.River(stage, conductance, bottom_elevation)
+    flow_model["Oosterschelde"] = river_package
+    return coupled_mf6_model
