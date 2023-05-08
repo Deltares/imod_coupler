@@ -78,7 +78,7 @@ class Mf6Wrapper(XmiWrapper):
         new_river_stages: Optional[NDArray[np.float_]],
     ) -> None:
         """
-        sets the river stages in a modflow simulation to the provided values.
+        Sets the river stages in a modflow simulation to the provided values.
 
         Parameters
         ----------
