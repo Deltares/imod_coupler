@@ -4,9 +4,10 @@ from pathlib import Path
 
 import pytest
 from imod import mf6
+from test_modstrip import fill_para_sim_template
+
 from imod_coupler.kernelwrappers.mf6_wrapper import Mf6Wrapper
 from imod_coupler.kernelwrappers.msw_wrapper import MswWrapper
-from test_modstrip import fill_para_sim_template
 
 
 def test_mf6_wrapper_can_be_initialized_and_finalized_multiple_times(
