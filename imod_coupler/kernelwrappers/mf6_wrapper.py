@@ -155,7 +155,7 @@ class Mf6Wrapper(XmiWrapper):
         correction_flux: Optional[NDArray[np.float_]],
     ) -> None:
         """
-        sets the river correction flux in a modflow simulation via the well package
+        Sets the river correction flux in a modflow simulation via the well package
 
         Parameters
         ----------
