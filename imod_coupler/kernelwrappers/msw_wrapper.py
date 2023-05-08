@@ -166,7 +166,8 @@ class MswWrapper(XmiWrapper):
         return self.get_value_ptr("dvsim")
 
     def get_storage_ptr(self) -> NDArray[np.float_]:
-        """gets storage array from metaswap
+        """
+        Gets storage array from metaswap
 
         Parameters
         ----------
