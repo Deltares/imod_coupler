@@ -45,7 +45,8 @@ class MswWrapper(XmiWrapper):
         return float(dtsw[0])
 
     def get_surfacewater_sprinking_demand_ptr(self) -> NDArray[np.float_]:
-        """returns the sprinkling volume demand from metaswap
+        """
+        Returns the sprinkling volume demand from metaswap
 
         Parameters
         ----------
@@ -60,7 +61,8 @@ class MswWrapper(XmiWrapper):
         return self.get_value_ptr("ts2dfmputsp")
 
     def get_surfacewater_sprinking_realised_ptr(self) -> NDArray[np.float_]:
-        """sets the sprinkling volume demand in metaswap.
+        """
+        Sets the sprinkling volume demand in metaswap.
 
         Parameters
         ----------
@@ -75,7 +77,8 @@ class MswWrapper(XmiWrapper):
         return self.get_value_ptr("dfm2tsgetsp")
 
     def get_surfacewater_ponding_allocation_ptr(self) -> NDArray[np.float_]:
-        """retruns the pointer to the ponding volume allocation array in MetaSWAP.
+        """
+        Returns the pointer to the ponding volume allocation array in MetaSWAP.
         MetaSWAP uses two different ponding volume arrays. One for ponding allocation at the beginning of a (sub) timestep
         and one for the returned realised volume at the end of the (sub) timestep.
 
@@ -92,7 +95,8 @@ class MswWrapper(XmiWrapper):
         return self.get_value_ptr("ts2dfmput")
 
     def get_surfacewater_ponding_realised_ptr(self) -> NDArray[np.float_]:
-        """retruns the pointer to the ponding volume realised array in metaSWAP
+        """
+        Returns the pointer to the ponding volume realised array in metaSWAP
         MetaSWAP uses two different ponding volume arrays. One for ponding allocation at the beginning of a (sub) timestep
         and one for the returned realised volume at the end of the (sub) timestep.
 
@@ -123,7 +127,8 @@ class MswWrapper(XmiWrapper):
         return self.get_value_ptr("dfm2lvswk")
 
     def get_svat_area_ptr(self) -> NDArray[np.float_]:
-        """gets area's of svats in metaswap. This can ben used to calculate ponding volumes based on dlfow ponding levels
+        """
+        Gets area's of svats in metaswap. This can ben used to calculate ponding volumes based on dlfow ponding levels
 
         Parameters
         ----------
