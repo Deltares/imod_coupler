@@ -93,9 +93,10 @@ class MetaMod(Driver):
     def couple(self) -> None:
         """Couple Modflow and Metaswap"""
 
-
         self.mf6_head = self.mf6.get_head(self.coupling.mf6_model)
-        self.mf6_recharge = self.mf6.get_recharge(self.coupling.mf6_model, self.coupling.mf6_msw_recharge_pkg)
+        self.mf6_recharge = self.mf6.get_recharge(
+            self.coupling.mf6_model, self.coupling.mf6_msw_recharge_pkg
+        )
         self.mf6_storage = self.mf6.get_storage(self.coupling.mf6_model)
         self.mf6_has_sc1 = self.mf6.has_sc1(self.coupling.mf6_model)
         self.mf6_area = self.mf6.get_area(self.coupling.mf6_model)
@@ -106,7 +107,7 @@ class MetaMod(Driver):
         self.msw_head = self.msw.get_head_ptr()
         self.msw_volume = self.msw.get_volume_ptr()
         self.msw_storage = self.msw.get_storage_ptr()
-        
+
         # create a lookup, with the svat tuples (id, lay) as keys and the
         # metaswap internal indexes as values
         svat_lookup = {}
