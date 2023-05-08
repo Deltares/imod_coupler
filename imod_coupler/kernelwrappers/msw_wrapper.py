@@ -136,7 +136,8 @@ class MswWrapper(XmiWrapper):
         return self.get_value_ptr("ark")
 
     def get_head_ptr(self) -> NDArray[np.float_]:
-        """gets heads array from metaswap
+        """
+        Gets heads array from metaswap
 
         Parameters
         ----------
