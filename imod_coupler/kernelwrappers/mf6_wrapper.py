@@ -82,6 +82,10 @@ class Mf6Wrapper(XmiWrapper):
 
         Parameters
         ----------
+        mf6_flowmodel_key: str
+            The user-assigned component name of the flow model
+        mf6_package_key: str
+            The user-assigned component name of the river package
         new_river_stages : NDArray[np.float_]
             river stages to be set to modflow
 
@@ -109,9 +113,9 @@ class Mf6Wrapper(XmiWrapper):
         Parameters
         ----------
         mf6_flowmodel_key : str
-            flowmodel key
-        mf6_river_pkg_key : str
-            river package key
+            The user-assigned component name of the flow model
+        mf6_package_key: str,
+            The user-assigned component name of the river package
 
         Returns
         -------
@@ -134,9 +138,9 @@ class Mf6Wrapper(XmiWrapper):
         Parameters
         ----------
         mf6_flowmodel_key : str
-            flowmodel key
+            The user-assigned component name of the flow model
         mf6_river_pkg_key : str
-            river package key
+            The user-assigned component name of the river package
 
         Returns
         -------
@@ -151,20 +155,21 @@ class Mf6Wrapper(XmiWrapper):
     def set_well_flux(
         self,
         mf6_flowmodel_key: str,
-        mf6_package_key: str,
-        correction_flux: Optional[NDArray[np.float_]],
+        mf6_wel_pkg_key: str,
+        assigned_flux: Optional[NDArray[np.float_]],
     ) -> None:
         """
-        Sets the river correction flux in a modflow simulation via the well package
+        Assigns a flux to the wells in a well package. The number of wells and their order in the mf6 flux array
+        should be known beforehand. 
 
         Parameters
         ----------
         mf6_flowmodel_key : str
-            key of the modflow model
+            The user-assigned component name of the flow model
         mf6_wel_pkg_key : str
-            key of the wel package used for the correction flux
-        correction_flux : NDArray[np.float_]
-            correction flux to be set to modflow
+            The user-assigned component name of the well package
+        assigned_flux : NDArray[np.float_]
+            flux to be set to modflow
 
 
         Raises
@@ -172,15 +177,15 @@ class Mf6Wrapper(XmiWrapper):
         ValueError
             the size of the provided flux array does not match the expected size
         """
-        bound_adress = self.get_var_address("BOUND", mf6_flowmodel_key, mf6_package_key)
-        flux = self.get_value_ptr(bound_adress)
+        bound_adress = self.get_var_address("BOUND", mf6_flowmodel_key, mf6_wel_pkg_key)
+        mf6_flux = self.get_value_ptr(bound_adress)
 
-        if correction_flux is None or len(correction_flux) != len(flux):
-            raise ValueError(f"Expected size of correction_flux is {len(flux)}")
-        for i in range(len(flux)):
-            flux[i, 0] = correction_flux[i]
+        if assigned_flux is None or len(assigned_flux) != len(mf6_flux):
+            raise ValueError(f"Expected size of flux is {len(mf6_flux)}")
+        for i in range(len(assigned_flux)):
+            mf6_flux[i, 0] = assigned_flux[i]
 
-        self.set_value(bound_adress, flux)
+        self.set_value(bound_adress, mf6_flux)
 
     def get_river_flux_estimate(
         self,
@@ -200,9 +205,9 @@ class Mf6Wrapper(XmiWrapper):
         Parameters
         ----------
         mf6_flowmodel_key : str
-            name of mf6 groundwater flow model
+            The user-assigned component name of the flow model
         mf6_river_pkg_key : str
-            name of river package
+            The user-assigned component name of the river package
 
         Returns
         -------
@@ -267,9 +272,9 @@ class Mf6Wrapper(XmiWrapper):
         Parameters
         ----------
         mf6_flowmodel_key : str
-            name of mf6 groundwater flow model
+            The user-assigned component name of the flow model
         mf6_river_pkg_key : str
-            name of river or drn package
+            The user-assigned component name of the river or drainage package
 
         Returns
         -------
