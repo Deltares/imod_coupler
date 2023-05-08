@@ -156,7 +156,7 @@ class Mf6Wrapper(XmiWrapper):
         self,
         mf6_flowmodel_key: str,
         mf6_wel_pkg_key: str,
-        assigned_flux: Optional[NDArray[np.float_]],
+        assigned_flux: NDArray[np.float_],
     ) -> None:
         """
         Assigns a flux to the wells in a well package. The number of wells and their order in the mf6 flux array
@@ -180,7 +180,7 @@ class Mf6Wrapper(XmiWrapper):
         bound_adress = self.get_var_address("BOUND", mf6_flowmodel_key, mf6_wel_pkg_key)
         mf6_flux = self.get_value_ptr(bound_adress)
 
-        if assigned_flux is None or len(assigned_flux) != len(mf6_flux):
+        if len(assigned_flux) != len(mf6_flux):
             raise ValueError(f"Expected size of flux is {len(mf6_flux)}")
         for i in range(len(assigned_flux)):
             mf6_flux[i, 0] = assigned_flux[i]
@@ -193,7 +193,7 @@ class Mf6Wrapper(XmiWrapper):
         mf6_river_pkg_key: str,
     ) -> NDArray[np.float_]:
         """
-        returns the river1 fluxes consistent with current head, river stage and conductance.
+        Returns the river1 fluxes consistent with current head, river stage and conductance.
         a simple linear model is used: flux = conductance * (stage - max(head, bot))
         Bot is the levelof the bottom of the river.
 
@@ -241,7 +241,7 @@ class Mf6Wrapper(XmiWrapper):
         mf6_river2_drain_pkg_key: str,
     ) -> NDArray[np.float_]:
         """
-        returns the calculated river or DRN fluxes of MF6. In MF6 the RIV boundary condition is added to the solution in the following matter:
+        Returns the calculated river or DRN fluxes of MF6. In MF6 the RIV boundary condition is added to the solution in the following matter:
 
         RHS = -cond*(hriv-rivbot)
         HCOF = -cond
