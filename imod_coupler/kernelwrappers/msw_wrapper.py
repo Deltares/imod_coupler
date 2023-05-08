@@ -106,7 +106,8 @@ class MswWrapper(XmiWrapper):
         return self.get_value_ptr("ts2dfmget")
 
     def get_ponding_level_2d_ptr(self) -> NDArray[np.float_]:
-        """get ponding level from dlfow-2d in metaswap
+        """
+        Get ponding level from dflow-2d in metaswap
 
         Parameters
         ----------
