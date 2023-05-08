@@ -18,6 +18,8 @@ from imod_coupler.config import BaseConfig
 from imod_coupler.drivers.driver import Driver
 from imod_coupler.drivers.metamod.config import Coupling, MetaModConfig
 from imod_coupler.utils import create_mapping
+from imod_coupler.kernelwrappers.mf6_wrapper import Mf6Wrapper
+from imod_coupler.kernelwrappers.msw_wrapper import MswWrapper
 
 
 class MetaMod(Driver):
@@ -65,13 +67,13 @@ class MetaMod(Driver):
         ]  # Adapt as soon as we have multimodel support
 
     def initialize(self) -> None:
-        self.mf6 = XmiWrapper(
+        self.mf6 = Mf6Wrapper(
             lib_path=self.metamod_config.kernels.modflow6.dll,
             lib_dependency=self.metamod_config.kernels.modflow6.dll_dep_dir,
             working_directory=self.metamod_config.kernels.modflow6.work_dir,
             timing=self.base_config.timing,
         )
-        self.msw = XmiWrapper(
+        self.msw = MswWrapper(
             lib_path=self.metamod_config.kernels.metaswap.dll,
             lib_dependency=self.metamod_config.kernels.metaswap.dll_dep_dir,
             working_directory=self.metamod_config.kernels.metaswap.work_dir,
@@ -90,34 +92,21 @@ class MetaMod(Driver):
 
     def couple(self) -> None:
         """Couple Modflow and Metaswap"""
-        # get some 'pointers' to MF6 and MSW internal data
-        mf6_head_tag = self.mf6.get_var_address("X", self.coupling.mf6_model)
-        mf6_recharge_tag = self.mf6.get_var_address(
-            "BOUND", self.coupling.mf6_model, self.coupling.mf6_msw_recharge_pkg
-        )
-        mf6_storage_tag = self.mf6.get_var_address("SS", self.coupling.mf6_model, "STO")
-        mf6_is_sc1_tag = self.mf6.get_var_address(
-            "ISTOR_COEF", self.coupling.mf6_model, "STO"
-        )
-        mf6_area_tag = self.mf6.get_var_address("AREA", self.coupling.mf6_model, "DIS")
-        mf6_top_tag = self.mf6.get_var_address("TOP", self.coupling.mf6_model, "DIS")
-        mf6_bot_tag = self.mf6.get_var_address("BOT", self.coupling.mf6_model, "DIS")
-        mf6_max_iter_tag = self.mf6.get_var_address("MXITER", "SLN_1")
 
-        self.mf6_head = self.mf6.get_value_ptr(mf6_head_tag)
-        # NB: recharge is set to first column in BOUND
-        self.mf6_recharge = self.mf6.get_value_ptr(mf6_recharge_tag)[:, 0]
-        self.mf6_storage = self.mf6.get_value_ptr(mf6_storage_tag)
-        self.mf6_has_sc1 = self.mf6.get_value_ptr(mf6_is_sc1_tag)[0] != 0
-        self.mf6_area = self.mf6.get_value_ptr(mf6_area_tag)
-        self.mf6_top = self.mf6.get_value_ptr(mf6_top_tag)
-        self.mf6_bot = self.mf6.get_value_ptr(mf6_bot_tag)
-        self.max_iter = self.mf6.get_value_ptr(mf6_max_iter_tag)[0]
 
-        self.msw_head = self.msw.get_value_ptr("dhgwmod")
-        self.msw_volume = self.msw.get_value_ptr("dvsim")
-        self.msw_storage = self.msw.get_value_ptr("dsc1sim")
+        self.mf6_head = self.mf6.get_head(self.coupling.mf6_model)
+        self.mf6_recharge = self.mf6.get_recharge(self.coupling.mf6_model, self.coupling.mf6_msw_recharge_pkg)
+        self.mf6_storage = self.mf6.get_storage(self.coupling.mf6_model)
+        self.mf6_has_sc1 = self.mf6.has_sc1(self.coupling.mf6_model)
+        self.mf6_area = self.mf6.get_area(self.coupling.mf6_model)
+        self.mf6_top = self.mf6.get_top(self.coupling.mf6_model)
+        self.mf6_bot = self.mf6.get_bot(self.coupling.mf6_model)
+        self.max_iter = self.mf6.max_iter()
 
+        self.msw_head = self.msw.get_head_ptr()
+        self.msw_volume = self.msw.get_volume_ptr()
+        self.msw_storage = self.msw.get_storage_ptr()
+        
         # create a lookup, with the svat tuples (id, lay) as keys and the
         # metaswap internal indexes as values
         svat_lookup = {}

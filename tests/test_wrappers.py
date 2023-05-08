@@ -7,10 +7,9 @@ from imod import mf6
 from imod_coupler.kernelwrappers.mf6_wrapper import Mf6Wrapper
 from imod_coupler.kernelwrappers.msw_wrapper import MswWrapper
 from test_modstrip import fill_para_sim_template
-from xmipy import XmiWrapper
 
 
-def test_xmi_wrapper_can_be_initialized_and_finalized_multiple_times(
+def test_mf6_wrapper_can_be_initialized_and_finalized_multiple_times(
     mf6_model_with_river: mf6.Modflow6Simulation,
     modflow_dll_regression: Path,
     tmp_path_dev: Path,
