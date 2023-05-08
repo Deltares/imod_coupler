@@ -151,7 +151,8 @@ class MswWrapper(XmiWrapper):
         return self.get_value_ptr("dhgwmod")
 
     def get_volume_ptr(self) -> NDArray[np.float_]:
-        """gets volume array from metaswap
+        """
+        Gets volume array from metaswap
 
         Parameters
         ----------
