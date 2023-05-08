@@ -103,7 +103,8 @@ class Mf6Wrapper(XmiWrapper):
         mf6_flowmodel_key: str,
         mf6_package_key: str,
     ) -> NDArray[np.float64]:
-        """returns the river stages of the modflow model
+        """
+        Returns the river stages of the modflow model
 
         Parameters
         ----------
