@@ -29,7 +29,8 @@ class MswWrapper(XmiWrapper):
         self._execute_function(self.lib.finish_sw_time_step, byref(idtsw_c))
 
     def get_sw_time_step(self) -> float:
-        """returns the time step length for fast (surfacewater) processes from metaswap
+        """
+        Returns the time step length for fast (surfacewater) processes from metaswap
 
         Parameters
         ----------
