@@ -40,6 +40,7 @@ class Coupling(BaseModel):
     mf6_msw_sprinkling_map: Optional[
         FilePath
     ] = None  # the pach to the sprinkling map file
+    output_config_file: FilePath
 
     class Config:
         arbitrary_types_allowed = True  # Needed for `mf6_msw_sprinkling_map`
@@ -74,6 +75,9 @@ class Coupling(BaseModel):
             )
         return mf6_msw_sprinkling_map
 
+    @validator("output_config_file")
+    def resolve_output_config_file(cls, output_config_file: FilePath) -> FilePath:
+        return output_config_file.resolve()
 
 class MetaModConfig(BaseModel):
     kernels: Kernels
