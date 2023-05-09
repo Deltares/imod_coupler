@@ -20,7 +20,7 @@ from imod_coupler.drivers.metamod.config import Coupling, MetaModConfig
 from imod_coupler.kernelwrappers.mf6_wrapper import Mf6Wrapper
 from imod_coupler.kernelwrappers.msw_wrapper import MswWrapper
 from imod_coupler.utils import create_mapping
-
+from imod_coupler.logging.exchange_collector import ExchangeCollector
 
 class MetaMod(Driver):
     """The driver coupling MetaSWAP and MODFLOW 6"""
@@ -32,6 +32,7 @@ class MetaMod(Driver):
     timing: bool  # true, when timing is enabled
     mf6: XmiWrapper  # the MODFLOW 6 XMI kernel
     msw: XmiWrapper  # the MetaSWAP XMI kernel
+    
 
     max_iter: NDArray[Any]  # max. nr outer iterations in MODFLOW kernel
     delt: float  # time step from MODFLOW 6 (leading)
@@ -84,6 +85,10 @@ class MetaMod(Driver):
         self.mf6.initialize()
         self.msw.initialize()
         self.log_version()
+        self.exchange_logger = ExchangeCollector()
+        if "output_config_file" in self.coupling.dict().keys():
+            output_toml_file = self.coupling.dict()["output_config_file"]
+            self.exchange_logger = ExchangeCollector.from_file(output_toml_file)
         self.couple()
 
     def log_version(self) -> None:
@@ -237,6 +242,7 @@ class MetaMod(Driver):
     def finalize(self) -> None:
         self.mf6.finalize()
         self.msw.finalize()
+        self.exchange_logger.finalize()        
 
     def get_current_time(self) -> float:
         return self.mf6.get_current_time()
@@ -250,6 +256,8 @@ class MetaMod(Driver):
             self.mask_msw2mod["storage"][:] * self.mf6_storage[:]
             + self.map_msw2mod["storage"].dot(self.msw_storage)[:]
         )
+        self.exchange_logger.log_exchange("mf6_storage", self.mf6_storage, self.get_current_time() )
+        self.exchange_logger.log_exchange("msw_storage", self.msw_storage, self.get_current_time() )
 
         # Divide recharge and extraction by delta time
         tled = 1 / self.delt
@@ -263,6 +271,7 @@ class MetaMod(Driver):
                 self.mask_msw2mod["sprinkling"][:] * self.mf6_sprinkling_wells[:]
                 + tled * self.map_msw2mod["sprinkling"].dot(self.msw_volume)[:]
             )
+
 
     def exchange_mod2msw(self) -> None:
         """Exchange Modflow to Metaswap"""

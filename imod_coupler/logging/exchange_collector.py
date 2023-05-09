@@ -8,7 +8,7 @@ import numpy as np
 import tomli
 from numpy.typing import NDArray
 from typing_extensions import Self
-
+from typing import Optional
 
 class AbstractExchange(abc.ABC):
     def __init__(self, name: str):
@@ -71,20 +71,21 @@ class ExchangeCollector:
     exchanges: dict[str, AbstractExchange]
     output_dir: Path
 
-    def __init__(self, config: dict[str, List[dict[str, Any]]]):
-        general_settings = config["general"]
-        self.output_dir = Path(general_settings["output_dir"])
-
-        exchanges_config = config["exchanges"]
-
+    def __init__(self, config: Optional[dict[str, List[dict[str, Any]]]]=None):
         self.exchanges = {}
-        for exchange_name, dict_def in exchanges_config.items():
-            self.exchanges[exchange_name] = self.create_exchange_object(
-                exchange_name, dict_def
-            )
+        if config is not None:
+            general_settings = config["general"]
+            self.output_dir = Path(general_settings["output_dir"])
+
+            exchanges_config = config["exchanges"]
+
+            for exchange_name, dict_def in exchanges_config.items():
+                self.exchanges[exchange_name] = self.create_exchange_object(
+                    exchange_name, dict_def
+                )
 
     @classmethod
-    def from_file(cls, output_toml_file: str) -> Self:
+    def from_file(cls, output_toml_file:str) -> Self:
         with open(output_toml_file, "rb") as f:
             toml_dict = tomli.load(f)
         return cls(toml_dict)
