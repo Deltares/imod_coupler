@@ -12,8 +12,6 @@ import tomli
 import tomli_w
 import textwrap
 
-from imod_coupler.__main__ import run_coupler
-
 def mf6_output_files(path: Path) -> Tuple[Path, Path, Path]:
     """return paths to Modflow 6 output files"""
     path_mf6 = path / "Modflow6" / "GWF_1"
@@ -285,7 +283,7 @@ def test_metamodel_storage_options(
             budgets_sc[varname].compute(), budgets_ss[varname].compute(), decimal=8
         )
 
-@parametrize_with_cases("metamod_model", prefix="case_storage_")
+@parametrize_with_cases("metamod_model", prefix="case_storage_coefficient_no_sprinkling")
 def test_metamod_exchange_logging(
     tmp_path_dev: Path,
     metamod_model: MetaMod,
@@ -305,21 +303,12 @@ def test_metamod_exchange_logging(
     )
     add_logging_request_to_toml_file(tmp_path_dev , metamod_model._toml_name)
 
-    run_coupler(tmp_path_dev / metamod_model._toml_name)
+    subprocess.run(
+        [imod_coupler_exec_devel, tmp_path_dev / metamod_model._toml_name], check=True
+    )
 
-
-    # Test if MetaSWAP output written
-    assert len(list((tmp_path_dev / "MetaSWAP").glob("*/*.idf"))) == 1704
-
-    # Test if Modflow6 output written
-    headfile, cbcfile, _ = mf6_output_files(tmp_path_dev)
-
-    assert headfile.exists()
-    assert cbcfile.exists()
-    # If computation failed, Modflow6 usually writes a headfile and cbcfile of 0
-    # bytes.
-    assert headfile.stat().st_size > 0
-    assert cbcfile.stat().st_size > 0
+    # Test if logging netcdf's  were written
+    assert len(list((tmp_path_dev).glob("*.nc"))) == 2
 
 def add_logging_request_to_toml_file(toml_dir: Path, toml_filename: str):
     '''
@@ -349,10 +338,9 @@ def add_logging_request_to_toml_file(toml_dir: Path, toml_filename: str):
     [exchanges.msw_storage]
     type = "netcdf"
     """)
-    path_double_backslash = '\\\\'.join((str(toml_dir)).split('\\'))
+    path_quadruple_backslash = '\\\\'.join((str(toml_dir)).split('\\')) #on print ,"\\\\" gets rendered as "\\"
     with open(toml_dir / "output_config.toml", "w") as f:
-        f.write(output_config_content.format(workdir = path_double_backslash ))
-    pass
+        f.write(output_config_content.format(workdir = path_quadruple_backslash ))
 
     
     

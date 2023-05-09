@@ -86,9 +86,8 @@ class MetaMod(Driver):
         self.msw.initialize()
         self.log_version()
         self.exchange_logger = ExchangeCollector()
-        if "output_config_file" in self.coupling.dict().keys():
-            output_toml_file = self.coupling.dict()["output_config_file"]
-            self.exchange_logger = ExchangeCollector.from_file(output_toml_file)
+        if self.coupling.output_config_file  is not None:
+            self.exchange_logger = ExchangeCollector.from_file(self.coupling.output_config_file)
         self.couple()
 
     def log_version(self) -> None:
