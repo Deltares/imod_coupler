@@ -7,15 +7,15 @@ def output_config_toml() -> str:
     returns the content of an input file for the logger.
     '''
     input_file_content = """
-                        [[general]]
+                        [general]
                         output_dir = "."
 
-                        [[exchanges]]
+                        [exchanges]
                         
-                        [[exchanges.example_flux_output]]
+                        [exchanges.example_flux_output]
                         type = "netcdf"
 
-                        [[exchanges.example_stage_output]]
+                        [exchanges.example_stage_output]
                         type = "netcdf"
                         """
     return input_file_content

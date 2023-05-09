@@ -72,15 +72,15 @@ class ExchangeCollector:
     output_dir: Path
 
     def __init__(self, config: dict[str, List[dict[str, Any]]]):
-        general_settings = config["general"][0]
+        general_settings = config["general"]
         self.output_dir = Path(general_settings["output_dir"])
 
-        exchanges_config = config["exchanges"][0]
+        exchanges_config = config["exchanges"]
 
         self.exchanges = {}
         for exchange_name, dict_def in exchanges_config.items():
             self.exchanges[exchange_name] = self.create_exchange_object(
-                exchange_name, dict_def[0]
+                exchange_name, dict_def
             )
 
     @classmethod

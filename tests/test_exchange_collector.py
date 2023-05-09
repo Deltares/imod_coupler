@@ -22,7 +22,7 @@ def test_exchange_collector_read(tmp_path_dev: Path, output_config_toml: str) ->
         os.makedirs(tmp_path_dev)
 
     config_dict = tomli.loads(output_config_toml)
-    config_dict["general"][0]["output_dir"] = tmp_path_dev
+    config_dict["general"]["output_dir"] = tmp_path_dev
     exchange_collector = ExchangeCollector(config_dict)
 
     some_array0: NDArray[np.float_] = NDArray[np.float_](
@@ -51,7 +51,7 @@ def test_exchange_collector_ignores_unknown_exchanges(
     The exchange colector should ignore arrays that it is not asked to log
     """
     config_dict = tomli.loads(output_config_toml)
-    config_dict["general"][0]["output_dir"] = tmp_path_dev
+    config_dict["general"]["output_dir"] = tmp_path_dev
     exchange_collector = ExchangeCollector(config_dict)
 
     some_array0: NDArray[np.float_] = NDArray[np.float_](
@@ -72,7 +72,7 @@ def test_exchange_collector_raises_exception_when_array_size_varies(
     While an array can vary through time, its dimensions should not.
     """
     config_dict = tomli.loads(output_config_toml)
-    config_dict["general"][0]["output_dir"] = tmp_path_dev
+    config_dict["general"]["output_dir"] = tmp_path_dev
     exchange_collector = ExchangeCollector(config_dict)
 
     some_array: NDArray[np.float_] = NDArray[np.float_](
@@ -103,7 +103,7 @@ def test_exchange_collector_overwrites_when_time_is_repeated(
     """
 
     config_dict = tomli.loads(output_config_toml)
-    config_dict["general"][0]["output_dir"] = tmp_path_dev
+    config_dict["general"]["output_dir"] = tmp_path_dev
     exchange_collector = ExchangeCollector(config_dict)
 
     some_arrays: list[NDArray[np.float_]] = [
