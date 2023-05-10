@@ -11,7 +11,7 @@ dependencies:
   - isort
   - loguru
   - mypy
-  - netcdf
+  - netcdf4
   - numpy
   - pip
   - pip:
