@@ -19,8 +19,8 @@ from imod_coupler.drivers.driver import Driver
 from imod_coupler.drivers.metamod.config import Coupling, MetaModConfig
 from imod_coupler.kernelwrappers.mf6_wrapper import Mf6Wrapper
 from imod_coupler.kernelwrappers.msw_wrapper import MswWrapper
-from imod_coupler.utils import create_mapping
 from imod_coupler.logging.exchange_collector import ExchangeCollector
+from imod_coupler.utils import create_mapping
 
 
 class MetaMod(Driver):
