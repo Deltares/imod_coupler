@@ -1,14 +1,13 @@
 import abc
 import os
 from pathlib import Path
-from typing import Any, List
+from typing import Any, List, Optional
 
 import netCDF4 as nc
 import numpy as np
 import tomli
 from numpy.typing import NDArray
 from typing_extensions import Self
-from typing import Optional
 
 
 class AbstractExchange(abc.ABC):

@@ -1,16 +1,16 @@
 import os
 import subprocess
+import textwrap
 from pathlib import Path
 from typing import Tuple
 
 import pytest
+import tomli
+import tomli_w
 from imod.couplers.metamod import MetaMod
 from imod.mf6 import open_cbc, open_hds
 from numpy.testing import assert_array_almost_equal
 from pytest_cases import parametrize_with_cases
-import tomli
-import tomli_w
-import textwrap
 
 
 def mf6_output_files(path: Path) -> Tuple[Path, Path, Path]:

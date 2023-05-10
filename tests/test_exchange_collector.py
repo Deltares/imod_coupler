@@ -6,6 +6,7 @@ import numpy as np
 import pytest
 import tomli
 from numpy.typing import NDArray
+
 from imod_coupler.logging.exchange_collector import ExchangeCollector
 
 
