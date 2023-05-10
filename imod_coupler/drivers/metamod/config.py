@@ -55,13 +55,9 @@ class Coupling(BaseModel):
             )
         return mf6_msw_well_pkg
 
-    @validator("mf6_msw_node_map")
-    def resolve_mf6_msw_node_map(cls, mf6_msw_node_map: FilePath) -> FilePath:
-        return mf6_msw_node_map.resolve()
-
-    @validator("mf6_msw_recharge_map")
-    def resolve_mf6_msw_recharge_map(cls, mf6_msw_recharge_map: FilePath) -> FilePath:
-        return mf6_msw_recharge_map.resolve()
+    @validator("mf6_msw_node_map", "mf6_msw_recharge_map", "output_config_file")
+    def resolve_file_path(cls, file_path: FilePath) -> FilePath:
+        return file_path.resolve()
 
     @validator("mf6_msw_sprinkling_map")
     def validate_mf6_msw_sprinkling_map(
@@ -75,9 +71,6 @@ class Coupling(BaseModel):
             )
         return mf6_msw_sprinkling_map
 
-    @validator("output_config_file")
-    def resolve_output_config_file(cls, output_config_file: FilePath) -> FilePath:
-        return output_config_file.resolve()
 
 class MetaModConfig(BaseModel):
     kernels: Kernels

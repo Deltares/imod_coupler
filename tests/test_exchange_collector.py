@@ -125,9 +125,10 @@ def test_exchange_collector_overwrites_when_time_is_repeated(
     assert np.array_equal(dat[1, :], some_arrays[3], equal_nan=True)
     assert np.array_equal(tim[:], np.array([8.0, 9.0, 10.0]), equal_nan=True)
 
+
 def test_exchange_collector_can_initialized_without_input():
     """
-    If the exchange collector is initialized without input, it won't do anything, but calling it 
+    If the exchange collector is initialized without input, it won't do anything, but calling it
     should not lead to an exception
     """
     exchange_collector = ExchangeCollector()

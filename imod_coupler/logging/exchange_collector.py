@@ -10,6 +10,7 @@ from numpy.typing import NDArray
 from typing_extensions import Self
 from typing import Optional
 
+
 class AbstractExchange(abc.ABC):
     def __init__(self, name: str):
         pass
@@ -71,7 +72,7 @@ class ExchangeCollector:
     exchanges: dict[str, AbstractExchange]
     output_dir: Path
 
-    def __init__(self, config: Optional[dict[str, List[dict[str, Any]]]]=None):
+    def __init__(self, config: Optional[dict[str, List[dict[str, Any]]]] = None):
         self.exchanges = {}
         if config is not None:
             general_settings = config["general"]
@@ -85,7 +86,7 @@ class ExchangeCollector:
                 )
 
     @classmethod
-    def from_file(cls, output_toml_file:str) -> Self:
+    def from_file(cls, output_toml_file: str) -> Self:
         with open(output_toml_file, "rb") as f:
             toml_dict = tomli.load(f)
         return cls(toml_dict)
