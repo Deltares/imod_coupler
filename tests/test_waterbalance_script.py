@@ -13,12 +13,12 @@ tolerance_balance: Dict[str, Tuple[float, float]] = {
 def test_waterbalance_script_case_1(
     tmp_path: Path, reference_result_folder: Path, test_data_folder: Path
 ):
+    script_test_data_folder = test_data_folder / "waterbalance_script"
     csv_result_file = tmp_path / "waterbalance_output.csv"
 
     create_waterbalance_file(
-        test_data_folder / "tmodel_example_output" / "case_1" / "FlowFM_his.nc",
-        test_data_folder / "tmodel_example_output" / "case_1" / "tot_svat_dtgw.csv",
-        test_data_folder / "tmodel_example_output" / "case_1" / "T-MODEL-D.LST",
+        script_test_data_folder  / "tot_svat_dtgw.csv",
+        script_test_data_folder / "T-MODEL-D.LST",
         output_file_csv=csv_result_file,
     )
 

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 from sys import stderr
-from typing import Any, Tuple
+from typing import Any, Tuple, Iterator
 
 import numpy as np
 from loguru import logger
@@ -11,6 +11,8 @@ from scipy.sparse import csr_matrix
 
 from imod_coupler.config import LogLevel
 
+from contextlib import contextmanager
+from os import chdir
 
 def create_mapping(
     src_idx: Any, tgt_idx: Any, nsrc: int, ntgt: int, operator: str
@@ -73,3 +75,13 @@ def setup_logger(log_level: LogLevel, log_file: Path) -> None:
     # Add handler for file
     log_file.unlink(missing_ok=True)
     logger.add(log_file, level=log_level)
+
+
+@contextmanager
+def cd(newdir: Path) -> Iterator[None]:
+    prevdir = Path().cwd()
+    chdir(newdir)
+    try:
+        yield
+    finally:
+        chdir(prevdir)

@@ -79,3 +79,11 @@ def modstrip_loc(request):
     """
 
     return Path(request.fspath).parent / "data" / "modstrip"
+
+@pytest.fixture(scope="function")
+def test_data_folder(request) -> Path:
+    return Path(request.fspath).parent / "data"
+
+@pytest.fixture(scope="function")
+def reference_result_folder(request) -> Path:
+    return Path(request.fspath).parent / "test_reference_output"
