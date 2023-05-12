@@ -39,7 +39,7 @@ class Coupling(BaseModel):
     mf6_msw_recharge_map: FilePath  # the pach to the recharge map file
     mf6_msw_sprinkling_map: Optional[
         FilePath
-    ] = None  # the pach to the sprinkling map file
+    ] = None  # the path to the sprinkling map file
     output_config_file: Optional[FilePath] = None
 
     class Config:
