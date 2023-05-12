@@ -39,7 +39,6 @@ def test_waterbalance_script_case_2(
     csv_result_file = tmp_path / "waterbalance_output.csv"
 
     create_waterbalance_file(
-        test_data_folder / "tmodel_example_output" / "case_2" / "FlowFM_his.nc",
         test_data_folder / "tmodel_example_output" / "case_2" / "tot_svat_dtgw.csv",
         test_data_folder / "tmodel_example_output" / "case_2" / "T-MODEL-D.LST",
         output_file_csv=csv_result_file,

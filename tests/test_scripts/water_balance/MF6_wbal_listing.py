@@ -18,7 +18,7 @@ class status(Enum):
 def listfile_to_dataframe(file_in: Path) -> pd.DataFrame:
     ignore = ["IN - OUT", "DISCREPANCY"]
     df_data_out = pd.DataFrame()
-
+    budgetblock_counter = -1
     with open(file_in, "r") as fnin_mflist:
         stat = status.NO_OPERATION
         for regel in fnin_mflist:
@@ -35,7 +35,13 @@ def listfile_to_dataframe(file_in: Path) -> pd.DataFrame:
                 continue
             m = re.match(r"^\s*VOLUME.* BUDGET.*STRESS PERIOD\s+(\d+)", regel)
             if m:
-                stress_period = int(m.group(1)) - 1
+                loose_words_in_string = m.string.strip().split()
+                time_step = int(loose_words_in_string[-4][:-1])
+                stress_period =  int(loose_words_in_string[-1])
+                budgetblock_counter=budgetblock_counter+1
+                df_data_out.at[budgetblock_counter,"timestep"] = int(time_step)
+                df_data_out.at[budgetblock_counter, "stress_period"] = int(stress_period)
+
                 stat = status.VOLUME
                 continue
             if any([pattern in regel for pattern in ignore]):
@@ -56,7 +62,7 @@ def listfile_to_dataframe(file_in: Path) -> pd.DataFrame:
                         )  # modflow6 format
                     except:
                         pass
-                    df_data_out.at[stress_period, pkgname + postfix] = thisval
+                    df_data_out.at[budgetblock_counter, pkgname + postfix] = thisval
 
                 continue
         return df_data_out

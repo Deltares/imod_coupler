@@ -70,9 +70,10 @@ def combine_dataframe(
     
     combined = pd.DataFrame()
    
-    # mf6_daynrs = [int(fm_hisdf.at[i,'time'] / 86400) for i in range(len(fm_hisdf))]
-    # 86400 sec in dfm is at the end of the first modflow day, that is record 0 !!
-    mf6_daynrs = [int(time_seconds / 86400.0 - 0.5) for time_seconds in fm_hisdf["t"]]
+   
+    # MODFLOW in and out
+    mf_listdf = listfile_to_dataframe(mf_listfile)
+    mf6_daynrs = mf_listdf.iloc[:,1].values.astype(int)[:-1]
     msw_totdf = totfile_to_dataframe(msw_totfile).iloc[mf6_daynrs]
 
     # MetaSWAP incoming
@@ -121,8 +122,6 @@ def combine_dataframe(
     combined["msw_sum_out"] = msw_sum_out
     print("Reading MetaSWAP data finished")
 
-    # MODFLOW in and out
-    mf_listdf = listfile_to_dataframe(mf_listfile)
 
     direction = ["IN", "OUT"]
     modflow_fields = ["STO", "STO-SS", "CHD", "DRN", "RIV", "WEL", "DXC", "RCH"]
@@ -144,7 +143,4 @@ def combine_dataframe(
 
     print("Reading ModFLOW data finished")
 
-    combined["t"] = (
-        combined["t"] / 86400.0
-    )  # time was the fm time in seconds, now converted into days
     return combined
