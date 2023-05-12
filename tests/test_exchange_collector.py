@@ -1,6 +1,7 @@
 from pathlib import Path
 
 import netCDF4 as nc
+import re
 import numpy as np
 import pytest
 import tomli
@@ -68,15 +69,14 @@ def test_exchange_collector_raises_exception_when_array_size_varies(
     some_smaller_array: NDArray[np.float_] = np.array([1.1, 666.0, -4.8, 0.0])
 
     exchange_collector.log_exchange("example_stage_output", some_array, 8.0)
-    with pytest.raises(ValueError) as e:
-        exchange_collector.log_exchange(
-            "example_stage_output", some_smaller_array, 23.0
+           
+    expected_error_message =  ("operands could not be broadcast together with remapped shapes "
+    + "[original->remapped]: (4,)  and requested shape (1,5)")
+
+    with pytest.raises(ValueError,match = re.escape( expected_error_message)):
+        exchange_collector.log_exchange( "example_stage_output", some_smaller_array, 23.0
         )
-    assert (
-        "operands could not be broadcast together with remapped shapes "
-        + "[original->remapped]: (4,)  and requested shape (1,5)"
-        in str(e.value)
-    )
+    
     exchange_collector.finalize()
 
 
@@ -119,7 +119,7 @@ def test_exchange_collector_can_initialized_without_input():
     should not lead to an exception
     """
     exchange_collector = ExchangeCollector()
-    some_array = NDArray[np.float_]((5,), buffer=np.array([1.1, 2.0, -4.8, np.nan, 1]))
+    some_array = np.array([1.1, 2.0, -4.8, np.nan, 1])
 
     exchange_collector.log_exchange("example_stage_output", some_array, 8.0)
     exchange_collector.finalize()
