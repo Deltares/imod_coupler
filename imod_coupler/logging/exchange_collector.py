@@ -1,5 +1,5 @@
 import abc
-import pathlib 
+import pathlib
 from pathlib import Path
 from typing import Any, List, Optional
 
@@ -11,7 +11,6 @@ from typing_extensions import Self
 
 
 class AbstractExchange(abc.ABC):
-
     @abc.abstractmethod
     def write_exchange(self, exchange: NDArray[Any], time: float) -> None:
         pass
@@ -27,7 +26,7 @@ class NetcdfExchangeLogger(AbstractExchange):
 
     def __init__(self, name: str, output_dir: Path, properties: dict[str, Any]):
         if not (Path.is_dir(output_dir)):
-           Path.mkdir(output_dir)
+            Path.mkdir(output_dir)
         output_file = Path.joinpath(output_dir, name + ".nc")
         self.ds = nc.Dataset(output_file, "w")
         self.name = name
@@ -79,7 +78,7 @@ class ExchangeCollector:
         with open(output_toml_file, "rb") as f:
             toml_dict = tomli.load(f)
         return cls.from_config(toml_dict)
-    
+
     @classmethod
     def from_config(cls, config: dict[str, dict[str, Any]]):
         new_instance = cls()
