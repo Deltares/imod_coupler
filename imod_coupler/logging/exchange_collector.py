@@ -80,7 +80,7 @@ class ExchangeCollector:
         return cls.from_config(toml_dict)
 
     @classmethod
-    def from_config(cls, config: dict[str, dict[str, Any]]):
+    def from_config(cls, config: dict[str, dict[str, Any]])-> Self:
         new_instance = cls()
         general_settings = config["general"]
         new_instance.output_dir = Path(general_settings["output_dir"])
