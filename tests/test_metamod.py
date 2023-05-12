@@ -337,8 +337,6 @@ def add_logging_request_to_toml_file(toml_dir: Path, toml_filename: str):
     [general]
     output_dir = "{workdir}"
 
-    [exchanges]
-
     [exchanges.mf6_storage]
     type = "netcdf"
 

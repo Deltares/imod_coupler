@@ -11,12 +11,12 @@ from typing_extensions import Self
 
 
 class AbstractExchange(abc.ABC):
-    def __init__(self, name: str):
-        pass
 
+    @abc.abstractmethod
     def write_exchange(self, exchange: NDArray[Any], time: float) -> None:
         pass
 
+    @abc.abstractmethod
     def finalize(self) -> None:
         pass
 
