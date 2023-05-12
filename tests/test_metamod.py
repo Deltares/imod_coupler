@@ -317,7 +317,7 @@ def test_metamod_exchange_logging(
 
 def add_logging_request_to_toml_file(toml_dir: Path, toml_filename: str):
     """
-    This function takes as input the path to a tonml file written by MetaMod. It then adds a reference to an
+    This function takes as input the path to a toml file written by MetaMod. It then adds a reference to an
     output config file to it, and creates the same output config file.
     """
 
