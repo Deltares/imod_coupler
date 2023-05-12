@@ -1,5 +1,5 @@
 import abc
-import os
+import pathlib 
 from pathlib import Path
 from typing import Any, List, Optional
 
@@ -26,8 +26,8 @@ class NetcdfExchangeLogger(AbstractExchange):
     name: str
 
     def __init__(self, name: str, output_dir: Path, properties: dict[str, Any]):
-        if not (os.path.isdir(output_dir)):
-            os.mkdir(output_dir)
+        if not (Path.is_dir(output_dir)):
+           Path.mkdir(output_dir)
         output_file = Path.joinpath(output_dir, name + ".nc")
         self.ds = nc.Dataset(output_file, "w")
         self.name = name
@@ -73,22 +73,26 @@ class ExchangeCollector:
 
     def __init__(self, config: Optional[dict[str, dict[str, Any]]] = None):
         self.exchanges = {}
-        if config is not None:
-            general_settings = config["general"]
-            self.output_dir = Path(general_settings["output_dir"])
-
-            exchanges_config = config["exchanges"]
-
-            for exchange_name, dict_def in exchanges_config.items():
-                self.exchanges[exchange_name] = self.create_exchange_object(
-                    exchange_name, dict_def
-                )
 
     @classmethod
     def from_file(cls, output_toml_file: Path) -> Self:
         with open(output_toml_file, "rb") as f:
             toml_dict = tomli.load(f)
-        return cls(toml_dict)
+        return cls.from_config(toml_dict)
+    
+    @classmethod
+    def from_config(cls, config: dict[str, dict[str, Any]]):
+        new_instance = cls()
+        general_settings = config["general"]
+        new_instance.output_dir = Path(general_settings["output_dir"])
+
+        exchanges_config = config["exchanges"]
+
+        for exchange_name, dict_def in exchanges_config.items():
+            new_instance.exchanges[exchange_name] = new_instance.create_exchange_object(
+                exchange_name, dict_def
+            )
+        return new_instance
 
     def log_exchange(self, name: str, exchange: NDArray[Any], time: float) -> None:
         if name in self.exchanges.keys():

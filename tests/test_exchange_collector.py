@@ -1,4 +1,3 @@
-import os
 from pathlib import Path
 
 import netCDF4 as nc
@@ -17,13 +16,9 @@ def test_exchange_collector_read(tmp_path_dev: Path, output_config_toml: str) ->
     Then it is called several times (at time 8 and time 23) and it should write the value of example_flux_output
     at those times to netcdf
     """
-
-    if not (os.path.isdir(tmp_path_dev)):
-        os.makedirs(tmp_path_dev)
-
     config_dict = tomli.loads(output_config_toml)
     config_dict["general"]["output_dir"] = tmp_path_dev
-    exchange_collector = ExchangeCollector(config_dict)
+    exchange_collector = ExchangeCollector.from_config(config_dict)
 
     some_array0: NDArray[np.float_] = NDArray[np.float_](
         (5,), buffer=np.array([1.1, 2.0, -4.8, np.nan, 3])
@@ -52,7 +47,7 @@ def test_exchange_collector_ignores_unknown_exchanges(
     """
     config_dict = tomli.loads(output_config_toml)
     config_dict["general"]["output_dir"] = tmp_path_dev
-    exchange_collector = ExchangeCollector(config_dict)
+    exchange_collector = ExchangeCollector.from_config(config_dict)
 
     some_array0: NDArray[np.float_] = NDArray[np.float_](
         (5,), buffer=np.array([1.1, 2.0, -4.8, np.nan, 3])
@@ -73,7 +68,7 @@ def test_exchange_collector_raises_exception_when_array_size_varies(
     """
     config_dict = tomli.loads(output_config_toml)
     config_dict["general"]["output_dir"] = tmp_path_dev
-    exchange_collector = ExchangeCollector(config_dict)
+    exchange_collector = ExchangeCollector.from_config(config_dict)
 
     some_array: NDArray[np.float_] = NDArray[np.float_](
         (5,), buffer=np.array([1.1, 2.0, -4.8, np.nan, 3])
@@ -104,7 +99,7 @@ def test_exchange_collector_overwrites_when_time_is_repeated(
 
     config_dict = tomli.loads(output_config_toml)
     config_dict["general"]["output_dir"] = tmp_path_dev
-    exchange_collector = ExchangeCollector(config_dict)
+    exchange_collector = ExchangeCollector.from_config(config_dict)
 
     some_arrays: list[NDArray[np.float_]] = [
         NDArray[np.float_]((5,), buffer=np.array([1.1, 2.0, -4.8, np.nan, 1])),
