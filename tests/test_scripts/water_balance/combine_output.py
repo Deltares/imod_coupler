@@ -126,6 +126,8 @@ def combine_dataframe(
     direction = ["IN", "OUT"]
     modflow_fields = ["STO", "STO-SS", "CHD", "DRN", "RIV", "WEL", "DXC", "RCH"]
 
+    combined.insert(0,"timestep",  mf_listdf["timestep"])
+    combined.insert(1,"stress_period" ,mf_listdf["stress_period"])
     # init all sums to NaN
     for key1 in direction:
         for key2 in modflow_fields:
