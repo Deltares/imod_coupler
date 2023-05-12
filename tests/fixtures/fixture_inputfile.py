@@ -10,8 +10,6 @@ def output_config_toml() -> str:
                         [general]
                         output_dir = "."
 
-                        [exchanges]
-                        
                         [exchanges.example_flux_output]
                         type = "netcdf"
 
