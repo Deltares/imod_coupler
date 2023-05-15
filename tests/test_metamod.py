@@ -11,13 +11,27 @@ from imod.couplers.metamod import MetaMod
 from imod.mf6 import open_cbc, open_hds
 from numpy.testing import assert_array_almost_equal
 from pytest_cases import parametrize_with_cases
+from typing import Dict
+from test_scripts.water_balance.combine import create_modflow_waterbalance_file
+from test_utilities import numeric_csvfiles_equal
 
 
-def mf6_output_files(path: Path) -> Tuple[Path, Path, Path]:
+def mf6_output_files(path: Path) -> Tuple[Path, Path, Path, Path]:
     """return paths to Modflow 6 output files"""
     path_mf6 = path / "Modflow6" / "GWF_1"
 
-    return path_mf6 / "GWF_1.hds", path_mf6 / "GWF_1.cbc", path_mf6 / "dis.dis.grb"
+    return (
+        path_mf6 / "GWF_1.hds",
+        path_mf6 / "GWF_1.cbc",
+        path_mf6 / "dis.dis.grb",
+        path_mf6 / "GWF_1.lst",
+    )
+
+
+def msw_output_files(path: Path) -> Path:
+    path_msw = path / "MetaSWAP"
+
+    return path_msw / "msw" / "csv" / "tot_svat_per.csv"
 
 
 def test_lookup_table_present(metaswap_lookup_table: Path) -> None:
@@ -148,7 +162,7 @@ def test_metamod_develop(
     assert len(list((tmp_path_dev / "MetaSWAP").glob("*/*.idf"))) == 1704
 
     # Test if Modflow6 output written
-    headfile, cbcfile, _ = mf6_output_files(tmp_path_dev)
+    headfile, cbcfile, _, _ = mf6_output_files(tmp_path_dev)
 
     assert headfile.exists()
     assert cbcfile.exists()
@@ -189,7 +203,7 @@ def test_metamod_regression(
     )
 
     # Read Modflow 6 output
-    headfile_dev, cbcfile_dev, grbfile_dev = mf6_output_files(tmp_path_dev)
+    headfile_dev, cbcfile_dev, grbfile_dev, _ = mf6_output_files(tmp_path_dev)
 
     heads_dev = open_hds(headfile_dev, grbfile_dev)
     budgets_dev = open_cbc(cbcfile_dev, grbfile_dev)
@@ -208,7 +222,7 @@ def test_metamod_regression(
     )
 
     # Read Modflow 6 output
-    headfile_reg, cbcfile_reg, grbfile_reg = mf6_output_files(tmp_path_reg)
+    headfile_reg, cbcfile_reg, grbfile_reg, _ = mf6_output_files(tmp_path_reg)
 
     heads_reg = open_hds(headfile_reg, grbfile_reg)
     budgets_reg = open_cbc(cbcfile_reg, grbfile_reg)
@@ -221,6 +235,75 @@ def test_metamod_regression(
         assert_array_almost_equal(
             budgets_dev[varname].compute(), budgets_reg[varname].compute(), decimal=8
         )
+
+
+@parametrize_with_cases(
+    "metamod_model", prefix="case_storage_coefficient_no_sprinkling"
+)
+def test_metamod_regression_balance_output(
+    metamod_model: MetaMod,
+    tmp_path_reg: Path,
+    metaswap_dll_regression: Path,
+    metaswap_dll_dep_dir_regression: Path,
+    modflow_dll_regression: Path,
+    imod_coupler_exec_regression: Path,
+    reference_result_folder: Path,
+) -> None:
+    """
+    compares the numerical output of the regression build with the expected results
+    """
+    # Write model again, but now with paths to regression dll
+    metamod_model.write(
+        tmp_path_reg,
+        modflow6_dll=modflow_dll_regression,
+        metaswap_dll=metaswap_dll_regression,
+        metaswap_dll_dependency=metaswap_dll_dep_dir_regression,
+    )
+
+    subprocess.run(
+        [imod_coupler_exec_regression, tmp_path_reg / metamod_model._toml_name],
+        check=True,
+    )
+
+    _, _, _, mf6_balance_results = mf6_output_files(tmp_path_reg)
+    msw_balance_results = msw_output_files(tmp_path_reg)
+
+    # create modflow balance csv
+    mf6_balance_output_file = tmp_path_reg / "waterbalance_output.csv"
+    create_modflow_waterbalance_file(
+        mf6_balance_results,
+        output_file_csv=mf6_balance_output_file,
+    )
+
+    eps = 1e-4
+    mf6_tolerance_balance: Dict[str, Tuple[float, float]] = {
+        "default": (2 * eps, 2 * eps),
+        "RCH:RCH_MSW_IN": (
+            3 * eps,
+            3 * eps,
+        ),  # this illustrates how to set different tolerances per column
+    }
+    msw_tolerance_balance: Dict[str, Tuple[float, float]] = {
+        "default": (2 * eps, 2 * eps),
+    }
+
+    assert numeric_csvfiles_equal(
+        mf6_balance_output_file,
+        reference_result_folder
+        / "test_metamod_regresssion_no_sprinkling"
+        / "waterbalance_output.csv",
+        ";",
+        mf6_tolerance_balance,
+    )
+
+    assert numeric_csvfiles_equal(
+        msw_balance_results,
+        reference_result_folder
+        / "test_metamod_regresssion_no_sprinkling"
+        / "tot_svat_per.csv",
+        ",",
+        msw_tolerance_balance,
+    )
 
 
 @parametrize_with_cases("metamod_ss,metamod_sc", prefix="cases_")
@@ -253,7 +336,7 @@ def test_metamodel_storage_options(
     )
 
     # Read Modflow 6 output
-    headfile_ss, cbcfile_ss, grbfile_ss = mf6_output_files(tmp_path_ss)
+    headfile_ss, cbcfile_ss, grbfile_ss, _ = mf6_output_files(tmp_path_ss)
 
     heads_ss = open_hds(headfile_ss, grbfile_ss)
     budgets_ss = open_cbc(cbcfile_ss, grbfile_ss)
@@ -270,7 +353,7 @@ def test_metamodel_storage_options(
     )
 
     # Read Modflow 6 output
-    headfile_sc, cbcfile_sc, grbfile_sc = mf6_output_files(tmp_path_sc)
+    headfile_sc, cbcfile_sc, grbfile_sc, _ = mf6_output_files(tmp_path_sc)
 
     heads_sc = open_hds(headfile_sc, grbfile_sc)
     budgets_sc = open_cbc(cbcfile_sc, grbfile_sc)
