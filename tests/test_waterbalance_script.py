@@ -1,7 +1,7 @@
 from pathlib import Path
 from typing import Dict, Set, Tuple
 
-from test_scripts.water_balance.combine import create_waterbalance_file
+from test_scripts.water_balance.combine import create_modflow_waterbalance_file
 from test_utilities import numeric_csvfiles_equal
 
 eps = 1e-4
@@ -16,8 +16,7 @@ def test_waterbalance_script_case_1(
     script_test_data_folder = test_data_folder / "waterbalance_script"
     csv_result_file = tmp_path / "waterbalance_output.csv"
 
-    create_waterbalance_file(
-        script_test_data_folder  / "tot_svat_dtgw.csv",
+    create_modflow_waterbalance_file(
         script_test_data_folder / "T-MODEL-D.LST",
         output_file_csv=csv_result_file,
     )
@@ -32,24 +31,3 @@ def test_waterbalance_script_case_1(
         csv_result_file, csv_reference_file, ";", tolerance_balance
     )
 
-
-def test_waterbalance_script_case_2(
-    tmp_path: Path, reference_result_folder: Path, test_data_folder: Path
-):
-    csv_result_file = tmp_path / "waterbalance_output.csv"
-
-    create_waterbalance_file(
-        test_data_folder / "tmodel_example_output" / "case_2" / "tot_svat_dtgw.csv",
-        test_data_folder / "tmodel_example_output" / "case_2" / "T-MODEL-D.LST",
-        output_file_csv=csv_result_file,
-    )
-
-    csv_reference_file = (
-        reference_result_folder
-        / "test_waterbalance_script"
-        / "waterbalance_output_2.csv"
-    )
-
-    assert numeric_csvfiles_equal(
-        csv_result_file, csv_reference_file, ";", tolerance_balance
-    )
