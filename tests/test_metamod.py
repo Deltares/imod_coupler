@@ -2,7 +2,7 @@ import os
 import subprocess
 import textwrap
 from pathlib import Path
-from typing import Tuple
+from typing import Dict, Tuple
 
 import pytest
 import tomli
@@ -11,7 +11,6 @@ from imod.couplers.metamod import MetaMod
 from imod.mf6 import open_cbc, open_hds
 from numpy.testing import assert_array_almost_equal
 from pytest_cases import parametrize_with_cases
-from typing import Dict
 from test_scripts.water_balance.combine import create_modflow_waterbalance_file
 from test_utilities import numeric_csvfiles_equal
 
@@ -275,6 +274,7 @@ def test_metamod_regression_balance_output(
         output_file_csv=mf6_balance_output_file,
     )
 
+    # define tolerance for modflow and metamod csv files, per column.
     eps = 1e-4
     mf6_tolerance_balance: Dict[str, Tuple[float, float]] = {
         "default": (2 * eps, 2 * eps),
