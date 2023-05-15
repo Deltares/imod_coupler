@@ -1,8 +1,10 @@
 from __future__ import annotations
 
+from contextlib import contextmanager
+from os import chdir
 from pathlib import Path
 from sys import stderr
-from typing import Any, Tuple, Iterator
+from typing import Any, Iterator, Tuple
 
 import numpy as np
 from loguru import logger
@@ -11,8 +13,6 @@ from scipy.sparse import csr_matrix
 
 from imod_coupler.config import LogLevel
 
-from contextlib import contextmanager
-from os import chdir
 
 def create_mapping(
     src_idx: Any, tgt_idx: Any, nsrc: int, ntgt: int, operator: str

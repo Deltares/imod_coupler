@@ -30,4 +30,3 @@ def test_waterbalance_script_case_1(
     assert numeric_csvfiles_equal(
         csv_result_file, csv_reference_file, ";", tolerance_balance
     )
-

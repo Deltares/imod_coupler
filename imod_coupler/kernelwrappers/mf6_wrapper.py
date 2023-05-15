@@ -160,7 +160,7 @@ class Mf6Wrapper(XmiWrapper):
     ) -> None:
         """
         Assigns a flux to the wells in a well package. The number of wells and their order in the mf6 flux array
-        should be known beforehand. 
+        should be known beforehand.
 
         Parameters
         ----------

@@ -1,4 +1,3 @@
-
 import re
 from pathlib import Path
 
@@ -8,7 +7,6 @@ import numpy as np
 # import xlwt, xlrd
 import pandas as pd
 from test_scripts.water_balance.MF6_wbal_listing import listfile_to_dataframe
-
 
 
 def writeNC(ncname: Path, df: pd.DataFrame, singlevar: bool):
@@ -62,12 +60,7 @@ def writeCSV(csvname: Path, df: pd.DataFrame) -> None:
     df.to_csv(csvname, sep=colsep, na_rep="nan")
 
 
-def combine_dataframe(
-      msw_totfile: Path, mf_listfile: Path
-) -> pd.DataFrame:
-    
-   
-   
+def combine_dataframe(msw_totfile: Path, mf_listfile: Path) -> pd.DataFrame:
     # MODFLOW in and out
     mf_listdf = listfile_to_dataframe(mf_listfile)
     print("Reading ModFLOW data finished")

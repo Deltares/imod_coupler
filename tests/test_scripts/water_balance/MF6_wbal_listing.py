@@ -37,10 +37,12 @@ def listfile_to_dataframe(file_in: Path) -> pd.DataFrame:
             if m:
                 loose_words_in_string = m.string.strip().split()
                 time_step = int(loose_words_in_string[-4][:-1])
-                stress_period =  int(loose_words_in_string[-1])
-                budgetblock_counter=budgetblock_counter+1
-                df_data_out.at[budgetblock_counter,"timestep"] = int(time_step)
-                df_data_out.at[budgetblock_counter, "stress_period"] = int(stress_period)
+                stress_period = int(loose_words_in_string[-1])
+                budgetblock_counter = budgetblock_counter + 1
+                df_data_out.at[budgetblock_counter, "timestep"] = int(time_step)
+                df_data_out.at[budgetblock_counter, "stress_period"] = int(
+                    stress_period
+                )
 
                 stat = status.VOLUME
                 continue
