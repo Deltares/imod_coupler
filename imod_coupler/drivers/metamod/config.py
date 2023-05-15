@@ -39,7 +39,8 @@ class Coupling(BaseModel):
     mf6_msw_recharge_map: FilePath  # the pach to the recharge map file
     mf6_msw_sprinkling_map: Optional[
         FilePath
-    ] = None  # the pach to the sprinkling map file
+    ] = None  # the path to the sprinkling map file
+    output_config_file: Optional[FilePath] = None
 
     class Config:
         arbitrary_types_allowed = True  # Needed for `mf6_msw_sprinkling_map`
@@ -54,13 +55,9 @@ class Coupling(BaseModel):
             )
         return mf6_msw_well_pkg
 
-    @validator("mf6_msw_node_map")
-    def resolve_mf6_msw_node_map(cls, mf6_msw_node_map: FilePath) -> FilePath:
-        return mf6_msw_node_map.resolve()
-
-    @validator("mf6_msw_recharge_map")
-    def resolve_mf6_msw_recharge_map(cls, mf6_msw_recharge_map: FilePath) -> FilePath:
-        return mf6_msw_recharge_map.resolve()
+    @validator("mf6_msw_node_map", "mf6_msw_recharge_map", "output_config_file")
+    def resolve_file_path(cls, file_path: FilePath) -> FilePath:
+        return file_path.resolve()
 
     @validator("mf6_msw_sprinkling_map")
     def validate_mf6_msw_sprinkling_map(

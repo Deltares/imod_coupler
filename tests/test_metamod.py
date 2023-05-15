@@ -1,9 +1,12 @@
 import os
 import subprocess
+import textwrap
 from pathlib import Path
 from typing import Tuple
 
 import pytest
+import tomli
+import tomli_w
 from imod.couplers.metamod import MetaMod
 from imod.mf6 import open_cbc, open_hds
 from numpy.testing import assert_array_almost_equal
@@ -280,3 +283,69 @@ def test_metamodel_storage_options(
         assert_array_almost_equal(
             budgets_sc[varname].compute(), budgets_ss[varname].compute(), decimal=8
         )
+
+
+@parametrize_with_cases(
+    "metamod_model", prefix="case_storage_coefficient_no_sprinkling"
+)
+def test_metamod_exchange_logging(
+    tmp_path_dev: Path,
+    metamod_model: MetaMod,
+    metaswap_dll_devel: Path,
+    metaswap_dll_dep_dir_devel: Path,
+    modflow_dll_devel: Path,
+    imod_coupler_exec_devel: Path,
+) -> None:
+    """
+    Test if logging works as intended
+    """
+    metamod_model.write(
+        tmp_path_dev,
+        modflow6_dll=modflow_dll_devel,
+        metaswap_dll=metaswap_dll_devel,
+        metaswap_dll_dependency=metaswap_dll_dep_dir_devel,
+    )
+    add_logging_request_to_toml_file(tmp_path_dev, metamod_model._toml_name)
+
+    subprocess.run(
+        [imod_coupler_exec_devel, tmp_path_dev / metamod_model._toml_name], check=True
+    )
+
+    # Test if logging netcdf's  were written
+    assert len(list((tmp_path_dev).glob("*.nc"))) == 2
+
+
+def add_logging_request_to_toml_file(toml_dir: Path, toml_filename: str):
+    """
+    This function takes as input the path to a toml file written by MetaMod. It then adds a reference to an
+    output config file to it, and creates the same output config file.
+    """
+
+    # add reference to output_config to metamod's toml file
+    with open(toml_dir / toml_filename, "rb") as f:
+        toml_dict = tomli.load(f)
+
+    with open(toml_dir / toml_filename, "wb") as f:
+        toml_dict["driver"]["coupling"][0][
+            "output_config_file"
+        ] = "./output_config.toml"
+        tomli_w.dump(toml_dict, f)
+
+    # write output_config file
+    output_config_content = textwrap.dedent(
+        """\
+    [general]
+    output_dir = "{workdir}"
+
+    [exchanges.mf6_storage]
+    type = "netcdf"
+
+    [exchanges.msw_storage]
+    type = "netcdf"
+    """
+    )
+    path_quadruple_backslash = "\\\\".join(
+        (str(toml_dir)).split("\\")
+    )  # on print ,"\\\\" gets rendered as "\\"
+    with open(toml_dir / "output_config.toml", "w") as f:
+        f.write(output_config_content.format(workdir=path_quadruple_backslash))

@@ -19,6 +19,7 @@ from imod_coupler.drivers.driver import Driver
 from imod_coupler.drivers.metamod.config import Coupling, MetaModConfig
 from imod_coupler.kernelwrappers.mf6_wrapper import Mf6Wrapper
 from imod_coupler.kernelwrappers.msw_wrapper import MswWrapper
+from imod_coupler.logging.exchange_collector import ExchangeCollector
 from imod_coupler.utils import create_mapping
 
 
@@ -84,6 +85,12 @@ class MetaMod(Driver):
         self.mf6.initialize()
         self.msw.initialize()
         self.log_version()
+        if self.coupling.output_config_file is not None:
+            self.exchange_logger = ExchangeCollector.from_file(
+                self.coupling.output_config_file
+            )
+        else:
+            self.exchange_logger = ExchangeCollector()
         self.couple()
 
     def log_version(self) -> None:
@@ -237,6 +244,7 @@ class MetaMod(Driver):
     def finalize(self) -> None:
         self.mf6.finalize()
         self.msw.finalize()
+        self.exchange_logger.finalize()
 
     def get_current_time(self) -> float:
         return self.mf6.get_current_time()
@@ -249,6 +257,12 @@ class MetaMod(Driver):
         self.mf6_storage[:] = (
             self.mask_msw2mod["storage"][:] * self.mf6_storage[:]
             + self.map_msw2mod["storage"].dot(self.msw_storage)[:]
+        )
+        self.exchange_logger.log_exchange(
+            "mf6_storage", self.mf6_storage, self.get_current_time()
+        )
+        self.exchange_logger.log_exchange(
+            "msw_storage", self.msw_storage, self.get_current_time()
         )
 
         # Divide recharge and extraction by delta time
