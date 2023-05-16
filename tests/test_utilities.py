@@ -45,11 +45,11 @@ def numeric_csvfiles_equal(
 ) -> bool:
     df1 = pd.read_csv(
         file1,
-        sep,
+        sep=sep,
     )
     df2 = pd.read_csv(
         file2,
-        sep,
+        sep=sep,
     )
     if df1.shape[0] != df2.shape[0]:
         print(f"the dataframes in {file1} and {file2} differ in length")
@@ -64,9 +64,6 @@ def numeric_csvfiles_equal(
     # print column name with differences
     if isDifferent:
         print("columns with differences:")
-        columns_with_differences = [
-            v[0] for v in failed.items() if v[1] != (False, False)
-        ]
         print(columns_with_differences)
 
     return not isDifferent
