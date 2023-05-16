@@ -264,13 +264,13 @@ def test_metamod_regression_balance_output(
         check=True,
     )
 
-    _, _, _, mf6_balance_results = mf6_output_files(tmp_path_reg)
+    _, _, _, mf6_lst_file = mf6_output_files(tmp_path_reg)
     msw_balance_results = msw_output_files(tmp_path_reg)
 
     # create modflow balance csv
     mf6_balance_output_file = tmp_path_reg / "waterbalance_output.csv"
     create_modflow_waterbalance_file(
-        mf6_balance_results,
+        mf6_lst_file,
         output_file_csv=mf6_balance_output_file,
     )
 
