@@ -1,4 +1,3 @@
-import re
 from pathlib import Path
 
 import netCDF4 as nc
