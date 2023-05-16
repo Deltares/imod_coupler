@@ -10,9 +10,8 @@ import pandas as pd
 
 class status(Enum):
     NO_OPERATION = 0
-    VOLUME = 1
-    VOLUME_IN = 2
-    VOLUME_OUT = 3
+    VOLUME_IN = 1
+    VOLUME_OUT = 2
 
 
 def listfile_to_dataframe(file_in: Path) -> pd.DataFrame:
@@ -44,7 +43,7 @@ def listfile_to_dataframe(file_in: Path) -> pd.DataFrame:
                     stress_period
                 )
 
-                stat = status.VOLUME
+                stat = status.NO_OPERATION
                 continue
             if any([pattern in regel for pattern in ignore]):
                 continue
