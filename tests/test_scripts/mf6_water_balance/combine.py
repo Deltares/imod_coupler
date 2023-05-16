@@ -3,11 +3,10 @@
 from pathlib import Path
 from typing import Union
 
-from test_scripts.mf6_water_balance.MF6_wbal_listing import listfile_to_dataframe
-
 import netCDF4 as nc
 import numpy as np
 import pandas as pd
+from test_scripts.mf6_water_balance.MF6_wbal_listing import listfile_to_dataframe
 
 
 def create_modflow_waterbalance_file(
@@ -27,7 +26,6 @@ def create_modflow_waterbalance_file(
     if output_file_xlsx is not None:
         print("Writing XLSX")
         writeXLS(output_file_xlsx, modflow_results_dataframe)
-
 
 
 def writeNC(ncname: Path, df: pd.DataFrame, singlevar: bool):
