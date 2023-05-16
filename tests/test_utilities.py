@@ -4,6 +4,7 @@ from typing import Dict, Optional, Tuple
 import numpy as np
 import pandas as pd
 
+
 def diff_per_column_dataframe(
     df1: pd.DataFrame,
     df2: pd.DataFrame,
