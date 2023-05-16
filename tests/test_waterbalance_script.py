@@ -1,7 +1,7 @@
 from pathlib import Path
-from typing import Dict, Set, Tuple
+from typing import Dict, Tuple
 
-from test_scripts.water_balance.combine import create_modflow_waterbalance_file
+from test_scripts.mf6_water_balance.combine import create_modflow_waterbalance_file
 from test_utilities import numeric_csvfiles_equal
 
 eps = 1e-4

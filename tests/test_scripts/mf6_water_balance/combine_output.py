@@ -5,7 +5,7 @@ import numpy as np
 
 # import xlwt, xlrd
 import pandas as pd
-from test_scripts.water_balance.MF6_wbal_listing import listfile_to_dataframe
+from test_scripts.mf6_water_balance.MF6_wbal_listing import listfile_to_dataframe
 
 
 def writeNC(ncname: Path, df: pd.DataFrame, singlevar: bool):
