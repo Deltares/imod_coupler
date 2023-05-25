@@ -1,0 +1,60 @@
+    vegetation_mdl         =          1    ! Vegetation model          (1/2/3) 1= simple, 2= WOFOST,          3=2 + feedback
+    evapotranspiration_mdl =          1    ! Evapotranspiration model  (1/2/3) 1= simple, 2= PenMon as ETref, 3= PenMon full
+    saltstress_mdl         =          0    ! Salt stress model           (0/1) 0= none    1 = Maas-Hoffman
+    surfacewater_mdl       =          0    ! Surface water model     (0/1/2/5) 0= none    1 = Surfw   2= + Sobek   5 = +SWQN
+    infilimsat_opt         =          0
+    netcdf_per             =          0
+    postmsw_opt            =          0    ! Online postmsw              (0/1) 0= not     1 = online
+    save&restore_opt       =          0    ! Enablement online restore (0/1/2) 0= not     1 = normal accuracy  2 = testing accuracy
+    unsa_svat_path         =         "{{unsat_path}}"   ! Location of unsa-database
+    dtgw                   =   1.000000    ! Groundwater/soil water time step
+    dtsw                   =   1.000000    ! Time step fast processes
+*
+* Parameters for processes
+*
+    ipstep                 =         2
+    nxlvage_dim            =       366
+    infilimsat_opt         =         0
+    co2                    =   404.21
+    fact_beta2             =    1.0    ! Calibration factor of beta2 (Boesten) for rainfall time step
+    rcsoil                 =    0.15   ! refelection coefficient of soil
+*
+    iterur1                =          3    ! Outer cycle iteration for start of smoothing
+    iterur2                =          5    ! Outer cycle iteration with full smoothing
+    idbg                   =   0.000000    ! Starting julian day of simulation
+    iybg                   =       1971    ! Starting year of simulation
+    tdbgsm                 =        0.0    ! Beginning of summer water management period
+    tdedsm                 =      366.0    ! End of summer water management period
+    clocktime              =          0    ! Produces files for clocking cpu/realtime used
+    svat_csvdigits         =          1
+    svat_gt                =          1    ! File  with 14-day gw. levels
+    svat_per               =          0    ! File  with period-info SVATs
+    svat_per_csv           =          0    ! Files with period-info selected SVATs
+    svat_dtgw              =          0    ! File  with dtgw-info SVATs
+    svat_dtgw_csv          =          1    ! Files with dtgw-info selected SVATs
+    svat2gw_dtgw           =          0    ! File  with dtgw-info flow to GW as system volume
+    svat_vg_per            =          0    ! File  with period-info vegetation model
+    svat_vg_per_csv        =          0    ! File  with period-info vegetation model selected SVATs
+    svat_vg_day            =          0    ! File  with day-info vegetation model
+    svat_vg_day_csv        =          1    ! File  with day-info vegetation model selected SVATs
+    drng_per               =          0    ! File  with period-info drainage links
+    sw_per                 =          0    ! File  with period-info Surfw
+    sw_per_csv             =          0    ! Files with period-info selected Surfw nr's
+    sw_dtgw                =          0    ! File  with dtgw-info Surfw
+    sw_dtgw_csv            =          0    ! Files with dtgw-info selected Surfw nr's
+    sw_hq_dtgw             =          0    ! File  with dtgw-info H,Q  of Surfw
+    sw_dtsw                =          0    ! File  with dtsw-info Surfw
+    sw_hq_dtsw             =          0    ! File  with dtsw-info H,Q  of Surfw
+    svat_per_unf           =          0    ! File  with period-info SVAT for postmetaswap
+    modf_per_unf           =          0    ! File  with period-info MODFLOW for postmetaswap
+    sw_dtgw_unf            =          0    ! File  with dtgw-info Surfw for water quality
+    idf_per                =          1
+    idf_dx                 =        100
+    idf_dy                 =        100
+    idf_ncol               =          1
+    idf_nrow               =        372
+    idf_xmin               =          0
+    idf_ymin               =          0
+    idf_nodata             =     -999.0
+*
+*

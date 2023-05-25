@@ -70,19 +70,19 @@ def total_flux_error(q_test, q_ref):
     return np.abs(q_test - q_ref).sum() / np.abs(q_ref).sum()
 
 
-def test_modstrip_data_present(modstrip_loc):
+def test_modstrip_data_present(modstrip_full_range_dbase_loc):
     """
     Test if modstrip data is not deleted or moved by accident
     """
-    input_dir = modstrip_loc / "input"
-    results_dir = modstrip_loc / "results"
+    input_dir = modstrip_full_range_dbase_loc / "input"
+    results_dir = modstrip_full_range_dbase_loc / "results"
 
     assert input_dir.exists()
     assert results_dir.exists()
 
 
 def test_modstrip_model(
-    modstrip_loc,
+    modstrip_full_range_dbase_loc,
     tmp_path,
     metaswap_lookup_table,
     imod_coupler_exec_devel,
@@ -95,7 +95,9 @@ def test_modstrip_model(
     comparison in 2020.
     """
 
-    shutil.copytree(modstrip_loc / "input", tmp_path, dirs_exist_ok=True)
+    shutil.copytree(
+        modstrip_full_range_dbase_loc / "input", tmp_path, dirs_exist_ok=True
+    )
 
     fill_para_sim_template(tmp_path / "msw", metaswap_lookup_table)
 
@@ -112,7 +114,7 @@ def test_modstrip_model(
     run_coupler(toml_path)
     headfile = tmp_path / "GWF_1" / "MODELOUTPUT" / "HEAD" / "HEAD.HED"
     cbcfile = tmp_path / "GWF_1" / "MODELOUTPUT" / "BUDGET" / "BUDGET.CBC"
-    msw_csv = tmp_path / "msw" / "msw" / "csv" / "svat_dtgw_0000000001.csv"
+    msw_csv = tmp_path / "msw" / "msw" / "csv" / "tot_svat_dtgw.csv"
 
     assert headfile.exists()
     assert cbcfile.exists()
@@ -125,9 +127,18 @@ def test_modstrip_model(
     assert msw_csv.stat().st_size > 0
 
     # Read msw output and validation data
-    data_original = np.loadtxt(modstrip_loc / "results" / "mf2005.txt")
-    data_2020_regression = np.loadtxt(modstrip_loc / "results" / "mf6_2020.txt")
+    data_original = np.loadtxt(modstrip_full_range_dbase_loc / "results" / "mf2005.txt")
+    data_2020_regression = np.loadtxt(
+        modstrip_full_range_dbase_loc / "results" / "mf6_2020.txt"
+    )
     data_develop = pd.read_csv(msw_csv, skipinitialspace=True)
+
+    # coupling balanse of MF6-MSW is defined as:
+    # qsim + qmodf = dHgw * sc1
+    # first we evaluate if this is the case
+    data_develop["qmodf(m3)"] + data_develop["qsimtot(m3)"] == data_develop[
+        "Hgw"
+    ] * data_develop["qsimtot(m3)"]
 
     # The original comparison data compared results for a longer time period
     # (~30 years), whereas our test runs 3 years now. Hence this selection

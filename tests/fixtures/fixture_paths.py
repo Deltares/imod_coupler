@@ -79,3 +79,15 @@ def modstrip_loc(request):
     """
 
     return Path(request.fspath).parent / "data" / "modstrip"
+
+
+@pytest.fixture(scope="function")
+def modstrip_full_range_dbase_loc(request):
+    """
+    Return the directory of the modstrip data
+
+    Based on: https://stackoverflow.com/a/44935451
+
+    """
+
+    return Path(request.fspath).parent / "data" / "modstrip_full_range_dbase"
