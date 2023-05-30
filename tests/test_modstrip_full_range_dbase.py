@@ -114,7 +114,7 @@ def test_modstrip_model(
     run_coupler(toml_path)
     headfile = tmp_path / "GWF_1" / "MODELOUTPUT" / "HEAD" / "HEAD.HED"
     cbcfile = tmp_path / "GWF_1" / "MODELOUTPUT" / "BUDGET" / "BUDGET.CBC"
-    msw_csv = tmp_path / "msw" / "msw" / "csv" / "tot_svat_dtgw.csv"
+    msw_csv = tmp_path / "msw" / "msw" / "csv" / "svat_dtgw_0000000001.csv"
 
     assert headfile.exists()
     assert cbcfile.exists()
@@ -136,9 +136,15 @@ def test_modstrip_model(
     # coupling balanse of MF6-MSW is defined as:
     # qsim + qmodf = dHgw * sc1
     # first we evaluate if this is the case
-    data_develop["qmodf(m3)"] + data_develop["qsimtot(m3)"] == data_develop[
-        "Hgw"
-    ] * data_develop["qsimtot(m3)"]
+    qmodf = data_develop["qmodf(mm)"] / 1000 * data_develop["area(m2)"]
+    qmsw = data_develop["qsim(mm)"] / 1000 * data_develop["area(m2)"]
+    dhgw = data_develop["dHgw(m)"]
+    sc1 = data_develop["sc1(m3/m2/m)"] * data_develop["area(m2)"]
+    lhs = (qmodf + qmsw) / data_develop["area(m2)"] * 1000  # mm
+    rhs = (dhgw * sc1) / data_develop["area(m2)"] * 1000  # mm
+
+    np.isclose(lhs, rhs)
+    (lhs - rhs) < 0.001
 
     # The original comparison data compared results for a longer time period
     # (~30 years), whereas our test runs 3 years now. Hence this selection
