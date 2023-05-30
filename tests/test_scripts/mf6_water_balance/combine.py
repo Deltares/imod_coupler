@@ -32,9 +32,6 @@ def writeNC(ncname: Path, df: pd.DataFrame, singlevar: bool):
     nvar = len(df.columns)
     ds = nc.Dataset(ncname, "w")
     ds.createDimension("time", len(df.index))
-    #   create a separate variable "time" holding the record index
-    #   timevar = ds.createVariable("time","f8",("time",))
-    #   timevar[:] = np.array(df.index)
     if singlevar:
         namelen = 22
         ds.createDimension("id", len(df.columns))
