@@ -2,6 +2,7 @@ import shutil
 import subprocess
 from pathlib import Path
 
+import imod
 import numpy as np
 import pandas as pd
 import tomli_w
@@ -114,7 +115,7 @@ def test_modstrip_model(
     run_coupler(toml_path)
     headfile = tmp_path / "GWF_1" / "MODELOUTPUT" / "HEAD" / "HEAD.HED"
     cbcfile = tmp_path / "GWF_1" / "MODELOUTPUT" / "BUDGET" / "BUDGET.CBC"
-    msw_csv = tmp_path / "msw" / "msw" / "csv" / "svat_dtgw_0000000001.csv"
+    grbfile = tmp_path / "GWF_1" / "MODELINPUT" / "MS_MF6.DIS6.grb"
 
     assert headfile.exists()
     assert cbcfile.exists()
@@ -126,49 +127,84 @@ def test_modstrip_model(
     assert cbcfile.stat().st_size > 0
     assert msw_csv.stat().st_size > 0
 
-    # Read msw output and validation data
-    data_original = np.loadtxt(modstrip_full_range_dbase_loc / "results" / "mf2005.txt")
-    data_2020_regression = np.loadtxt(
-        modstrip_full_range_dbase_loc / "results" / "mf6_2020.txt"
-    )
-    data_develop = pd.read_csv(msw_csv, skipinitialspace=True)
+    for isvat in np.arange(371):
+        # Read msw output and validation data
+        data_2023_regression = np.loadtxt(
+            modstrip_full_range_dbase_loc
+            / "results"
+            / "svat_dtgw_{:010d}.csv".format(isvat + 1)
+        )
+        msw_csv = (
+            tmp_path / "msw" / "msw" / "csv" / "svat_dtgw_{:010d}.csv".format(isvat + 1)
+        )
+        data_develop = pd.read_csv(msw_csv, skipinitialspace=True)
 
-    # coupling balanse of MF6-MSW is defined as:
-    # qsim + qmodf = dHgw * sc1
-    # first we evaluate if this is the case
-    qmodf = data_develop["qmodf(mm)"] / 1000 * data_develop["area(m2)"]
-    qmsw = data_develop["qsim(mm)"] / 1000 * data_develop["area(m2)"]
-    dhgw = data_develop["dHgw(m)"]
-    sc1 = data_develop["sc1(m3/m2/m)"] * data_develop["area(m2)"]
-    lhs = (qmodf + qmsw) / data_develop["area(m2)"] * 1000  # mm
-    rhs = (dhgw * sc1) / data_develop["area(m2)"] * 1000  # mm
+        # convert to coupling balans terms
+        qmodf = data_develop["qmodf(mm)"] / 1000 * data_develop["area(m2)"]
+        qmsw = data_develop["qsim(mm)"] / 1000 * data_develop["area(m2)"]
+        qmsw_cor = data_develop["qsimcorrmf(mm)"] / 1000 * data_develop["area(m2)"]
+        dhgw = data_develop["dHgw(m)"]
+        hgw = data_develop["Hgw(m)"]
+        hgw_mod = data_develop["Hgwmodf(m)"]
+        sc1 = data_develop["sc1(m3/m2/m)"] * data_develop["area(m2)"]
 
-    np.isclose(lhs, rhs)
-    (lhs - rhs) < 0.001
+        # get reference values
+        qmodf_ref = (
+            data_2023_regression["qmodf(mm)"] / 1000 * data_2023_regression["area(m2)"]
+        )
+        qmsw_ref = (
+            data_2023_regression["qsim(mm)"] / 1000 * data_2023_regression["area(m2)"]
+        )
+        hgw_ref = data_2023_regression["dHgw(m)"]
 
-    # The original comparison data compared results for a longer time period
-    # (~30 years), whereas our test runs 3 years now. Hence this selection
-    nrows = data_develop.shape[0]
-    lvgw_original = data_original[:nrows, 0]
-    lvgw_2020_regression = data_2020_regression[:nrows, 0]
+        # mf6 data
+        head_mf6 = imod.mf6.open_hds(headfile, grbfile, False)
+        flux_mf6 = imod.mf6.open_cbc(cbcfile, grbfile, False)
 
-    vsim_original = data_original[:nrows, 2]
-    vsim_2020_regression = data_2020_regression[:nrows, 2]
+        # criterion
+        criterion_q = 0.001  # %
+        criterion_q_ref = 0.0001  # %
 
-    lvgw = data_develop["Hgw(m)"]
-    # Compute vsim by converting to mm to m3
-    svat_area = 1.0e4  # m2
-    vsim = data_develop["qsim(mm)"] / 1.0e3 * svat_area
+        # --- check coupling concept ---
 
-    # Compare fluxes exchanged between modflow and metaswap
-    criterion_q = 0.045  # 4.5%
-    criterion_h = 0.001  # 1 mm
+        # coupling balanse of MF6-MSW is defined as:
+        # qsim + qmodf = dHgw * sc1
 
-    assert total_flux_error(vsim_2020_regression, vsim_original) < criterion_q
-    assert total_flux_error(vsim, vsim_2020_regression) < criterion_q
-    assert total_flux_error(vsim, vsim_original) < criterion_q
+        # CHECK 1: evaluate absolute value of qsim to reference
+        # if assert exception; metaswap internal flux is changed, possible conceptual changes in MetaSwap
+        assert total_flux_error(qmsw, qmsw_ref) < criterion_q_ref
 
-    # Compare heads computed by MetaSWAP
-    assert_allclose(lvgw_original, lvgw_2020_regression, atol=criterion_h)
-    assert_allclose(lvgw, lvgw_original, atol=criterion_h)
-    assert_allclose(lvgw, lvgw_2020_regression, atol=criterion_h)
+        # CHECK 2: evaluate absolute value of qmodf to reference
+        # if assert exception; modflow internal flux is changed, possible conceptual changes in MODFLOW
+        assert total_flux_error(qmodf, qmodf_ref) < criterion_q_ref
+
+        # CHECK 3: evaluate full coupling balance
+        lhs = (qmodf + qmsw) / data_develop["area(m2)"] * 1000  # mm
+        rhs = (dhgw * sc1) / data_develop["area(m2)"] * 1000  # mm
+
+        assert total_flux_error(lhs, rhs) < criterion_q
+
+        # CHECK 4: evaluate if non-convergentie is corrected by correction flux
+        # we cant use the difference betwee hgw and hgw_mod, check with Paul how to evaluate this
+
+        # CHECK 5: evaluate absolute value of hgw to reference
+        assert total_flux_error(hgw, hgw_ref) < criterion_q_ref
+
+        # --- check correctness of coupling ---
+
+        # CHECK 1: evaluate if sum of RCH (mf6) is equal to qmsw (msw)
+        assert (
+            total_flux_error(flux_mf6["rch_msw"][:, 0, isvat, 0].values, qmsw)
+            < criterion_q
+        )
+
+        # CHECK 2: evaluate if head of mf6-cel is equal to head of msw-svat (this cases 1-1 coupling)
+        assert total_flux_error(head_mf6[:, 0, isvat, 0].values, hgw) < criterion_q
+        # assert_allclose(lvgw_original, lvgw_2020_regression, atol=criterion_h)
+
+        # CHECK 3: evaluate if STO (mf6) is equal to SC1 (MSW)
+        # MF6 does not have STO as output variable, so we compute it from Q-STO and dH
+        dh_insert = -5.0 - head_mf6[0, 0, isvat, 0]  # dh relative to ic
+        dh_mf6 = np.insert(-np.diff(head_mf6[:, 0, isvat, 0].values), 0, dh_insert)
+        sc1_mf6 = flux_mf6["sto-ss"][:, 0, isvat, 0].values / (dh_mf6 * 100**2)
+        assert total_flux_error(data_develop["sc1(m3/m2/m)"], sc1_mf6) < criterion_q
