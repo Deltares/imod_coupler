@@ -31,6 +31,7 @@ def listfile_to_dataframe(file_in: Path) -> pd.DataFrame:
                 postfix = "_IN"
             elif re.match(r"^\s*VOLUME.* BUDGET.*STRESS PERIOD\s+(\d+)", line):
                 m = re.match(r"^\s*VOLUME.* BUDGET.*STRESS PERIOD\s+(\d+)", line)
+                assert m is not None  # for mypy
                 loose_words_in_string = m.string.strip().split()
                 time_step = int(loose_words_in_string[-4][:-1])
                 stress_period = int(loose_words_in_string[-1])
