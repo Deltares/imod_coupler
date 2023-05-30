@@ -56,14 +56,14 @@ def numeric_csvfiles_equal(
         return False
 
     # rownumbers with significant difference per variable
-    absfailedndx, relfailedndx, failed = diff_per_column_dataframe(df1, df2, tolerance)
+    _, _, failed = diff_per_column_dataframe(df1, df2, tolerance)
     # is there any significant difference whatsoever?
     columns_with_differences = [v[0] for v in failed.items() if v[1] != (False, False)]
-    isDifferent = any(columns_with_differences)
+    is_different = any(columns_with_differences)
 
     # print column name with differences
-    if isDifferent:
+    if is_different:
         print("columns with differences:")
         print(columns_with_differences)
 
-    return not isDifferent
+    return not is_different

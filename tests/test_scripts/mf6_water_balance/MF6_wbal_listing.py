@@ -20,20 +20,17 @@ def listfile_to_dataframe(file_in: Path) -> pd.DataFrame:
     budgetblock_counter = -1
     with open(file_in, "r") as fnin_mflist:
         stat = status.NO_OPERATION
-        for regel in fnin_mflist:
-            if re.match(r"^.*TIME SUMMARY", regel):
+        for line in fnin_mflist:
+            if re.match(r"^.*TIME SUMMARY", line):
                 stat = status.NO_OPERATION
-                continue
-            if re.match(r"\s*OUT:\s+OUT:", regel):
+            elif re.match(r"\s*OUT:\s+OUT:", line):
                 stat = status.VOLUME_OUT
                 postfix = "_OUT"
-                continue
-            if re.match(r"\s*IN:\s+IN:", regel):
+            elif re.match(r"\s*IN:\s+IN:", line):
                 stat = status.VOLUME_IN
                 postfix = "_IN"
-                continue
-            m = re.match(r"^\s*VOLUME.* BUDGET.*STRESS PERIOD\s+(\d+)", regel)
-            if m:
+            elif re.match(r"^\s*VOLUME.* BUDGET.*STRESS PERIOD\s+(\d+)", line):
+                m=re.match(r"^\s*VOLUME.* BUDGET.*STRESS PERIOD\s+(\d+)", line)
                 loose_words_in_string = m.string.strip().split()
                 time_step = int(loose_words_in_string[-4][:-1])
                 stress_period = int(loose_words_in_string[-1])
@@ -42,28 +39,21 @@ def listfile_to_dataframe(file_in: Path) -> pd.DataFrame:
                 df_data_out.at[budgetblock_counter, "stress_period"] = int(
                     stress_period
                 )
-
                 stat = status.NO_OPERATION
+            elif any([pattern in line for pattern in ignore]):
                 continue
-            if any([pattern in regel for pattern in ignore]):
-                continue
-            if stat in [status.VOLUME_IN, status.VOLUME_OUT]:
-                m = re.match(r"^\s*([\s\w\-]+\s*=)\s*([^\s]+)", regel)
-                if m:
+            elif stat in [status.VOLUME_IN, status.VOLUME_OUT]:
+                if re.match(r"^\s*([\s\w\-]+\s*=)\s*([^\s]+)", line):
+                    if "TOTAL IN"in line or "TOTAL OUT" in line: 
+                        continue
+                    m = re.match(r"^\s*([\s\w\-]+\s*=)\s*([^\s]+)", line)
                     splitter = m.group(1)
-                    _, part2 = re.split(splitter, regel)[-2:]
+                    _, part2 = re.split(splitter, line)[-2:]
                     thisval = float(part2.split()[0])
-
                     pkgtype = re.sub(r"\s+", "_", re.sub(r"\s*=\s*", "", splitter))
-                    pkgname = pkgtype
-                    try:
-                        pkgname = "%s:%s" % (
-                            pkgtype,
-                            part2.split()[1],
-                        )  # modflow6 format
-                    except:
-                        pass
+                    pkgname = "%s:%s" % (
+                        pkgtype,
+                        part2.split()[1],
+                    )  # modflow6 format
                     df_data_out.at[budgetblock_counter, pkgname + postfix] = thisval
-
-                continue
         return df_data_out
