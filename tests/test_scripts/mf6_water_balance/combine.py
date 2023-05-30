@@ -15,6 +15,10 @@ def create_modflow_waterbalance_file(
     output_file_netcdf: Union[Path, None] = None,
     output_file_csv: Union[Path, None] = None,
 ) -> None:
+    """
+    this function creates a csv, excel or netcdf file with the water-balance information found in
+    the .lst file of the modflow groundwater flow model
+    """
     modflow_results_dataframe = listfile_to_dataframe(mf_listfile)
 
     if output_file_netcdf is not None:

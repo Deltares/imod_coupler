@@ -30,7 +30,7 @@ def listfile_to_dataframe(file_in: Path) -> pd.DataFrame:
                 stat = status.VOLUME_IN
                 postfix = "_IN"
             elif re.match(r"^\s*VOLUME.* BUDGET.*STRESS PERIOD\s+(\d+)", line):
-                m=re.match(r"^\s*VOLUME.* BUDGET.*STRESS PERIOD\s+(\d+)", line)
+                m = re.match(r"^\s*VOLUME.* BUDGET.*STRESS PERIOD\s+(\d+)", line)
                 loose_words_in_string = m.string.strip().split()
                 time_step = int(loose_words_in_string[-4][:-1])
                 stress_period = int(loose_words_in_string[-1])
@@ -43,11 +43,11 @@ def listfile_to_dataframe(file_in: Path) -> pd.DataFrame:
             elif any([pattern in line for pattern in ignore]):
                 continue
             elif stat in [status.VOLUME_IN, status.VOLUME_OUT]:
-                if re.match(r"^\s*([\s\w\-]+\s*=)\s*([^\s]+)", line):
-                    if "TOTAL IN"in line or "TOTAL OUT" in line: 
+                matches = re.match(r"^\s*([\s\w\-]+\s*=)\s*([^\s]+)", line)
+                if matches:
+                    if "TOTAL IN" in line or "TOTAL OUT" in line:
                         continue
-                    m = re.match(r"^\s*([\s\w\-]+\s*=)\s*([^\s]+)", line)
-                    splitter = m.group(1)
+                    splitter = matches.group(1)
                     _, part2 = re.split(splitter, line)[-2:]
                     thisval = float(part2.split()[0])
                     pkgtype = re.sub(r"\s+", "_", re.sub(r"\s*=\s*", "", splitter))
