@@ -82,15 +82,6 @@ call pytest tests -s -n=%npar% --basetemp=tests/temp --junitxml="report.xml"]]><
       </build-trigger>
     </build-triggers>
     <build-extensions>
-      <extension id="BUILD_EXT_142" type="commit-status-publisher">
-        <parameters>
-          <param name="github_authentication_type" value="token" />
-          <param name="github_host" value="https://api.github.com" />
-          <param name="publisherId" value="githubStatusPublisher" />
-          <param name="secure:github_access_token" value="credentialsJSON:71420214-373c-4ccd-ba32-2ea886843f62" />
-          <param name="vcsRootId" value="iMOD6_IMOD6collectorDaily_ImodCoupler" />
-        </parameters>
-      </extension>
       <extension id="BUILD_EXT_145" type="xml-report-plugin">
         <parameters>
           <param name="xmlReportParsing.reportDirs" value="imod_coupler/report.xml" />
