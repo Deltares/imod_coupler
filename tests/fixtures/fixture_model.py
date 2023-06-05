@@ -457,7 +457,7 @@ def mf6_model_with_river(coupled_mf6_model) -> mf6.Modflow6Simulation:
     stage = xr.full_like(idomain.sel({"layer": 1}), dtype=np.floating, fill_value=3.1)
     conductance = xr.full_like(stage, 4.2)
     bottom_elevation = xr.full_like(stage, 0.3)
-    bottom_elevation[dict(x=2)] = -0.1
+    bottom_elevation[{"x": 2}] = -0.1
     river_package = mf6.River(stage, conductance, bottom_elevation)
     flow_model["Oosterschelde"] = river_package
     return coupled_mf6_model

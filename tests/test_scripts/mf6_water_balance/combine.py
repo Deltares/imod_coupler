@@ -6,6 +6,7 @@ from typing import Union
 import netCDF4 as nc
 import numpy as np
 import pandas as pd
+
 from test_scripts.mf6_water_balance.MF6_wbal_listing import listfile_to_dataframe
 
 
@@ -56,7 +57,7 @@ def writeNC(ncname: Path, df: pd.DataFrame, singlevar: bool):
                     "nchar",
                 ),
             )
-            xchgvar[:] = df.values
+            xchgvar[:] = df.to_numpy()
 
         for ivar in range(nvar):
             varname = df.columns[ivar]
@@ -64,7 +65,7 @@ def writeNC(ncname: Path, df: pd.DataFrame, singlevar: bool):
                 namevar[ivar] = nc.stringtochar(np.array([varname], "S%d" % namelen))
             else:
                 xchgvar = ds.createVariable(varname, "f8", ("time",))
-                xchgvar[:] = df[varname].values
+                xchgvar[:] = df[varname].to_numpy()
 
 
 def writeXLS(xlsname: Path, df: pd.DataFrame) -> None:

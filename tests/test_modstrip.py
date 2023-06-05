@@ -14,13 +14,13 @@ def write_toml(
     metaswap_dll_dep_dir_devel: Path,
     modflow_dll_devel: Path,
 ):
-    coupling_dict = dict(
-        mf6_model="GWF_1",
-        mf6_msw_node_map="./NODENR2SVAT.DXC",
-        mf6_msw_recharge_pkg="rch_msw",
-        mf6_msw_recharge_map="./RCHINDEX2SVAT.DXC",
-        enable_sprinkling=False,
-    )
+    coupling_dict = {
+        "mf6_model": "GWF_1",
+        "mf6_msw_node_map": "./NODENR2SVAT.DXC",
+        "mf6_msw_recharge_pkg": "rch_msw",
+        "mf6_msw_recharge_map": "./RCHINDEX2SVAT.DXC",
+        "enable_sprinkling": False,
+    }
 
     coupler_toml = {
         "timing": False,
@@ -35,7 +35,7 @@ def write_toml(
                 },
                 "metaswap": {
                     "dll": str(metaswap_dll_devel),
-                    "work_dir": f".\\msw",
+                    "work_dir": ".\\msw",
                     "dll_dep_dir": str(metaswap_dll_dep_dir_devel),
                 },
             },

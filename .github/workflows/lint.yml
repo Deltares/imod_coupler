@@ -1,28 +1,68 @@
 name: Lint
-
 on:
   push:
     branches: [main]
   pull_request:
-
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
-  lint:
+  black:
+    name: Black
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash -l {0}
     steps:
       - uses: actions/checkout@v3
-      - name: Set up Python
-        uses: actions/setup-python@v4
+      - name: Setup Micromamba
+        uses: mamba-org/setup-micromamba@v1
         with:
-          python-version: '3.11' 
-      - name: Install lint dependencies
-        run: |
-          pip install -e ".[lint]"
+          cache-downloads: true
+          cache-environment: true
+          environment-file: ./environment.yml
+
       - name: Run black
         run: |
           black --check .
-      - name: Run isort
+
+  ruff:
+    name: Ruff
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash -l {0}
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup Micromamba
+        uses: mamba-org/provision-with-micromamba@v15
+        with:
+          cache-downloads: true
+          cache-environment: true
+          environment-file: ./environment.yml
+      - name: Run ruff
         run: |
-          isort --check .
+          ruff check --format=github .
+
+
+  mypy:
+    name: Mypy
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    defaults:
+      run:
+        shell: bash -l {0}
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup Micromamba
+        uses: mamba-org/provision-with-micromamba@v15
+        with:
+          cache-downloads: true
+          cache-environment: true
+          environment-file: ./environment.yml
+      - name: Install python packages
+        run: |
+          pip install .
       - name: Run mypy (strict) on imod_coupler
         run: |
           mypy --install-types --non-interactive --ignore-missing-imports --strict imod_coupler

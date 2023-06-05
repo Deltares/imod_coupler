@@ -4,7 +4,6 @@ import re
 from enum import Enum
 from pathlib import Path
 
-import numpy as np
 import pandas as pd
 
 
@@ -34,12 +33,12 @@ def listfile_to_dataframe(file_in: Path) -> pd.DataFrame:
                 time_step = int(loose_words_in_string[-4][:-1])
                 stress_period = int(loose_words_in_string[-1])
                 budgetblock_counter = budgetblock_counter + 1
-                df_data_out.at[budgetblock_counter, "timestep"] = int(time_step)
-                df_data_out.at[budgetblock_counter, "stress_period"] = int(
+                df_data_out.loc[budgetblock_counter, "timestep"] = int(time_step)
+                df_data_out.loc[budgetblock_counter, "stress_period"] = int(
                     stress_period
                 )
                 stat = status.NO_OPERATION
-            elif any([pattern in line for pattern in ignore]):
+            elif any(pattern in line for pattern in ignore):
                 continue
             elif stat in [status.VOLUME_IN, status.VOLUME_OUT]:
                 matches = re.match(r"^\s*([\s\w\-]+\s*=)\s*([^\s]+)", line)
@@ -54,5 +53,5 @@ def listfile_to_dataframe(file_in: Path) -> pd.DataFrame:
                         pkgtype,
                         part2.split()[1],
                     )  # modflow6 format
-                    df_data_out.at[budgetblock_counter, pkgname + postfix] = thisval
+                    df_data_out.loc[budgetblock_counter, pkgname + postfix] = thisval
         return df_data_out

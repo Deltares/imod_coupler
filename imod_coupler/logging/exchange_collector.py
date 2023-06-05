@@ -1,7 +1,6 @@
 import abc
-import pathlib
 from pathlib import Path
-from typing import Any, List, Optional
+from typing import Any, Optional
 
 import netCDF4 as nc
 import numpy as np

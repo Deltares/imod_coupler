@@ -1,8 +1,6 @@
-import sys
 from pathlib import Path
 
 from loguru import logger
-from pytest import CaptureFixture
 
 from imod_coupler.config import LogLevel
 from imod_coupler.utils import setup_logger

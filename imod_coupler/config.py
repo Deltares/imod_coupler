@@ -1,9 +1,6 @@
-import os
 from enum import Enum
-from pathlib import Path
-from typing import Any
 
-from pydantic import BaseModel, FilePath, validator
+from pydantic import BaseModel
 
 
 class LogLevel(str, Enum):

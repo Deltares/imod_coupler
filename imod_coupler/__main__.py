@@ -25,7 +25,7 @@ def main() -> None:
 
     try:
         run_coupler(config_path)
-    except:
+    except:  # noqa: E722
         logger.exception("iMOD Coupler run failed with: ")
         sys.exit(1)
 
