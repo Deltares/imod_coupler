@@ -8,7 +8,6 @@
     </options>
     <parameters>
       <param name="conda_env_path" value="%system.teamcity.build.checkoutDir%/imod_coupler_testbench_env" />
-      <param name="env.DFLOWFM_DLL_DEP_DIR_REGRESSION" value="%system.teamcity.build.checkoutDir%/imod_collector_regression/dflowfm" />
       <param name="env.DFLOWFM_DLL_DEVEL" value="%system.teamcity.build.checkoutDir%/imod_collector_devel/dflowfm/dflowfm.dll" />
       <param name="env.DFLOWFM_DLL_REGRESSION" value="%system.teamcity.build.checkoutDir%/imod_collector_regression/dflowfm/dflowfm.dll" />
       <param name="env.IMOD_COUPLER_EXEC_DEVEL" value="%system.teamcity.build.checkoutDir%/imod_collector_devel/imod_coupler/imodc.exe" />
@@ -21,6 +20,7 @@
       <param name="env.MODFLOW_DLL_DEVEL" value="%system.teamcity.build.checkoutDir%/imod_collector_devel/modflow6/libmf6.dll" />
       <param name="env.MODFLOW_DLL_REGRESSION" value="%system.teamcity.build.checkoutDir%/imod_collector_regression/modflow6/libmf6.dll" />
       <param name="env.RIBASIM_DLL_DEP_DIR_DEVEL" value="%system.teamcity.build.checkoutDir%/imod_collector_devel/ribasim" />
+      <param name="env.RIBASIM_DLL_DEP_DIR_REGRESSION" value="%system.teamcity.build.checkoutDir%/imod_collector_regression/ribasim" />
     </parameters>
     <build-runners>
       <runner id="RUNNER_1501" name="Set up virtual environment" type="simpleRunner">
