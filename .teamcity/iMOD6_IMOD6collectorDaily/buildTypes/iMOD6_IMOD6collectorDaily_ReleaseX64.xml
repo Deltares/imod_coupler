@@ -4,7 +4,7 @@
   <description>Collect all Release_x64 kernels in the iMOD6 suite</description>
   <settings>
     <options>
-      <option name="artifactRules" value="dist/ =&gt; imod_collector.zip!/imod_coupler/&#xA;modflow6/ =&gt; imod_collector.zip!/modflow6/&#xA;metaswap/ =&gt; imod_collector.zip!/metaswap/&#xA;dflowfm/ =&gt; imod_collector.zip!/dflowfm/" />
+      <option name="artifactRules" value="dist/ =&gt; imod_collector.zip!/imod_coupler/&#xA;modflow6/ =&gt; imod_collector.zip!/modflow6/&#xA;metaswap/ =&gt; imod_collector.zip!/metaswap/" />
     </options>
     <parameters>
       <param name="conda_env_path" value="%system.teamcity.build.checkoutDir%/imod_collector_env" />
