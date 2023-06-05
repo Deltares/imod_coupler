@@ -1,6 +1,5 @@
 from typing import Tuple
 
-import xarray as xr
 from imod.couplers.metamod import MetaMod
 from imod.mf6 import Modflow6Simulation
 from imod.msw import MetaSwapModel
@@ -139,10 +138,10 @@ def cases_no_sprinkling(
     """
 
     prepared_msw_model.pop("sprinkling")
-    kwargs = dict(
-        mf6_rch_pkgkey="rch_msw",
-        mf6_wel_pkgkey=None,
-    )
+    kwargs = {
+        "mf6_rch_pkgkey": "rch_msw",
+        "mf6_wel_pkgkey": None,
+    }
 
     metamod_ss = MetaMod(prepared_msw_model, coupled_mf6_model, **kwargs)
 
@@ -163,10 +162,10 @@ def cases_sprinkling(
     with storage coefficient.
     """
 
-    kwargs = dict(
-        mf6_rch_pkgkey="rch_msw",
-        mf6_wel_pkgkey="wells_msw",
-    )
+    kwargs = {
+        "mf6_rch_pkgkey":"rch_msw",
+        "mf6_wel_pkgkey":"wells_msw",
+    }
 
     metamod_ss = MetaMod(
         prepared_msw_model,

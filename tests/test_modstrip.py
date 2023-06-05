@@ -35,7 +35,7 @@ def write_toml(
                 },
                 "metaswap": {
                     "dll": str(metaswap_dll_devel),
-                    "work_dir": f".\\msw",
+                    "work_dir": ".\\msw",
                     "dll_dep_dir": str(metaswap_dll_dep_dir_devel),
                 },
             },

@@ -1,6 +1,6 @@
 from ctypes import byref, c_int
 from pathlib import Path
-from typing import Any, Optional, Union
+from typing import Union
 
 import numpy as np
 from numpy.typing import NDArray
