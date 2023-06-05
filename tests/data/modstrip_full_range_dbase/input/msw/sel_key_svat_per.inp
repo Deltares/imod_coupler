@@ -34,7 +34,7 @@ qmodf              1
 vcr                0
 qmodfbot           0
 qsim               1
-qsimcorrmf         0
+qsimcorrmf         1
 dprzvg             0
 dprztb             0
 htvg               0
@@ -113,10 +113,10 @@ phrz16             0
 phrz17             0
 phrz18             0
 Hpd                0
-Hgw                0
+Hgw                1
 dHgw               1
 sc1                1
-Hgwmodf            0
+Hgwmodf            1
 dHgwmodf           1
 Hsw                0
 TempCmnday         0

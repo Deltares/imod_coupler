@@ -9,6 +9,7 @@
     unsa_svat_path         =         "{{unsat_path}}"   ! Location of unsa-database
     dtgw                   =   1.000000    ! Groundwater/soil water time step
     dtsw                   =   1.000000    ! Time step fast processes
+    simgro_opt             =         -1
 *
 * Parameters for processes
 *
@@ -51,8 +52,8 @@
     idf_per                =          1
     idf_dx                 =        100
     idf_dy                 =        100
-    idf_ncol               =          1
-    idf_nrow               =        372
+    idf_ncol               =        372
+    idf_nrow               =          1
     idf_xmin               =          0
     idf_ymin               =          0
     idf_nodata             =     -999.0
