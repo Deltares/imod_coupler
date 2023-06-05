@@ -1,3 +1,62 @@
-[tool.isort]
-profile = "black"
-multi_line_output = 3
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "imod_coupler"
+description = "iMOD Coupler can be used to couple hydrological kernels"
+readme = "README.md"
+authors = [
+    { name = "Julian Hofer", email = "Julian.Hofer@deltares.nl" },
+    { name = "Martijn Russcher", email = "Martijn.Russcher@deltares.nl" },
+    { name = "Robert Leander", email = "Robert.Leander@deltares.nl" },
+    { name = "Joeri van Engelen", email = "Joeri.vanEngelen@deltares.nl" },
+    { name = "Luit Jan Slooten", email = "LuitJan.Slooten@deltares.nl" },
+    { name = "Huite Bootsma", email = "Huite.Bootsma@deltares.nl" },
+]
+license = { text = "MIT" }
+classifiers = [
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering :: Hydrology",
+]
+requires-python = ">=3.10"
+dependencies = [
+    "netcdf4",
+    "numpy",
+    "scipy",
+    "xmipy",
+    "tomli",
+    "tomli-w",
+    "pydantic",
+    "loguru",
+]
+dynamic = ["version"]
+
+[project.optional-dependencies]
+tests = ["pytest", "pytest-xdist", "pytest-cases", "pytest-dotenv"]
+
+[tool.setuptools]
+zip-safe = true
+
+[tool.setuptools.dynamic]
+version = { attr = "imod_coupler.__version__" }
+
+[tool.setuptools.packages.find]
+include = ["imod_coupler"]
+
+[tool.setuptools.package-data]
+"imod_coupler" = ["py.typed"]
+
+[project.scripts]
+imodc = "imod_coupler.__main__:main"
+
+[project.urls]
+Source = "https://github.com/Deltares/imod_coupler"
+
+[tool.ruff]
+select = ["E", "F", "NPY", "PD", "C4", "I"]
+ignore = ["E501", "PD901"]
+fixable = ["I"]
+
+[tool.mypy]
+plugins = "pydantic.mypy"

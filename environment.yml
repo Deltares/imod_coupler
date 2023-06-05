@@ -25,6 +25,7 @@ dependencies:
   - pytest-dotenv
   - python=3.10
   - rasterio>=1.0
+  - ruff
   - scipy
   - sphinx
   - tomli
