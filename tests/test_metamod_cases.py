@@ -163,8 +163,8 @@ def cases_sprinkling(
     """
 
     kwargs = {
-        "mf6_rch_pkgkey":"rch_msw",
-        "mf6_wel_pkgkey":"wells_msw",
+        "mf6_rch_pkgkey": "rch_msw",
+        "mf6_wel_pkgkey": "wells_msw",
     }
 
     metamod_ss = MetaMod(
