@@ -13,8 +13,7 @@
       <runner id="RUNNER_297" name="Create imod_collector conda environment" type="simpleRunner">
         <parameters>
           <param name="script.content"><![CDATA[if exist "%conda_env_path%" rd /q /s "%conda_env_path%"
-call conda install mamba -n base -c conda-forge
-call mamba env create --file coupler/environment-minimal.yml -p "%conda_env_path%"]]></param>
+call conda env create --file coupler/environment-minimal.yml -p "%conda_env_path%"]]></param>
           <param name="teamcity.step.mode" value="default" />
           <param name="use.custom.script" value="true" />
         </parameters>
