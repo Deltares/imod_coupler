@@ -8,21 +8,19 @@ dependencies:
   - black
   - build
   - geopandas
-  - isort
   - loguru
   - mypy
   - netcdf4
   - numpy
   - pip
   - pip:
-      - xmipy
       - imod>=0.11.6
   - pydantic
   - pydata-sphinx-theme
   - pytest
-  - pytest-xdist
   - pytest-cases
   - pytest-dotenv
+  - pytest-xdist
   - python=3.10
   - rasterio>=1.0
   - ruff
@@ -31,3 +29,4 @@ dependencies:
   - tomli
   - tomli-w
   - twine
+  - xmipy
