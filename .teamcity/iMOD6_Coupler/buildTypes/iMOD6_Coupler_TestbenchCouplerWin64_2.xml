@@ -26,7 +26,8 @@
       <runner id="RUNNER_1501" name="Set up virtual environment" type="simpleRunner">
         <parameters>
           <param name="script.content"><![CDATA[if exist "%conda_env_path%" rd /q /s "%conda_env_path%"
-call conda env create --file environment.yml -p "%conda_env_path%"]]></param>
+call conda install mamba -n base -c conda-forge
+call mamba env create --file environment.yml -p "%conda_env_path%"]]></param>
           <param name="teamcity.build.workingDir" value="imod_coupler" />
           <param name="teamcity.step.mode" value="default" />
           <param name="use.custom.script" value="true" />
