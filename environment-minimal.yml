@@ -1,0 +1,17 @@
+name: imod_coupler_minimal
+
+channels:
+  - conda-forge
+  - defaults
+
+dependencies:
+  - loguru
+  - netcdf4=1.6.3 # TODO: Investigate pyinstaller error for 1.6.4
+  - numpy
+  - xmipy
+  - pip
+  - pydantic
+  - python=3.10
+  - scipy
+  - tomli
+  - tomli-w
