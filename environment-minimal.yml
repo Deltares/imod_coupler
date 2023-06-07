@@ -10,6 +10,8 @@ dependencies:
   - netcdf4=1.6.3 # TODO: Investigate pyinstaller error for 1.6.4
   - numpy
   - pip
+  - pip:
+    - "git+https://github.com/Deltares/Ribasim.git#egg=ribasim_api&subdirectory=python/ribasim_api"
   - pydantic
   - pyinstaller
   - python=3.10
