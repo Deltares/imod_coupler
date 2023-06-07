@@ -1,3 +1,4 @@
+# This environment is used for compiling iMOD Coupler with pyinstaller
 name: imod_coupler_minimal
 
 channels:
@@ -8,10 +9,11 @@ dependencies:
   - loguru
   - netcdf4=1.6.3 # TODO: Investigate pyinstaller error for 1.6.4
   - numpy
-  - xmipy
   - pip
   - pydantic
+  - pyinstaller
   - python=3.10
   - scipy
   - tomli
   - tomli-w
+  - xmipy

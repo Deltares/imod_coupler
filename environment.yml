@@ -1,3 +1,4 @@
+# This environment is used to develop on iMOD Coupler
 name: imod_coupler
 
 channels:
