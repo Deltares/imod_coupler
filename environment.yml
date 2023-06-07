@@ -15,7 +15,7 @@ dependencies:
   - numpy
   - pip
   - pip:
-      - imod>=0.11.6
+      - "git+https://gitlab.com/deltares/imod/imod-python.git"
       - "git+https://github.com/Deltares/Ribasim.git#egg=ribasim_api&subdirectory=python/ribasim_api"
   - pydantic
   - pydata-sphinx-theme
