@@ -33,11 +33,6 @@ dependencies = [
 ]
 dynamic = ["version"]
 
-[project.optional-dependencies]
-tests = ["pytest", "pytest-xdist", "pytest-cases", "pytest-dotenv"]
-docs = ["sphinx", "pydata-sphinx-theme"]
-check-packages = ["build", "twine"]
-
 [tool.setuptools]
 zip-safe = true
 

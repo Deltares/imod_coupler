@@ -10,13 +10,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - name: Set up Python
-        uses: actions/setup-python@v4
+      - name: Setup Micromamba
+        uses: mamba-org/setup-micromamba@v1
         with:
-          python-version: '3.11' 
-      - name: Install lint dependencies
+          cache-downloads: true
+          cache-environment: true
+          environment-file: ./environment.yml
+      - name: Install imod coupler
         run: |
-          pip install -e ".[check-packages]"
+          pip install -e .
       - name: Build and check packages
         run: |
           python -m build
