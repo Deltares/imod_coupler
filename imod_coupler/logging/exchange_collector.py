@@ -32,9 +32,7 @@ class NetcdfExchangeLogger(AbstractExchange):
 
     def initfile(self, ndx: int) -> None:
         self.nodedim = self.ds.createDimension("id", ndx)
-        self.timedim = self.ds.createDimension(
-            "time", None
-        )
+        self.timedim = self.ds.createDimension("time", None)
         self.timevar = self.ds.createVariable("time", "f8", ("time",))
         self.datavar = self.ds.createVariable(
             "xchg",
