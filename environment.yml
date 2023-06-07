@@ -9,9 +9,9 @@ dependencies:
   - black
   - build
   - geopandas
+  - h5netcdf
   - loguru
   - mypy
-  - netcdf4
   - numpy
   - pip
   - pip:

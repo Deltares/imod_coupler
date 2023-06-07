@@ -21,8 +21,8 @@ classifiers = [
 ]
 requires-python = ">=3.10"
 dependencies = [
+    "h5netcdf",
     "loguru",
-    "netcdf4",
     "numpy",
     "pydantic",
     "ribasim_api",

@@ -2,7 +2,7 @@ import abc
 from pathlib import Path
 from typing import Any, Optional
 
-import netCDF4 as nc
+import h5netcdf.legacyapi as nc
 import numpy as np
 import tomli
 from numpy.typing import NDArray
@@ -32,9 +32,7 @@ class NetcdfExchangeLogger(AbstractExchange):
 
     def initfile(self, ndx: int) -> None:
         self.nodedim = self.ds.createDimension("id", ndx)
-        self.timedim = self.ds.createDimension(
-            "time",
-        )
+        self.timedim = self.ds.createDimension("time", None)
         self.timevar = self.ds.createVariable("time", "f8", ("time",))
         self.datavar = self.ds.createVariable(
             "xchg",
@@ -53,7 +51,8 @@ class NetcdfExchangeLogger(AbstractExchange):
             self.initfile(len(exchange))
         loc = np.where(self.timevar[:] == time)
         if np.size(loc) > 0:
-            self.datavar[loc[0], :] = exchange[:]
+            first = int(loc[0])
+            self.datavar[first, :] = exchange[:]
         else:
             self.timevar[self.pos] = time
             self.datavar[self.pos, :] = exchange[:]

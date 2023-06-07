@@ -6,8 +6,8 @@ channels:
   - defaults
 
 dependencies:
+  - h5netcdf
   - loguru
-  - netcdf4=1.6.3 # TODO: Investigate pyinstaller error for 1.6.4
   - numpy
   - pip
   - pip:

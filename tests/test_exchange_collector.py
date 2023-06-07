@@ -1,7 +1,7 @@
 import re
 from pathlib import Path
 
-import netCDF4 as nc
+import h5netcdf.legacyapi as nc
 import numpy as np
 import pytest
 import tomli
@@ -70,12 +70,7 @@ def test_exchange_collector_raises_exception_when_array_size_varies(
 
     exchange_collector.log_exchange("example_stage_output", some_array, 8.0)
 
-    expected_error_message = (
-        "operands could not be broadcast together with remapped shapes "
-        + "[original->remapped]: (4,)  and requested shape (1,5)"
-    )
-
-    with pytest.raises(ValueError, match=re.escape(expected_error_message)):
+    with pytest.raises(TypeError, match=re.escape("Can't broadcast (4,) -> (1, 5)")):
         exchange_collector.log_exchange(
             "example_stage_output", some_smaller_array, 23.0
         )
