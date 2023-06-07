@@ -236,40 +236,39 @@ def test_metamod_regression(
         )
 
 
-@pytest.mark.skip(reason="TODO: investigate purpose of this test")
 @parametrize_with_cases(
     "metamod_model", prefix="case_storage_coefficient_no_sprinkling"
 )
 def test_metamod_regression_balance_output(
     metamod_model: MetaMod,
-    tmp_path_reg: Path,
-    metaswap_dll_regression: Path,
-    metaswap_dll_dep_dir_regression: Path,
-    modflow_dll_regression: Path,
-    imod_coupler_exec_regression: Path,
+    tmp_path_dev: Path,
+    metaswap_dll_devel: Path,
+    metaswap_dll_dep_dir_devel: Path,
+    modflow_dll_devel: Path,
+    imod_coupler_exec_devel: Path,
     reference_result_folder: Path,
 ) -> None:
     """
-    compares the numerical output of the regression build with the expected results
+    compares the numerical output of the devel build with the expected results
     """
-    # Write model again, but now with paths to regression dll
+    # Write model again, but now with paths to devel dll
     metamod_model.write(
-        tmp_path_reg,
-        modflow6_dll=modflow_dll_regression,
-        metaswap_dll=metaswap_dll_regression,
-        metaswap_dll_dependency=metaswap_dll_dep_dir_regression,
+        tmp_path_dev,
+        modflow6_dll=modflow_dll_devel,
+        metaswap_dll=metaswap_dll_devel,
+        metaswap_dll_dependency=metaswap_dll_dep_dir_devel,
     )
 
     subprocess.run(
-        [imod_coupler_exec_regression, tmp_path_reg / metamod_model._toml_name],
+        [imod_coupler_exec_devel, tmp_path_dev / metamod_model._toml_name],
         check=True,
     )
 
-    _, _, _, mf6_lst_file = mf6_output_files(tmp_path_reg)
-    msw_balance_results = msw_output_files(tmp_path_reg)
+    _, _, _, mf6_lst_file = mf6_output_files(tmp_path_dev)
+    msw_balance_results = msw_output_files(tmp_path_dev)
 
     # create modflow balance csv
-    mf6_balance_output_file = tmp_path_reg / "waterbalance_output.csv"
+    mf6_balance_output_file = tmp_path_dev / "waterbalance_output.csv"
     create_modflow_waterbalance_file(
         mf6_lst_file,
         output_file_csv=mf6_balance_output_file,

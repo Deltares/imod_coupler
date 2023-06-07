@@ -22,20 +22,16 @@ classifiers = [
 requires-python = ">=3.10"
 dependencies = [
     "h5netcdf",
-    "numpy",
-    "scipy",
-    "xmipy",
-    "tomli",
-    "tomli-w",
-    "pydantic",
     "loguru",
+    "numpy",
+    "pydantic",
+    "ribasim_api",
+    "scipy",
+    "tomli-w",
+    "tomli",
+    "xmipy",
 ]
 dynamic = ["version"]
-
-[project.optional-dependencies]
-tests = ["pytest", "pytest-xdist", "pytest-cases", "pytest-dotenv"]
-docs = ["sphinx","pydata-sphinx-theme"]
-check-packages =["build","twine"]
 
 [tool.setuptools]
 zip-safe = true
