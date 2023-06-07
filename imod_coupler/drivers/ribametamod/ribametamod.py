@@ -1,5 +1,3 @@
-
-
 """ RibaMetaMod: the coupling between MetaSWAP and MODFLOW 6
 
 description:
