@@ -3,7 +3,7 @@
 from pathlib import Path
 from typing import Union
 
-import netCDF4 as nc
+import h5netcdf.legacyapi as nc
 import numpy as np
 import pandas as pd
 
