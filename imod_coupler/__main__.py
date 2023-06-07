@@ -8,8 +8,7 @@ from loguru import logger
 
 from imod_coupler import __version__
 from imod_coupler.config import BaseConfig
-from imod_coupler.drivers.metamod.config import MetaModConfig
-from imod_coupler.drivers.metamod.metamod import MetaMod
+from imod_coupler.drivers.driver import get_driver
 from imod_coupler.parser import parse_args
 from imod_coupler.utils import setup_logger
 
@@ -43,12 +42,7 @@ def run_coupler(config_path: Path) -> None:
     if base_config.timing:
         start = time.perf_counter()
 
-    if base_config.driver_type == "metamod":
-        metamod_config = MetaModConfig(config_dir=config_dir, **config_dict["driver"])
-        driver = MetaMod(base_config, metamod_config)
-    else:
-        raise ValueError(f"Driver type {base_config.driver_type} is not supported.")
-
+    driver = get_driver(config_dict, config_dir, base_config)
     driver.execute()
 
     # Report timing

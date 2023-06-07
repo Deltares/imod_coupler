@@ -1,8 +1,12 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+from pathlib import Path
+from typing import Any
 
 from loguru import logger
+
+from imod_coupler.config import BaseConfig
 
 
 class Driver(ABC):
@@ -54,3 +58,23 @@ class Driver(ABC):
     def report_timing_totals(self) -> None:
         """Report total time spent on coupling"""
         ...
+
+
+def get_driver(
+    config_dict: dict[str, Any], config_dir: Path, base_config: BaseConfig
+) -> Driver:
+    from imod_coupler.drivers.metamod.config import MetaModConfig
+    from imod_coupler.drivers.metamod.metamod import MetaMod
+    from imod_coupler.drivers.ribametamod.config import RibaMetaModConfig
+    from imod_coupler.drivers.ribametamod.ribametamod import RibaMetaMod
+
+    if base_config.driver_type == "metamod":
+        metamod_config = MetaModConfig(config_dir=config_dir, **config_dict["driver"])
+        return MetaMod(base_config, metamod_config)
+    elif base_config.driver_type == "ribametamod":
+        ribametamod_config = RibaMetaModConfig(
+            config_dir=config_dir, **config_dict["driver"]
+        )
+        return RibaMetaMod(base_config, ribametamod_config)
+    else:
+        raise ValueError(f"Driver type {base_config.driver_type} is not supported.")
