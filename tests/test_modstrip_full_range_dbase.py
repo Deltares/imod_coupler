@@ -138,13 +138,24 @@ def test_modstrip_model(
     sc1 = imod.idf.open(tmp_path / "msw" / "msw_sc1" / "msw_sc1_*_L1.IDF") * area
 
     # reference output
-        qmodf_ref = (
-            data_2023_regression["qmodf(mm)"] / 1000 * data_2023_regression["area(m2)"]
+    qmodf_ref = (
+        imod.idf.open(
+            modstrip_full_range_dbase_loc / "results" / "bdgqmodf" / "bdgqmodf_*_L1.IDF"
         )
-        qmsw_ref = (
-            data_2023_regression["qsim(mm)"] / 1000 * data_2023_regression["area(m2)"]
+        * area
+    )
+    qmsw_ref = (
+        imod.idf.open(
+            modstrip_full_range_dbase_loc / "results" / "bdgqmsw" / "bdgqmsw_*_L1.IDF"
         )
-        hgw_ref = data_2023_regression["Hgw(m)"]
+        * area
+    )
+    hgw_ref = (
+        imod.idf.open(
+            modstrip_full_range_dbase_loc / "results" / "msw_Hgw" / "msw_Hgw_*_L1.IDF"
+        )
+        * area
+    )
 
     # read mf6 output
     head_mf6 = imod.mf6.open_hds(headfile, grbfile, False)
