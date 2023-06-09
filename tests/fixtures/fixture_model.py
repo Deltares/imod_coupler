@@ -64,15 +64,12 @@ def create_wells(nrow: int, ncol: int, idomain: xr.DataArray) -> mf6.WellDisStru
     return mf6.WellDisStructured(
         layer=layer, row=iy_active, column=ix_active, rate=rate
     )
+ 
 
-
-def make_coupled_mf6_model(idomain: xr.DataArray) -> mf6.Modflow6Simulation:
+def make_mf6_model(idomain: xr.DataArray) -> mf6.GroundwaterFlowModel:
     times = get_times()
-    x, y, layer, _, _, dz = grid_sizes()
-
+    _, _, layer, _, _, dz = grid_sizes()
     nlay = len(layer)
-    nrow = len(y)
-    ncol = len(x)
 
     top = 0.0
     bottom = top - xr.DataArray(np.cumsum(dz), coords={"layer": layer}, dims="layer")
@@ -108,21 +105,13 @@ def make_coupled_mf6_model(idomain: xr.DataArray) -> mf6.Modflow6Simulation:
 
     gwf_model["ic"] = mf6.InitialConditions(start=-2.0)
     gwf_model["sto"] = mf6.SpecificStorage(1e-3, 0.1, True, 0)
+    return gwf_model
 
-    recharge = xr.zeros_like(idomain.sel(layer=1), dtype=float)
-    recharge[:, 0] = np.nan
-    recharge = recharge.where(idomain.sel(layer=1))
 
-    gwf_model["rch_msw"] = mf6.Recharge(recharge)
-
-    gwf_model["oc"] = mf6.OutputControl(save_head="last", save_budget="last")
-
-    gwf_model["wells_msw"] = create_wells(nrow, ncol, idomain)
-
-    # Attach it to a simulation
+def make_mf6_simulation(gwf_model):
+    times = get_times()
     simulation = mf6.Modflow6Simulation("test")
     simulation["GWF_1"] = gwf_model
-    # Define solver settings
     simulation["solver"] = mf6.Solution(
         modelnames=["GWF_1"],
         print_option="summary",
@@ -139,9 +128,23 @@ def make_coupled_mf6_model(idomain: xr.DataArray) -> mf6.Modflow6Simulation:
         reordering_method=None,
         relaxation_factor=0.97,
     )
-    # Collect time discretization
     simulation.create_time_discretization(additional_times=times)
+    return simulation
 
+
+def make_coupled_mf6_model(idomain: xr.DataArray) -> mf6.Modflow6Simulation:
+    _, nrow, ncol = idomain.shape
+    gwf_model = make_mf6_model(idomain)
+
+    recharge = xr.zeros_like(idomain.sel(layer=1), dtype=float)
+    recharge[:, 0] = np.nan
+    recharge = recharge.where(idomain.sel(layer=1))
+
+    gwf_model["rch_msw"] = mf6.Recharge(recharge)
+    gwf_model["oc"] = mf6.OutputControl(save_head="last", save_budget="last")
+    gwf_model["wells_msw"] = create_wells(nrow, ncol, idomain)
+    
+    simulation = make_mf6_simulation(gwf_model)
     return simulation
 
 
@@ -334,6 +337,35 @@ def make_msw_model(idomain: xr.DataArray) -> msw.MetaSwapModel:
     msw_model["oc_time"] = msw.TimeOutputControl(time=times)
 
     return msw_model
+
+
+def make_coupled_ribasim_mf6_model(idomain: xr.DataArray):
+    # The bottom of the ribasim trivial model is located at 0.0 m: the surface
+    # level of the groundwater model.
+    gwf_model = make_mf6_model(idomain)
+    
+    template = xr.full_like(idomain.isel(layer=[0]), np.nan)
+    stage = template.copy()
+    conductance = template.copy()
+    bottom_elevation = template.copy()
+    
+    # Conductance is area divided by resistance (dx * dy / c0)
+    # Assume the entire cell is wetted.
+    stage[:, 3, 1] = 0.5
+    conductance[:, 3, 1] = (100.0 * 100.0) / 5.0
+    bottom_elevation[:, 3, 1] = 0.0
+
+    gwf_model["riv-1"] = mf6.River(
+        stage=stage,
+        conductance=conductance,
+        bottom_elevation=bottom_elevation,
+    )
+    rate = xr.ones_like(template)
+    rate[:, 3, 1] = np.nan
+    gwf_model["rch"] = mf6.Recharge(rate=rate)
+    
+    simulation = make_mf6_simulation(gwf_model)
+    return simulation
 
 
 def convert_storage_package(
