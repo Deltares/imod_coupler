@@ -344,24 +344,26 @@ def make_coupled_ribasim_mf6_model(idomain: xr.DataArray):
     # level of the groundwater model.
     gwf_model = make_mf6_model(idomain)
     
-    template = xr.full_like(idomain.isel(layer=[0]), np.nan)
+    template = xr.full_like(idomain.isel(layer=[0]), np.nan, dtype=np.float64)
     stage = template.copy()
     conductance = template.copy()
     bottom_elevation = template.copy()
     
     # Conductance is area divided by resistance (dx * dy / c0)
     # Assume the entire cell is wetted.
-    stage[:, 3, 1] = 0.5
-    conductance[:, 3, 1] = (100.0 * 100.0) / 5.0
-    bottom_elevation[:, 3, 1] = 0.0
+    stage[:, 1, 3] = 0.5
+    conductance[:, 1, 3] = (100.0 * 100.0) / 1.0
+    bottom_elevation[:, 1, 3] = 0.0
 
     gwf_model["riv-1"] = mf6.River(
         stage=stage,
         conductance=conductance,
         bottom_elevation=bottom_elevation,
     )
-    rate = xr.ones_like(template)
-    rate[:, 3, 1] = np.nan
+    
+    # The k-value is only 0.001, so we'll use an appropriately low recharge value...
+    rate = xr.full_like(template, 1.0e-5)
+    rate[:, 1, 3] = np.nan
     gwf_model["rch"] = mf6.Recharge(rate=rate)
     
     simulation = make_mf6_simulation(gwf_model)
