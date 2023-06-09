@@ -16,18 +16,18 @@ from xmipy import XmiWrapper
 
 from imod_coupler.config import BaseConfig
 from imod_coupler.drivers.driver import Driver
-from imod_coupler.drivers.ribametamod.config import Coupling, RibaMetaModConfig
+from imod_coupler.drivers.ribamod.config import Coupling, RibaModConfig
 from imod_coupler.kernelwrappers.mf6_wrapper import Mf6Wrapper
 from imod_coupler.kernelwrappers.msw_wrapper import MswWrapper
 from imod_coupler.logging.exchange_collector import ExchangeCollector
 from imod_coupler.utils import create_mapping
 
 
-class RibaMetaMod(Driver):
-    """The driver coupling MetaSWAP and MODFLOW 6"""
+class RibaMod(Driver):
+    """The driver coupling Ribasim and MODFLOW 6"""
 
     base_config: BaseConfig  # the parsed information from the configuration file
-    ribametamod_config: RibaMetaModConfig  # the parsed information from the configuration file specific to RibaMetaMod
+    ribametamod_config: RibaModConfig  # the parsed information from the configuration file specific to RibaMetaMod
     coupling: Coupling  # the coupling information
 
     timing: bool  # true, when timing is enabled
@@ -59,7 +59,7 @@ class RibaMetaMod(Driver):
     # dict. with mask arrays for msw=>mod coupling
     mask_msw2mod: Dict[str, NDArray[Any]] = {}
 
-    def __init__(self, base_config: BaseConfig, ribametamod_config: RibaMetaModConfig):
+    def __init__(self, base_config: BaseConfig, ribametamod_config: RibaModConfig):
         """Constructs the `RibaMetaMod` object"""
         self.base_config = base_config
         self.ribametamod_config = ribametamod_config
