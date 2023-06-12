@@ -52,8 +52,8 @@
     idf_per                =          1
     idf_dx                 =        100
     idf_dy                 =        100
-    idf_ncol               =        372
-    idf_nrow               =          1
+    idf_ncol               =          1
+    idf_nrow               =        372
     idf_xmin               =          0
     idf_ymin               =          0
     idf_nodata             =     -999.0
