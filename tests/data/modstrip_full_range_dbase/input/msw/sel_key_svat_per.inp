@@ -19,7 +19,7 @@ decS15             0
 decS16             0
 decS17             0
 decS18             0
-Pm                 0
+Pm                 1
 Psgw               0
 Pssw               0
 Esp                0
@@ -27,7 +27,7 @@ Eic                0
 Epd                0
 Ebs                0
 Tact               0
-qrun               0
+qrun               1
 qdr                0
 qspgw              0
 qmodf              1
@@ -49,9 +49,9 @@ ETref              0
 Ebspot             0
 Tpot               0
 Trel               0
-ETact              0
+ETact              1
 Psswdem            0
-qinf               0
+qinf               1
 qmr                0
 qm02               0
 qm03               0

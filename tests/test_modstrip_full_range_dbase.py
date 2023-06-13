@@ -182,7 +182,7 @@ def test_modstrip_model(
     criterion_q = 0.0001  # %
 
     # first write to logfile
-    log = np.empty(372 * 7, dtype=float).reshape((7, 372))
+    log = np.zeros(372 * 7, dtype=float).reshape((7, 372))
 
     # CHECK 1: evaluate absolute value of qsim to reference
     # if assert exception; metaswap internal flux is changed, possible conceptual changes in MetaSwap
