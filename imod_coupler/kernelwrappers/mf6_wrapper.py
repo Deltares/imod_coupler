@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Any, Optional, Union
+from typing import Any, Union
 
 import numpy as np
 from numpy.typing import NDArray
@@ -75,7 +75,7 @@ class Mf6Wrapper(XmiWrapper):
         self,
         mf6_flowmodel_key: str,
         mf6_package_key: str,
-        new_river_stages: Optional[NDArray[np.float_]],
+        new_river_stages: NDArray[np.float_],
     ) -> None:
         """
         Sets the river stages in a modflow simulation to the provided values.
@@ -96,7 +96,7 @@ class Mf6Wrapper(XmiWrapper):
             the size of the provided stage array does not match the expected size
         """
         stage = self.get_river_stages(mf6_flowmodel_key, mf6_package_key)
-        if new_river_stages is None or len(new_river_stages) != len(stage):
+        if len(new_river_stages) != len(stage):
             raise ValueError(f"Expected size of new_river_stages is {len(stage)}")
         bound_adress = self.get_var_address("BOUND", mf6_flowmodel_key, mf6_package_key)
         bound = self.get_value_ptr(bound_adress)
