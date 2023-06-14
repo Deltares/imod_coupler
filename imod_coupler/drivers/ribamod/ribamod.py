@@ -11,6 +11,7 @@ from typing import Any, Dict
 import numpy as np
 from loguru import logger
 from numpy.typing import NDArray
+from ribasim_api import RibasimApi
 from scipy.sparse import csr_matrix, dia_matrix
 from xmipy import XmiWrapper
 
@@ -32,7 +33,7 @@ class RibaMod(Driver):
 
     timing: bool  # true, when timing is enabled
     mf6: XmiWrapper  # the MODFLOW 6 XMI kernel
-    msw: XmiWrapper  # the MetaSWAP XMI kernel
+    ribasim: RibasimApi  # the Ribasim XMI kernel
 
     max_iter: NDArray[Any]  # max. nr outer iterations in MODFLOW kernel
     delt: float  # time step from MODFLOW 6 (leading)
@@ -74,16 +75,15 @@ class RibaMod(Driver):
             working_directory=self.ribametamod_config.kernels.modflow6.work_dir,
             timing=self.base_config.timing,
         )
-        self.msw = MswWrapper(
-            lib_path=self.ribametamod_config.kernels.metaswap.dll,
-            lib_dependency=self.ribametamod_config.kernels.metaswap.dll_dep_dir,
-            working_directory=self.ribametamod_config.kernels.metaswap.work_dir,
+        self.msw = RibasimApi(
+            lib_path=self.ribametamod_config.kernels.ribasim.dll,
+            lib_dependency=self.ribametamod_config.kernels.ribasim.dll_dep_dir,
             timing=self.base_config.timing,
         )
         # Print output to stdout
         self.mf6.set_int("ISTDOUTTOFILE", 0)
         self.mf6.initialize()
-        self.msw.initialize()
+        self.ribasim.initialize(self.ribametamod_config.kernels.ribasim.config_file)
         self.log_version()
         if self.coupling.output_config_file is not None:
             self.exchange_logger = ExchangeCollector.from_file(
@@ -95,10 +95,10 @@ class RibaMod(Driver):
 
     def log_version(self) -> None:
         logger.info(f"MODFLOW version: {self.mf6.get_version()}")
-        logger.info(f"MetaSWAP version: {self.msw.get_version()}")
+        logger.info(f"Ribasim version: {self.ribasim.get_version()}")
 
     def couple(self) -> None:
-        """Couple Modflow and Metaswap"""
+        """Couple Modflow and Ribasim"""
 
         self.mf6_head = self.mf6.get_head(self.coupling.mf6_model)
         self.mf6_recharge = self.mf6.get_recharge(
@@ -297,6 +297,6 @@ class RibaMod(Driver):
 
     def report_timing_totals(self) -> None:
         total_mf6 = self.mf6.report_timing_totals()
-        total_msw = self.msw.report_timing_totals()
-        total = total_mf6 + total_msw
+        total_ribasim = self.ribasim.report_timing_totals()
+        total = total_mf6 + total_ribasim
         logger.info(f"Total elapsed time in numerical kernels: {total:0.4f} seconds")

@@ -26,7 +26,7 @@ class Modflow6(BaseModel):
 class Ribasim(BaseModel):
     dll: FilePath
     dll_dep_dir: DirectoryPath
-    toml: FilePath
+    config_file: FilePath
 
     @validator("dll")
     def resolve_dll(cls, dll: FilePath) -> FilePath:
@@ -44,6 +44,7 @@ class Ribasim(BaseModel):
 class Kernels(BaseModel):
     modflow6: Modflow6
     ribasim: Ribasim
+
 
 # TODO
 class Coupling(BaseModel):
