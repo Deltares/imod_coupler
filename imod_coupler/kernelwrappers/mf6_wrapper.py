@@ -200,7 +200,7 @@ class Mf6Wrapper(XmiWrapper):
         This function does not use the HCOF and RHS for calculating the flux, bacause it is used
         at the beginning of the timestep, after updating the river stage by dflow. At that time
         the package HCOF and RHS are not updated yet by MF6. Therefore we use the bottom level,
-        conducatnce and head of the previous timestep, and the stage of the new timestep.
+        conductance and head of the previous timestep, and the stage of the new timestep.
 
         Parameters
         ----------

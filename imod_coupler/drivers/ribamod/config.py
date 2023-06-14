@@ -48,47 +48,13 @@ class Kernels(BaseModel):
 
 # TODO
 class Coupling(BaseModel):
-    enable_sprinkling: bool  # true whemn sprinkling is active
     mf6_model: str  # the MODFLOW 6 model that will be coupled
-    mf6_msw_recharge_pkg: str  # the recharge package that will be used for coupling
-    mf6_msw_well_pkg: Optional[
-        str
-    ] = None  # the well package that will be used for coupling when sprinkling is active
-    mf6_msw_node_map: FilePath  # the path to the node map file
-    mf6_msw_recharge_map: FilePath  # the pach to the recharge map file
-    mf6_msw_sprinkling_map: Optional[
-        FilePath
-    ] = None  # the path to the sprinkling map file
+    mf6_river_pkg: str  # the river package that will be used for coupling
     output_config_file: Optional[FilePath] = None
 
-    class Config:
-        arbitrary_types_allowed = True  # Needed for `mf6_msw_sprinkling_map`
-
-    @validator("mf6_msw_well_pkg")
-    def validate_mf6_msw_well_pkg(
-        cls, mf6_msw_well_pkg: Optional[str], values: Any
-    ) -> Optional[str]:
-        if values.get("enable_sprinkling") and mf6_msw_well_pkg is None:
-            raise ValueError(
-                "If `enable_sprinkling` is True, then `mf6_msw_well_pkg` needs to be set."
-            )
-        return mf6_msw_well_pkg
-
-    @validator("mf6_msw_node_map", "mf6_msw_recharge_map", "output_config_file")
+    @validator("output_config_file")
     def resolve_file_path(cls, file_path: FilePath) -> FilePath:
         return file_path.resolve()
-
-    @validator("mf6_msw_sprinkling_map")
-    def validate_mf6_msw_sprinkling_map(
-        cls, mf6_msw_sprinkling_map: Optional[FilePath], values: Any
-    ) -> Optional[FilePath]:
-        if mf6_msw_sprinkling_map is not None:
-            return mf6_msw_sprinkling_map.resolve()
-        elif values.get("enable_sprinkling"):
-            raise ValueError(
-                "If `enable_sprinkling` is True, then `mf6_msw_sprinkling_map` needs to be set."
-            )
-        return mf6_msw_sprinkling_map
 
 
 class RibaModConfig(BaseModel):
