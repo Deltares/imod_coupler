@@ -64,7 +64,7 @@ def create_wells(nrow: int, ncol: int, idomain: xr.DataArray) -> mf6.WellDisStru
     return mf6.WellDisStructured(
         layer=layer, row=iy_active, column=ix_active, rate=rate
     )
- 
+
 
 def make_mf6_model(idomain: xr.DataArray) -> mf6.GroundwaterFlowModel:
     times = get_times()
@@ -143,7 +143,7 @@ def make_coupled_mf6_model(idomain: xr.DataArray) -> mf6.Modflow6Simulation:
     gwf_model["rch_msw"] = mf6.Recharge(recharge)
     gwf_model["oc"] = mf6.OutputControl(save_head="last", save_budget="last")
     gwf_model["wells_msw"] = create_wells(nrow, ncol, idomain)
-    
+
     simulation = make_mf6_simulation(gwf_model)
     return simulation
 
@@ -343,12 +343,12 @@ def make_coupled_ribasim_mf6_model(idomain: xr.DataArray):
     # The bottom of the ribasim trivial model is located at 0.0 m: the surface
     # level of the groundwater model.
     gwf_model = make_mf6_model(idomain)
-    
+
     template = xr.full_like(idomain.isel(layer=[0]), np.nan, dtype=np.float64)
     stage = template.copy()
     conductance = template.copy()
     bottom_elevation = template.copy()
-    
+
     # Conductance is area divided by resistance (dx * dy / c0)
     # Assume the entire cell is wetted.
     stage[:, 1, 3] = 0.5
@@ -360,12 +360,12 @@ def make_coupled_ribasim_mf6_model(idomain: xr.DataArray):
         conductance=conductance,
         bottom_elevation=bottom_elevation,
     )
-    
+
     # The k-value is only 0.001, so we'll use an appropriately low recharge value...
     rate = xr.full_like(template, 1.0e-5)
     rate[:, 1, 3] = np.nan
     gwf_model["rch"] = mf6.Recharge(rate=rate)
-    
+
     simulation = make_mf6_simulation(gwf_model)
     return simulation
 
