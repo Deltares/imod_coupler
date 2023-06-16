@@ -16,16 +16,16 @@ dependencies:
   - pip
   - pip:
       - "git+https://gitlab.com/deltares/imod/imod-python.git"
-      - "git+https://github.com/Deltares/Ribasim.git#egg=ribasim&subdirectory=python/ribasim"
-      - "git+https://github.com/Deltares/Ribasim.git#egg=ribasim_api&subdirectory=python/ribasim_api"
-      - "git+https://github.com/Deltares/Ribasim.git#egg=ribasim_testmodels&subdirectory=python/ribasim_testmodels"
+      - "git+https://github.com/Deltares/Ribasim.git/#subdirectory=python/ribasim"
+      - "git+https://github.com/Deltares/Ribasim.git/#subdirectory=python/ribasim_api"
+      - "git+https://github.com/Deltares/Ribasim.git/#subdirectory=python/ribasim_testmodels"
   - pydantic
   - pydata-sphinx-theme
   - pytest
   - pytest-cases
   - pytest-dotenv
   - pytest-xdist
-  - python=3.10
+  - python=3.11
   - rasterio>=1.0
   - ruff
   - scipy
