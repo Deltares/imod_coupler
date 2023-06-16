@@ -91,9 +91,16 @@ class RibaMod(Driver):
             self.coupling.mf6_model, self.coupling.mf6_river_pkg
         )
         # FIXME: In the end there will be more than one modflow river node and ribasim basin node
+        # FIXME: sparse matrix mapping
         mf6_river_stage[0] = ribasim_level[0]
         self.mf6.update()
-        # TODO: set Ribasim infiltration/drainage terms to value of river budget of MODFLOW 6
+        modflow_river_drain_flux = self.mf6.get_river_drain_flux(
+            self.coupling.mf6_model, self.coupling.mf6_river_pkg
+        )
+        # positive q -> into the groundwater -> from ribasim perspective infiltration
+        # split q into two arrays, one which comes from positive entries, one from negative ones
+        # in the end both arrays only include zeros or positive numbers
+        # FIXME: sparse matrix mapping
         self.ribasim.update_until(self.mf6.get_current_time())
 
         self.mf6.get_current_time()
