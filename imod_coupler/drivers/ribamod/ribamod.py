@@ -1,4 +1,4 @@
-""" RibaMetaMod: the coupling between MetaSWAP and MODFLOW 6
+""" Ribamod: the coupling between MetaSWAP and MODFLOW 6
 
 description:
 
@@ -23,7 +23,7 @@ class RibaMod(Driver):
     """The driver coupling Ribasim and MODFLOW 6"""
 
     base_config: BaseConfig  # the parsed information from the configuration file
-    ribametamod_config: RibaModConfig  # the parsed information from the configuration file specific to RibaMetaMod
+    ribamod_config: RibaModConfig  # the parsed information from the configuration file specific to Ribamod
     coupling: Coupling  # the coupling information
 
     timing: bool  # true, when timing is enabled
@@ -43,30 +43,30 @@ class RibaMod(Driver):
 
     mf6_sprinkling_wells: NDArray[Any]  # the well data for coupled extractions
 
-    def __init__(self, base_config: BaseConfig, ribametamod_config: RibaModConfig):
-        """Constructs the `RibaMetaMod` object"""
+    def __init__(self, base_config: BaseConfig, ribamod_config: RibaModConfig):
+        """Constructs the `Ribamod` object"""
         self.base_config = base_config
-        self.ribametamod_config = ribametamod_config
-        self.coupling = ribametamod_config.coupling[
+        self.ribamod_config = ribamod_config
+        self.coupling = ribamod_config.coupling[
             0
         ]  # Adapt as soon as we have multimodel support
 
     def initialize(self) -> None:
         self.mf6 = Mf6Wrapper(
-            lib_path=self.ribametamod_config.kernels.modflow6.dll,
-            lib_dependency=self.ribametamod_config.kernels.modflow6.dll_dep_dir,
-            working_directory=self.ribametamod_config.kernels.modflow6.work_dir,
+            lib_path=self.ribamod_config.kernels.modflow6.dll,
+            lib_dependency=self.ribamod_config.kernels.modflow6.dll_dep_dir,
+            working_directory=self.ribamod_config.kernels.modflow6.work_dir,
             timing=self.base_config.timing,
         )
         self.ribasim = RibasimApi(
-            lib_path=self.ribametamod_config.kernels.ribasim.dll,
-            lib_dependency=self.ribametamod_config.kernels.ribasim.dll_dep_dir,
+            lib_path=self.ribamod_config.kernels.ribasim.dll,
+            lib_dependency=self.ribamod_config.kernels.ribasim.dll_dep_dir,
             timing=self.base_config.timing,
         )
         # Print output to stdout
         self.mf6.set_int("ISTDOUTTOFILE", 0)
         self.mf6.initialize()
-        self.ribasim.initialize(self.ribametamod_config.kernels.ribasim.config_file)
+        self.ribasim.initialize(self.ribamod_config.kernels.ribasim.config_file)
         self.log_version()
         if self.coupling.output_config_file is not None:
             self.exchange_logger = ExchangeCollector.from_file(

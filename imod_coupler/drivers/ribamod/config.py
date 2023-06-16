@@ -62,7 +62,7 @@ class RibaModConfig(BaseModel):
     coupling: List[Coupling]
 
     def __init__(self, config_dir: Path, **data: Any) -> None:
-        """Model for the RibaMetaMod config validated by pydantic
+        """Model for the Ribamod config validated by pydantic
 
         The validation expects current working directory at config file level
         so it is changed during initialization

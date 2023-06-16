@@ -71,10 +71,8 @@ def get_driver(
     if base_config.driver_type == "metamod":
         metamod_config = MetaModConfig(config_dir=config_dir, **config_dict["driver"])
         return MetaMod(base_config, metamod_config)
-    elif base_config.driver_type == "ribametamod":
-        ribametamod_config = RibaModConfig(
-            config_dir=config_dir, **config_dict["driver"]
-        )
-        return RibaMod(base_config, ribametamod_config)
+    elif base_config.driver_type == "ribamod":
+        ribamod_config = RibaModConfig(config_dir=config_dir, **config_dict["driver"])
+        return RibaMod(base_config, ribamod_config)
     else:
         raise ValueError(f"Driver type {base_config.driver_type} is not supported.")
