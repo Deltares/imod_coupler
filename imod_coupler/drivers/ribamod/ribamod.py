@@ -41,8 +41,6 @@ class RibaMod(Driver):
     mf6_top: NDArray[Any]  # top of cell (size:nodes)
     mf6_bot: NDArray[Any]  # bottom of cell (size:nodes)
 
-    mf6_sprinkling_wells: NDArray[Any]  # the well data for coupled extractions
-
     def __init__(self, base_config: BaseConfig, ribamod_config: RibaModConfig):
         """Constructs the `Ribamod` object"""
         self.base_config = base_config
@@ -66,7 +64,7 @@ class RibaMod(Driver):
         # Print output to stdout
         self.mf6.set_int("ISTDOUTTOFILE", 0)
         self.mf6.initialize()
-        self.ribasim.initialize(self.ribamod_config.kernels.ribasim.config_file)
+        self.ribasim.initialize(str(self.ribamod_config.kernels.ribasim.config_file))
         self.log_version()
         if self.coupling.output_config_file is not None:
             self.exchange_logger = ExchangeCollector.from_file(
@@ -87,7 +85,7 @@ class RibaMod(Driver):
         # TODO:
 
     def update(self) -> None:
-        # Set the MODFLOW6 river stage to value of waterlevel of Ribasim basin
+        # Set the MODFLOW 6 river stage to value of waterlevel of Ribasim basin
         ribasim_level = self.ribasim.get_value_ptr("level")
         mf6_river_stage = self.mf6.get_river_stages(
             self.coupling.mf6_model, self.coupling.mf6_river_pkg

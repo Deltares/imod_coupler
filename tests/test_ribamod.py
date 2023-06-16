@@ -18,11 +18,6 @@ def mf6_output_files(path: Path) -> Tuple[Path, Path, Path, Path]:
     )
 
 
-def msw_output_files(path: Path) -> Path:
-    path_msw = path / "MetaSWAP"
-    return path_msw / "msw" / "csv" / "tot_svat_per.csv"
-
-
 @parametrize_with_cases("ribamod_model", prefix="case_ribamod_")
 def test_ribamod_develop(
     tmp_path_dev: Path,
