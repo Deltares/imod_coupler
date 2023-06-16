@@ -20,7 +20,7 @@
       <param name="env.RIBASIM_DLL_DEP_DIR_DEVEL" value="%system.teamcity.build.checkoutDir%/imod_collector_devel/ribasim/bin" />
       <param name="env.RIBASIM_DLL_DEP_DIR_REGRESSION" value="%system.teamcity.build.checkoutDir%/imod_collector_regression/ribasim/bin" />
       <param name="env.RIBASIM_DLL_DEVEL" value="%system.teamcity.build.checkoutDir%/imod_collector_devel/ribasim/bin/libribasim.dll" />
-      <param name="env.RIBASIM_DLL_REGRESSION" value="%system.teamcity.build.checkoutDir%/imod_collector_regression/ribasim/libribasim.dll" />
+      <param name="env.RIBASIM_DLL_REGRESSION" value="%system.teamcity.build.checkoutDir%/imod_collector_regression/ribasim/bin/libribasim.dll" />
     </parameters>
     <build-runners>
       <runner id="RUNNER_1501" name="Set up virtual environment" type="simpleRunner">
