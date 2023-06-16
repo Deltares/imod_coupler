@@ -37,10 +37,7 @@ dynamic = ["version"]
 zip-safe = true
 
 [tool.setuptools.dynamic]
-version = { attr = "imod_coupler.__version__" }
-
-[tool.setuptools.packages.find]
-include = ["imod_coupler"]
+version.attr = "imod_coupler.__version__"
 
 [tool.setuptools.package-data]
 "imod_coupler" = ["py.typed"]
