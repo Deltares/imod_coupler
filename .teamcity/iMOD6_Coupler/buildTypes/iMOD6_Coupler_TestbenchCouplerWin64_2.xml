@@ -17,7 +17,7 @@
       <param name="env.METASWAP_LOOKUP_TABLE" value="%system.teamcity.build.checkoutDir%/lookup_table" />
       <param name="env.MODFLOW_DLL_DEVEL" value="%system.teamcity.build.checkoutDir%/imod_collector_devel/modflow6/libmf6.dll" />
       <param name="env.MODFLOW_DLL_REGRESSION" value="%system.teamcity.build.checkoutDir%/imod_collector_regression/modflow6/libmf6.dll" />
-      <param name="env.RIBASIM_DLL_DEP_DIR_DEVEL" value="%system.teamcity.build.checkoutDir%/imod_collector_devel/ribasim" />
+      <param name="env.RIBASIM_DLL_DEP_DIR_DEVEL" value="%system.teamcity.build.checkoutDir%/imod_collector_devel/ribasim/bin" />
       <param name="env.RIBASIM_DLL_DEP_DIR_REGRESSION" value="%system.teamcity.build.checkoutDir%/imod_collector_regression/ribasim" />
       <param name="env.RIBASIM_DLL_DEVEL" value="%system.teamcity.build.checkoutDir%/imod_collector_devel/ribasim/libribasim.dll" />
       <param name="env.RIBASIM_DLL_REGRESSION" value="%system.teamcity.build.checkoutDir%/imod_collector_regression/ribasim/libribasim.dll" />
