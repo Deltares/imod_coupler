@@ -7,6 +7,7 @@ from __future__ import annotations
 
 from typing import Any
 
+import numpy as np
 from loguru import logger
 from numpy.typing import NDArray
 from ribasim_api import RibasimApi
@@ -86,24 +87,31 @@ class RibaMod(Driver):
         # TODO:
 
     def update(self) -> None:
+        # Set the MODFLOW6 river stage to value of waterlevel of Ribasim basin
         ribasim_level = self.ribasim.get_value_ptr("level")
         mf6_river_stage = self.mf6.get_river_stages(
             self.coupling.mf6_model, self.coupling.mf6_river_pkg
         )
-        # FIXME: In the end there will be more than one modflow river node and ribasim basin node
-        # FIXME: sparse matrix mapping
-        mf6_river_stage[0] = ribasim_level[0]
+        mf6_river_stage[0] = ribasim_level[0]  # TODO: add sparse matrix mapping
+
+        # One time step in MODFLOW 6
         self.mf6.update()
-        modflow_river_drain_flux = self.mf6.get_river_drain_flux(
+
+        # Compute MODFLOW 6 river budget
+        river_drain_flux = self.mf6.get_river_drain_flux(
             self.coupling.mf6_model, self.coupling.mf6_river_pkg
         )
-        # positive q -> into the groundwater -> from ribasim perspective infiltration
-        # split q into two arrays, one which comes from positive entries, one from negative ones
-        # in the end both arrays only include zeros or positive numbers
-        # FIXME: sparse matrix mapping
-        self.ribasim.update_until(self.mf6.get_current_time())
+        mf6_infiltration = np.where(river_drain_flux > 0, river_drain_flux, 0)
+        mf6_drainage = np.where(river_drain_flux < 0, river_drain_flux, 0)
 
-        self.mf6.get_current_time()
+        # Set Ribasim infiltration/drainage terms to value of river budget of MODFLOW 6
+        ribasim_infiltration = self.ribasim.get_value_ptr("infiltration")
+        ribasim_drainage = self.ribasim.get_value_ptr("drainage")
+        ribasim_infiltration[0] = mf6_infiltration[0]  # TODO: add sparse matrix mapping
+        ribasim_drainage[0] = mf6_drainage[0]  # TODO: add sparse matrix mapping
+
+        # Update Ribasim until current time of MODFLOW 6
+        self.ribasim.update_until(self.mf6.get_current_time())
 
     def finalize(self) -> None:
         self.mf6.finalize()
