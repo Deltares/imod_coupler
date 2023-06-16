@@ -64,6 +64,7 @@ class RibaMod(Driver):
         # Print output to stdout
         self.mf6.set_int("ISTDOUTTOFILE", 0)
         self.mf6.initialize()
+        self.ribasim.init_julia()
         self.ribasim.initialize(str(self.ribamod_config.kernels.ribasim.config_file))
         self.log_version()
         if self.coupling.output_config_file is not None:
