@@ -101,7 +101,7 @@ class RibaMod(Driver):
             self.coupling.mf6_model, self.coupling.mf6_river_pkg
         )
         mf6_infiltration = np.where(river_drain_flux > 0, river_drain_flux, 0)
-        mf6_drainage = np.where(river_drain_flux < 0, river_drain_flux, 0)
+        mf6_drainage = np.where(river_drain_flux < 0, -river_drain_flux, 0)
 
         # Set Ribasim infiltration/drainage terms to value of river budget of MODFLOW 6
         ribasim_infiltration = self.ribasim.get_value_ptr("infiltration")
@@ -115,6 +115,7 @@ class RibaMod(Driver):
     def finalize(self) -> None:
         self.mf6.finalize()
         self.ribasim.finalize()
+        self.ribasim.shutdown_julia()
         self.exchange_logger.finalize()
 
     def get_current_time(self) -> float:
