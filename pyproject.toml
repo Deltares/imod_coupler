@@ -55,3 +55,6 @@ fixable = ["I"]
 
 [tool.mypy]
 plugins = "pydantic.mypy"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

@@ -96,5 +96,5 @@ RIBASIM_DLL_REGRESSION='${IMOD_COLLECTOR_REGRESSION}/ribasim/bin/libribasim.dll'
 - The tests can then be run with:
 
 ```bash
-pytest tests -n=auto --basetemp=tests/temp
+pytest -n=auto --basetemp=tests/temp
 ```
