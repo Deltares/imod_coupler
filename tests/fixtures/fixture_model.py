@@ -171,7 +171,11 @@ def make_coupled_ribasim_mf6_model(idomain: xr.DataArray) -> mf6.Modflow6Simulat
         conductance=conductance,
         bottom_elevation=bottom_elevation,
     )
-
+    gwf_model["drn-1"] = mf6.Drainage(
+        elevation=stage,
+        conductance=conductance,
+    )
+        
     # The k-value is only 0.001, so we'll use an appropriately low recharge value...
     rate = xr.full_like(template, 1.0e-5)
     rate[:, 1, 3] = np.nan
