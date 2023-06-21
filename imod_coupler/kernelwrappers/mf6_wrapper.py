@@ -238,7 +238,7 @@ class Mf6Wrapper(XmiWrapper):
     def get_river_drain_flux(
         self,
         mf6_flowmodel_key: str,
-        mf6_river2_drain_pkg_key: str,
+        mf6_river_drain_pkg_key: str,
     ) -> NDArray[np.float_]:
         """
         Returns the calculated river or DRN fluxes of MF6. In MF6 the RIV boundary condition is added to the solution in the following matter:
@@ -284,17 +284,17 @@ class Mf6Wrapper(XmiWrapper):
         """
 
         rhs_adress = self.get_var_address(
-            "RHS", mf6_flowmodel_key, mf6_river2_drain_pkg_key
+            "RHS", mf6_flowmodel_key, mf6_river_drain_pkg_key
         )
         package_rhs = self.get_value_ptr(rhs_adress)
         hcof_adress = self.get_var_address(
-            "HCOF", mf6_flowmodel_key, mf6_river2_drain_pkg_key
+            "HCOF", mf6_flowmodel_key, mf6_river_drain_pkg_key
         )
         package_hcof = self.get_value_ptr(hcof_adress)
         head_adress = self.get_var_address("X", mf6_flowmodel_key)
         head = self.get_value_ptr(head_adress)
         package_nodelist_adress = self.get_var_address(
-            "NODELIST", mf6_flowmodel_key, mf6_river2_drain_pkg_key
+            "NODELIST", mf6_flowmodel_key, mf6_river_drain_pkg_key
         )
         package_nodelist = self.get_value_ptr(package_nodelist_adress)
         subset_head = head[package_nodelist - 1]

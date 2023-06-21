@@ -91,7 +91,9 @@ class RibaMod(Driver):
         mf6_river_stage = self.mf6.get_river_stages(
             self.coupling.mf6_model, self.coupling.mf6_river_pkg
         )
-        mf6_river_stage[0] = ribasim_level[0]  # TODO: add sparse matrix mapping
+        mf6_river_stage[:] = ribasim_level[:]
+
+        # TODO: Set MODFLOW 6 drainage elevation to waterlevel of Ribasim basin
 
         # One time step in MODFLOW 6
         self.mf6.update()
@@ -103,11 +105,15 @@ class RibaMod(Driver):
         mf6_infiltration = np.where(river_drain_flux > 0, river_drain_flux, 0)
         mf6_drainage = np.where(river_drain_flux < 0, -river_drain_flux, 0)
 
+        # TODO: Get MODFLOW 6 drainage flux
+        # flip the sign
+        # add to mf6_drainage
+
         # Set Ribasim infiltration/drainage terms to value of river budget of MODFLOW 6
         ribasim_infiltration = self.ribasim.get_value_ptr("infiltration")
         ribasim_drainage = self.ribasim.get_value_ptr("drainage")
-        ribasim_infiltration[0] = mf6_infiltration[0]  # TODO: add sparse matrix mapping
-        ribasim_drainage[0] = mf6_drainage[0]  # TODO: add sparse matrix mapping
+        ribasim_infiltration[:] = mf6_infiltration[:]
+        ribasim_drainage[:] = mf6_drainage[:]
 
         # Update Ribasim until current time of MODFLOW 6
         self.ribasim.update_until(self.mf6.get_current_time())
