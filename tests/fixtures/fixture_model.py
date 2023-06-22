@@ -175,7 +175,7 @@ def make_coupled_ribasim_mf6_model(idomain: xr.DataArray) -> mf6.Modflow6Simulat
         elevation=stage,
         conductance=conductance,
     )
-        
+
     # The k-value is only 0.001, so we'll use an appropriately low recharge value...
     rate = xr.full_like(template, 1.0e-5)
     rate[:, 1, 3] = np.nan
@@ -524,11 +524,7 @@ def mf6_model_backwater_river() -> mf6.Modflow6Simulation:
     shape = (layer.size, y.size, x.size)
     dims = {"layer", "y", "x"}
     coords = {"layer": layer, "y": y, "x": x}
-    idomain = xr.DataArray(
-        data=np.ones(shape, dtype=int),
-        coords=coords,
-        dims=dims
-    )
+    idomain = xr.DataArray(data=np.ones(shape, dtype=int), coords=coords, dims=dims)
 
     gwf_model = mf6.GroundwaterFlowModel()
     gwf_model["dis"] = mf6.StructuredDiscretization(
