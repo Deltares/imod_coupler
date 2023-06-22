@@ -46,10 +46,10 @@ class Kernels(BaseModel):
     ribasim: Ribasim
 
 
-# TODO
 class Coupling(BaseModel):
     mf6_model: str  # the MODFLOW 6 model that will be coupled
-    mf6_river_pkg: str  # the river package that will be used for coupling
+    mf6_river_packages: List[str]
+    mf6_drainage_packages: List[str]
     output_config_file: Optional[FilePath] = None
 
     @validator("output_config_file")

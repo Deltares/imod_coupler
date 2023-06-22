@@ -6,18 +6,6 @@ from imod.couplers.ribamod import RibaMod
 from pytest_cases import parametrize_with_cases
 
 
-def mf6_output_files(path: Path) -> Tuple[Path, Path, Path, Path]:
-    """return paths to Modflow 6 output files"""
-    path_mf6 = path / "Modflow6" / "GWF_1"
-
-    return (
-        path_mf6 / "GWF_1.hds",
-        path_mf6 / "GWF_1.cbc",
-        path_mf6 / "dis.dis.grb",
-        path_mf6 / "GWF_1.lst",
-    )
-
-
 @parametrize_with_cases("ribamod_model", prefix="case_ribamod_")
 def test_ribamod_develop(
     tmp_path_dev: Path,

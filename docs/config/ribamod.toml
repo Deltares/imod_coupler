@@ -13,10 +13,10 @@ config_file = "./ribasim_data/ribasim.toml"
 
 [[driver.coupling]]
 mf6_model = "inner_model"
-river_packages = ["riv_primary", "riv_secondary"]
-drainage_packages = ["drn_primary"]
+mf6_river_packages = ["riv_primary", "riv_secondary"]
+mf6_drainage_packages = ["drn_primary"]
 
 [[driver.coupling]]
 mf6_model = "outer_model"
-river_packages = ["riv_primary"]
-drainage_packages = ["drn_primary", "drn_secondary"]
+mf6_river_packages = ["riv_primary"]
+mf6_drainage_packages = ["drn_primary", "drn_secondary"]

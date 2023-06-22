@@ -89,7 +89,8 @@ class RibaMod(Driver):
         # Set the MODFLOW 6 river stage to value of waterlevel of Ribasim basin
         ribasim_level = self.ribasim.get_value_ptr("level")
         mf6_river_stage = self.mf6.get_river_stages(
-            self.coupling.mf6_model, self.coupling.mf6_river_pkg
+            self.coupling.mf6_model,
+            self.coupling.mf6_river_packages[0],  # TODO: stop hardcoding 0
         )
         mf6_river_stage[:] = ribasim_level[:]
 
@@ -100,7 +101,8 @@ class RibaMod(Driver):
 
         # Compute MODFLOW 6 river budget
         river_drain_flux = self.mf6.get_river_drain_flux(
-            self.coupling.mf6_model, self.coupling.mf6_river_pkg
+            self.coupling.mf6_model,
+            self.coupling.mf6_river_packages[0],  # TODO: stop hardcoding 0
         )
         mf6_infiltration = np.where(river_drain_flux > 0, river_drain_flux, 0)
         mf6_drainage = np.where(river_drain_flux < 0, -river_drain_flux, 0)
