@@ -1,6 +1,5 @@
 import subprocess
 from pathlib import Path
-from typing import Tuple
 
 from imod.couplers.ribamod import RibaMod
 from pytest_cases import parametrize_with_cases

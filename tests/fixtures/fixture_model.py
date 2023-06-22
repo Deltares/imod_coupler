@@ -111,7 +111,7 @@ def make_mf6_model(idomain: xr.DataArray) -> mf6.GroundwaterFlowModel:
     return gwf_model
 
 
-def make_mf6_simulation(gwf_model):
+def make_mf6_simulation(gwf_model: mf6.GroundwaterFlowModel) -> mf6.Modflow6Simulation:
     times = get_times()
     simulation = mf6.Modflow6Simulation("test")
     simulation["GWF_1"] = gwf_model
@@ -501,7 +501,9 @@ def ribasim_model() -> ribasim.Model:
 
 
 @pytest_cases.fixture(scope="function")
-def mf6_model_with_river(coupled_mf6_model) -> mf6.Modflow6Simulation:
+def mf6_model_with_river(
+    coupled_mf6_model: mf6.Modflow6Simulation,
+) -> mf6.Modflow6Simulation:
     flow_model = coupled_mf6_model["GWF_1"]
     idomain = flow_model["dis"].dataset["idomain"]
     stage = xr.full_like(idomain.sel({"layer": 1}), dtype=np.floating, fill_value=3.1)
@@ -522,7 +524,7 @@ def mf6_model_backwater_river() -> mf6.Modflow6Simulation:
     y = np.arange(200.0, -220.0, -20.0)
     layer = np.array([1])
     shape = (layer.size, y.size, x.size)
-    dims = {"layer", "y", "x"}
+    dims = ["layer", "y", "x"]
     coords = {"layer": layer, "y": y, "x": x}
     idomain = xr.DataArray(data=np.ones(shape, dtype=int), coords=coords, dims=dims)
 
