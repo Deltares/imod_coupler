@@ -1,0 +1,22 @@
+log_level = "INFO"
+timing = false
+driver_type = "ribamod"
+
+[driver.kernels.modflow6]
+dll = "./kernels/modflow6/libmf6.dll"
+work_dir = "./mf6_data"
+
+[driver.kernels.ribasim]
+dll = "./kernels/ribasim/bin/libribasim.dll"
+dll_dep_dir = "./kernels/ribasim/bin"
+config_file = "./ribasim_data/ribasim.toml"
+
+[[driver.coupling]]
+mf6_model = "inner_model"
+mf6_river_packages = ["riv_primary", "riv_secondary"]
+mf6_drainage_packages = ["drn_primary"]
+
+[[driver.coupling]]
+mf6_model = "outer_model"
+mf6_river_packages = ["riv_primary"]
+mf6_drainage_packages = ["drn_primary", "drn_secondary"]

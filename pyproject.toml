@@ -37,10 +37,7 @@ dynamic = ["version"]
 zip-safe = true
 
 [tool.setuptools.dynamic]
-version = { attr = "imod_coupler.__version__" }
-
-[tool.setuptools.packages.find]
-include = ["imod_coupler"]
+version.attr = "imod_coupler.__version__"
 
 [tool.setuptools.package-data]
 "imod_coupler" = ["py.typed"]
@@ -58,3 +55,6 @@ fixable = ["I"]
 
 [tool.mypy]
 plugins = "pydantic.mypy"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

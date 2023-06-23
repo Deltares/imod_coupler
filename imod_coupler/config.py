@@ -13,7 +13,7 @@ class LogLevel(str, Enum):
 
 class DriverType(str, Enum):
     METAMOD = "metamod"
-    RIBAMETAMOD = "ribametamod"
+    RIBAMOD = "ribamod"
 
 
 class BaseConfig(BaseModel):

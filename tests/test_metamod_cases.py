@@ -6,7 +6,7 @@ from imod.msw import MetaSwapModel
 from imod.msw.fixed_format import VariableMetaData
 
 
-def case_sprinkling(
+def case_metamod_sprinkling(
     coupled_mf6_model: Modflow6Simulation,
     prepared_msw_model: MetaSwapModel,
 ) -> MetaMod:
@@ -18,7 +18,7 @@ def case_sprinkling(
     )
 
 
-def case_no_sprinkling(
+def case_metamod_no_sprinkling(
     coupled_mf6_model: Modflow6Simulation,
     prepared_msw_model: MetaSwapModel,
 ) -> MetaMod:
@@ -32,7 +32,7 @@ def case_no_sprinkling(
     )
 
 
-def case_storage_coefficient(
+def case_metamod_storage_coefficient(
     coupled_mf6_model_storage_coefficient: Modflow6Simulation,
     prepared_msw_model: MetaSwapModel,
 ) -> MetaMod:
@@ -44,7 +44,7 @@ def case_storage_coefficient(
     )
 
 
-def case_storage_coefficient_no_sprinkling(
+def case_metamod_storage_coefficient_no_sprinkling(
     coupled_mf6_model_storage_coefficient: Modflow6Simulation,
     prepared_msw_model: MetaSwapModel,
 ) -> MetaMod:
@@ -58,7 +58,7 @@ def case_storage_coefficient_no_sprinkling(
     )
 
 
-def case_inactive_cell(
+def case_metamod_inactive_cell(
     coupled_mf6_model_inactive: Modflow6Simulation,
     prepared_msw_model_inactive: MetaSwapModel,
 ) -> MetaMod:
@@ -70,7 +70,7 @@ def case_inactive_cell(
     )
 
 
-def fail_write_inactive_cell(
+def metamod_fail_write_inactive_cell(
     coupled_mf6_model_inactive: Modflow6Simulation,
     prepared_msw_model: MetaSwapModel,
 ) -> MetaMod:
@@ -87,7 +87,7 @@ def fail_write_inactive_cell(
     )
 
 
-def fail_run_msw_input(
+def metamod_fail_run_msw_input(
     coupled_mf6_model: Modflow6Simulation,
     prepared_msw_model: MetaSwapModel,
 ) -> MetaMod:
@@ -127,7 +127,7 @@ def fail_run_mf6_input(
     )
 
 
-def cases_no_sprinkling(
+def cases_metamod_no_sprinkling(
     prepared_msw_model: MetaSwapModel,
     coupled_mf6_model: Modflow6Simulation,
     coupled_mf6_model_storage_coefficient: Modflow6Simulation,
@@ -152,7 +152,7 @@ def cases_no_sprinkling(
     return metamod_ss, metamod_sc
 
 
-def cases_sprinkling(
+def cases_metamod_sprinkling(
     prepared_msw_model: MetaSwapModel,
     coupled_mf6_model: Modflow6Simulation,
     coupled_mf6_model_storage_coefficient: Modflow6Simulation,

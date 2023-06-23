@@ -16,7 +16,9 @@ dependencies:
   - pip
   - pip:
       - "git+https://gitlab.com/deltares/imod/imod-python.git"
-      - "git+https://github.com/Deltares/Ribasim.git#egg=ribasim_api&subdirectory=python/ribasim_api"
+      - "git+https://github.com/Deltares/Ribasim.git/#subdirectory=python/ribasim"
+      - "git+https://github.com/Deltares/Ribasim.git/#subdirectory=python/ribasim_api"
+      - "git+https://github.com/Deltares/Ribasim.git/#subdirectory=python/ribasim_testmodels"
   - pydantic
   - pydata-sphinx-theme
   - pytest
