@@ -90,7 +90,7 @@ pyinstaller --onefile coupler/imod_coupler/__main__.py --name imodc]]></param>
     <artifact-dependencies>
       <dependency id="ARTIFACT_DEPENDENCY_285" sourceBuildTypeId="Ribasim_RibasimJl_BuildLibribasimWindows" cleanDestination="false">
         <revisionRule name="sameChainOrLastFinished" revision="latest.sameChainOrLastFinished" />
-        <artifact sourcePath="libribasim.zip!/bin =&gt; ribasim" />
+        <artifact sourcePath="libribasim.zip!** =&gt; ribasim" />
       </dependency>
       <dependency id="ARTIFACT_DEPENDENCY_553" sourceBuildTypeId="iMOD6_Modflow6buildWin64" cleanDestination="true">
         <revisionRule name="lastSuccessful" revision="latest.lastSuccessful" />
