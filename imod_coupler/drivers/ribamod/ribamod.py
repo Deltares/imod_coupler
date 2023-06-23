@@ -137,4 +137,3 @@ class RibaMod(Driver):
         total_ribasim = self.ribasim.report_timing_totals()
         total = total_mf6 + total_ribasim
         logger.info(f"Total elapsed time in numerical kernels: {total:0.4f} seconds")
-        logger.info(f"Total elapsed time in numerical kernels: {total:0.4f} seconds")
