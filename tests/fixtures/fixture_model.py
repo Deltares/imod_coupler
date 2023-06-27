@@ -170,6 +170,7 @@ def make_coupled_ribasim_mf6_model(idomain: xr.DataArray) -> mf6.Modflow6Simulat
         stage=stage,
         conductance=conductance,
         bottom_elevation=bottom_elevation,
+        save_flows=True,
     )
     gwf_model["drn-1"] = mf6.Drainage(
         elevation=stage,
@@ -510,7 +511,7 @@ def mf6_model_with_river(
     conductance = xr.full_like(stage, 4.2)
     bottom_elevation = xr.full_like(stage, 0.3)
     bottom_elevation[{"x": 2}] = -0.1
-    river_package = mf6.River(stage, conductance, bottom_elevation)
+    river_package = mf6.River(stage, conductance, bottom_elevation, save_flows=True)
     flow_model["Oosterschelde"] = river_package
     return coupled_mf6_model
 
@@ -552,6 +553,7 @@ def mf6_model_backwater_river() -> mf6.Modflow6Simulation:
         stage=stage,
         conductance=conductance,
         bottom_elevation=bottom_elevation,
+        save_flows=True,
     )
     gwf_model["drn-1"] = mf6.Drainage(
         elevation=stage,
