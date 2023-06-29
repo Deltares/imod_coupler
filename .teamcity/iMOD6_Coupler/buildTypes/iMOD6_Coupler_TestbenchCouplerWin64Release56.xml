@@ -54,6 +54,7 @@ call pytest tests -n=auto --basetemp=tests/temp --junitxml="report.xml"]]></para
       <vcs-entry-ref root-id="iMOD6_IMOD6collectorDaily_ImodCouplerImod545">
         <checkout-rule rule=". =&gt; imod_coupler" />
       </vcs-entry-ref>
+      <vcs-entry-ref root-id="iMOD6_IMOD6collectorDaily_ImodCouplerImod56" />
     </vcs-settings>
     <requirements>
       <equals id="RQ_436" name="teamcity.agent.jvm.os.name" value="Windows 10" />
