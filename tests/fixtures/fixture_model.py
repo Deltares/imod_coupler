@@ -4,8 +4,6 @@ from typing import List, Tuple
 import numpy as np
 import pandas as pd
 import pytest_cases
-import ribasim
-import ribasim_testmodels
 import xarray as xr
 from imod import mf6, msw
 from numpy import float_, int_, nan
@@ -145,42 +143,6 @@ def make_coupled_mf6_model(idomain: xr.DataArray) -> mf6.Modflow6Simulation:
 
     gwf_model["rch_msw"] = mf6.Recharge(recharge)
     gwf_model["wells_msw"] = create_wells(nrow, ncol, idomain)
-
-    simulation = make_mf6_simulation(gwf_model)
-    return simulation
-
-
-def make_coupled_ribasim_mf6_model(idomain: xr.DataArray) -> mf6.Modflow6Simulation:
-    # The bottom of the ribasim trivial model is located at 0.0 m: the surface
-    # level of the groundwater model.
-    gwf_model = make_mf6_model(idomain)
-
-    template = xr.full_like(idomain.isel(layer=[0]), np.nan, dtype=np.float64)
-    stage = template.copy()
-    conductance = template.copy()
-    bottom_elevation = template.copy()
-
-    # Conductance is area divided by resistance (dx * dy / c0)
-    # Assume the entire cell is wetted.
-    stage[:, 1, 3] = 0.5
-    conductance[:, 1, 3] = (100.0 * 100.0) / 1.0
-    bottom_elevation[:, 1, 3] = 0.0
-
-    gwf_model["riv-1"] = mf6.River(
-        stage=stage,
-        conductance=conductance,
-        bottom_elevation=bottom_elevation,
-        save_flows=True,
-    )
-    gwf_model["drn-1"] = mf6.Drainage(
-        elevation=stage,
-        conductance=conductance,
-    )
-
-    # The k-value is only 0.001, so we'll use an appropriately low recharge value...
-    rate = xr.full_like(template, 1.0e-5)
-    rate[:, 1, 3] = np.nan
-    gwf_model["rch"] = mf6.Recharge(rate=rate)
 
     simulation = make_mf6_simulation(gwf_model)
     return simulation
@@ -442,11 +404,6 @@ def coupled_mf6_model(active_idomain: xr.DataArray) -> mf6.Modflow6Simulation:
 
 
 @pytest_cases.fixture(scope="function")
-def coupled_ribasim_mf6_model(active_idomain: xr.DataArray) -> mf6.Modflow6Simulation:
-    return make_coupled_ribasim_mf6_model(active_idomain)
-
-
-@pytest_cases.fixture(scope="function")
 def coupled_mf6_model_storage_coefficient(
     active_idomain: xr.DataArray,
 ) -> mf6.Modflow6Simulation:
@@ -494,11 +451,6 @@ def prepared_msw_model_inactive(
     ] = msw_model._render_unsaturated_database_path(metaswap_lookup_table)
 
     return msw_model
-
-
-@pytest_cases.fixture(scope="function")
-def ribasim_model() -> ribasim.Model:
-    return ribasim_testmodels.trivial_model()
 
 
 @pytest_cases.fixture(scope="function")

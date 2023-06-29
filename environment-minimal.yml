@@ -9,9 +9,6 @@ dependencies:
   - h5netcdf
   - loguru
   - numpy
-  - pip
-  - pip:
-    - "git+https://github.com/Deltares/Ribasim.git#egg=ribasim_api&subdirectory=python/ribasim_api"
   - pydantic
   - pyinstaller
   - python=3.10
