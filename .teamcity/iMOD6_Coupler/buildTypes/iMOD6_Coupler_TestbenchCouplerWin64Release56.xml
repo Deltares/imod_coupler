@@ -107,8 +107,8 @@ call pytest tests -n=auto --basetemp=tests/temp --junitxml="report.xml"]]></para
         <revisionRule name="sameChainOrLastFinished" revision="latest.sameChainOrLastFinished" />
         <artifact sourcePath="imod_coupler.zip!** =&gt;imod_collector_devel&#xD;&#xA;" />
       </dependency>
-      <dependency id="ARTIFACT_DEPENDENCY_66" sourceBuildTypeId="iMOD6_IMOD6collectorDaily_X64Release55" cleanDestination="true">
-        <revisionRule name="buildTag" revision="regression.tcbuildtag" />
+      <dependency id="ARTIFACT_DEPENDENCY_66" sourceBuildTypeId="iMOD6_IMOD6collectorDaily_X64Release56" cleanDestination="true">
+        <revisionRule name="sameChainOrLastFinished" revision="latest.sameChainOrLastFinished" />
         <artifact sourcePath="imod_coupler.zip!** =&gt;imod_collector_regression" />
       </dependency>
     </artifact-dependencies>
