@@ -93,14 +93,14 @@ pyinstaller --onefile coupler/imod_coupler/__main__.py --name imodc]]></param>
       </dependency>
     </artifact-dependencies>
     <dependencies>
-      <depend-on sourceBuildTypeId="MSWMOD_MetaSWAP_MetaSWAPReleaseImod54">
+      <depend-on sourceBuildTypeId="MetaSWAP_Modflow_Modflow6Release641">
         <options>
           <option name="run-build-if-dependency-failed" value="RUN_ADD_PROBLEM" />
           <option name="take-started-build-with-same-revisions" value="true" />
           <option name="take-successful-builds-only" value="true" />
         </options>
       </depend-on>
-      <depend-on sourceBuildTypeId="MetaSWAP_Modflow_Modflow6Release641">
+      <depend-on sourceBuildTypeId="MSWMOD_MetaSWAP_MetaSWAPReleaseImod56">
         <options>
           <option name="run-build-if-dependency-failed" value="RUN_ADD_PROBLEM" />
           <option name="take-started-build-with-same-revisions" value="true" />
