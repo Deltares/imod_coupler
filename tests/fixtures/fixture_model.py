@@ -172,15 +172,6 @@ def make_coupled_ribasim_mf6_model(idomain: xr.DataArray) -> mf6.Modflow6Simulat
         bottom_elevation=bottom_elevation,
         save_flows=True,
     )
-    gwf_model["drn-1"] = mf6.Drainage(
-        elevation=stage,
-        conductance=conductance,
-    )
-
-    # The k-value is only 0.001, so we'll use an appropriately low recharge value...
-    rate = xr.full_like(template, 1.0e-5)
-    rate[:, 1, 3] = np.nan
-    gwf_model["rch"] = mf6.Recharge(rate=rate)
 
     simulation = make_mf6_simulation(gwf_model)
     return simulation
@@ -498,7 +489,7 @@ def prepared_msw_model_inactive(
 
 @pytest_cases.fixture(scope="function")
 def ribasim_model() -> ribasim.Model:
-    return ribasim_testmodels.trivial_model()
+    return ribasim_testmodels.bucket_model()
 
 
 @pytest_cases.fixture(scope="function")
