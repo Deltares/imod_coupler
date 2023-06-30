@@ -119,7 +119,10 @@ class RibaMod(Driver):
         ribasim_drainage[:] = mf6_drainage[:]
 
         # Update Ribasim until current time of MODFLOW 6
-        self.ribasim.update_until(self.mf6.get_current_time())
+        # iMOD Python sets MODFLOW 6' time unit to days
+        # Ribasim's time unit is always seconds
+        day_to_seconds = 86400
+        self.ribasim.update_until(self.mf6.get_current_time() * day_to_seconds)
 
     def finalize(self) -> None:
         self.mf6.finalize()
