@@ -87,6 +87,10 @@ class RibaMod(Driver):
         # TODO:
 
     def update(self) -> None:
+        # iMOD Python sets MODFLOW 6' time unit to days
+        # Ribasim's time unit is always seconds
+        ribamod_time_factor = 86400
+
         # Set the MODFLOW 6 river stage to value of waterlevel of Ribasim basin
         ribasim_level = self.ribasim.get_value_ptr("level")
         mf6_river_stage = self.mf6.get_river_stages(
@@ -101,9 +105,12 @@ class RibaMod(Driver):
         self.mf6.update()
 
         # Compute MODFLOW 6 river budget
-        river_drain_flux = self.mf6.get_river_drain_flux(
-            self.coupling.mf6_model,
-            self.coupling.mf6_river_packages[0],  # TODO: stop hardcoding 0
+        river_drain_flux = (
+            self.mf6.get_river_drain_flux(
+                self.coupling.mf6_model,
+                self.coupling.mf6_river_packages[0],  # TODO: stop hardcoding 0
+            )
+            / ribamod_time_factor
         )
         mf6_infiltration = np.where(river_drain_flux > 0, river_drain_flux, 0)
         mf6_drainage = np.where(river_drain_flux < 0, -river_drain_flux, 0)
@@ -119,10 +126,7 @@ class RibaMod(Driver):
         ribasim_drainage[:] = mf6_drainage[:]
 
         # Update Ribasim until current time of MODFLOW 6
-        # iMOD Python sets MODFLOW 6' time unit to days
-        # Ribasim's time unit is always seconds
-        day_to_seconds = 86400
-        self.ribasim.update_until(self.mf6.get_current_time() * day_to_seconds)
+        self.ribasim.update_until(self.mf6.get_current_time() * ribamod_time_factor)
 
     def finalize(self) -> None:
         self.mf6.finalize()
