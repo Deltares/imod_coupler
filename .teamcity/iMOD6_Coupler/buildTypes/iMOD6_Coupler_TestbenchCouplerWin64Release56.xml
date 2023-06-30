@@ -103,7 +103,7 @@ call pytest tests -n=auto --basetemp=tests/temp --junitxml="report.xml"]]></para
       </extension>
     </build-extensions>
     <artifact-dependencies>
-      <dependency id="ARTIFACT_DEPENDENCY_66" sourceBuildTypeId="iMOD6_IMOD6collectorDaily_ReleaseX64" cleanDestination="true">
+      <dependency id="ARTIFACT_DEPENDENCY_66" sourceBuildTypeId="iMOD6_Coupler_TestbenchCouplerWin64Release56" cleanDestination="true">
         <revisionRule name="buildTag" revision="regression.tcbuildtag" />
         <artifact sourcePath="imod_coupler.zip!** =&gt;imod_collector_regression" />
       </dependency>
