@@ -290,7 +290,7 @@ def test_metamod_regression_balance_output(
     assert numeric_csvfiles_equal(
         mf6_balance_output_file,
         reference_result_folder
-        / "test_metamod_regresssion_no_sprinkling"
+        / "test_metamod_regression_no_sprinkling"
         / "waterbalance_output.csv",
         ";",
         mf6_tolerance_balance,
@@ -299,7 +299,7 @@ def test_metamod_regression_balance_output(
     assert numeric_csvfiles_equal(
         msw_balance_results,
         reference_result_folder
-        / "test_metamod_regresssion_no_sprinkling"
+        / "test_metamod_regression_no_sprinkling"
         / "tot_svat_per.csv",
         ",",
         msw_tolerance_balance,
@@ -398,7 +398,7 @@ def test_metamod_exchange_logging(
     assert len(list((tmp_path_dev).glob("*.nc"))) == 2
 
 
-def add_logging_request_to_toml_file(toml_dir: Path, toml_filename: str):
+def add_logging_request_to_toml_file(toml_dir: Path, toml_filename: str) -> None:
     """
     This function takes as input the path to a toml file written by MetaMod. It then adds a reference to an
     output config file to it, and creates the same output config file.
