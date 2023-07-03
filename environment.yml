@@ -19,7 +19,7 @@ dependencies:
       - "git+https://github.com/Deltares/Ribasim.git/#subdirectory=python/ribasim"
       - "git+https://github.com/Deltares/Ribasim.git/#subdirectory=python/ribasim_api"
       - "git+https://github.com/Deltares/Ribasim.git/#subdirectory=python/ribasim_testmodels"
-  - pydantic=1.0
+  - pydantic=1
   - pydata-sphinx-theme
   - pytest
   - pytest-cases
