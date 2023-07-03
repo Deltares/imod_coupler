@@ -12,7 +12,7 @@ dependencies:
   - pip
   - pip:
     - "git+https://github.com/Deltares/Ribasim.git#egg=ribasim_api&subdirectory=python/ribasim_api"
-  - pydantic
+  - pydantic=1
   - pyinstaller
   - python=3.10
   - scipy
