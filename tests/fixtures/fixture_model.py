@@ -69,29 +69,20 @@ def create_wells(nrow: int, ncol: int, idomain: xr.DataArray) -> mf6.WellDisStru
 
 
 def make_mf6_model(idomain: xr.DataArray) -> mf6.GroundwaterFlowModel:
-    times = get_times()
     _, _, layer, _, _, dz = grid_sizes()
     nlay = len(layer)
 
     top = 0.0
     bottom = top - xr.DataArray(np.cumsum(dz), coords={"layer": layer}, dims="layer")
 
-    head = xr.full_like(idomain.astype(np.float64), np.nan)
-    head[0, :, 0] = -2.0
-
-    head = head.expand_dims(time=times)
-
     gwf_model = mf6.GroundwaterFlowModel()
     gwf_model["dis"] = mf6.StructuredDiscretization(
         idomain=idomain, top=top, bottom=bottom
     )
-    gwf_model["chd"] = mf6.ConstantHead(
-        head, print_input=True, print_flows=True, save_flows=True
-    )
 
     icelltype = xr.full_like(bottom, 0, dtype=int)
     k_values = np.ones((nlay))
-    k_values[1, ...] = 0.001
+    k_values[1, ...] = 0.01
 
     k = xr.DataArray(k_values, {"layer": layer}, ("layer",))
     k33 = xr.DataArray(k_values / 10.0, {"layer": layer}, ("layer",))
@@ -138,6 +129,13 @@ def make_mf6_simulation(gwf_model: mf6.GroundwaterFlowModel) -> mf6.Modflow6Simu
 def make_coupled_mf6_model(idomain: xr.DataArray) -> mf6.Modflow6Simulation:
     _, nrow, ncol = idomain.shape
     gwf_model = make_mf6_model(idomain)
+    times = get_times()
+    head = xr.full_like(idomain.astype(np.float64), np.nan)
+    head[0, :, 0] = -2.0
+    head = head.expand_dims(time=times)
+    gwf_model["chd"] = mf6.ConstantHead(
+        head, print_input=True, print_flows=True, save_flows=True
+    )
 
     recharge = xr.zeros_like(idomain.sel(layer=1), dtype=float)
     recharge[:, 0] = np.nan
