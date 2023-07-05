@@ -29,7 +29,7 @@ def test_mf6_wrapper_can_be_initialized_and_finalized_multiple_times(
 def test_msw_wrapper_can_be_initialized_and_finalized_multiple_times(
     metaswap_dll_devel: Path,
     metaswap_dll_dep_dir_devel: Path,
-    tmp_path_dev,
+    tmp_path_dev: Path,
     tmodel_short_input_folder: Path,
     metaswap_lookup_table: Path,
 ) -> None:

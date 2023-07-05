@@ -68,7 +68,7 @@ def total_flux_error(q_test, q_ref):
     return np.abs(q_test - q_ref).sum() / np.abs(q_ref).sum()
 
 
-def test_modstrip_data_present(modstrip_loc):
+def test_modstrip_data_present(modstrip_loc: Path) -> None:
     """
     Test if modstrip data is not deleted or moved by accident
     """
@@ -80,14 +80,14 @@ def test_modstrip_data_present(modstrip_loc):
 
 
 def test_modstrip_model(
-    modstrip_loc,
-    tmp_path,
-    metaswap_lookup_table,
-    imod_coupler_exec_devel,
+    modstrip_loc: Path,
+    tmp_path: Path,
+    metaswap_lookup_table: Path,
+    imod_coupler_exec_devel: Path,
     metaswap_dll_devel: Path,
     metaswap_dll_dep_dir_devel: Path,
     modflow_dll_devel: Path,
-):
+) -> None:
     """
     Run modstrip model and test output, compare with results of previous
     comparison in 2020.
