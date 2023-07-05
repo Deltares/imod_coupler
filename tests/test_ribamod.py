@@ -5,7 +5,7 @@ from imod.couplers.ribamod import RibaMod
 from pytest_cases import parametrize_with_cases
 
 
-@parametrize_with_cases("ribamod_model", prefix="case_ribamod_")
+@parametrize_with_cases("ribamod_model")
 def test_ribamod_develop(
     tmp_path_dev: Path,
     ribamod_model: RibaMod,

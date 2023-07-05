@@ -83,7 +83,7 @@ def test_metaswap_dll_dep_dir_regression_contains_dependencies(
         assert dependency in dep_dir_content
 
 
-@parametrize_with_cases("metamod_model", prefix="metamod_fail_write_")
+@parametrize_with_cases("metamod_model", prefix="fail_write_")
 def test_metamod_write_failure(
     tmp_path_dev: Path,
     metamod_model: MetaMod,
@@ -106,7 +106,7 @@ def test_metamod_write_failure(
         )
 
 
-@parametrize_with_cases("metamod_model", prefix="metamod_fail_run_")
+@parametrize_with_cases("metamod_model", prefix="fail_run_")
 def test_metamod_run_failure(
     tmp_path_dev: Path,
     metamod_model: MetaMod,
@@ -134,7 +134,7 @@ def test_metamod_run_failure(
         )
 
 
-@parametrize_with_cases("metamod_model", prefix="case_metamod_")
+@parametrize_with_cases("metamod_model")
 def test_metamod_develop(
     tmp_path_dev: Path,
     metamod_model: MetaMod,
@@ -171,7 +171,7 @@ def test_metamod_develop(
     assert cbcfile.stat().st_size > 0
 
 
-@parametrize_with_cases("metamod_model", prefix="case_metamod_")
+@parametrize_with_cases("metamod_model")
 def test_metamod_regression(
     metamod_model: MetaMod,
     tmp_path_dev: Path,
@@ -237,7 +237,7 @@ def test_metamod_regression(
 
 
 @parametrize_with_cases(
-    "metamod_model", prefix="case_metamod_storage_coefficient_no_sprinkling"
+    "metamod_model", prefix="case_storage_coefficient_no_sprinkling"
 )
 def test_metamod_regression_balance_output(
     metamod_model: MetaMod,
@@ -369,7 +369,7 @@ def test_metamodel_storage_options(
 
 
 @parametrize_with_cases(
-    "metamod_model", prefix="case_metamod_storage_coefficient_no_sprinkling"
+    "metamod_model", prefix="case_storage_coefficient_no_sprinkling"
 )
 def test_metamod_exchange_logging(
     tmp_path_dev: Path,
