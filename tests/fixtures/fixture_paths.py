@@ -109,4 +109,4 @@ def test_data_folder(request: FixtureRequest) -> Path:
 
 @pytest.fixture(scope="function")
 def reference_result_folder(request: FixtureRequest) -> Path:
-    return request.path.parent / "test_reference_output"
+    return request.path.parent / "reference_output"
