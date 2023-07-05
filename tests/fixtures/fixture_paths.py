@@ -3,6 +3,7 @@ from pathlib import Path
 
 import dotenv
 import pytest
+from pytest import FixtureRequest
 
 
 @pytest.fixture
@@ -90,7 +91,7 @@ def ribasim_dll_regression() -> Path:
 
 
 @pytest.fixture(scope="function")
-def modstrip_loc(request):
+def modstrip_loc(request: FixtureRequest) -> Path:
     """
     Return the directory of the modstrip data
 
@@ -98,14 +99,14 @@ def modstrip_loc(request):
 
     """
 
-    return Path(request.fspath).parent / "data" / "modstrip"
+    return request.path.parent / "data" / "modstrip"
 
 
 @pytest.fixture(scope="function")
-def test_data_folder(request) -> Path:
-    return Path(request.fspath).parent / "data"
+def test_data_folder(request: FixtureRequest) -> Path:
+    return request.path.parent / "data"
 
 
 @pytest.fixture(scope="function")
-def reference_result_folder(request) -> Path:
-    return Path(request.fspath).parent / "test_reference_output"
+def reference_result_folder(request: FixtureRequest) -> Path:
+    return request.path.parent / "test_reference_output"
