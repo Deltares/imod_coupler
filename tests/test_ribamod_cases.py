@@ -3,7 +3,7 @@ from imod.couplers.ribamod import DriverCoupling, RibaMod
 from imod.mf6 import GroundwaterFlowModel, Modflow6Simulation, River
 
 
-def case_ribamod_trivial_model(
+def case_trivial_model(
     coupled_ribasim_mf6_model: Modflow6Simulation,
     ribasim_model: ribasim.Model,
 ) -> RibaMod:
