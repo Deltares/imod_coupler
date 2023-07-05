@@ -5,6 +5,7 @@ import h5netcdf.legacyapi as nc
 import numpy as np
 import pytest
 import tomli
+from numpy.testing import assert_equal
 from numpy.typing import NDArray
 
 from imod_coupler.logging.exchange_collector import ExchangeCollector
@@ -32,9 +33,9 @@ def test_exchange_collector_read(tmp_path_dev: Path, output_config_toml: str) ->
     ds = nc.Dataset(tmp_path_dev / "example_flux_output.nc", "r")
     dat = ds.variables["xchg"][:]
     tim = ds.variables["time"][:]
-    assert np.array_equal(dat[0, :], some_array0, equal_nan=True)
-    assert np.array_equal(dat[1, :], some_array1, equal_nan=True)
-    assert np.array_equal(tim[:], np.array([8.0, 23.0]), equal_nan=True)
+    assert_equal(dat[0, :], some_array0)
+    assert_equal(dat[1, :], some_array1)
+    assert_equal(tim[:], np.array([8.0, 23.0]))
 
 
 def test_exchange_collector_ignores_unknown_exchanges(
@@ -107,8 +108,8 @@ def test_exchange_collector_overwrites_when_time_is_repeated(
     ds = nc.Dataset(tmp_path_dev / "example_stage_output.nc", "r")
     dat = ds.variables["xchg"][:]
     tim = ds.variables["time"][:]
-    assert np.array_equal(dat[1, :], some_arrays[3], equal_nan=True)
-    assert np.array_equal(tim[:], np.array([8.0, 9.0, 10.0]), equal_nan=True)
+    assert_equal(dat[1, :], some_arrays[3])
+    assert_equal(tim[:], np.array([8.0, 9.0, 10.0]))
 
 
 def test_exchange_collector_can_initialized_without_input():
