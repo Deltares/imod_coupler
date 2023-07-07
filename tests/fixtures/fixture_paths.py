@@ -6,14 +6,14 @@ import pytest
 from pytest import FixtureRequest
 
 
-@pytest.fixture
+@pytest.fixture(scope="function")
 def tmp_path_dev(
     tmp_path: Path,
 ) -> Path:
     return tmp_path / "develop"
 
 
-@pytest.fixture
+@pytest.fixture(scope="function")
 def tmp_path_reg(
     tmp_path: Path,
 ) -> Path:
