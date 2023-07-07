@@ -23,6 +23,16 @@ from imod_coupler.logging.exchange_collector import ExchangeCollector
 from imod_coupler.utils import create_mapping
 
 
+class reset:
+    hold: NDArray
+
+    def __init__(self) -> None:
+        pass
+
+    def set_hold(self) -> None:
+        self.hold = np.copy(self.mf6.get_value_ptr("MODEL/XOLD"))
+
+
 class MetaMod(Driver):
     """The driver coupling MetaSWAP and MODFLOW 6"""
 
