@@ -1,0 +1,20 @@
+timing = false
+log_level = "INFO"
+log_file = "imod_coupler.log"
+driver_type = "metamod"
+
+[driver.kernels.modflow6]
+dll = "c:\\src\\imod_libs\\imod_collector_regression\\modflow6\\libmf6.dll"
+work_dir = ".\\MODFLOW6"
+
+[driver.kernels.metaswap]
+dll = "c:\\src\\imod_libs\\imod_collector_devel\\metaswap\\MetaSWAP.dll"
+work_dir = ".\\MetaSWAP"
+dll_dep_dir = "c:\\src\\imod_libs\\imod_collector_devel\\metaswap"
+
+[[driver.coupling]]
+mf6_model = "GWF_1"
+mf6_msw_node_map = ".\\exchanges\\NODENR2SVAT.DXC"
+mf6_msw_recharge_pkg = "rch_msw"
+mf6_msw_recharge_map = ".\\exchanges\\RCHINDEX2SVAT.DXC"
+enable_sprinkling = false

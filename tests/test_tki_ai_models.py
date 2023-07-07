@@ -84,12 +84,12 @@ def test_tki_ai_model_local(
 
     toml_path = tmp_path / "imod_coupler.toml"
 
-    write_toml(
-        toml_path,
-        metaswap_dll_devel,
-        metaswap_dll_dep_dir_devel,
-        modflow_dll_devel,
-    )
+    # write_toml(
+    #    toml_path,
+    #    metaswap_dll_devel,
+    #    metaswap_dll_dep_dir_devel,
+    #    modflow_dll_devel,
+    # )
 
     run_coupler(toml_path)
 
@@ -122,12 +122,12 @@ def test_tki_ai_model_global(
 
     toml_path = tmp_path / "imod_coupler.toml"
 
-    write_toml(
-        toml_path,
-        metaswap_dll_devel,
-        metaswap_dll_dep_dir_devel,
-        modflow_dll_devel,
-    )
+    # write_toml(
+    #    toml_path,
+    #    metaswap_dll_devel,
+    #    metaswap_dll_dep_dir_devel,
+    #    modflow_dll_devel,
+    # )
 
     run_coupler(toml_path)
 
