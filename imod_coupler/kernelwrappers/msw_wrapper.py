@@ -185,3 +185,10 @@ class MswWrapper(XmiWrapper):
             array of storage used by metaswap. Array as pointer to the MetaSWAP intenal array
         """
         return self.get_value_ptr("dsc1sim")
+
+    def save_state(self) -> None:
+        self._execute_function(self.lib.saveState)
+
+    def restore_state(self) -> None:
+        self._execute_function(self.lib.restoreState)
+
