@@ -1,0 +1,314 @@
+                                   MODFLOW 6
+                U.S. GEOLOGICAL SURVEY MODULAR HYDROLOGIC MODEL
+                          GROUNDWATER FLOW MODEL (GWF)
+                            VERSION 6.3.0 03/04/2022
+
+   MODFLOW 6 compiled Jun 27 2022 11:13:48 with Intel(R) Fortran Intel(R) 64
+   Compiler Classic for applications running on Intel(R) 64, Version 2021.2.0
+                             Build 20210228_000000
+
+This software has been approved for release by the U.S. Geological 
+Survey (USGS). Although the software has been subjected to rigorous 
+review, the USGS reserves the right to update the software as needed 
+pursuant to further analysis and review. No warranty, expressed or 
+implied, is made by the USGS or the U.S. Government as to the 
+functionality of the software and related material nor shall the 
+fact of release constitute any such warranty. Furthermore, the 
+software is released on condition that neither the USGS nor the U.S. 
+Government shall be held liable for any damages resulting from its 
+authorized or unauthorized use. Also refer to the USGS Water 
+Resources Software User Rights Notice for complete use, copyright, 
+and distribution information.
+
+
+As a work of the United States Government, this USGS product is 
+in the public domain within the United States. You can copy, 
+modify, distribute, and perform the work, even for commercial 
+purposes, all without asking permission. Additionally, USGS 
+waives copyright and related rights in the work worldwide 
+through CC0 1.0 Universal Public Domain Dedication 
+(https://creativecommons.org/publicdomain/zero/1.0/).
+
+The following GNU Lesser General Public License (LGPL) libraries
+are used in this USGS product:
+
+    SPARSKIT version 2.0
+      ilut, luson, and qsplit 
+      (https://www-users.cse.umn.edu/~saad/software/SPARSKIT/)
+
+    RCM - Reverse Cuthill McKee Ordering
+      (https://people.math.sc.edu/Burkardt/f_src/rcm/rcm.html)
+
+    BLAS - Basic Linear Algebra Subprograms Level 1
+      (https://people.math.sc.edu/Burkardt/f_src/blas1_d/blas1_d.html)
+
+    SPARSEKIT - Sparse Matrix Utility Package
+      amux, dperm, dvperm, rperm, and cperm
+      (https://people.sc.fsu.edu/~jburkardt/f77_src/sparsekit/sparsekit.html)
+
+The following BSD-3 License libraries are used in this USGS product:
+
+    Modern Fortran DAG Library
+      Copyright (c) 2018, Jacob Williams
+      All rights reserved.
+      (https://github.com/jacobwilliams/daglib)
+
+MODFLOW 6 compiler options: /Isrc\libmf6core.a.p /Isrc /I..\src
+/Isrc\libmf6_external.a.p /MTd /nologo /warn:general /warn:truncated_source
+/stand:f08 /Zi /traceback /O2 /fpe:0 /fpp /Qdiag-disable:7416
+/Qdiag-disable:7025 /Qdiag-disable:5268
+/Fdsrc\libmf6core.a.p\Utilities_compilerversion.F90.pdb
+/module:src\libmf6core.a.p
+/Fosrc/libmf6core.a.p/Utilities_compilerversion.F90.obj /c
+
+System command used to initiate simulation:
+c:\werkmap\test_freatisch\Testmodel-plateaurand\Testmodel-plateaurand\EXE\iMOD_coupler\imodc.exe      imod_coupler.toml
+
+MODFLOW was compiled using uniform precision.
+
+Real Variables
+  KIND: 8
+  TINY (smallest non-zero value):    2.225074-308
+  HUGE (largest value):    1.797693+308
+  PRECISION: 15
+  BIT SIZE: 64
+
+Integer Variables
+  KIND: 4
+  HUGE (largest value): 2147483647
+  BIT SIZE: 32
+
+Long Integer Variables
+  KIND: 8
+  HUGE (largest value): 9223372036854775807
+  BIT SIZE: 64
+
+Logical Variables
+  KIND: 4
+  BIT SIZE: 32
+ 
+
+ OPENED .\GWF_1\MODELINPUT\T-MODEL-F.DIS6
+ FILE TYPE:DIS6                   UNIT 1005   STATUS:OLD                 
+ FORMAT:FORMATTED              ACCESS:SEQUENTIAL          
+ ACTION:READ                
+
+
+ OPENED .\GWF_1\MODELINPUT\T-MODEL-F.IC6
+ FILE TYPE:IC6                    UNIT 1006   STATUS:OLD                 
+ FORMAT:FORMATTED              ACCESS:SEQUENTIAL          
+ ACTION:READ                
+
+
+ OPENED .\GWF_1\MODELINPUT\T-MODEL-F.NPF6
+ FILE TYPE:NPF6                   UNIT 1007   STATUS:OLD                 
+ FORMAT:FORMATTED              ACCESS:SEQUENTIAL          
+ ACTION:READ                
+
+
+ OPENED .\GWF_1\MODELINPUT\T-MODEL-F.OC6
+ FILE TYPE:OC6                    UNIT 1008   STATUS:OLD                 
+ FORMAT:FORMATTED              ACCESS:SEQUENTIAL          
+ ACTION:READ                
+
+
+ OPENED .\GWF_1\MODELINPUT\T-MODEL-F.STO6
+ FILE TYPE:STO6                   UNIT 1009   STATUS:OLD                 
+ FORMAT:FORMATTED              ACCESS:SEQUENTIAL          
+ ACTION:READ                
+
+
+ OPENED .\GWF_1\MODELINPUT\T-MODEL-F_SYS1.DRN6
+ FILE TYPE:DRN6                   UNIT 1010   STATUS:OLD                 
+ FORMAT:FORMATTED              ACCESS:SEQUENTIAL          
+ ACTION:READ                
+
+
+ OPENED .\GWF_1\MODELINPUT\T-MODEL-F_SYS1.RIV6
+ FILE TYPE:RIV6                   UNIT 1011   STATUS:OLD                 
+ FORMAT:FORMATTED              ACCESS:SEQUENTIAL          
+ ACTION:READ                
+
+
+ OPENED .\GWF_1\MODELINPUT\T-MODEL-F_SYS2.RIV6
+ FILE TYPE:RIV6                   UNIT 1012   STATUS:OLD                 
+ FORMAT:FORMATTED              ACCESS:SEQUENTIAL          
+ ACTION:READ                
+
+
+ OPENED .\GWF_1\MODELINPUT\MSW.RCH6
+ FILE TYPE:RCH6                   UNIT 1013   STATUS:OLD                 
+ FORMAT:FORMATTED              ACCESS:SEQUENTIAL          
+ ACTION:READ                
+
+
+ DIS -- STRUCTURED GRID DISCRETIZATION PACKAGE, VERSION 2 : 3/27/2014 - INPUT READ FROM UNIT 1005
+
+
+ # DIS6 File Generated by iMOD [V5_4 X64 Optimized]
+ PROCESSING DISCRETIZATION OPTIONS
+    MODEL LENGTH UNIT IS METERS
+    XORIGIN SPECIFIED AS     0.00000000000000    
+    YORIGIN SPECIFIED AS     0.00000000000000    
+    ANGROT SPECIFIED AS     0.00000000000000    
+ END OF DISCRETIZATION OPTIONS
+ #Model Dimensions
+ PROCESSING DISCRETIZATION DIMENSIONS
+    NLAY =       1
+    NROW =      11
+    NCOL =      10
+ END OF DISCRETIZATION DIMENSIONS
+ #Cell Sizes
+ PROCESSING GRIDDATA
+
+                     DELR =   100.0000    
+
+                     DELC =   100.0000    
+ #Vertical Configuration
+
+ TOP ELEVATION OF LAYER 1 =   0.000000    
+
+   MODEL LAYER BOTTOM EL. =  -10.00000     FOR LAYER 1
+ #Boundary Settings
+
+ OPENED .\GWF_1\MODELINPUT\DIS6\IBOUND_L1.ARR
+ FILE TYPE:OPEN/CLOSE   UNIT 1015   STATUS:OLD                 
+ FORMAT:FORMATTED              ACCESS:SEQUENTIAL          
+ ACTION:READ                
+
+ END PROCESSING GRIDDATA
+
+ NPF -- NODE PROPERTY FLOW PACKAGE, VERSION 1, 3/30/2015 INPUT READ FROM UNIT 1007
+
+
+ # NPF6 File Generated by iMOD [V5_4 X64 Optimized]
+ #General Options
+ PROCESSING NPF OPTIONS
+    ALTERNATIVE CELL AVERAGING HAS BEEN SET TO AMT-HMK
+    CELL AVERAGING METHOD HAS BEEN SET TO: AMT-HMK                                                                                                                                                                                                                                                                                                     
+ END OF NPF OPTIONS
+
+ DRN   -- DRN PACKAGE, VERSION 8, 2/22/2014 INPUT READ FROM UNIT 1010
+ # DRN6 File Generated by iMOD [V5_4 X64 Optimized]
+ #General Options
+
+ PROCESSING DRN OPTIONS
+    FLOWS WILL BE SAVED TO BUDGET FILE SPECIFIED IN OUTPUT CONTROL
+ END OF DRN OPTIONS
+ #General Dimensions
+
+ PROCESSING DRN DIMENSIONS
+    MAXBOUND =       2
+ END OF DRN DIMENSIONS
+
+ RIV   -- RIV PACKAGE, VERSION 8, 2/22/2014 INPUT READ FROM UNIT 1011
+ # RIV6 File Generated by iMOD [V5_4 X64 Optimized]
+ #General Options
+
+ PROCESSING RIV OPTIONS
+    FLOWS WILL BE SAVED TO BUDGET FILE SPECIFIED IN OUTPUT CONTROL
+ END OF RIV OPTIONS
+ #General Dimensions
+
+ PROCESSING RIV DIMENSIONS
+    MAXBOUND =      55
+ END OF RIV DIMENSIONS
+
+ RIV   -- RIV PACKAGE, VERSION 8, 2/22/2014 INPUT READ FROM UNIT 1012
+ # RIV6 File Generated by iMOD [V5_4 X64 Optimized]
+ #General Options
+
+ PROCESSING RIV OPTIONS
+    FLOWS WILL BE SAVED TO BUDGET FILE SPECIFIED IN OUTPUT CONTROL
+ END OF RIV OPTIONS
+ #General Dimensions
+
+ PROCESSING RIV DIMENSIONS
+    MAXBOUND =       3
+ END OF RIV DIMENSIONS
+
+ RCH   -- RCH PACKAGE, VERSION 8, 2/22/2014 INPUT READ FROM UNIT 1013
+ # RCH6 File Generated by iMOD [V5_4 X64 Optimized]
+ #General Options
+
+ PROCESSING RCH OPTIONS
+    FLOWS WILL BE SAVED TO BUDGET FILE SPECIFIED IN OUTPUT CONTROL
+ END OF RCH OPTIONS
+ #General Dimensions
+
+ PROCESSING RCH DIMENSIONS
+    MAXBOUND =     110
+ END OF RCH DIMENSIONS
+
+ IC -- INITIAL CONDITIONS PACKAGE, VERSION 8, 3/28/2015 INPUT READ FROM UNIT 1006
+ # IC6 File Generated by iMOD [V5_4 X64 Optimized]
+ #General Options
+ PROCESSING IC OPTIONS
+ END OF IC OPTIONS
+ #Initial Head Data
+ PROCESSING GRIDDATA
+
+     INITIAL HEAD =   10.00000     FOR LAYER 1
+ END PROCESSING GRIDDATA
+ #Geology Options
+ PROCESSING GRIDDATA
+
+                ICELLTYPE = 0 FOR LAYER 1
+
+                        K =   100.0000     FOR LAYER 1
+
+                      K33 =   1.000000     FOR LAYER 1
+ K22 not provided.  Assuming K22 = K.
+ END PROCESSING GRIDDATA
+
+ STO -- STORAGE PACKAGE, VERSION 1, 5/19/2014 INPUT READ FROM UNIT 1009
+
+
+ # STO6 File Generated by iMOD [V5_4 X64 Optimized]
+ #General Options
+ PROCESSING STORAGE OPTIONS
+    STORAGECOEFFICIENT OPTION:
+ Read storage coefficient rather than specific storage
+ END OF STORAGE OPTIONS
+ #Geology Options
+ PROCESSING GRIDDATA
+
+                 ICONVERT = 0 FOR LAYER 1
+
+         SPECIFIC STORAGE =  0.1500000     FOR LAYER 1
+ END PROCESSING GRIDDATA
+    BINARY GRID INFORMATION WILL BE WRITTEN TO:
+      UNIT NUMBER: 1016
+      FILE NAME: c:\src\GW-sobek\workspace\lumbricustests\t-model_conversie_mf6\tmodel_mf6\T-MODEL-F\MODFLOW6\GWF_1\MODELINPUT\T-MODEL-F.DIS6.grb
+
+ OPENED c:\src\GW-sobek\workspace\lumbricustests\t-model_conversie_mf6\tmodel_mf6\T-MODEL-F\MODFLOW6\GWF_1\MODELINPUT\T-MODEL-F.DIS6.grb
+ FILE TYPE:DATA(BINARY)   UNIT 1016   STATUS:REPLACE             
+ FORMAT:UNFORMATTED            ACCESS:STREAM              
+ ACTION:READWRITE           
+
+      THE LAST TIME STEP WILL BE PRINTED
+      THE LAST TIME STEP WILL BE PRINTED
+ # OC6 File Generated by iMOD [V5_4 X64 Optimized]
+ #General Options
+
+ PROCESSING OC OPTIONS
+
+    HEAD INFORMATION WILL BE WRITTEN TO:
+      UNIT NUMBER: 1017
+      FILE NAME: .\GWF_1\MODELOUTPUT\HEAD\HEAD.HED
+
+ OPENED .\GWF_1\MODELOUTPUT\HEAD\HEAD.HED
+ FILE TYPE:DATA(BINARY)   UNIT 1017   STATUS:REPLACE             
+ FORMAT:UNFORMATTED            ACCESS:STREAM              
+ ACTION:READWRITE           
+
+    BUDGET INFORMATION WILL BE WRITTEN TO:
+      UNIT NUMBER: 1018
+      FILE NAME: .\GWF_1\MODELOUTPUT\BUDGET\BUDGET.CBC
+
+ OPENED .\GWF_1\MODELOUTPUT\BUDGET\BUDGET.CBC
+ FILE TYPE:DATA(BINARY)   UNIT 1018   STATUS:REPLACE             
+ FORMAT:UNFORMATTED            ACCESS:STREAM              
+ ACTION:READWRITE           
+
+ END OF OC OPTIONS
