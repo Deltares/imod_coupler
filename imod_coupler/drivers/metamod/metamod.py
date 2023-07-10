@@ -5,6 +5,7 @@ description:
 """
 from __future__ import annotations
 
+import os
 from pathlib import Path
 from typing import Any, Dict
 
@@ -41,12 +42,21 @@ class save_restore_state:
         delta_time = self.mf6.get_time_step()
         previous_time = self.mf6.get_current_time() - delta_time
         local_period = previous_time / (local_periods * delta_time)
-        if local_period.is_integer():
+        if local_period.is_integer() and local_period != 0.0:
             self.mf6_set_hold()
+            self.msw_set_state()
+
+    def msw_set_state(self) -> None:
+        # for restore state we have to set work dir to the msw-work dir
+        path_org = os.getcwd()
+        os.chdir(path_org + "/MetaSWAP")
+        self.msw.restore_state()
+        os.chdir(path_org)
 
     def save_state(self) -> None:
         if self.mf6.get_current_time() == 1:
             self.mf6_save_hold()
+            self.msw.save_state()
 
     def _mf6_get_hold(self, mf6_flowmodel_key: str) -> None:
         mf6_hold_tag = self.mf6.get_var_address("XOLD", mf6_flowmodel_key)

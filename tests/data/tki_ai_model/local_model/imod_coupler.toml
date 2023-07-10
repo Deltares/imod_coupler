@@ -18,3 +18,4 @@ mf6_msw_node_map = ".\\exchanges\\NODENR2SVAT.DXC"
 mf6_msw_recharge_pkg = "rch_msw"
 mf6_msw_recharge_map = ".\\exchanges\\RCHINDEX2SVAT.DXC"
 enable_sprinkling = false
+n_periods = 365
