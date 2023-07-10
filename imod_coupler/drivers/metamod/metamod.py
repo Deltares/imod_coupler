@@ -23,14 +23,46 @@ from imod_coupler.logging.exchange_collector import ExchangeCollector
 from imod_coupler.utils import create_mapping
 
 
-class reset:
-    hold: NDArray
+class save_restore_state:
+    mf6_saved_hold: NDArray[Any]
+    mf6_hold: NDArray[Any]
 
-    def __init__(self) -> None:
+    def __init__(
+        self,
+        mf6: Mf6Wrapper,
+        msw: MswWrapper,
+        mf6_flowmodel_key: str,
+    ) -> None:
+        self.mf6 = mf6
+        self.msw = msw
+        self._mf6_get_hold(mf6_flowmodel_key)
+
+    def update_state(self, local_periods: float) -> None:
+        delta_time = self.mf6.get_time_step()
+        previous_time = self.mf6.get_current_time() - delta_time
+        local_period = previous_time / (local_periods * delta_time)
+        if local_period.is_integer():
+            self.mf6_set_hold()
+
+    def save_state(self) -> None:
+        if self.mf6.get_current_time() == 1:
+            self.mf6_save_hold()
+
+    def _mf6_get_hold(self, mf6_flowmodel_key: str) -> None:
+        mf6_hold_tag = self.mf6.get_var_address("XOLD", mf6_flowmodel_key)
+        self.mf6_hold = self.mf6.get_value_ptr(mf6_hold_tag)
+
+    def mf6_save_hold(self) -> None:
+        self.mf6_saved_hold = np.copy(self.mf6_hold)
+
+    def mf6_set_hold(self) -> None:
+        self.mf6_hold[:] = self.mf6_saved_hold[:]
+
+    def msw_save_state(self) -> None:
         pass
 
-    def set_hold(self) -> None:
-        self.hold = np.copy(self.mf6.get_value_ptr("MODEL/XOLD"))
+    def msw_reset_state(self) -> None:
+        pass
 
 
 class MetaMod(Driver):
@@ -59,6 +91,8 @@ class MetaMod(Driver):
     msw_head: NDArray[Any]  # internal MetaSWAP groundwater head
     msw_volume: NDArray[Any]  # unsaturated zone flux (as a volume!)
     msw_storage: NDArray[Any]  # MetaSWAP storage coefficients (MODFLOW's sc1)
+
+    local_periods: float  # Number of stress periods in local model
 
     # dictionary with mapping tables for mod=>msw coupling
     map_mod2msw: Dict[str, csr_matrix] = {}
@@ -101,6 +135,11 @@ class MetaMod(Driver):
             )
         else:
             self.exchange_logger = ExchangeCollector()
+        self.save_restore_state = save_restore_state(
+            self.mf6,
+            self.msw,
+            mf6_flowmodel_key=self.coupling.mf6_model,
+        )
         self.couple()
 
     def log_version(self) -> None:
@@ -124,6 +163,8 @@ class MetaMod(Driver):
         self.msw_head = self.msw.get_head_ptr()
         self.msw_volume = self.msw.get_volume_ptr()
         self.msw_storage = self.msw.get_storage_ptr()
+
+        self.local_periods = self.coupling.n_periods
 
         # create a lookup, with the svat tuples (id, lay) as keys and the
         # metaswap internal indexes as values
@@ -241,6 +282,8 @@ class MetaMod(Driver):
 
         # convergence loop
         self.mf6.prepare_solve(1)
+        self.save_restore_state.save_state()
+        self.save_restore_state.update_state(self.local_periods)
         for kiter in range(1, self.max_iter + 1):
             has_converged = self.do_iter(1)
             if has_converged:

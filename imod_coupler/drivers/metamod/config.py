@@ -41,6 +41,7 @@ class Coupling(BaseModel):
         FilePath
     ] = None  # the path to the sprinkling map file
     output_config_file: Optional[FilePath] = None
+    n_periods: int
 
     class Config:
         arbitrary_types_allowed = True  # Needed for `mf6_msw_sprinkling_map`
