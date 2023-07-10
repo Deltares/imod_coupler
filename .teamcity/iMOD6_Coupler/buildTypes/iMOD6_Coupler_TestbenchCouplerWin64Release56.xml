@@ -4,7 +4,7 @@
   <description>Win64 Regression testbench for MODFLOW6/MetaSWAP coupler</description>
   <settings>
     <options>
-      <option name="artifactRules" value="imod_coupler\tests\temp =&gt; test_output.zip&#xA;imod_coupler\imod_coupler =&gt; imod_coupler\imod_coupler_code.zip" />
+      <option name="artifactRules" value="imod_coupler\tests\temp =&gt; test_output.zip&#xA;imod_coupler\imod_coupler =&gt; imod_coupler\imod_coupler_code.zip&#xA;conda_list.txt" />
     </options>
     <parameters>
       <param name="conda_env_path" value="%system.teamcity.build.checkoutDir%/imod_coupler_testbench_env" />
