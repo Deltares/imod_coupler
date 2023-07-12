@@ -1,6 +1,7 @@
 import subprocess
 from pathlib import Path
 
+import pandas as pd
 from imod.couplers.ribamod import RibaMod
 from pytest_cases import parametrize_with_cases
 
@@ -27,3 +28,15 @@ def test_ribamod_develop(
     subprocess.run(
         [imod_coupler_exec_devel, tmp_path_dev / ribamod_model._toml_name], check=True
     )
+
+    basin_df = pd.read_feather(
+        tmp_path_dev / ribamod_model._ribasim_model_dir / "output" / "basin.arrow"
+    )
+
+    # There should be only a single node in the model
+    assert (basin_df["node_id"] == 1).all()
+
+    final_storage = basin_df.sort_values("time", ascending=False)["storage"].iloc[0]
+
+    # Assert that the basin nearly empties
+    assert final_storage < 60
