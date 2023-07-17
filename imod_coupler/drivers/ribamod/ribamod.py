@@ -104,20 +104,27 @@ class RibaMod(Driver):
         # One time step in MODFLOW 6
         self.mf6.update()
 
-        # Compute MODFLOW 6 river budget
-        river_drain_flux = (
+        # Compute MODFLOW 6 river and drain flux
+        river_flux = (
             self.mf6.get_river_drain_flux(
                 self.coupling.mf6_model,
                 self.coupling.mf6_river_packages[0],  # TODO: stop hardcoding 0
             )
             / ribamod_time_factor
         )
-        mf6_infiltration = np.where(river_drain_flux > 0, river_drain_flux, 0)
-        mf6_drainage = np.where(river_drain_flux < 0, -river_drain_flux, 0)
+        river_flux_positive = np.where(river_flux > 0, river_flux, 0)
+        river_flux_negative = np.where(river_flux < 0, -river_flux, 0)
 
-        # TODO: Get MODFLOW 6 drainage flux
-        # flip the sign
-        # add to mf6_drainage
+        drain_flux = -(
+            self.mf6.get_river_drain_flux(
+                self.coupling.mf6_model,
+                self.coupling.mf6_drainage_packages[0],  # TODO: stop hardcoding 0
+            )
+            / ribamod_time_factor
+        )
+
+        mf6_infiltration = river_flux_positive
+        mf6_drainage = river_flux_negative + drain_flux
 
         # Set Ribasim infiltration/drainage terms to value of river budget of MODFLOW 6
         ribasim_infiltration = self.ribasim.get_value_ptr("infiltration")
