@@ -115,13 +115,16 @@ class RibaMod(Driver):
         river_flux_positive = np.where(river_flux > 0, river_flux, 0)
         river_flux_negative = np.where(river_flux < 0, -river_flux, 0)
 
-        drain_flux = -(
-            self.mf6.get_river_drain_flux(
-                self.coupling.mf6_model,
-                self.coupling.mf6_drainage_packages[0],  # TODO: stop hardcoding 0
+        if len(self.coupling.mf6_drainage_packages) == 0:
+            drain_flux = np.zeros_like(river_flux)
+        else:
+            drain_flux = -(
+                self.mf6.get_river_drain_flux(
+                    self.coupling.mf6_model,
+                    self.coupling.mf6_drainage_packages[0],  # TODO: stop hardcoding 0
+                )
+                / ribamod_time_factor
             )
-            / ribamod_time_factor
-        )
 
         mf6_infiltration = river_flux_positive
         mf6_drainage = river_flux_negative + drain_flux
