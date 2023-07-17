@@ -60,7 +60,7 @@ conda activate imod_coupler
 - Install `imod_coupler` by executing (this will also put the executable `imodc` in your `PATH`):
 
 ```
-pip install -e .
+pip install --editable .
 ```
 
 - With your Deltares credentials download
