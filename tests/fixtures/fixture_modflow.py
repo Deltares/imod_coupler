@@ -221,7 +221,7 @@ def mf6_backwater_model() -> mf6.Modflow6Simulation:
     """
     This model is created to match the Ribasim backwater test model.
     """
-    x = np.arange(10.0, 1020.0, 20.0)
+    x = np.arange(10.0, 1000.0, 20.0)
     y = np.arange(200.0, -220.0, -20.0)
     layer = np.array([1])
     shape = (layer.size, y.size, x.size)
