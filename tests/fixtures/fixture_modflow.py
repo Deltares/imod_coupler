@@ -87,33 +87,6 @@ def make_coupled_mf6_model(idomain: xr.DataArray) -> mf6.Modflow6Simulation:
     return simulation
 
 
-def make_coupled_ribasim_mf6_model(idomain: xr.DataArray) -> mf6.Modflow6Simulation:
-    # The bottom of the ribasim trivial model is located at 0.0 m: the surface
-    # level of the groundwater model.
-    gwf_model = make_mf6_model(idomain)
-
-    template = xr.full_like(idomain.isel(layer=[0]), np.nan, dtype=np.float64)
-    stage = template.copy()
-    conductance = template.copy()
-    bottom_elevation = template.copy()
-
-    # Conductance is area divided by resistance (dx * dy / c0)
-    # Assume the entire cell is wetted.
-    stage[:, 1, 3] = 0.5
-    conductance[:, 1, 3] = (100.0 * 100.0) / 1.0
-    bottom_elevation[:, 1, 3] = 0.0
-
-    gwf_model["riv-1"] = mf6.River(
-        stage=stage,
-        conductance=conductance,
-        bottom_elevation=bottom_elevation,
-        save_flows=True,
-    )
-
-    simulation = make_mf6_simulation(gwf_model)
-    return simulation
-
-
 def convert_storage_package(
     gwf_model: mf6.GroundwaterFlowModel,
 ) -> mf6.GroundwaterFlowModel:
@@ -179,8 +152,31 @@ def coupled_mf6_model(active_idomain: xr.DataArray) -> mf6.Modflow6Simulation:
 
 
 @pytest_cases.fixture(scope="function")
-def coupled_ribasim_mf6_model(active_idomain: xr.DataArray) -> mf6.Modflow6Simulation:
-    return make_coupled_ribasim_mf6_model(active_idomain)
+def mf6_bucket_model(active_idomain: xr.DataArray) -> mf6.Modflow6Simulation:
+    # The bottom of the ribasim trivial model is located at 0.0 m: the surface
+    # level of the groundwater model.
+    gwf_model = make_mf6_model(active_idomain)
+
+    template = xr.full_like(active_idomain.isel(layer=[0]), np.nan, dtype=np.float64)
+    stage = template.copy()
+    conductance = template.copy()
+    bottom_elevation = template.copy()
+
+    # Conductance is area divided by resistance (dx * dy / c0)
+    # Assume the entire cell is wetted.
+    stage[:, 1, 3] = 0.5
+    conductance[:, 1, 3] = (100.0 * 100.0) / 1.0
+    bottom_elevation[:, 1, 3] = 0.0
+
+    gwf_model["riv-1"] = mf6.River(
+        stage=stage,
+        conductance=conductance,
+        bottom_elevation=bottom_elevation,
+        save_flows=True,
+    )
+
+    simulation = make_mf6_simulation(gwf_model)
+    return simulation
 
 
 @pytest_cases.fixture(scope="function")
@@ -221,7 +217,7 @@ def mf6_model_with_river(
 
 
 @pytest_cases.fixture(scope="function")
-def mf6_model_backwater_river() -> mf6.Modflow6Simulation:
+def mf6_backwater_model() -> mf6.Modflow6Simulation:
     """
     This model is created to match the Ribasim backwater test model.
     """
