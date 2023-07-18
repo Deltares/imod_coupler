@@ -16,7 +16,31 @@ def test_ribamod_develop(
     imod_coupler_exec_devel: Path,
 ) -> None:
     """
-    Test if coupled models run with the iMOD Coupler development version.
+    Test if coupled ribamod models run with the iMOD Coupler development version.
+    """
+    ribamod_model.write(
+        tmp_path_dev,
+        modflow6_dll=modflow_dll_devel,
+        ribasim_dll=ribasim_dll_devel,
+        ribasim_dll_dependency=ribasim_dll_dep_dir_devel,
+    )
+
+    subprocess.run(
+        [imod_coupler_exec_devel, tmp_path_dev / ribamod_model._toml_name], check=True
+    )
+
+
+@parametrize_with_cases("ribamod_model", prefix="bucket_model")
+def test_ribamod_bucket(
+    tmp_path_dev: Path,
+    ribamod_model: RibaMod,
+    modflow_dll_devel: Path,
+    ribasim_dll_devel: Path,
+    ribasim_dll_dep_dir_devel: Path,
+    imod_coupler_exec_devel: Path,
+) -> None:
+    """
+    Test if the bucket model works as expected
     """
     ribamod_model.write(
         tmp_path_dev,
