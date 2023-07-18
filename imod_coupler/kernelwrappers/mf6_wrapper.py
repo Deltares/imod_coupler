@@ -71,6 +71,62 @@ class Mf6Wrapper(XmiWrapper):
         mf6_sprinkling_wells = self.get_value_ptr(mf6_sprinkling_tag)[:, 0]
         return mf6_sprinkling_wells
 
+    def get_drainage_elevation(
+        self,
+        mf6_flowmodel_key: str,
+        mf6_package_key: str,
+    ) -> NDArray[np.float64]:
+        """
+        Returns the drainage elevation of the modflow model
+
+        Parameters
+        ----------
+        mf6_flowmodel_key : str
+            The user-assigned component name of the flow model
+        mf6_package_key: str,
+            The user-assigned component name of the drainage package
+
+        Returns
+        -------
+         NDArray[np.float_]:
+            Drainage elevation in modflow
+        """
+        bound_adress = self.get_var_address("BOUND", mf6_flowmodel_key, mf6_package_key)
+        bound = self.get_value_ptr(bound_adress)
+        stage = bound[:, 0]
+        return stage
+
+    def set_drainage_elevation(
+        self,
+        mf6_flowmodel_key: str,
+        mf6_package_key: str,
+        new_drainage_elevation: NDArray[np.float_],
+    ) -> None:
+        """
+        Sets the river stages in a modflow simulation to the provided values.
+
+        Parameters
+        ----------
+        mf6_flowmodel_key: str
+            The user-assigned component name of the flow model
+        mf6_package_key: str
+            The user-assigned component name of the drainage package
+        new_drainage_elevation : NDArray[np.float_]
+            Drainage elevation to be set to modflow
+
+
+        Raises
+        ------
+        ValueError
+            the size of the provided stage array does not match the expected size
+        """
+        stage = self.get_drainage_elevation(mf6_flowmodel_key, mf6_package_key)
+        if len(new_drainage_elevation) != len(stage):
+            raise ValueError(f"Expected size of new_drainage_elevation is {len(stage)}")
+        bound_adress = self.get_var_address("BOUND", mf6_flowmodel_key, mf6_package_key)
+        bound = self.get_value_ptr(bound_adress)
+        bound[:, 0] = new_drainage_elevation[:]
+
     def set_river_stages(
         self,
         mf6_flowmodel_key: str,

@@ -91,15 +91,19 @@ class RibaMod(Driver):
         # Ribasim's time unit is always seconds
         ribamod_time_factor = 86400
 
-        # Set the MODFLOW 6 river stage to value of waterlevel of Ribasim basin
+        # Set the MODFLOW 6 river stage and drainage to value of waterlevel of Ribasim basin
         ribasim_level = self.ribasim.get_value_ptr("level")
-        mf6_river_stage = self.mf6.get_river_stages(
+        self.mf6.set_river_stages(
             self.coupling.mf6_model,
             self.coupling.mf6_river_packages[0],  # TODO: stop hardcoding 0
+            ribasim_level,
         )
-        mf6_river_stage[:] = ribasim_level[:]
-
-        # TODO: Set MODFLOW 6 drainage elevation to waterlevel of Ribasim basin
+        if len(self.coupling.mf6_drainage_packages) > 0:
+            self.mf6.set_drainage_elevation(
+                self.coupling.mf6_model,
+                self.coupling.mf6_drainage_packages[0],  # TODO: stop hardcoding 0
+                ribasim_level,
+            )
 
         # One time step in MODFLOW 6
         self.mf6.update()
@@ -115,9 +119,7 @@ class RibaMod(Driver):
         river_flux_positive = np.where(river_flux > 0, river_flux, 0)
         river_flux_negative = np.where(river_flux < 0, -river_flux, 0)
 
-        if len(self.coupling.mf6_drainage_packages) == 0:
-            drain_flux = np.zeros_like(river_flux)
-        else:
+        if len(self.coupling.mf6_drainage_packages) > 0:
             drain_flux = -(
                 self.mf6.get_river_drain_flux(
                     self.coupling.mf6_model,
@@ -125,6 +127,8 @@ class RibaMod(Driver):
                 )
                 / ribamod_time_factor
             )
+        else:
+            drain_flux = np.zeros_like(river_flux)
 
         mf6_infiltration = river_flux_positive
         mf6_drainage = river_flux_negative + drain_flux
