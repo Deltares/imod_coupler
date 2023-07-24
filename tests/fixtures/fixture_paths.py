@@ -108,11 +108,6 @@ def tki_ai_model_local(request: FixtureRequest) -> Path:
 
 
 @pytest.fixture(scope="function")
-def tki_ai_model_global(request: FixtureRequest) -> Path:
-    return request.path.parent / "data" / "tki_ai_model" / "global_model"
-
-
-@pytest.fixture(scope="function")
 def test_data_folder(request: FixtureRequest) -> Path:
     return request.path.parent / "data"
 

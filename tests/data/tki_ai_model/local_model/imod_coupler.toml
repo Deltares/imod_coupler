@@ -19,3 +19,4 @@ mf6_msw_recharge_pkg = "rch_msw"
 mf6_msw_recharge_map = ".\\exchanges\\RCHINDEX2SVAT.DXC"
 enable_sprinkling = false
 n_periods = 365
+mf6_packages = ['DRN_SYS1','RIV_SYS1','RIV_SYS2']
