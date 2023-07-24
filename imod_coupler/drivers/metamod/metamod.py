@@ -18,7 +18,10 @@ from xmipy import XmiWrapper
 from imod_coupler.config import BaseConfig
 from imod_coupler.drivers.driver import Driver
 from imod_coupler.drivers.metamod.config import Coupling, MetaModConfig
-from imod_coupler.drivers.metamod.save_and_restore import save_and_restore_state
+from imod_coupler.drivers.metamod.save_and_restore import (
+    save_and_restore_state,
+    update_tdis,
+)
 from imod_coupler.kernelwrappers.mf6_wrapper import Mf6Wrapper
 from imod_coupler.kernelwrappers.msw_wrapper import MswWrapper
 from imod_coupler.logging.exchange_collector import ExchangeCollector
@@ -73,6 +76,11 @@ class MetaMod(Driver):
         ]  # Adapt as soon as we have multimodel support
 
     def initialize(self) -> None:
+        self.original_periods = update_tdis(
+            self.metamod_config.kernels.modflow6.work_dir,
+            self.coupling.repeat_period,
+            self.coupling.tdis_template_file,
+        )
         self.mf6 = Mf6Wrapper(
             lib_path=self.metamod_config.kernels.modflow6.dll,
             lib_dependency=self.metamod_config.kernels.modflow6.dll_dep_dir,
@@ -101,7 +109,7 @@ class MetaMod(Driver):
             self.msw,
             mf6_flowmodel_key=self.coupling.mf6_model,
             mf6_packages=self.coupling.mf6_packages,
-            local_periods=float(self.coupling.n_periods),
+            original_periods=float(self.original_periods),
         )
         self.couple()
 

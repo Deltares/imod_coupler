@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 from typing import Any, Dict
 
 import numpy as np
@@ -6,6 +7,31 @@ from numpy.typing import NDArray
 
 from imod_coupler.kernelwrappers.mf6_wrapper import Mf6Wrapper
 from imod_coupler.kernelwrappers.msw_wrapper import MswWrapper
+
+
+def update_tdis(mf6_work_dir: str, n_repeat: int, tdis_template: str) -> int:
+    tdis_template_file = Path(os.getcwd()) / mf6_work_dir / tdis_template
+    tdis_file = (
+        Path(os.getcwd()) / mf6_work_dir / tdis_template.replace("_template.", ".")
+    )
+    with open(tdis_template_file, "r") as fin:
+        lines = fin.readlines()
+    i = -1
+    for line in lines:
+        i += 1
+        if "NPER" in line.upper():
+            nper = int(line.split()[1])
+            iper = i
+        if "BEGIN PERIODDATA" in line.upper():
+            istart = i + 1
+        if "END PERIODDATA" in line.upper():
+            iend = i
+    lines[iper] = line = " NPER " + str(nper * n_repeat) + "\n"
+    with open(tdis_file, "w") as fuit:
+        fuit.writelines(lines[0:istart])
+        fuit.writelines(lines[istart:iend] * n_repeat)
+        fuit.writelines(["END PERIODDATA"])
+    return nper
 
 
 class save_and_restore_state:
@@ -18,7 +44,7 @@ class save_and_restore_state:
         msw: MswWrapper,
         mf6_flowmodel_key: str,
         mf6_packages: list[str],
-        local_periods: float,
+        original_periods: float,
     ) -> None:
         self.mf6 = mf6
         self.msw = msw
@@ -26,7 +52,7 @@ class save_and_restore_state:
             mf6=mf6, mf6_flowmodel_key=mf6_flowmodel_key, mf6_packages=mf6_packages
         )
         self.mf6_flowmodel_key = mf6_flowmodel_key
-        self.local_periods = local_periods
+        self.local_periods = original_periods
         self._mf6_get_hold_array_pointer(mf6_flowmodel_key)
         self.repeat = 0.0
 
@@ -91,6 +117,7 @@ class mf6_save_restore_packages:
     time_array: Dict[str, list[float]]
     array_pointers: Dict[str, NDArray[Any]]
     mf6_flowmodel_key: str
+    dir: str
 
     def __init__(
         self,
@@ -102,7 +129,8 @@ class mf6_save_restore_packages:
         self.last_array = {}
         self.time_array = {}
         self.array_pointers = {}
-        self.get_array_pointers(mf6_packages, mf6_flowmodel_key)
+        self._get_array_pointers(mf6_packages, mf6_flowmodel_key)
+        self._create_dir()
 
     def save_packages(self, time: float, local_periods: float) -> None:
         for tag, array_pointer in self.array_pointers.items():
@@ -114,18 +142,22 @@ class mf6_save_restore_packages:
         for tag, array_pointer in self.array_pointers.items():
             self._restore(array_pointer, tag, time, local_periods, local_time)
 
-    def get_array_pointers(self, packages: list[str], mf6_flowmodel_key: str) -> None:
+    def _get_array_pointers(self, packages: list[str], mf6_flowmodel_key: str) -> None:
         for name in packages:
-            tag = self.mf6.get_var_address("BOUND", mf6_flowmodel_key, name)
+            tag = self.mf6.get_var_address("BOUND", mf6_flowmodel_key, name.upper())
             array_pointer = self.mf6.get_value_ptr(tag)
             self.array_pointers[tag] = array_pointer
 
+    def _create_dir(self) -> None:
+        self.dir = os.getcwd() + "\\save_and_restore_package_arrays\\"
+        os.makedirs(self.dir)
+
     def _save_array(self, array: NDArray[Any], tag: str, time: float = 1) -> None:
-        path = os.getcwd() + tag.replace("/", "-") + str(int(time))
+        path = self.dir + tag.replace("/", "-") + str(int(time))
         array.tofile(path, sep="")
 
     def _read_array(self, tag: str, time: float) -> NDArray[Any]:
-        path = os.getcwd() + tag.replace("/", "-") + str(int(time))
+        path = self.dir + tag.replace("/", "-") + str(int(time))
         return np.fromfile(path).reshape(self.last_array[tag].shape)
 
     def _save(
@@ -133,7 +165,7 @@ class mf6_save_restore_packages:
     ) -> None:
         if time <= local_periods:
             if time == 1.0:
-                self.last_array[tag] = pointer_array.copy()
+                self.last_array[tag] = np.copy(pointer_array)
                 self.time_array[tag] = []
             equal = np.array_equal(self.last_array[tag], pointer_array)
             if not equal:
@@ -143,11 +175,11 @@ class mf6_save_restore_packages:
                     self._save_array(pointer_array, tag, time)
                     self.time_array[tag].append(1.0)
                     self.time_array[tag].append(time)
-                    self.last_array[tag] = pointer_array.copy()
+                    self.last_array[tag] = np.copy(pointer_array)
                 else:
                     self._save_array(self.last_array[tag], tag, time)
                     self.time_array[tag].append(time)
-                    self.last_array[tag] = pointer_array.copy()
+                    self.last_array[tag] = np.copy(pointer_array)
 
     def _restore(
         self,
