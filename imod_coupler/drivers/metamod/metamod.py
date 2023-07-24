@@ -18,61 +18,11 @@ from xmipy import XmiWrapper
 from imod_coupler.config import BaseConfig
 from imod_coupler.drivers.driver import Driver
 from imod_coupler.drivers.metamod.config import Coupling, MetaModConfig
+from imod_coupler.drivers.metamod.save_and_restore import save_and_restore_state
 from imod_coupler.kernelwrappers.mf6_wrapper import Mf6Wrapper
 from imod_coupler.kernelwrappers.msw_wrapper import MswWrapper
 from imod_coupler.logging.exchange_collector import ExchangeCollector
 from imod_coupler.utils import create_mapping
-
-
-class save_restore_state:
-    mf6_saved_hold: NDArray[Any]
-    mf6_hold: NDArray[Any]
-
-    def __init__(
-        self,
-        mf6: Mf6Wrapper,
-        msw: MswWrapper,
-        mf6_flowmodel_key: str,
-    ) -> None:
-        self.mf6 = mf6
-        self.msw = msw
-        self._mf6_get_hold(mf6_flowmodel_key)
-
-    def update_state(self, local_periods: float) -> None:
-        delta_time = self.mf6.get_time_step()
-        previous_time = self.mf6.get_current_time() - delta_time
-        local_period = previous_time / (local_periods * delta_time)
-        if local_period.is_integer() and local_period != 0.0:
-            self.mf6_set_hold()
-            self.msw_set_state()
-
-    def msw_set_state(self) -> None:
-        # for restore state we have to set work dir to the msw-work dir
-        path_org = os.getcwd()
-        os.chdir(path_org + "/MetaSWAP")
-        self.msw.restore_state()
-        os.chdir(path_org)
-
-    def save_state(self) -> None:
-        if self.mf6.get_current_time() == 1:
-            self.mf6_save_hold()
-            self.msw.save_state()
-
-    def _mf6_get_hold(self, mf6_flowmodel_key: str) -> None:
-        mf6_hold_tag = self.mf6.get_var_address("XOLD", mf6_flowmodel_key)
-        self.mf6_hold = self.mf6.get_value_ptr(mf6_hold_tag)
-
-    def mf6_save_hold(self) -> None:
-        self.mf6_saved_hold = np.copy(self.mf6_hold)
-
-    def mf6_set_hold(self) -> None:
-        self.mf6_hold[:] = self.mf6_saved_hold[:]
-
-    def msw_save_state(self) -> None:
-        pass
-
-    def msw_reset_state(self) -> None:
-        pass
 
 
 class MetaMod(Driver):
@@ -103,6 +53,7 @@ class MetaMod(Driver):
     msw_storage: NDArray[Any]  # MetaSWAP storage coefficients (MODFLOW's sc1)
 
     local_periods: float  # Number of stress periods in local model
+    mf6_packages: list[str]  # list of all active packages
 
     # dictionary with mapping tables for mod=>msw coupling
     map_mod2msw: Dict[str, csr_matrix] = {}
@@ -145,10 +96,12 @@ class MetaMod(Driver):
             )
         else:
             self.exchange_logger = ExchangeCollector()
-        self.save_restore_state = save_restore_state(
+        self.save_restore_state = save_and_restore_state(
             self.mf6,
             self.msw,
             mf6_flowmodel_key=self.coupling.mf6_model,
+            mf6_packages=self.coupling.mf6_packages,
+            local_periods=float(self.coupling.n_periods),
         )
         self.couple()
 
@@ -173,8 +126,6 @@ class MetaMod(Driver):
         self.msw_head = self.msw.get_head_ptr()
         self.msw_volume = self.msw.get_volume_ptr()
         self.msw_storage = self.msw.get_storage_ptr()
-
-        self.local_periods = self.coupling.n_periods
 
         # create a lookup, with the svat tuples (id, lay) as keys and the
         # metaswap internal indexes as values
@@ -286,6 +237,8 @@ class MetaMod(Driver):
         # we cannot set the timestep (yet) in Modflow
         # -> set to the (dummy) value 0.0 for now
         self.mf6.prepare_time_step(0.0)
+        self.save_restore_state.mf6_save_packages()
+        self.save_restore_state.mf6_restore_packages()
 
         self.delt = self.mf6.get_time_step()
         self.msw.prepare_time_step(self.delt)
@@ -293,7 +246,7 @@ class MetaMod(Driver):
         # convergence loop
         self.mf6.prepare_solve(1)
         self.save_restore_state.save_state()
-        self.save_restore_state.update_state(self.local_periods)
+        self.save_restore_state.restore_state()
         for kiter in range(1, self.max_iter + 1):
             has_converged = self.do_iter(1)
             if has_converged:
