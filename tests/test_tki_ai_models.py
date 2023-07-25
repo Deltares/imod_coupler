@@ -5,10 +5,12 @@ from pathlib import Path
 import imod
 import numpy as np
 import pandas as pd
+import tomli
 import tomli_w
 from numpy.testing import assert_allclose
 
 from imod_coupler.__main__ import run_coupler
+from imod_coupler.drivers.metamod.split_mf6_output import split_heads_file
 
 
 def write_toml(
@@ -73,68 +75,27 @@ def test_tki_ai_model_local(
     metaswap_dll_dep_dir_devel: Path,
     modflow_dll_devel: Path,
 ) -> None:
-    """
-    Run modstrip model and test output, compare with results of previous
-    comparison in 2020.
-    """
-
     shutil.copytree(tki_ai_model_local, tmp_path, dirs_exist_ok=True)
 
     fill_para_sim_template(tmp_path / "MetaSWAP", metaswap_lookup_table)
 
     toml_path = tmp_path / "imod_coupler.toml"
 
-    # write_toml(
-    #    toml_path,
-    #    metaswap_dll_devel,
-    #    metaswap_dll_dep_dir_devel,
-    #    modflow_dll_devel,
-    # )
-
     run_coupler(toml_path)
 
-    headfile = tmp_path / "MODFLOW6" / "GWF_1" / "HEAD.HED"
-    grbfile = tmp_path / "MODFLOW6" / "GWF_1" / "MODELINPUT" / "T-MODEL-F.DIS6.grb"
-    heads = imod.mf6.open_hds(headfile, grbfile, False)
-    starttime = pd.to_datetime("1994/01/01")
-    timedelta = pd.to_timedelta(heads["time"], "D")
-    heads = heads.assign_coords(time=starttime + timedelta)
-    imod.idf.save(tmp_path / "MODFLOW6" / "GWF_1" / "head.idf", heads)
+    with open(toml_path, "rb") as f:
+        toml_dict = tomli.load(f)
 
+    nrepeat = toml_dict["driver"]["coupling"][0]["repeat_period"]
+    mf6_work_dir = Path(toml_dict["driver"]["kernels"]["modflow6"]["work_dir"])
+    mf6_name = Path(toml_dict["driver"]["coupling"][0]["mf6_model"])
 
-def test_tki_ai_model_global(
-    tki_ai_model_global: Path,
-    tmp_path: Path,
-    metaswap_lookup_table: Path,
-    imod_coupler_exec_devel: Path,
-    metaswap_dll_devel: Path,
-    metaswap_dll_dep_dir_devel: Path,
-    modflow_dll_devel: Path,
-) -> None:
-    """
-    Run modstrip model and test output, compare with results of previous
-    comparison in 2020.
-    """
+    hds_file = tmp_path / mf6_work_dir / mf6_name / "heads.hds"
+    grb_file = tmp_path / mf6_work_dir / mf6_name / "MODELINPUT" / "T-MODEL-F.DIS6.grb"
+    out_file = tmp_path / mf6_work_dir / mf6_name / "output" / "model{imodel}"
+    ncdf_output = True
+    idf_output = True
 
-    shutil.copytree(tki_ai_model_global, tmp_path, dirs_exist_ok=True)
-
-    fill_para_sim_template(tmp_path / "MetaSWAP", metaswap_lookup_table)
-
-    toml_path = tmp_path / "imod_coupler.toml"
-
-    # write_toml(
-    #    toml_path,
-    #    metaswap_dll_devel,
-    #    metaswap_dll_dep_dir_devel,
-    #    modflow_dll_devel,
-    # )
-
-    run_coupler(toml_path)
-
-    headfile = tmp_path / "MODFLOW6" / "GWF_1" / "HEAD.HED"
-    grbfile = tmp_path / "MODFLOW6" / "GWF_1" / "MODELINPUT" / "T-MODEL-F.DIS6.grb"
-    heads = imod.mf6.open_hds(headfile, grbfile, False)
-    starttime = pd.to_datetime("1994/01/01")
-    timedelta = pd.to_timedelta(heads["time"], "D")
-    heads = heads.assign_coords(time=starttime + timedelta)
-    imod.idf.save(tmp_path / "MODFLOW6" / "GWF_1" / "head.idf", heads)
+    split_heads_file(
+        "1993-12-31", hds_file, grb_file, nrepeat, out_file, ncdf_output, idf_output
+    )

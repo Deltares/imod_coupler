@@ -109,6 +109,8 @@ class MetaMod(Driver):
             self.msw,
             mf6_flowmodel_key=self.coupling.mf6_model,
             mf6_packages=self.coupling.mf6_packages,
+            mf6_workdir=self.metamod_config.kernels.modflow6.work_dir
+            / self.coupling.mf6_model,
             original_periods=float(self.original_periods),
         )
         self.couple()

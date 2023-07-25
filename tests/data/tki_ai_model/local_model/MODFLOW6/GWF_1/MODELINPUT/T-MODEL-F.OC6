@@ -3,8 +3,8 @@
 #General Options
 
 BEGIN OPTIONS
- HEAD FILEOUT .\GWF_1\HEAD.HED
- BUDGET FILEOUT .\GWF_1\BUDGET.CBC
+ HEAD FILEOUT .\GWF_1\heads.hds  
+ BUDGET FILEOUT .\GWF_1\budget.cbc
 END OPTIONS
 
 #Stressperiod Save Options

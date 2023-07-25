@@ -9,31 +9,6 @@ from imod_coupler.kernelwrappers.mf6_wrapper import Mf6Wrapper
 from imod_coupler.kernelwrappers.msw_wrapper import MswWrapper
 
 
-def update_tdis(mf6_work_dir: str, n_repeat: int, tdis_template: str) -> int:
-    tdis_template_file = Path(os.getcwd()) / mf6_work_dir / tdis_template
-    tdis_file = (
-        Path(os.getcwd()) / mf6_work_dir / tdis_template.replace("_template.", ".")
-    )
-    with open(tdis_template_file, "r") as fin:
-        lines = fin.readlines()
-    i = -1
-    for line in lines:
-        i += 1
-        if "NPER" in line.upper():
-            nper = int(line.split()[1])
-            iper = i
-        if "BEGIN PERIODDATA" in line.upper():
-            istart = i + 1
-        if "END PERIODDATA" in line.upper():
-            iend = i
-    lines[iper] = line = " NPER " + str(nper * n_repeat) + "\n"
-    with open(tdis_file, "w") as fuit:
-        fuit.writelines(lines[0:istart])
-        fuit.writelines(lines[istart:iend] * n_repeat)
-        fuit.writelines(["END PERIODDATA"])
-    return nper
-
-
 class save_and_restore_state:
     mf6_saved_hold: NDArray[Any]
     mf6_hold: NDArray[Any]
@@ -44,12 +19,16 @@ class save_and_restore_state:
         msw: MswWrapper,
         mf6_flowmodel_key: str,
         mf6_packages: list[str],
+        mf6_workdir: Path,
         original_periods: float,
     ) -> None:
         self.mf6 = mf6
         self.msw = msw
         self.mf6_save_restore_packages = mf6_save_restore_packages(
-            mf6=mf6, mf6_flowmodel_key=mf6_flowmodel_key, mf6_packages=mf6_packages
+            mf6=mf6,
+            mf6_flowmodel_key=mf6_flowmodel_key,
+            mf6_packages=mf6_packages,
+            mf6_workdir=mf6_workdir,
         )
         self.mf6_flowmodel_key = mf6_flowmodel_key
         self.local_periods = original_periods
@@ -117,19 +96,21 @@ class mf6_save_restore_packages:
     time_array: Dict[str, list[float]]
     array_pointers: Dict[str, NDArray[Any]]
     mf6_flowmodel_key: str
-    dir: str
+    dir: Path
 
     def __init__(
         self,
         mf6: Mf6Wrapper,
         mf6_flowmodel_key: str,
         mf6_packages: list[str],
+        mf6_workdir: Path,
     ) -> None:
         self.mf6 = mf6
         self.last_array = {}
         self.time_array = {}
         self.array_pointers = {}
         self._get_array_pointers(mf6_packages, mf6_flowmodel_key)
+        self.mf6_workdir = mf6_workdir
         self._create_dir()
 
     def save_packages(self, time: float, local_periods: float) -> None:
@@ -149,15 +130,17 @@ class mf6_save_restore_packages:
             self.array_pointers[tag] = array_pointer
 
     def _create_dir(self) -> None:
-        self.dir = os.getcwd() + "\\save_and_restore_package_arrays\\"
+        self.dir = (
+            Path(os.getcwd()) / self.mf6_workdir / "save_and_restore_package_arrays"
+        )
         os.makedirs(self.dir)
 
     def _save_array(self, array: NDArray[Any], tag: str, time: float = 1) -> None:
-        path = self.dir + tag.replace("/", "-") + str(int(time))
+        path = self.dir / (tag.replace("/", "-") + str(int(time)))
         array.tofile(path, sep="")
 
     def _read_array(self, tag: str, time: float) -> NDArray[Any]:
-        path = self.dir + tag.replace("/", "-") + str(int(time))
+        path = self.dir / (tag.replace("/", "-") + str(int(time)))
         return np.fromfile(path).reshape(self.last_array[tag].shape)
 
     def _save(
@@ -193,3 +176,28 @@ class mf6_save_restore_packages:
             if local_time in self.time_array[tag]:
                 saved_array = self._read_array(tag, local_time)
                 pointer_array[:] = saved_array
+
+
+def update_tdis(mf6_work_dir: Path, n_repeat: int, tdis_template: str) -> int:
+    tdis_template_file = Path(os.getcwd()) / mf6_work_dir / tdis_template
+    tdis_file = (
+        Path(os.getcwd()) / mf6_work_dir / tdis_template.replace("_template.", ".")
+    )
+    with open(tdis_template_file, "r") as fin:
+        lines = fin.readlines()
+    i = -1
+    for line in lines:
+        i += 1
+        if "NPER" in line.upper():
+            nper = int(line.split()[1])
+            iper = i
+        if "BEGIN PERIODDATA" in line.upper():
+            istart = i + 1
+        if "END PERIODDATA" in line.upper():
+            iend = i
+    lines[iper] = " NPER " + str(nper * n_repeat) + "\n"
+    with open(tdis_file, "w") as fuit:
+        fuit.writelines(lines[0:istart])
+        fuit.writelines(lines[istart:iend] * n_repeat)
+        fuit.writelines(["END PERIODDATA"])
+    return nper
