@@ -22,6 +22,7 @@ from imod_coupler.drivers.metamod.save_and_restore import (
     save_and_restore_state,
     update_tdis,
 )
+from imod_coupler.drivers.metamod.update_parameters import mf6_update_parameters
 from imod_coupler.kernelwrappers.mf6_wrapper import Mf6Wrapper
 from imod_coupler.kernelwrappers.msw_wrapper import MswWrapper
 from imod_coupler.logging.exchange_collector import ExchangeCollector
@@ -113,6 +114,14 @@ class MetaMod(Driver):
             / self.coupling.mf6_model,
             original_periods=float(self.original_periods),
         )
+        self.mf6_update_parameters = mf6_update_parameters(
+            self.mf6,
+            self.coupling.mf6_model,
+            self.coupling.param_packages,
+            Path(self.coupling.param_dir),
+            self.save_restore_state,
+        )
+
         self.couple()
 
     def log_version(self) -> None:
@@ -243,12 +252,13 @@ class MetaMod(Driver):
     def update(self) -> None:
         # heads to MetaSWAP
         self.exchange_mod2msw()
-
         # we cannot set the timestep (yet) in Modflow
         # -> set to the (dummy) value 0.0 for now
         self.mf6.prepare_time_step(0.0)
         self.save_restore_state.mf6_save_packages()
         self.save_restore_state.mf6_restore_packages()
+
+        self.mf6_update_parameters.update()
 
         self.delt = self.mf6.get_time_step()
         self.msw.prepare_time_step(self.delt)

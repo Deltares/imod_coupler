@@ -141,7 +141,9 @@ class mf6_save_restore_packages:
 
     def _read_array(self, tag: str, time: float) -> NDArray[Any]:
         path = self.dir / (tag.replace("/", "-") + str(int(time)))
-        return np.fromfile(path).reshape(self.last_array[tag].shape)
+        return np.fromfile(path, dtype=self.last_array[tag].dtype).reshape(
+            self.last_array[tag].shape
+        )
 
     def _save(
         self, pointer_array: NDArray[Any], tag: str, time: float, local_periods: float
