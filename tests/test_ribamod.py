@@ -115,7 +115,7 @@ def test_ribamod_backwater(
     assert (np.diff(final_level) < 0).all()
     # The head should follow the same pattern.
     assert (head.isel(layer=0, time=-1).diff("x") < 0).all()
-    
+
     drn = budgets["drn-1"].compute()
     riv = budgets["riv-1"].compute()
     # At the last time step, the drain and the river should have equal water

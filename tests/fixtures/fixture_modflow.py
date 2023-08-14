@@ -256,9 +256,7 @@ def mf6_backwater_model() -> mf6.Modflow6Simulation:
         save_flows=True,
     )
     gwf_model["drn-1"] = mf6.Drainage(
-        elevation=stage,
-        conductance=conductance,
-        save_flows=True
+        elevation=stage, conductance=conductance, save_flows=True
     )
 
     gwf_model["ic"] = mf6.InitialConditions(start=0.0)
