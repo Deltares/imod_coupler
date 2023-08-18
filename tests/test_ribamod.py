@@ -5,6 +5,7 @@ import imod
 import numpy as np
 import pandas as pd
 from imod.couplers.ribamod import RibaMod
+from numpy.testing import assert_allclose
 from pytest_cases import parametrize_with_cases
 
 
@@ -121,7 +122,7 @@ def test_ribamod_backwater(
     # At the last time step, the drain and the river should have equal water
     # balance terms since they have the same conductance and the river_stage =
     # drainage_elevation.
-    assert np.allclose(drn.isel(time=-1), riv.isel(time=-1))
+    assert_allclose(drn.isel(time=-1), riv.isel(time=-1))
 
     # Get the last flow between the edges
     final_flow = flow_df[flow_df["time"] == "2029-12-01"]
