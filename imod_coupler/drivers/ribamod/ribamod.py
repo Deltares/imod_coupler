@@ -5,6 +5,7 @@ description:
 """
 from __future__ import annotations
 
+from collections import ChainMap
 from typing import Any
 
 import numpy as np
@@ -42,10 +43,12 @@ class RibaMod(Driver):
     mf6_bot: NDArray[Any]  # bottom of cell (size:nodes)
 
     # TODO: create mapping of river and drainage name to numpy array: 
-    # mf6_active_river: Dict[Str, NDArray[Any]]
-    # mf6_passive_river: Dict[Str, NDArray[Any]]
-    # mf6_active_drainage: Dict[Str, NDArray[Any]]
-    # mf6_passive_drainage: Dict[Str, NDArray[Any]]
+    # mf6_active_river: Dict[Str, Mf6River]
+    # mf6_passive_river: Dict[Str, Mf6River]
+    # mf6_active_drainage: Dict[Str, Mf6Drainage]
+    # mf6_passive_drainage: Dict[Str, Mf6Drainage]
+    # mf6_river: ChainMap(mf6_active_river, mf6_passive_river)
+    # mf6_drainage: ChainMap(mf6_active_drainage, mf6_passive_drainage)
     # TODO: let the set_river_stages and get_river_stages use this mapping. 
     # TODO: store the ribasim levels, infiltration and drainage pointers.
 
@@ -56,6 +59,8 @@ class RibaMod(Driver):
         self.coupling = ribamod_config.coupling[
             0
         ]  # Adapt as soon as we have multimodel support
+        self.mf6_river = ChainMap()
+        self.mf6_drainage = ChainMap()
 
     def initialize(self) -> None:
         self.mf6 = Mf6Wrapper(
@@ -105,20 +110,12 @@ class RibaMod(Driver):
         ribamod_time_factor = 86400
 
         # Set the MODFLOW 6 river stage and drainage to value of waterlevel of Ribasim basin
-        for key in self.coupling.mf6_active_river_packages:
+        for key, river in self.mf6_active_river_packages.items():
             ribasim_level = self.ribasim.get_value_ptr("level", key)
-            self.mf6.set_river_stages(
-                mf6_flowmodel_key=self.coupling.mf6_model,
-                mf6_package_key=key,
-                new_river_stages=ribasim_level,
-            )
-        for key in self.coupling.mf6_active_drainage_packages:
+            river.stage = ribasim_level
+        for key, drainage in self.mf6_active_drainage_packages.items():
             ribasim_level = self.ribasim.get_value_ptr("level", key)
-            self.mf6.set_drainage_elevation(
-                mf6_flowmodel_key=self.coupling.mf6_model,
-                mf6_package_key=key,
-                new_drainage_elevation=ribasim_level,
-            )
+            drainage.elevation = ribasim_level
 
         # One time step in MODFLOW 6
         self.mf6.update()
@@ -129,28 +126,16 @@ class RibaMod(Driver):
         ribasim_infiltration[:] = 0.0
         ribasim_drainage[:] = 0.0
         # Compute MODFLOW 6 river and drain flux
-        for key in (self.coupling.mf6_active_drainage_packages + self.coupling.mf6_passive_river_packages):
-            river_flux = (
-                self.mf6.get_river_drain_flux(
-                    self.coupling.mf6_model,
-                    key,
-                )
-                / ribamod_time_factor
-            )
+        for key, river in self.mf6_river.items():
+            river_flux = river.get_flux(self.mf6_head) / ribamod_time_factor
             # TODO: aggregation step via matrix multiply.
             ribasim_infiltration += np.where(river_flux > 0, river_flux, 0)
             ribasim_drainage += np.where(river_flux < 0, -river_flux, 0)
-
-        for key in (self.coupling.mf6_active_drainage_packages + self.coupling.mf6_passive_drainage_packages):
-            drain_flux = -(
-                self.mf6.get_river_drain_flux(
-                    self.coupling.mf6_model,
-                    key,
-                )
-                / ribamod_time_factor
-            )
+        
+        for key, drainage in self.mf6_drainage.items():
+            drain_flux = drainage.get_flux(self.mf6_head) / ribamod_time_factor
             # TODO: aggregation step via matrix multiply.
-            ribasim_drainage += drain_flux
+            ribasim_drainage -= drain_flux
 
         # Update Ribasim until current time of MODFLOW 6
         self.ribasim.update_until(self.mf6.get_current_time() * ribamod_time_factor)
