@@ -1,6 +1,6 @@
 import os
 from pathlib import Path
-from typing import Any, List, Optional
+from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel, DirectoryPath, FilePath, validator
 
@@ -48,10 +48,10 @@ class Kernels(BaseModel):
 
 class Coupling(BaseModel):
     mf6_model: str  # the MODFLOW 6 model that will be coupled
-    mf6_active_river_packages: List[str]
-    mf6_active_drainage_packages: List[str]
-    mf6_passive_river_packages: List[str]
-    mf6_passive_drainage_packages: List[str]
+    mf6_active_river_packages: Dict[str, str]
+    mf6_active_drainage_packages: Dict[str, str]
+    mf6_passive_river_packages: Dict[str, str]
+    mf6_passive_drainage_packages: Dict[str, str]
     output_config_file: Optional[FilePath] = None
 
     @validator("output_config_file")
