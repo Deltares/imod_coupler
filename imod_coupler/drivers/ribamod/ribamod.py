@@ -92,52 +92,52 @@ class RibaMod(Driver):
         ribamod_time_factor = 86400
 
         # Set the MODFLOW 6 river stage and drainage to value of waterlevel of Ribasim basin
-        ribasim_level = self.ribasim.get_value_ptr("level")
-        self.mf6.set_river_stages(
-            self.coupling.mf6_model,
-            self.coupling.mf6_river_packages[0],  # TODO: stop hardcoding 0
-            ribasim_level,
-        )
-        if len(self.coupling.mf6_drainage_packages) > 0:
+        for key in self.coupling.mf6_active_river_packages:
+            ribasim_level = self.ribasim.get_value_ptr("level", key)
+            self.mf6.set_river_stages(
+                mf6_flowmodel_key=self.coupling.mf6_model,
+                mf6_package_key=key,
+                new_river_stages=ribasim_level,
+            )
+        for key in self.coupling.mf6_active_drainage_packages:
+            ribasim_level = self.ribasim.get_value_ptr("level", key)
             self.mf6.set_drainage_elevation(
-                self.coupling.mf6_model,
-                self.coupling.mf6_drainage_packages[0],  # TODO: stop hardcoding 0
-                ribasim_level,
+                mf6_flowmodel_key=self.coupling.mf6_model,
+                mf6_package_key=key,
+                new_drainage_elevation=ribasim_level,
             )
 
         # One time step in MODFLOW 6
         self.mf6.update()
 
+        ribasim_infiltration = self.ribasim.get_value_ptr("infiltration")
+        ribasim_drainage = self.ribasim.get_value_ptr("drainage")
+        # Zero the ribasim arrays
+        ribasim_infiltration[:] = 0.0
+        ribasim_drainage[:] = 0.0
         # Compute MODFLOW 6 river and drain flux
-        river_flux = (
-            self.mf6.get_river_drain_flux(
-                self.coupling.mf6_model,
-                self.coupling.mf6_river_packages[0],  # TODO: stop hardcoding 0
-            )
-            / ribamod_time_factor
-        )
-        river_flux_positive = np.where(river_flux > 0, river_flux, 0)
-        river_flux_negative = np.where(river_flux < 0, -river_flux, 0)
-
-        if len(self.coupling.mf6_drainage_packages) > 0:
-            drain_flux = -(
+        for key in (self.coupling.mf6_active_drainage_packages + self.coupling.mf6_passive_river_packages):
+            river_flux = (
                 self.mf6.get_river_drain_flux(
                     self.coupling.mf6_model,
-                    self.coupling.mf6_drainage_packages[0],  # TODO: stop hardcoding 0
+                    key,
                 )
                 / ribamod_time_factor
             )
-        else:
-            drain_flux = np.zeros_like(river_flux)
+            # TODO: aggregation step via matrix multiply.
+            ribasim_infiltration += np.where(river_flux > 0, river_flux, 0)
+            ribasim_drainage += np.where(river_flux < 0, -river_flux, 0)
 
-        mf6_infiltration = river_flux_positive
-        mf6_drainage = river_flux_negative + drain_flux
-
-        # Set Ribasim infiltration/drainage terms to value of river budget of MODFLOW 6
-        ribasim_infiltration = self.ribasim.get_value_ptr("infiltration")
-        ribasim_drainage = self.ribasim.get_value_ptr("drainage")
-        ribasim_infiltration[:] = mf6_infiltration[:]
-        ribasim_drainage[:] = mf6_drainage[:]
+        for key in (self.coupling.mf6_active_drainage_packages + self.coupling.mf6_passive_drainage_packages):
+            drain_flux = -(
+                self.mf6.get_river_drain_flux(
+                    self.coupling.mf6_model,
+                    key,
+                )
+                / ribamod_time_factor
+            )
+            # TODO: aggregation step via matrix multiply.
+            ribasim_drainage += drain_flux
 
         # Update Ribasim until current time of MODFLOW 6
         self.ribasim.update_until(self.mf6.get_current_time() * ribamod_time_factor)

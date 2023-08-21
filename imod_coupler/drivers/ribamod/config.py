@@ -48,8 +48,10 @@ class Kernels(BaseModel):
 
 class Coupling(BaseModel):
     mf6_model: str  # the MODFLOW 6 model that will be coupled
-    mf6_river_packages: List[str]
-    mf6_drainage_packages: List[str]
+    mf6_active_river_packages: List[str]
+    mf6_active_drainage_packages: List[str]
+    mf6_passive_river_packages: List[str]
+    mf6_passive_drainage_packages: List[str]
     output_config_file: Optional[FilePath] = None
 
     @validator("output_config_file")
