@@ -41,6 +41,14 @@ class RibaMod(Driver):
     mf6_top: NDArray[Any]  # top of cell (size:nodes)
     mf6_bot: NDArray[Any]  # bottom of cell (size:nodes)
 
+    # TODO: create mapping of river and drainage name to numpy array: 
+    # mf6_active_river: Dict[Str, NDArray[Any]]
+    # mf6_passive_river: Dict[Str, NDArray[Any]]
+    # mf6_active_drainage: Dict[Str, NDArray[Any]]
+    # mf6_passive_drainage: Dict[Str, NDArray[Any]]
+    # TODO: let the set_river_stages and get_river_stages use this mapping. 
+    # TODO: store the ribasim levels, infiltration and drainage pointers.
+
     def __init__(self, base_config: BaseConfig, ribamod_config: RibaModConfig):
         """Constructs the `Ribamod` object"""
         self.base_config = base_config
@@ -87,6 +95,11 @@ class RibaMod(Driver):
         # TODO:
 
     def update(self) -> None:
+        # TODO: Store a copy of the river bottom and the river elevation. The
+        # river bottom and drainage elevation should not be fall below these
+        # values. Note that the river bottom and the drainage elevation may be
+        # update every stress period.
+        # 
         # iMOD Python sets MODFLOW 6' time unit to days
         # Ribasim's time unit is always seconds
         ribamod_time_factor = 86400
