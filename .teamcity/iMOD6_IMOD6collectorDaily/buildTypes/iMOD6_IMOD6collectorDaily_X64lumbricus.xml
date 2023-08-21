@@ -95,6 +95,10 @@ pyinstaller --onefile coupler/imod_coupler/__main__.py --name imodc]]></param>
         <revisionRule name="sameChainOrLastFinished" revision="latest.sameChainOrLastFinished" />
         <artifact sourcePath="libmf6.dll =&gt; modflow6/" />
       </dependency>
+      <dependency id="ARTIFACT_DEPENDENCY_579" sourceBuildTypeId="MSWMOD_MetaSWAP_MetaSWAPLumbricus" cleanDestination="false">
+        <revisionRule name="sameChainOrLastFinished" revision="latest.sameChainOrLastFinished" />
+        <artifact sourcePath="MetaSWAP.zip!/x64/Release =&gt; metaswap" />
+      </dependency>
     </artifact-dependencies>
     <dependencies>
       <depend-on sourceBuildTypeId="iMOD6_Modflow6buildWin64">
