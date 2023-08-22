@@ -217,12 +217,15 @@ class exchange_balance_1d:
         sum_to_dflow : np.float_
             flux send to dflow
         """
-
-        shortage = np.absolute(sum_to_dflow - sum_from_dflow)
-        demand_msw = self.demand["msw-sprinkling2dflow1d_flux"]
-        demand_mf6_negative = self.demand["mf-riv2dflow1d_flux_negative"]
+        id = 10
+        shortage = np.around(np.absolute(sum_to_dflow - sum_from_dflow), decimals=id)
+        demand = np.around(
+            self.demand["msw-sprinkling2dflow1d_flux"]
+            + self.demand["mf-riv2dflow1d_flux_negative"],
+            decimals=id,
+        )
         condition = np.logical_and(
-            shortage > np.absolute(demand_msw + demand_mf6_negative),
+            shortage > np.absolute(demand),
             np.less(sum_from_dflow.astype(np.float32), sum_to_dflow.astype(np.float32)),
         )
         if np.any(condition):

@@ -9,18 +9,6 @@ type = "netcdf"
 [[exchanges.mf-riv2dflow1d_flux_output]]
 type = "netcdf"
 
-[[exchanges.mf-riv2dflow1d_passive_flux_input]]
-type = "netcdf"
-
-[[exchanges.mf-riv2dflow1d_passive_flux_output]]
-type = "netcdf"
-
-[[exchanges.mf-drn2dflow1d_flux_input]]
-type = "netcdf"
-
-[[exchanges.mf-drn2dflow1d_flux_output]]
-type = "netcdf"
-
 [[exchanges.msw-ponding2dflow1d_flux_input]]
 type = "netcdf"
 
