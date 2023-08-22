@@ -65,7 +65,6 @@ call pytest tests --basetemp=tests/temp --junitxml="report.xml" -n=auto]]></para
     </vcs-settings>
     <requirements>
       <equals id="RQ_436" name="teamcity.agent.jvm.os.name" value="Windows 10" />
-      <does-not-equal id="RQ_96" name="system.agent.name" value="c-teamcity0358" />
     </requirements>
     <build-triggers>
       <build-trigger id="TRIGGER_64" type="buildDependencyTrigger">
