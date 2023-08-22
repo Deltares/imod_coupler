@@ -7,6 +7,9 @@
       <option name="artifactRules" value="imod_coupler\tests\temp =&gt; test_output.zip" />
       <option name="branchFilter" value="+:*&#xD;&#xA;-:release_imod56" />
     </options>
+    <disabled-settings>
+      <setting-ref ref="RQ_436" />
+    </disabled-settings>
     <parameters>
       <param name="conda_env_path" value="%system.teamcity.build.checkoutDir%/imod_coupler_testbench_env" />
       <param name="env.IMOD_COUPLER_EXEC_DEVEL" value="%system.teamcity.build.checkoutDir%/imod_collector_devel/imod_coupler/imodc.exe" />
