@@ -30,7 +30,7 @@ call pip install -e .]]></param>
       <runner id="RUNNER_301" name="Create executable with pyinstaller" type="simpleRunner">
         <parameters>
           <param name="script.content"><![CDATA[call conda activate %conda_env_path%
-pyinstaller --onefile coupler/imod_coupler/__main__.py --name imodc]]></param>
+pyinstaller coupler/imod_coupler/__main__.py --name imodc]]></param>
           <param name="teamcity.step.mode" value="default" />
           <param name="use.custom.script" value="true" />
         </parameters>
