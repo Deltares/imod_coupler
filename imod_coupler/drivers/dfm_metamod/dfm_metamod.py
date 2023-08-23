@@ -189,7 +189,7 @@ class DfmMetaMod(Driver):
             self.exchange_stage_2d_dfm2msw()
 
             # initiate surface water timestep
-            self.msw.start_surface_water_time_step(idtsw)
+            self.msw.start_surface_water_time_step(idtsw + 1)
 
             # flux from metaswap ponding to water balance 1d
             self.exchange_ponding_msw2dflow1d()
@@ -257,7 +257,7 @@ class DfmMetaMod(Driver):
             # exchange 2d stage to msw, so it can finish the sw-timestep (now stage at the start of next timestep)
             self.exchange_stage_2d_dfm2msw()
 
-            self.msw.finish_surface_water_time_step(idtsw)
+            self.msw.finish_surface_water_time_step(idtsw + 1)
 
         # exchange correction flux to MF6
         self.exchange_correction_dflow2mf6(
