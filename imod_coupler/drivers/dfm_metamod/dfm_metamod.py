@@ -260,9 +260,7 @@ class DfmMetaMod(Driver):
             self.msw.finish_surface_water_time_step(idtsw + 1)
 
         # exchange correction flux to MF6
-        self.exchange_correction_dflow2mf6(
-            self.exchange_balans_1d.realised["dflow1d_flux2mf-riv_negative"]
-        )
+        self.exchange_correction_dflow2mf6()
 
         # convergence loop modflow-metaswap
         self.mf6.prepare_solve(1)
@@ -686,7 +684,7 @@ class DfmMetaMod(Driver):
             self.dfm.get_current_time_days(),
         )
 
-    def exchange_correction_dflow2mf6(self, qdfm_realised: NDArray[float_]) -> None:
+    def exchange_correction_dflow2mf6(self) -> None:
         """
         From DFM to MF6
         the drainage/inflitration flux to the 1d rivers as realised by DFM is passed to
@@ -695,14 +693,11 @@ class DfmMetaMod(Driver):
 
         if self.map_active_mod_dflow1d["mf-riv2dflow1d_flux"] is not None:
             wbal = self.exchange_balans_1d
-            realised_dfm = wbal.realised["dflow1d_flux2mf-riv_negative"]
-            demand_pos = wbal.demand["mf-riv2dflow1d_flux_positive"]
+            realised_neg = wbal.realised["dflow1d_flux2mf-riv_negative"]
             demand_neg = wbal.demand["mf-riv2dflow1d_flux_negative"]
             mask = np.nonzero(demand_neg)  # prevent zero division
-            realised_fraction = realised_dfm * 0.0 + 1.0
-            realised_fraction[mask] = (
-                realised_dfm[mask] - demand_pos[mask]
-            ) / demand_neg[mask]
+            realised_fraction = realised_neg * 0.0 + 1.0
+            realised_fraction[mask] = realised_neg[mask] / demand_neg[mask]
             matrix = self.map_active_mod_dflow1d["mf-riv2dflow1d_flux"].transpose()
 
             # correction only applies to Modflow cells which negatively contribute to the dflowfm volumes

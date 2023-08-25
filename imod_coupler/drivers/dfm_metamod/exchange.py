@@ -243,7 +243,15 @@ class exchange_balance_1d:
            array with summed realised fluxes per dtsw-timstep by dflow
         """
 
+        # initialize realised arrays for cases where all conditions are false due to rounding errors
+        self.realised["dflow1d_flux2sprinkling_msw"] = self.demand[
+            "msw-sprinkling2dflow1d_flux"
+        ]
+        self.realised["dflow1d_flux2mf-riv_negative"] = self.demand[
+            "mf-riv2dflow1d_flux_negative"
+        ]
         sum_to_dflow = self.demand["sum"][:]
+
         # update elements for no shortage
         self.set_realised_no_shortage(sum_from_dflow, sum_to_dflow)
         # update elements for cases with shortage + shortage <= msw_demand
