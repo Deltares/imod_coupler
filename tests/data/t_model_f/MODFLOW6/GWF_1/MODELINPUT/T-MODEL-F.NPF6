@@ -3,7 +3,6 @@
 #General Options
 
 BEGIN OPTIONS
- ALTERNATIVE_CELL_AVERAGING AMT-HMK
 END OPTIONS
 
 #Geology Options

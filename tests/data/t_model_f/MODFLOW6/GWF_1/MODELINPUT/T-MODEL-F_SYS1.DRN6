@@ -9,9 +9,10 @@ END OPTIONS
 #General Dimensions
 
 BEGIN DIMENSIONS
-MAXBOUND 1
+MAXBOUND 2
 END DIMENSIONS
 
 BEGIN PERIOD 1
-    1     3     6    1000.00000        100.0000         1
+    1     3     6    8.500000        100.0000
+    1     3     7    8.500000        100.0000
 END PERIOD
