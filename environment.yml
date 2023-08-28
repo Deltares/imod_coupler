@@ -20,7 +20,6 @@ dependencies:
       - "git+https://github.com/Deltares/Ribasim.git/#subdirectory=python/ribasim_api"
       - "git+https://github.com/Deltares/Ribasim.git/#subdirectory=python/ribasim_testmodels"
   - pydantic=1
-  - pydata-sphinx-theme
   - pytest
   - pytest-cases
   - pytest-dotenv
@@ -29,7 +28,6 @@ dependencies:
   - rasterio>=1.0
   - ruff
   - scipy
-  - sphinx
   - tomli
   - tomli-w
   - twine
