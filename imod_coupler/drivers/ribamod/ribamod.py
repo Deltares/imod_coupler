@@ -145,10 +145,9 @@ class RibaMod(Driver):
         for key, path in coupling_tables.items():
             df = pd.read_csv(path, sep="\t")
             package = packages[key]
-            # Ribasim has non-contiguous 1-based indexing for basins
             # Ribasim sorts the basins during initialization.
-            row = np.argsort(df["basin_id"].to_numpy())
-            col = df["bound_id"].to_numpy()
+            row = df["basin_index"].to_numpy()
+            col = df["bound_index"].to_numpy()
             data = np.ones(len(df))
             # Many to one
             matrix = csr_matrix((data, (row, col)), shape=(n_basin, package.n_bound))
