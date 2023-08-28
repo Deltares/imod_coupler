@@ -139,7 +139,6 @@ class RibaMod(Driver):
         )
         packages = ChainMap(self.mf6_river_packages, self.mf6_drainage_packages)
         n_basin = len(self.ribasim_level)
-        basin_ids = np.arange(1, n_basin + 1)
 
         self.map_mod2rib = {}
         self.map_rib2mod = {}
@@ -148,7 +147,7 @@ class RibaMod(Driver):
             package = packages[key]
             # Ribasim has non-contiguous 1-based indexing for basins
             # Ribasim sorts the basins during initialization.
-            row = np.searchsorted(basin_ids, df["basin_id"].to_numpy())
+            row = np.argsort(df["basin_id"].to_numpy())
             col = df["bound_id"].to_numpy()
             data = np.ones(len(df))
             # Many to one
