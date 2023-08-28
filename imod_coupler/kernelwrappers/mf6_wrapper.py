@@ -1,6 +1,6 @@
 from abc import ABC
 from pathlib import Path
-from typing import Any, Union
+from typing import Any, Dict, List, Union
 
 import numpy as np
 from numpy.typing import NDArray
@@ -21,6 +21,18 @@ class Mf6Wrapper(XmiWrapper):
         mf6_head_tag = self.get_var_address("X", mf6_flowmodel_key)
         mf6_head = self.get_value_ptr(mf6_head_tag)
         return mf6_head
+
+    def get_rivers_packages(
+        self, mf6_flowmodel_key: str, mf6_river_keys: List[str]
+    ) -> Dict[str, "Mf6River"]:
+        return {key: Mf6River(self, mf6_flowmodel_key, key) for key in mf6_river_keys}
+
+    def get_drainage_packages(
+        self, mf6_flowmodel_key: str, mf6_drainage_keys: List[str]
+    ) -> Dict[str, "Mf6Drainage"]:
+        return {
+            key: Mf6Drainage(self, mf6_flowmodel_key, key) for key in mf6_drainage_keys
+        }
 
     def get_recharge(
         self, mf6_flowmodel_key: str, mf6_msw_recharge_pkg: str
@@ -92,8 +104,10 @@ class Mf6Wrapper(XmiWrapper):
          NDArray[np.float_]:
             Drainage elevation in modflow
         """
-        bound_adress = self.get_var_address("BOUND", mf6_flowmodel_key, mf6_package_key)
-        bound = self.get_value_ptr(bound_adress)
+        bound_address = self.get_var_address(
+            "BOUND", mf6_flowmodel_key, mf6_package_key
+        )
+        bound = self.get_value_ptr(bound_address)
         stage = bound[:, 0]
         return stage
 
@@ -124,8 +138,10 @@ class Mf6Wrapper(XmiWrapper):
         stage = self.get_drainage_elevation(mf6_flowmodel_key, mf6_package_key)
         if len(new_drainage_elevation) != len(stage):
             raise ValueError(f"Expected size of new_drainage_elevation is {len(stage)}")
-        bound_adress = self.get_var_address("BOUND", mf6_flowmodel_key, mf6_package_key)
-        bound = self.get_value_ptr(bound_adress)
+        bound_address = self.get_var_address(
+            "BOUND", mf6_flowmodel_key, mf6_package_key
+        )
+        bound = self.get_value_ptr(bound_address)
         bound[:, 0] = new_drainage_elevation[:]
 
     def set_river_stages(
@@ -155,8 +171,10 @@ class Mf6Wrapper(XmiWrapper):
         stage = self.get_river_stages(mf6_flowmodel_key, mf6_package_key)
         if len(new_river_stages) != len(stage):
             raise ValueError(f"Expected size of new_river_stages is {len(stage)}")
-        bound_adress = self.get_var_address("BOUND", mf6_flowmodel_key, mf6_package_key)
-        bound = self.get_value_ptr(bound_adress)
+        bound_address = self.get_var_address(
+            "BOUND", mf6_flowmodel_key, mf6_package_key
+        )
+        bound = self.get_value_ptr(bound_address)
         bound[:, 0] = new_river_stages[:]
 
     def get_river_stages(
@@ -179,8 +197,10 @@ class Mf6Wrapper(XmiWrapper):
          NDArray[np.float_]:
             stages of the rivers in modflow
         """
-        bound_adress = self.get_var_address("BOUND", mf6_flowmodel_key, mf6_package_key)
-        bound = self.get_value_ptr(bound_adress)
+        bound_address = self.get_var_address(
+            "BOUND", mf6_flowmodel_key, mf6_package_key
+        )
+        bound = self.get_value_ptr(bound_address)
         stage = bound[:, 0]
         return stage
 
@@ -204,8 +224,10 @@ class Mf6Wrapper(XmiWrapper):
          NDArray[np.float_]:
             bots of the rivers in modflow
         """
-        bound_adress = self.get_var_address("BOUND", mf6_flowmodel_key, mf6_package_key)
-        bound = self.get_value_ptr(bound_adress)
+        bound_address = self.get_var_address(
+            "BOUND", mf6_flowmodel_key, mf6_package_key
+        )
+        bound = self.get_value_ptr(bound_address)
         bot = bound[:, 2]
         return bot
 
@@ -234,15 +256,17 @@ class Mf6Wrapper(XmiWrapper):
         ValueError
             the size of the provided flux array does not match the expected size
         """
-        bound_adress = self.get_var_address("BOUND", mf6_flowmodel_key, mf6_wel_pkg_key)
-        mf6_flux = self.get_value_ptr(bound_adress)
+        bound_address = self.get_var_address(
+            "BOUND", mf6_flowmodel_key, mf6_wel_pkg_key
+        )
+        mf6_flux = self.get_value_ptr(bound_address)
 
         if len(assigned_flux) != len(mf6_flux):
             raise ValueError(f"Expected size of flux is {len(mf6_flux)}")
         for i in range(len(assigned_flux)):
             mf6_flux[i, 0] = assigned_flux[i]
 
-        self.set_value(bound_adress, mf6_flux)
+        self.set_value(bound_address, mf6_flux)
 
     def get_river_flux_estimate(
         self,
@@ -272,17 +296,17 @@ class Mf6Wrapper(XmiWrapper):
             flux (array size = nr of river nodes)
             sign is positive for infiltration
         """
-        bound_adress = self.get_var_address(
+        bound_address = self.get_var_address(
             "BOUND", mf6_flowmodel_key, mf6_river_pkg_key
         )
-        bound = self.get_value_ptr(bound_adress)
+        bound = self.get_value_ptr(bound_address)
 
-        head_adress = self.get_var_address("X", mf6_flowmodel_key)
-        head = self.get_value_ptr(head_adress)
-        nodelist_adress = self.get_var_address(
+        head_address = self.get_var_address("X", mf6_flowmodel_key)
+        head = self.get_value_ptr(head_address)
+        nodelist_address = self.get_var_address(
             "NODELIST", mf6_flowmodel_key, mf6_river_pkg_key
         )
-        nodelist = self.get_value_ptr(nodelist_adress)
+        nodelist = self.get_value_ptr(nodelist_address)
 
         subset_head = head[nodelist - 1]
         bot = bound[:, 2]
@@ -340,20 +364,20 @@ class Mf6Wrapper(XmiWrapper):
             sign is positive for infiltration
         """
 
-        rhs_adress = self.get_var_address(
+        rhs_address = self.get_var_address(
             "RHS", mf6_flowmodel_key, mf6_river_drain_pkg_key
         )
-        package_rhs = self.get_value_ptr(rhs_adress)
-        hcof_adress = self.get_var_address(
+        package_rhs = self.get_value_ptr(rhs_address)
+        hcof_address = self.get_var_address(
             "HCOF", mf6_flowmodel_key, mf6_river_drain_pkg_key
         )
-        package_hcof = self.get_value_ptr(hcof_adress)
-        head_adress = self.get_var_address("X", mf6_flowmodel_key)
-        head = self.get_value_ptr(head_adress)
-        package_nodelist_adress = self.get_var_address(
+        package_hcof = self.get_value_ptr(hcof_address)
+        head_address = self.get_var_address("X", mf6_flowmodel_key)
+        head = self.get_value_ptr(head_address)
+        package_nodelist_address = self.get_var_address(
             "NODELIST", mf6_flowmodel_key, mf6_river_drain_pkg_key
         )
-        package_nodelist = self.get_value_ptr(package_nodelist_adress)
+        package_nodelist = self.get_value_ptr(package_nodelist_address)
         subset_head = head[package_nodelist - 1]
 
         q = NDArray[np.float_](len(package_nodelist))
@@ -371,31 +395,41 @@ class Mf6HeadBoundary(ABC):
 
     def __init__(self, mf6_wrapper, mf6_flowmodel_key, mf6_pkg_key):
         nodelist_address = mf6_wrapper.get_var_address(
-            "NODELIST", mf6_flowmodel_key, mf6_pkg_key,
+            "NODELIST",
+            mf6_flowmodel_key,
+            mf6_pkg_key,
         )
-        bound_address = mf6_wrapper.get_var_adress(
-            "BOUNDS", mf6_flowmodel_key, mf6_pkg_key,
+        bound_address = mf6_wrapper.get_var_address(
+            "BOUND",
+            mf6_flowmodel_key,
+            mf6_pkg_key,
         )
-        rhs_adress = mf6_wrapper.get_var_address(
-            "RHS", mf6_flowmodel_key, mf6_pkg_key,
+        rhs_address = mf6_wrapper.get_var_address(
+            "RHS",
+            mf6_flowmodel_key,
+            mf6_pkg_key,
         )
-        hcof_adress = mf6_wrapper.get_var_address(
+        hcof_address = mf6_wrapper.get_var_address(
             "HCOF", mf6_flowmodel_key, mf6_pkg_key
         )
         # Fortran 1-based versus Python 0-based indexing
         self.nodelist = mf6_wrapper.get_value_ptr(nodelist_address) - 1
         self.bound = mf6_wrapper.get_value_ptr(bound_address)
-        self.rhs = mf6_wrapper.get_value_ptr(rhs_adress)
-        self.hcof = mf6_wrapper.get_value_ptr(hcof_adress)
+        self.rhs = mf6_wrapper.get_value_ptr(rhs_address)
+        self.hcof = mf6_wrapper.get_value_ptr(hcof_address)
         self.head = np.empty_like(self.hcof)
         self.q = np.empty_like(self.hcof)
         return
 
     @property
     def conductance(
-        self,  
-    ) -> NDArray[np.float64]: 
+        self,
+    ) -> NDArray[np.float64]:
         return self.bound[:, 1]
+    
+    @property
+    def n_bound(self):
+        return len(self.nodelist)
 
     def get_flux(
         self,
@@ -460,24 +494,24 @@ class Mf6River(Mf6HeadBoundary):
     bottom_minimum: NDArray[np.float64]
 
     def __init__(self, mf6_wrapper, mf6_flowmodel_key, mf6_pkg_key):
-        super(self).__init__(mf6_wrapper, mf6_flowmodel_key, mf6_pkg_key)
+        super().__init__(mf6_wrapper, mf6_flowmodel_key, mf6_pkg_key)
         self.bottom_minimum = self.bottom_elevation.copy()
- 
+
     def update_bottom_minimum(self) -> None:
         self.bottom_minimum[:] = self.bottom_elevation
- 
+
     @property
-    def stage(self)-> NDArray[np.float64]:
+    def stage(self) -> NDArray[np.float64]:
         return self.bound[:, 0]
 
     @stage.setter
     def stage(self, new_stage) -> None:
         np.minimum(self.bottom_minimum, new_stage, out=self.bound[:, 0])
- 
+
     @property
     def bottom_elevation(self) -> NDArray[np.float64]:
         return self.bound[:, 2]
- 
+
 
 class Mf6Drainage(Mf6HeadBoundary):
     nodelist: NDArray[np.int32]
@@ -488,7 +522,7 @@ class Mf6Drainage(Mf6HeadBoundary):
     elevation_minimum: NDArray[np.float64]
 
     def __init__(self, mf6_wrapper, mf6_flowmodel_key, mf6_pkg_key):
-        super(self).__init__(mf6_wrapper, mf6_flowmodel_key, mf6_pkg_key)
+        super().__init__(mf6_wrapper, mf6_flowmodel_key, mf6_pkg_key)
         self.elevation_minimum = self.get_elevation().copy()
 
     def update_bottom_minimum(self) -> None:
@@ -501,4 +535,3 @@ class Mf6Drainage(Mf6HeadBoundary):
     @elevation.setter
     def elevation(self, new_elevation) -> None:
         np.minimum(self.elevation_minimum, new_elevation, out=self.bound[:, 0])
- 
