@@ -175,8 +175,9 @@ class Mf6Wrapper(XmiWrapper):
 
         if correction_flux is None or len(correction_flux) != len(flux):
             raise ValueError(f"Expected size of correction_flux is {len(flux)}")
-        for i in range(len(flux)):
-            flux[i, 0] = correction_flux[i]
+        flux[:, 0] = correction_flux[:]
+        # for i in range(len(flux)):
+        #     flux[i, 0] = correction_flux[i]
 
         self.set_value(bound_adress, flux)
 
