@@ -60,7 +60,9 @@ call pytest tests --basetemp=tests/temp --junitxml="report.xml" -n=auto]]></para
         <checkout-rule rule=". =&gt; lookup_table" />
       </vcs-entry-ref>
     </vcs-settings>
-    <requirements />
+    <requirements>
+      <equals id="RQ_195" name="env.OS" value="Windows_NT" />
+    </requirements>
     <build-triggers>
       <build-trigger id="TRIGGER_64" type="buildDependencyTrigger">
         <parameters>
