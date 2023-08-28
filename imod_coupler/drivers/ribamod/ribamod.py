@@ -6,17 +6,19 @@ description:
 from __future__ import annotations
 
 from collections import ChainMap
-from typing import Any
+from typing import Any, Dict
 
 import numpy as np
+import pandas as pd
 from loguru import logger
 from numpy.typing import NDArray
+from scipy.sparse import csr_matrix
 from ribasim_api import RibasimApi
 
 from imod_coupler.config import BaseConfig
 from imod_coupler.drivers.driver import Driver
 from imod_coupler.drivers.ribamod.config import Coupling, RibaModConfig
-from imod_coupler.kernelwrappers.mf6_wrapper import Mf6Wrapper
+from imod_coupler.kernelwrappers.mf6_wrapper import Mf6Wrapper, Mf6Drainage, Mf6River
 from imod_coupler.logging.exchange_collector import ExchangeCollector
 
 
@@ -42,15 +44,21 @@ class RibaMod(Driver):
     mf6_top: NDArray[Any]  # top of cell (size:nodes)
     mf6_bot: NDArray[Any]  # bottom of cell (size:nodes)
 
-    # TODO: create mapping of river and drainage name to numpy array: 
-    # mf6_active_river: Dict[Str, Mf6River]
-    # mf6_passive_river: Dict[Str, Mf6River]
-    # mf6_active_drainage: Dict[Str, Mf6Drainage]
-    # mf6_passive_drainage: Dict[Str, Mf6Drainage]
-    # mf6_river: ChainMap(mf6_active_river, mf6_passive_river)
-    # mf6_drainage: ChainMap(mf6_active_drainage, mf6_passive_drainage)
-    # TODO: let the set_river_stages and get_river_stages use this mapping. 
-    # TODO: store the ribasim levels, infiltration and drainage pointers.
+    mf6_active_river_packages: Dict[str, Mf6River]
+    mf6_passive_river_packages: Dict[str, Mf6River]
+    mf6_active_drainage_packages: Dict[str, Mf6Drainage]
+    mf6_passive_drainage_packages: Dict[str, Mf6Drainage]
+    mf6_river_packages: ChainMap[str, Mf6River]
+    mf6_drainage_packages: ChainMap[str, Mf6Drainage]
+
+    # Ribasim variables
+    ribasim_level: NDArray[Any]
+    ribasim_infiltration: NDArray[Any]
+    ribasim_drainage: NDArray[Any]
+
+    # Mapping tables
+    map_mod2rib: Dict[str, csr_matrix]
+    map_rib2mod: Dict[str, csr_matrix]  # TODO: allow more than 1:N
 
     def __init__(self, base_config: BaseConfig, ribamod_config: RibaModConfig):
         """Constructs the `Ribamod` object"""
@@ -59,8 +67,6 @@ class RibaMod(Driver):
         self.coupling = ribamod_config.coupling[
             0
         ]  # Adapt as soon as we have multimodel support
-        self.mf6_river = ChainMap()
-        self.mf6_drainage = ChainMap()
 
     def initialize(self) -> None:
         self.mf6 = Mf6Wrapper(
@@ -97,45 +103,95 @@ class RibaMod(Driver):
         """Couple Modflow and Ribasim"""
 
         self.max_iter = self.mf6.max_iter()
-        # TODO:
+
+        # Get all the relevant river and drainage systems from MODFLOW 6
+        mf6_flowmodel_key = self.coupling.mf6_model
+        self.mf6_active_river_packages = self.mf6.get_rivers_packages(
+            mf6_flowmodel_key, self.coupling.mf6_active_river_packages
+        )
+        self.mf6_passive_river_packages = self.mf6.get_rivers_packages(
+            mf6_flowmodel_key, self.coupling.mf6_passive_river_packages
+        )
+        self.mf6_active_drainage_packages = self.mf6.get_rivers_packages(
+            mf6_flowmodel_key, self.coupling.mf6_active_drainage_packages
+        )
+        self.mf6_passive_drainage_packages = self.mf6.get_rivers_packages(
+            mf6_flowmodel_key, self.coupling.mf6_passive_drainage_packages
+        )
+        self.mf6_river_packages = ChainMap(
+            self.mf6_active_river_packages, self.mf6_passive_river_packages
+        )
+        self.mf6_drainage_packages = ChainMap(
+            self.mf6_active_drainage_packages, self.mf6_passive_drainage_packages
+        )
+
+        # Get the level, drainage, infiltration from Ribasim
+        self.ribasim_infiltration = self.ribasim.get_value_ptr("infiltration")
+        self.ribasim_drainage = self.ribasim.get_value_ptr("drainage")
+        self.ribasim_level = self.ribasim.get_value_ptr("level")
+
+        # Create mappings
+        coupling_tables = ChainMap(
+            self.coupling.mf6_active_river_packages,
+            self.coupling.mf6_passive_river_packages,
+            self.coupling.mf6_active_drainage_packages,
+            self.coupling.mf6_passive_drainage_packages,
+        )
+        packages = ChainMap(self.mf6_river_packages, self.mf6_drainage_packages)
+        n_basin = len(self.ribasim_level)
+        basin_ids = np.arange(1, n_basin + 1)
+
+        self.map_mod2rib = {}
+        self.map_rib2mod = {}
+        for key, path in coupling_tables.items():
+            df = pd.read_csv(path, sep="\t")
+            package = packages[key]
+            # Ribasim has non-contiguous 1-based indexing for basins
+            # Ribasim sorts the basins during initialization.
+            row = np.searchsorted(basin_ids, df["basin_id"].to_numpy())
+            col = df["bound_id"].to_numpy()
+            data = np.ones(len(df))
+            # Many to one
+            matrix = csr_matrix((data, (row, col)), shape=(n_basin, package.n_bound))
+            self.map_mod2rib[key] = matrix
+            # One to many, just transpose
+            self.map_rib2mod[key] = matrix.T
 
     def update(self) -> None:
         # TODO: Store a copy of the river bottom and the river elevation. The
         # river bottom and drainage elevation should not be fall below these
         # values. Note that the river bottom and the drainage elevation may be
         # update every stress period.
-        # 
+        #
         # iMOD Python sets MODFLOW 6' time unit to days
         # Ribasim's time unit is always seconds
         ribamod_time_factor = 86400
 
         # Set the MODFLOW 6 river stage and drainage to value of waterlevel of Ribasim basin
         for key, river in self.mf6_active_river_packages.items():
-            ribasim_level = self.ribasim.get_value_ptr("level", key)
-            river.stage = ribasim_level
+            # TODO: use specific level after Ribasim can export levels
+            river.stage = self.map_rib2mod[key].dot(self.ribasim_level)
         for key, drainage in self.mf6_active_drainage_packages.items():
-            ribasim_level = self.ribasim.get_value_ptr("level", key)
-            drainage.elevation = ribasim_level
+            # TODO: use specific level after Ribasim can export levels
+            drainage.elevation = self.ribasim_level
 
         # One time step in MODFLOW 6
         self.mf6.update()
 
-        ribasim_infiltration = self.ribasim.get_value_ptr("infiltration")
-        ribasim_drainage = self.ribasim.get_value_ptr("drainage")
         # Zero the ribasim arrays
-        ribasim_infiltration[:] = 0.0
-        ribasim_drainage[:] = 0.0
+        self.ribasim_infiltration[:] = 0.0
+        self.ribasim_drainage[:] = 0.0
         # Compute MODFLOW 6 river and drain flux
         for key, river in self.mf6_river.items():
-            river_flux = river.get_flux(self.mf6_head) / ribamod_time_factor
-            # TODO: aggregation step via matrix multiply.
-            ribasim_infiltration += np.where(river_flux > 0, river_flux, 0)
-            ribasim_drainage += np.where(river_flux < 0, -river_flux, 0)
-        
+            river_flux = river.get_flux(self.mf6_head)
+            ribasim_flux = self.map_mod2rib[key].dot(river_flux) / ribamod_time_factor
+            self.ribasim_infiltration += np.where(ribasim_flux > 0, ribasim_flux, 0)
+            self.ribasim_drainage += np.where(ribasim_flux < 0, -ribasim_flux, 0)
+
         for key, drainage in self.mf6_drainage.items():
-            drain_flux = drainage.get_flux(self.mf6_head) / ribamod_time_factor
-            # TODO: aggregation step via matrix multiply.
-            ribasim_drainage -= drain_flux
+            drain_flux = drainage.get_flux(self.mf6_head)
+            ribasim_flux = self.map_mod2rib[key].dot(drain_flux) / ribamod_time_factor
+            self.ribasim_drainage -= ribasim_flux
 
         # Update Ribasim until current time of MODFLOW 6
         self.ribasim.update_until(self.mf6.get_current_time() * ribamod_time_factor)
