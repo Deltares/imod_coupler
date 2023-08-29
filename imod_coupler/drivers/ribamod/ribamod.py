@@ -48,6 +48,7 @@ class RibaMod(Driver):
     mf6_passive_river_packages: Dict[str, Mf6River]
     mf6_active_drainage_packages: Dict[str, Mf6Drainage]
     mf6_passive_drainage_packages: Dict[str, Mf6Drainage]
+    # ChainMaps
     mf6_river_packages: ChainMap[str, Mf6River]
     mf6_drainage_packages: ChainMap[str, Mf6Drainage]
 
@@ -106,6 +107,7 @@ class RibaMod(Driver):
 
         # Get all the relevant river and drainage systems from MODFLOW 6
         mf6_flowmodel_key = self.coupling.mf6_model
+        self.mf6_head = self.mf6.get_head(mf6_flowmodel_key)
         self.mf6_active_river_packages = self.mf6.get_rivers_packages(
             mf6_flowmodel_key, self.coupling.mf6_active_river_packages
         )
@@ -168,10 +170,10 @@ class RibaMod(Driver):
         # Set the MODFLOW 6 river stage and drainage to value of waterlevel of Ribasim basin
         for key, river in self.mf6_active_river_packages.items():
             # TODO: use specific level after Ribasim can export levels
-            river.stage = self.map_rib2mod[key].dot(self.ribasim_level)
+            river.stage[:] = self.map_rib2mod[key].dot(self.ribasim_level)
         for key, drainage in self.mf6_active_drainage_packages.items():
             # TODO: use specific level after Ribasim can export levels
-            drainage.elevation = self.ribasim_level
+            drainage.elevation[:] = self.ribasim_level
 
         # One time step in MODFLOW 6
         self.mf6.update()
@@ -180,13 +182,13 @@ class RibaMod(Driver):
         self.ribasim_infiltration[:] = 0.0
         self.ribasim_drainage[:] = 0.0
         # Compute MODFLOW 6 river and drain flux
-        for key, river in self.mf6_river.items():
+        for key, river in self.mf6_river_packages.items():
             river_flux = river.get_flux(self.mf6_head)
             ribasim_flux = self.map_mod2rib[key].dot(river_flux) / ribamod_time_factor
             self.ribasim_infiltration += np.where(ribasim_flux > 0, ribasim_flux, 0)
             self.ribasim_drainage += np.where(ribasim_flux < 0, -ribasim_flux, 0)
 
-        for key, drainage in self.mf6_drainage.items():
+        for key, drainage in self.mf6_drainage_packages.items():
             drain_flux = drainage.get_flux(self.mf6_head)
             ribasim_flux = self.map_mod2rib[key].dot(drain_flux) / ribamod_time_factor
             self.ribasim_drainage -= ribasim_flux
