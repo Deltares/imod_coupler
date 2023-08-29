@@ -219,11 +219,7 @@ class DfmMetaMod(Driver):
             )
 
             # run dflow
-            while (
-                self.dfm.get_current_time()
-                < days_to_seconds(subtimestep_endtime) - self.time_eps
-            ):
-                self.dfm.update()
+            self.dfm.update(dt=days_to_seconds(self.delt_msw_dflow))
 
             # get cummelative flux after dfm-run
             time_after = self.dfm.get_current_time()
