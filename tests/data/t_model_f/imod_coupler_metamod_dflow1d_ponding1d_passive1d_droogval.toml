@@ -14,7 +14,7 @@ dll_dep_dir = "D:\\dev\\imod_coupler_test\\imod_collector_devel"
 
 [driver.kernels.dflowfm]
 dll = "D:\\dev\\imod_coupler_test\\dflowfm_dll\\dflowfm.dll"
-work_dir = ".\\dflow-fm"
+work_dir = ".\\dflow-fm_droogval"
 
 [[driver.coupling]]
 enable_sprinkling = false
@@ -33,7 +33,6 @@ output_config_file = "./output_config.toml"
 msw_runoff_to_dfm_1d_q_dmm = "./exchanges/MSWRUNOFFTODFM1D_Q.DMM"
 dfm_1d_waterlevel_to_mf6_river_stage_dmm = "./exchanges/DFM1DWATLEVTOMFRIV_H.DMM"
 mf6_river_to_dfm_1d_q_dmm = "./exchanges/MFRIVTODFM1D_Q.DMM"
-mf6_river2_to_dmf_1d_q_dmm = "./exchanges/MFRIV2TODFM1D_Q.DMM"
 mf6_drainage_to_dfm_1d_q_dmm = "./exchanges/MFDRNTODFM1D_Q.DMM"
-msw_sprinkling_to_dfm_1d_q_dmm = "./exchanges/MSWSPRINKTODFM1D_Q.DMM"
+mf6_river2_to_dmf_1d_q_dmm = "./exchanges/MFRIV2TODFM1D_Q.DMM"
 

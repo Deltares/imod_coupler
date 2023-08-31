@@ -295,7 +295,7 @@ class DfmMetaMod(Driver):
             "mf6_recharge": self.mf6.get_recharge(
                 self.coupling.mf6_model, self.coupling.mf6_msw_recharge_pkg
             ).size,
-            "mf6_riv_active": self.mf6.get_river_flux_estimate(
+            "mf6_riv_active": self.mf6.get_river_drain_flux_estimate(
                 self.coupling.mf6_model, self.coupling.mf6_river_active_pkg
             ).size,
             "mf6_riv_passive": self.mf6.get_river_drain_flux(
@@ -511,7 +511,7 @@ class DfmMetaMod(Driver):
         """
         if self.map_active_mod_dflow1d["mf-riv2dflow1d_flux"] is not None:
             # conversion from (-)m3/dtgw to (+)m3/s
-            self.mf6_river_aquifer_flux_day = self.mf6.get_river_flux_estimate(
+            self.mf6_river_aquifer_flux_day = self.mf6.get_river_drain_flux_estimate(
                 self.coupling.mf6_model, self.coupling.mf6_river_active_pkg
             )
             mf6_river_aquifer_flux_sec = (
@@ -628,9 +628,14 @@ class DfmMetaMod(Driver):
         MF6 unit: m3/d
         DFM unit: m3/s
         """
-        mf6_riv2_flux = self.mf6.get_river_drain_flux(
+        # mf6_riv2_flux = self.mf6.get_river_drain_flux(
+        #     self.coupling.mf6_model, self.coupling.mf6_river_passive_pkg
+        # )
+
+        mf6_riv2_flux = self.mf6.get_river_drain_flux_estimate(
             self.coupling.mf6_model, self.coupling.mf6_river_passive_pkg
         )
+
         # conversion from (-)m3/dtgw to (+)m3/s
         mf6_riv2_flux_sec = -mf6_riv2_flux / days_to_seconds(self.delt_mf6)
 
@@ -660,9 +665,14 @@ class DfmMetaMod(Driver):
         MF6 unit: m3/d
         DFM unit: m3/s
         """
-        mf6_drn_flux = self.mf6.get_river_drain_flux(
-            self.coupling.mf6_model, self.coupling.mf6_drain_pkg
+        # mf6_drn_flux = self.mf6.get_river_drain_flux(
+        #     self.coupling.mf6_model, self.coupling.mf6_drain_pkg
+        # )
+
+        mf6_drn_flux = self.mf6.get_river_drain_flux_estimate(
+            self.coupling.mf6_model, self.coupling.mf6_drain_pkg, isdrain=True
         )
+
         # conversion from (+)m3/dtgw to (+)m3/s
         mf6_drn_flux_sec = -mf6_drn_flux / days_to_seconds(self.delt_mf6)
 

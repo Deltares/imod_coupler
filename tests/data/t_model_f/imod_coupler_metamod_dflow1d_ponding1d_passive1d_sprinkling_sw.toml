@@ -9,7 +9,7 @@ work_dir = ".\\Modflow6"
 
 [driver.kernels.metaswap]
 dll = "D:\\dev\\imod_coupler_test\\imod_collector_devel\\MetaSWAP.dll"
-work_dir = ".\\MetaSWAP"
+work_dir = ".\\MetaSWAP_sprinkling_sw"
 dll_dep_dir = "D:\\dev\\imod_coupler_test\\imod_collector_devel"
 
 [driver.kernels.dflowfm]

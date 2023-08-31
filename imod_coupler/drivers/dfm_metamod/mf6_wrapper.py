@@ -181,10 +181,11 @@ class Mf6Wrapper(XmiWrapper):
 
         self.set_value(bound_adress, flux)
 
-    def get_river_flux_estimate(
+    def get_river_drain_flux_estimate(
         self,
         mf6_flowmodel_key: str,
         mf6_river_pkg_key: str,
+        isdrain: Optional[bool] = False,
     ) -> NDArray[np.float_]:
         """
         returns the river1 fluxes consistent with current head, river stage and conductance.
@@ -222,8 +223,11 @@ class Mf6Wrapper(XmiWrapper):
         nodelist = self.get_value_ptr(nodelist_adress)
 
         subset_head = head[nodelist - 1]
-        bot = bound[:, 2]
-        river_head = np.maximum(subset_head, bot)
+        if not isdrain:
+            bot = bound[:, 2]
+            river_head = np.maximum(subset_head, bot)
+        else:
+            river_head = subset_head
         q = NDArray[np.float_](len(nodelist))
         q[:] = bound[:, 1] * (bound[:, 0] - river_head)
 
