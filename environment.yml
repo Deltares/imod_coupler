@@ -15,7 +15,7 @@ dependencies:
   - numpy
   - pip
   - pip:
-      - "git+https://gitlab.com/deltares/imod/imod-python.git"
+      - "git+https://gitlab.com/deltares/imod/imod-python.git@master2"
       - "git+https://github.com/Deltares/Ribasim.git/#subdirectory=python/ribasim"
       - "git+https://github.com/Deltares/Ribasim.git/#subdirectory=python/ribasim_api"
       - "git+https://github.com/Deltares/Ribasim.git/#subdirectory=python/ribasim_testmodels"
