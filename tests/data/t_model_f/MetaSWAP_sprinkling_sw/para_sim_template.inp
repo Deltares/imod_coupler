@@ -8,10 +8,11 @@
 *
       postmsw_opt            =      0    ! Salt dynamics model         (0/1) 0= none  , 1= TRANSOL online
       save&restore_opt       =      0    ! Enable save & restore option (0/1)
+      simgro_opt             =     -1
 *
 * Location of soil physical database (including thsat_svat, beta2_svat.inp)
 
-      unsa_svat_path    =    "{{unsat_path}}"    !uses files in work directory; include "\"at end of path, if given
+      unsa_svat_path    = "{{unsat_path}}"
 *
 * Parameters for time steps
 *
@@ -66,5 +67,3 @@
       idf_ncol                =      10
       idf_nrow                =      11
       idf_nodata              =      -9999.00
-      idf_sx                  =      0
-      idf_sy                  =      0
