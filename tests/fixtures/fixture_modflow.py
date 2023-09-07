@@ -284,3 +284,68 @@ def mf6_backwater_model() -> mf6.Modflow6Simulation:
     times = pd.date_range("2020-01-01", "2030-01-01", freq="M")
     simulation.create_time_discretization(additional_times=times)
     return simulation
+
+
+@pytest_cases.fixture(scope="function")
+def mf6_two_basin_model() -> mf6.Modflow6Simulation:
+    """
+    This model is created to match the Ribasim two basin test model.
+    """
+    x = np.arange(10.0, 1000.0, 20.0)
+    y = np.arange(500.0, -520.0, -20.0)
+    layer = np.array([1])
+    shape = (layer.size, y.size, x.size)
+    dims = ["layer", "y", "x"]
+    coords = {"layer": layer, "y": y, "x": x}
+    idomain = xr.DataArray(data=np.ones(shape, dtype=int), coords=coords, dims=dims)
+
+    gwf_model = mf6.GroundwaterFlowModel()
+    gwf_model["dis"] = mf6.StructuredDiscretization(
+        idomain=idomain, top=20.0, bottom=xr.DataArray([-10.0], dims=["layer"])
+    )
+
+    gwf_model["npf"] = mf6.NodePropertyFlow(
+        icelltype=0,
+        k=0.1,
+        k33=0.1,
+    )
+
+    stage = xr.full_like(idomain, np.nan, dtype=float)
+    conductance = xr.full_like(idomain, np.nan, dtype=float)
+    bottom_elevation = xr.full_like(idomain, np.nan, dtype=float)
+    stage[:, 25, :] = 0.5
+    # Compute conductance as wetted area (length 20.0, width 1.0, entry resistance 1.0)
+    conductance[:, 25, :] = (20.0 * 1.0) / 1.0
+    bottom_elevation[:, 25, :] = 0.0
+    gwf_model["riv_1"] = mf6.River(
+        stage=stage,
+        conductance=conductance,
+        bottom_elevation=bottom_elevation,
+        save_flows=True,
+    )
+
+    gwf_model["ic"] = mf6.InitialConditions(start=0.0)
+    gwf_model["sto"] = mf6.SpecificStorage(1e-5, 0.15, True, 1)
+    gwf_model["oc"] = mf6.OutputControl(save_head="last", save_budget="last")
+
+    simulation = mf6.Modflow6Simulation("backwater")
+    simulation["GWF_1"] = gwf_model
+    simulation["solver"] = mf6.Solution(
+        modelnames=["GWF_1"],
+        print_option="summary",
+        csv_output=False,
+        no_ptc=True,
+        outer_dvclose=1.0e-4,
+        outer_maximum=500,
+        under_relaxation=None,
+        inner_dvclose=1.0e-4,
+        inner_rclose=0.001,
+        inner_maximum=100,
+        linear_acceleration="cg",
+        scaling_method=None,
+        reordering_method=None,
+        relaxation_factor=0.97,
+    )
+    times = pd.date_range("2020-01-01", "2030-01-01", freq="1d")
+    simulation.create_time_discretization(additional_times=times)
+    return simulation

@@ -12,13 +12,13 @@ import numpy as np
 import pandas as pd
 from loguru import logger
 from numpy.typing import NDArray
-from scipy.sparse import csr_matrix
 from ribasim_api import RibasimApi
+from scipy.sparse import csr_matrix
 
 from imod_coupler.config import BaseConfig
 from imod_coupler.drivers.driver import Driver
 from imod_coupler.drivers.ribamod.config import Coupling, RibaModConfig
-from imod_coupler.kernelwrappers.mf6_wrapper import Mf6Wrapper, Mf6Drainage, Mf6River
+from imod_coupler.kernelwrappers.mf6_wrapper import Mf6Drainage, Mf6River, Mf6Wrapper
 from imod_coupler.logging.exchange_collector import ExchangeCollector
 
 
