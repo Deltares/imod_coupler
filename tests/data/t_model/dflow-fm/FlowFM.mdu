@@ -76,7 +76,6 @@ TimeStepType      = 2
 Limtyphu          = 0
 Limtypmom         = 4
 Limtypsa          = 4
-TransportMethod   = 1
 Vertadvtypsal     = 5
 Icgsolver         = 4
 Maxdegree         = 6
