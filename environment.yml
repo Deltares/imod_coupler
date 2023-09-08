@@ -15,7 +15,8 @@ dependencies:
   - numpy
   - pip
   - pip:
-      - "git+https://gitlab.com/deltares/imod/imod-python.git"
+      # pin to older imod python commit until #184 is merged
+      - "git+https://gitlab.com/deltares/imod/imod-python.git@2987f2b88e3b23eebcdae85d8afead1e2930997e"
       - "git+https://github.com/Deltares/Ribasim.git/#subdirectory=python/ribasim"
       - "git+https://github.com/Deltares/Ribasim.git/#subdirectory=python/ribasim_api"
       - "git+https://github.com/Deltares/Ribasim.git/#subdirectory=python/ribasim_testmodels"
