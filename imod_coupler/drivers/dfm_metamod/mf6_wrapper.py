@@ -16,6 +16,37 @@ class Mf6Wrapper(XmiWrapper):
     ):
         super().__init__(lib_path, lib_dependency, working_directory, timing)
 
+    def set_grid_info(self, mf6_flowmodel_key: str, pkglist: list[str]):
+        self.gridinfo={}
+        tag =  self.get_var_address("DIS/ANGROT", mf6_flowmodel_key)
+        self.gridinfo['ANGROT'] = self.get_value_ptr(tag)[:]
+        tag =  self.get_var_address("DIS/XORIGIN", mf6_flowmodel_key)
+        self.gridinfo['XORIGIN'] = self.get_value_ptr(tag)[:]
+        tag =  self.get_var_address("DIS/YORIGIN", mf6_flowmodel_key)
+        self.gridinfo['YORIGIN'] = self.get_value_ptr(tag)[:]
+        tag =  self.get_var_address("DIS/NROW", mf6_flowmodel_key)
+        self.gridinfo['NROW'] = self.get_value_ptr(tag)[:]
+        tag =  self.get_var_address("DIS/NCOL", mf6_flowmodel_key)
+        self.gridinfo['NCOL'] = self.get_value_ptr(tag)[:]
+        tag =  self.get_var_address("DIS/NLAY", mf6_flowmodel_key)
+        self.gridinfo['NLAY'] = self.get_value_ptr(tag)[:]
+        tag =  self.get_var_address("DIS/DELR", mf6_flowmodel_key)
+        self.gridinfo['DELR'] = self.get_value_ptr(tag)[:]
+        tag =  self.get_var_address("DIS/DELC", mf6_flowmodel_key)
+        self.gridinfo['DELC'] = self.get_value_ptr(tag)[:]
+        self.gridinfo['YCC'] = 0.5*self.gridinfo['DELC'] - np.cumsum(self.gridinfo['DELC']) + self.gridinfo['YORIGIN'] + np.sum(self.gridinfo['DELC']) 
+        self.gridinfo['XCC'] = np.cumsum(self.gridinfo['DELR']) - 0.5*self.gridinfo['DELR'] 
+        + self.gridinfo['XORIGIN'] 
+        tag =  self.get_var_address("DIS/NODEUSER", mf6_flowmodel_key)
+        self.gridinfo['NODEUSER'] = self.get_value_ptr(tag)[:]
+        tag =  self.get_var_address("DIS/NODES", mf6_flowmodel_key)
+        self.gridinfo['NODES'] = self.get_value_ptr(tag)[:]
+        self.gridinfo['PKGNODES'] = {}
+        for pkgkey in pkglist:
+            tag =  self.get_var_address("NODELIST", mf6_flowmodel_key, pkgkey)
+            self.gridinfo['PKGNODES'][pkgkey] = self.get_value_ptr(tag)[:]
+        pass
+
     def get_head(self, mf6_flowmodel_key: str) -> NDArray[np.float_]:
         mf6_head_tag = self.get_var_address("X", mf6_flowmodel_key)
         mf6_head = self.get_value_ptr(mf6_head_tag)

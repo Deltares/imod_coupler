@@ -14,7 +14,7 @@ class AbstractExchange(abc.ABC):
     def __init__(self, name: str):
         pass
 
-    def write_exchange(self, exchange: NDArray[Any], time: float) -> None:
+    def write_exchange(self, exchange: NDArray[Any], time: float ) -> None:
         pass
 
     def finalize(self) -> None:
@@ -32,8 +32,32 @@ class NetcdfExchangeLogger(AbstractExchange):
         self.ds = nc.Dataset(output_file, "w")
         self.name = name
 
-    def initfile(self, ndx: int) -> None:
-        self.nodedim = self.ds.createDimension("id", ndx)
+    def initfile(self, ndx: int, mf6gridinfo=None) -> None:
+        if hasattr(self, 'mf6_grid_info'):
+            if not hasattr(self.ds, 'coldim'):
+                mf6grd = self.mf6_grid_info
+                mf6pkgnod = self.mf6_pkgnodes
+                self.rowdim = self.ds.createDimension("row", mf6grd['NROW'])
+                self.coldim = self.ds.createDimension("col", mf6grd['NCOL'])
+                self.laydim = self.ds.createDimension("lay", mf6grd['NLAY'])
+                self.nodepkgdim = self.ds.createDimension("nod_pkg", np.size(self.mf6_pkgnodes))
+                self.nodeusrdim = self.ds.createDimension("nod_usr", np.size(mf6grd['NODEUSER']))
+                self.drowvar = self.ds.createVariable("delta_row", "f8", ("col",))
+                self.drowvar[:] = mf6grd['DELR'][:]
+                self.dcolvar = self.ds.createVariable("delta_col", "f8", ("row",))
+                self.dcolvar[:] = mf6grd['DELC'][:]
+                self.rowvar = self.ds.createVariable("cc_row", "f8", ("col",))
+                self.rowvar[:] = mf6grd['XCC'][:]
+                self.colvar = self.ds.createVariable("cc_col", "f8", ("row",))
+                self.colvar[:] = mf6grd['YCC'][:]
+                self.pkgnodvar = self.ds.createVariable("pkgnodes", "i8", ("nod_pkg",))
+                self.pkgnodvar[:] = mf6pkgnod[:]
+                self.usrnodvar = self.ds.createVariable("usrnodes", "i8", ("nod_usr",))
+                self.usrnodvar[:] = mf6grd['NODEUSER'][:]
+                self.ds.setncattr('xorg',mf6grd['XORIGIN'])
+                self.ds.setncattr('yorg',mf6grd['YORIGIN'])
+            
+        self.ndxdim = self.ds.createDimension("id", ndx)
         self.timedim = self.ds.createDimension(
             "time",
         )
@@ -49,10 +73,10 @@ class NetcdfExchangeLogger(AbstractExchange):
         self.pos = 0
 
     def write_exchange(
-        self, exchange: NDArray[Any], time: float, sync: bool = False
+        self, exchange: NDArray[Any], time: float, sync: bool = False, mf6_gridinfo = None
     ) -> None:
         if len(self.ds.dimensions) == 0:
-            self.initfile(len(exchange))
+            self.initfile(len(exchange), mf6_gridinfo)
         loc = np.where(self.timevar[:] == time)
         if np.size(loc) > 0:
             self.datavar[loc[0], :] = exchange[:]
@@ -89,9 +113,10 @@ class ExchangeCollector:
             toml_dict = tomli.load(f)
         return cls(toml_dict)
 
-    def log_exchange(self, name: str, exchange: NDArray[Any], time: float) -> None:
+    def log_exchange(self, name: str, exchange: NDArray[Any], time: float, 
+        mf6gridinfo: dict[Any:Any] = None) -> None:
         if name in self.exchanges.keys():
-            self.exchanges[name].write_exchange(exchange, time)
+            self.exchanges[name].write_exchange(exchange, time, mf6gridinfo)
 
     def create_exchange_object(
         self, flux_name: str, dict_def: dict[str, Any]

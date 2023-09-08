@@ -6,6 +6,7 @@ description:
 from __future__ import annotations
 
 import os
+import re
 from pathlib import Path
 from typing import Any, Dict
 
@@ -89,6 +90,7 @@ class DfmMetaMod(Driver):
             self.dfm_metamod_config.kernels.modflow6.work_dir,
             self.base_config.timing,
         )
+
         self.msw = MswWrapper(
             self.dfm_metamod_config.kernels.metaswap.dll,
             self.dfm_metamod_config.kernels.metaswap.dll_dep_dir,
@@ -119,6 +121,15 @@ class DfmMetaMod(Driver):
         self.mapping = Mapping(
             self.coupling, self.msw.working_directory, self.array_dims
         )
+
+        self.mf6_packages = {
+            'mf-riv2dflow1d' : self.coupling.mf6_river_active_pkg,
+            'mf-riv2dflow1d_passive': self.coupling.mf6_river_passive_pkg,
+            'mf-drn2dflow1d' : self.coupling.mf6_drain_pkg,
+            'mod2msw_head' : self.coupling.mf6_msw_recharge_pkg,
+            'dflow1d2mf-riv' : self.coupling.mf6_river_active_pkg
+        }        
+
         self.dfm.init_kdtree()
         self.mapping.set_dfm_lookup(self.dfm.kdtree1D, self.dfm.kdtree2D)
         self.set_mapping()
@@ -128,6 +139,13 @@ class DfmMetaMod(Driver):
 
         output_toml_file = self.coupling.dict()["output_config_file"]
         self.exchange_logger = ExchangeCollector.from_file(output_toml_file)
+#       self.mf6.set_grid_info(self.coupling.mf6_model, list(self.mf6_packages.values()))
+#       for key, xchg in self.exchange_logger.exchanges.items():
+#           xchgname =  key.split("_")[0]
+#           if xchgname in self.mf6_packages:
+#               xchg.mf6_grid_info = self.mf6.gridinfo
+#               pkgname = self.mf6_packages[xchgname]
+#               # retrieve nodelist from mf6 wrapper for the package
 
     def log_version(self) -> None:
         logger.info(f"MODFLOW version: {self.mf6.get_version()}")
@@ -150,6 +168,15 @@ class DfmMetaMod(Driver):
         self.map_msw_dflow1d, self.mask_msw_dflow1d = self.mapping.mapping_msw_dflow1d()
         self.map_msw_dflow2d, self.mask_msw_dflow2d = self.mapping.mapping_msw_dflow2d()
 
+    def mf6_gridinfo_to_exchangelogger(self) -> None:
+        self.mf6.set_grid_info(self.coupling.mf6_model, list(self.mf6_packages.values()))
+        for key, xchg in self.exchange_logger.exchanges.items():
+            xchgname =  key.split("_")[0]
+            if xchgname in self.mf6_packages:
+                xchg.mf6_grid_info = self.mf6.gridinfo
+                pkgkey = self.mf6_packages[xchgname]
+                xchg.mf6_pkgnodes = self.mf6.gridinfo['PKGNODES'][pkgkey] 
+
     def update(self) -> None:
         # heads from modflow to MetaSWAP
         self.exchange_mod2msw()
@@ -158,6 +185,9 @@ class DfmMetaMod(Driver):
         # -> set to the (dummy) value 0.0 for now
         t_begin = self.get_current_time()
         self.mf6.prepare_time_step(0.0)
+        
+        # if not yet set then do this ... 
+        self.mf6_gridinfo_to_exchangelogger()
 
         self.delt_mf6 = self.mf6.get_time_step()
         self.delt_msw_dflow = self.msw.get_sw_time_step()
