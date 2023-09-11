@@ -447,6 +447,12 @@ class DfmMetaMod(Driver):
                     dfm_water_depth
                 )[:]
             )
+#           self.log_matrix_product(
+#               ponding_msw_m3s,
+#               self.exchange_balans_2d.demand,
+#               "dflow2d_stage2msw-ponding",
+#               self.dfm.get_current_time_days(),
+#           )            
 
     def exchange_ponding_msw2dflow2d(self) -> None:
         ponding_msw_m3dtsw = self.msw.get_surfacewater_ponding_allocation_ptr()
@@ -460,6 +466,13 @@ class DfmMetaMod(Driver):
                 self.mask_msw_dflow2d,
                 "msw-ponding2dflow2d_flux",
             )
+            self.log_matrix_product(
+                ponding_msw_m3s,
+                self.exchange_balans_2d.demand,
+                "msw-ponding2dflow2d_flux",
+                self.dfm.get_current_time_days(),
+            )            
+
             # for calculating the realised ponding volume, the flux need to be split up in positive and negative values
             # positive values means runoff from msw to dflow
             # negative values mean runon from dflow to msw
