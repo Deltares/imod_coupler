@@ -1,0 +1,70 @@
+*
+* Parameters for modelling options
+*
+      vegetation_mdl         =      1    ! Vegetation model          (1/2/3) 1= simple, 2= WOFOST,          3=2 + feedback
+      evapotranspiration_mdl =      1    ! Evapotranspiration model  (1/2/3) 1= simple, 2= PenMon as ETref, 3= PenMon full
+      saltstress_mdl         =      0    ! Salt stress model           (0/1) 0= none    1= Maas-Hoffman
+      surfacewater_mdl       =      0    ! Surface water model     (0/1/2/5) 0= none    1= Surfw   2= + Sobek   5 = +SWQN
+*
+      postmsw_opt            =      0    ! Salt dynamics model         (0/1) 0= none  , 1= TRANSOL online
+      save&restore_opt       =      0    ! Enable save & restore option (0/1)
+*
+* Location of soil physical database (including thsat_svat, beta2_svat.inp)
+
+      unsa_svat_path    =    "{{unsat_path}}"    !uses files in work directory; include "\"at end of path, if given
+*
+* Parameters for time steps
+*
+      dtgw                   =  1.000    ! Groundwater/soil water time step
+      dtsw                   =  1.000    ! Time step fast processes
+*
+* Starting time in meteo-file
+*
+      tdbg                   =   0.00    ! Starting time in meteo file
+      iybg                   =   1994
+
+* Parameters for indicating summer period water management
+*
+      tdbgsm                 =  91.00    ! Beginning of summer water management period
+      tdedsm                 = 274.00    ! End of summer water management period
+*
+*  Parameters for output
+*
+      svat_gt                =      1    ! File  with 14-day gw. levels
+      svat_per               =      1    ! File  with period-info SVATs
+      netcdf_per             =      0    ! Files with netcdf format
+      svat_per_csv           =      1    ! Files with period-info selected SVATs
+      svat_dtgw              =      0    ! File  with dtgw-info SVATs
+      svat_dtgw_csv          =      1    ! Files with dtgw-info selected SVATs
+      svat_dtsw_csv          =      1    ! Files with dtsw-info selected SVATs
+      svat2gw_dtgw           =      0    ! File  with dtgw-info flow to GW as system volume
+      svat_vg_per            =      0    ! File  with period-info vegetation model
+      svat_vg_per_csv        =      0    ! File  with period-info vegetation model selected SVATs
+      svat_vg_day            =      0    ! File  with day-info vegetation model
+      svat_vg_day_csv        =      0    ! File  with day-info vegetation model selected SVATs
+      drng_per               =      0    ! File  with period-info drainage links
+      sw_per                 =      0    ! File  with period-info Surfw
+      sw_per_csv             =      0    ! Files with period-info selected Surfw nr's
+      sw_dtgw                =      0    ! File  with dtgw-info Surfw
+      sw_dtgw_csv            =      0    ! Files with dtgw-info selected Surfw nr's
+      sw_hq_dtgw             =      0    ! File  with dtgw-info H,Q  of Surfw
+      sw_dtsw                =      0    ! File  with dtsw-info Surfw
+      sw_hq_dtsw             =      0    ! File  with dtsw-info H,Q  of Surfw
+      svat_per_unf           =      0    ! File  with period-info SVAT for postmetaswap
+      modf_per_unf           =      0    ! File  with period-info MODFLOW for postmetaswap
+      sw_dtgw_unf            =      0    ! File  with dtgw-info Surfw for water quality
+
+*
+*  Parameters for IDF output
+*
+      simgro_opt             =     -1    ! simgro output file
+      idf_per                =      1    ! Writing IDF files
+      idf_xmin                =      0.000000
+      idf_ymin                =      0.000000
+      idf_dx                  =      100.0000
+      idf_dy                  =      100.0000
+      idf_ncol                =      10
+      idf_nrow                =      11
+      idf_nodata              =      -9999.00
+      idf_sx                  =      0
+      idf_sy                  =      0

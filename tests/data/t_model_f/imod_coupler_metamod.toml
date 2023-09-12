@@ -1,0 +1,33 @@
+timing = false
+log_level = "INFO"
+driver_type = "dfm_metamod"
+
+
+[driver.kernels.modflow6]
+dll = "D:\\dev\\imod_coupler_test\\imod_collector_regression\\libmf6.dll"
+work_dir = ".\\Modflow6"
+
+[driver.kernels.metaswap]
+dll = "D:\\dev\\imod_coupler_test\\imod_collector_devel\\MetaSWAP.dll"
+work_dir = ".\\MetaSWAP"
+dll_dep_dir = "D:\\dev\\imod_coupler_test\\imod_collector_devel"
+
+[driver.kernels.dflowfm]
+dll = "D:\\dev\\imod_coupler_test\\dflowfm_dll\\dflowfm.dll"
+work_dir = ".\\dflow-fm"
+
+[[driver.coupling]]
+enable_sprinkling = false
+dfm_model = "FlowFM.mdu"
+mf6_model = "GWF_1"
+mf6_msw_node_map = "./exchanges/nodenr2svat.dxc"
+mf6_msw_recharge_pkg = "RCH_MSW"
+mf6_river_active_pkg = "RIV_SYS1"
+mf6_river_passive_pkg = "RIV_SYS2"
+mf6_drain_pkg = "DRN_SYS1"
+mf6_wel_correction_pkg = "RIV_CORR"
+mf6_msw_recharge_map = "./exchanges/RCHINDEX2SVAT.DXC"
+mf6_msw_well_pkg = "wells_msw"
+mf6_msw_sprinkling_map = "./exchanges/WELLINDEX2SVAT.DXC"
+output_config_file = "./output_config.toml"
+

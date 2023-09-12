@@ -1,0 +1,19 @@
+[General]
+    fileVersion           = 2.00                
+    fileType              = extForce            
+
+
+[Boundary]
+quantity=dischargebnd
+nodeId=InstroomOnder
+forcingfile=FlowFM_boundaryconditions1d.bc
+
+[Boundary]
+quantity=dischargebnd
+nodeId=InstroomBoven
+forcingfile=FlowFM_boundaryconditions1d.bc
+
+[Boundary]
+quantity=waterlevelbnd
+nodeId=Uitstroom
+forcingfile=FlowFM_boundaryconditions1d.bc

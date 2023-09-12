@@ -217,12 +217,15 @@ class exchange_balance_1d:
         sum_to_dflow : np.float_
             flux send to dflow
         """
-
-        shortage = np.absolute(sum_to_dflow - sum_from_dflow)
-        demand_msw = self.demand["msw-sprinkling2dflow1d_flux"]
-        demand_mf6_negative = self.demand["mf-riv2dflow1d_flux_negative"]
+        id = 10
+        shortage = np.around(np.absolute(sum_to_dflow - sum_from_dflow), decimals=id)
+        demand = np.around(
+            self.demand["msw-sprinkling2dflow1d_flux"]
+            + self.demand["mf-riv2dflow1d_flux_negative"],
+            decimals=id,
+        )
         condition = np.logical_and(
-            shortage > np.absolute(demand_msw + demand_mf6_negative),
+            shortage > np.absolute(demand),
             np.less(sum_from_dflow.astype(np.float32), sum_to_dflow.astype(np.float32)),
         )
         if np.any(condition):
@@ -240,7 +243,15 @@ class exchange_balance_1d:
            array with summed realised fluxes per dtsw-timstep by dflow
         """
 
+        # initialize realised arrays for cases where all conditions are false due to rounding errors
+        self.realised["dflow1d_flux2sprinkling_msw"] = self.demand[
+            "msw-sprinkling2dflow1d_flux"
+        ].copy()
+        self.realised["dflow1d_flux2mf-riv_negative"] = self.demand[
+            "mf-riv2dflow1d_flux_negative"
+        ].copy()
         sum_to_dflow = self.demand["sum"][:]
+
         # update elements for no shortage
         self.set_realised_no_shortage(sum_from_dflow, sum_to_dflow)
         # update elements for cases with shortage + shortage <= msw_demand
@@ -249,3 +260,5 @@ class exchange_balance_1d:
         self.set_realised_shortage_msw_mf6(sum_from_dflow, sum_to_dflow)
         # check if shortage is not larger than negative demand
         self.check_maximum_shortage(sum_from_dflow, sum_to_dflow)
+
+        # (self.demand["mf-riv2dflow1d_flux_negative"] - self.realised["dflow1d_flux2mf-riv_negative"]) * 60*60*24
