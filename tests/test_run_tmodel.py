@@ -125,3 +125,15 @@ def test_run_tmodel_f_with_metamod(
         [str(imod_coupler_exec_devel), toml_file_path],
         check=True,
     )
+
+    head_file = (
+        tmp_path_dev / "MODFLOW6" / "GWF_1" / "MODELOUTPUT" / "HEAD" / "HEAD.HED"
+    )
+    grb_file = tmp_path_dev / "MODFLOW6" / "GWF_1" / "MODELINPUT" / "T-MODEL-F.DIS6.grb"
+    heads = imod.mf6.open_hds(grb_path=grb_file, hds_path=head_file)
+    starttime = pd.to_datetime("1993-12-31")
+    timedelta = pd.to_timedelta(heads["time"], "D")
+    heads = heads.assign_coords(time=starttime + timedelta)
+    imod.idf.save(
+        tmp_path_dev / "MODFLOW6" / "GWF_1" / "MODELOUTPUT" / "HEAD" / "head.idf", heads
+    )
