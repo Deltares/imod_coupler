@@ -113,7 +113,6 @@ class DfmMetaMod(Driver):
         self.mf6.set_int("ISTDOUTTOFILE", 0)
         self.mf6.initialize()
         self.msw.initialize()
-        self.msw.initialize_surface_water_component()
         self.dfm.initialize()
         self.get_array_dims()
         self.mapping = Mapping(
@@ -122,6 +121,10 @@ class DfmMetaMod(Driver):
         self.dfm.init_kdtree()
         self.mapping.set_dfm_lookup(self.dfm.kdtree1D, self.dfm.kdtree2D)
         self.set_mapping()
+        
+        # set the surface waterlevels in MSW prior to init sw component
+        self.exchange_stage_2d_dfm2msw()
+        self.msw.initialize_surface_water_component()
         self.log_version()
         self.exchange_balans_1d = exchange_balance_1d(self.array_dims["dfm_1d"])
         self.exchange_balans_2d = exchange_balance_2d(self.array_dims["dfm_2d"])
@@ -440,7 +443,7 @@ class DfmMetaMod(Driver):
         msw_water_levels_ptr = self.msw.get_ponding_level_2d_ptr()
 
         if self.map_msw_dflow2d["dflow2d_stage2msw-ponding"] is not None:
-            msw_water_levels_ptr = (
+            msw_water_levels_ptr[:] = (
                 self.mask_msw_dflow2d["dflow2d_stage2msw-ponding"][:]
                 * msw_water_levels_ptr[:]
                 + self.map_msw_dflow2d["dflow2d_stage2msw-ponding"].dot(
@@ -453,7 +456,7 @@ class DfmMetaMod(Driver):
 #               "dflow2d_stage2msw-ponding",
 #               self.dfm.get_current_time_days(),
 #           )            
-
+        pass
     def exchange_ponding_msw2dflow2d(self) -> None:
         ponding_msw_m3dtsw = self.msw.get_surfacewater_ponding_allocation_ptr()
         ponding_msw_m3s = ponding_msw_m3dtsw / days_to_seconds(self.delt_msw_dflow)
@@ -584,6 +587,7 @@ class DfmMetaMod(Driver):
                 "msw-ponding2dflow1d_flux",
                 self.dfm.get_current_time_days(),
             )
+        return
 
     def exchange_sprinkling_msw2dflow1d(self) -> None:
         # conversion from (+)m3/dtsw to (+)m3/s

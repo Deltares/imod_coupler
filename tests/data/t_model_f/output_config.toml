@@ -45,8 +45,8 @@ type = "netcdf"
 [[exchanges.dfm2d_heads_to_msw_output]]
 type = "netcdf"
 
-[[exchanges.msw_ponding_to_dfm2d_input]]
+[[exchanges.msw-ponding2dflow2d_flux_input]]
 type = "netcdf"
 
-[[exchanges.msw_ponding_to_dfm2d_output]]
+[[exchanges.msw-ponding2dflow2d_flux_output]]
 type = "netcdf"

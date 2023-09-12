@@ -91,7 +91,7 @@ class ExchangeCollector:
 
     def log_exchange(self, name: str, exchange: NDArray[Any], time: float) -> None:
         if name in self.exchanges.keys():
-            self.exchanges[name].write_exchange(exchange, time)
+            self.exchanges[name].write_exchange(exchange, time, sync=True)
 
     def create_exchange_object(
         self, flux_name: str, dict_def: dict[str, Any]
