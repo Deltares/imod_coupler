@@ -121,7 +121,7 @@ class DfmMetaMod(Driver):
         self.dfm.init_kdtree()
         self.mapping.set_dfm_lookup(self.dfm.kdtree1D, self.dfm.kdtree2D)
         self.set_mapping()
-        
+
         # set the surface waterlevels in MSW prior to init sw component
         self.exchange_stage_2d_dfm2msw()
         self.msw.initialize_surface_water_component()
@@ -159,7 +159,6 @@ class DfmMetaMod(Driver):
 
         # we cannot set the timestep (yet) in Modflow
         # -> set to the (dummy) value 0.0 for now
-        t_begin = self.get_current_time()
         self.mf6.prepare_time_step(0.0)
 
         self.delt_mf6 = self.mf6.get_time_step()
@@ -184,15 +183,12 @@ class DfmMetaMod(Driver):
         self.exchange_flux_drn_passive_mf62dfm()
 
         # sub timestepping between metaswap and dflow
-        subtimestep_endtime = t_begin
         for idtsw in range(self.number_substeps_per_modflowstep):
-            subtimestep_endtime += self.delt_msw_dflow
-
-            # initial 2d stage from dflow 2d to msw
-            self.exchange_stage_2d_dfm2msw()
+            # # initial 2d stage from dflow 2d to msw
+            # self.exchange_stage_2d_dfm2msw()
 
             # initiate surface water timestep
-            self.msw.start_surface_water_time_step(idtsw + 1)
+            self.msw.perform_sw_time_step(idtsw + 1)
 
             # flux from metaswap ponding to water balance 1d
             self.exchange_ponding_msw2dflow1d()
@@ -450,13 +446,14 @@ class DfmMetaMod(Driver):
                     dfm_water_depth
                 )[:]
             )
-#           self.log_matrix_product(
-#               ponding_msw_m3s,
-#               self.exchange_balans_2d.demand,
-#               "dflow2d_stage2msw-ponding",
-#               self.dfm.get_current_time_days(),
-#           )            
+        #           self.log_matrix_product(
+        #               ponding_msw_m3s,
+        #               self.exchange_balans_2d.demand,
+        #               "dflow2d_stage2msw-ponding",
+        #               self.dfm.get_current_time_days(),
+        #           )
         pass
+
     def exchange_ponding_msw2dflow2d(self) -> None:
         ponding_msw_m3dtsw = self.msw.get_surfacewater_ponding_allocation_ptr()
         ponding_msw_m3s = ponding_msw_m3dtsw / days_to_seconds(self.delt_msw_dflow)
@@ -474,7 +471,7 @@ class DfmMetaMod(Driver):
                 self.exchange_balans_2d.demand,
                 "msw-ponding2dflow2d_flux",
                 self.dfm.get_current_time_days(),
-            )            
+            )
 
             # for calculating the realised ponding volume, the flux need to be split up in positive and negative values
             # positive values means runoff from msw to dflow
@@ -506,7 +503,7 @@ class DfmMetaMod(Driver):
                 self.delt_msw_dflow
             )
             ponding_msw = self.msw.get_surfacewater_ponding_realised_ptr()
-            ponding_msw = (
+            ponding_msw[:] = (
                 self.mask_msw_dflow2d["dflow2d_flux2msw-ponding"][:] * ponding_msw[:]
                 + self.map_msw_dflow2d["dflow2d_flux2msw-ponding"].dot(
                     dfm_flux_2d_realised_m3dtsw
@@ -793,6 +790,7 @@ class DfmMetaMod(Driver):
                 self.mf6.get_head(self.coupling.mf6_model)
             )[:]
         )
+        pass
 
         self.exchange_logger.log_exchange(
             "mod2msw_head_output", self.msw.get_head_ptr()[:], time

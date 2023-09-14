@@ -30,8 +30,12 @@ class exchange_balance_2d:
     def compute_realised(self, sum_from_dflow: NDArray[np.float_]) -> None:
         sum_to_dflow = self.demand["msw-ponding2dflow2d_flux"]
 
-        # update elements for no shortage
-        self.set_realised_no_shortage(sum_from_dflow, sum_to_dflow)
+        # initialise realised array at demand values first
+        self.realised["dflow2d-flux2msw-ponding"] = sum_to_dflow
+
+        # # update elements for no shortage
+        # self.set_realised_no_shortage(sum_from_dflow, sum_to_dflow)
+
         # update elements for shortage
         self.set_realised_shortage_msw(sum_from_dflow, sum_to_dflow)
 
@@ -49,7 +53,10 @@ class exchange_balance_2d:
         sum_to_dflow : np.float_
             flux send to dflow
         """
-        condition = np.greater_equal(sum_from_dflow, sum_to_dflow)
+        epsilon = 1.0e-10
+        condition = np.logical_and(
+            sum_to_dflow < 0.0, np.greater(sum_to_dflow + epsilon, sum_from_dflow)
+        )
         self.realised["dflow2d-flux2msw-ponding"][condition] = self.demand[
             "msw-ponding2dflow2d_flux"
         ][condition]
@@ -70,13 +77,14 @@ class exchange_balance_2d:
         sum_to_dflow : np.float_
             flux send to dflow
         """
-        demand_msw_positive = self.demand["msw-ponding2dflow2d_flux_positive"][:]
         demand_msw_negative = self.demand["msw-ponding2dflow2d_flux_negative"][:]
-        shortage = np.absolute(sum_to_dflow - sum_from_dflow)
-        condition = np.less(sum_from_dflow, sum_to_dflow)
-        self.realised["dflow2d-flux2msw-ponding"][condition] = demand_msw_positive[
-            condition
-        ] + (demand_msw_negative[condition] + shortage[condition])
+        template = np.nonzero(demand_msw_negative)
+        shortage = (
+            sum_to_dflow[template] - sum_from_dflow[template]
+        ) / demand_msw_negative[template]
+        self.realised["dflow2d-flux2msw-ponding"][template] = sum_to_dflow[template] * (
+            1 - shortage
+        )
 
 
 class exchange_balance_1d:

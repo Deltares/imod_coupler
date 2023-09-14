@@ -8,6 +8,7 @@
 *
       postmsw_opt            =      0    ! Salt dynamics model         (0/1) 0= none  , 1= TRANSOL online
       save&restore_opt       =      0    ! Enable save & restore option (0/1)
+      simgro_opt             =     -1
 *
 * Location of soil physical database (including thsat_svat, beta2_svat.inp)
 

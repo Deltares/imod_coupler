@@ -20,7 +20,7 @@ class MswWrapper(XmiWrapper):
     def initialize_surface_water_component(self) -> None:
         self._execute_function(self.lib.init_sw_component)
 
-    def start_surface_water_time_step(self, idtsw: int) -> None:
+    def perform_sw_time_step(self, idtsw: int) -> None:
         idtsw_c = c_int(idtsw)
         self._execute_function(self.lib.perform_sw_time_step, byref(idtsw_c))
 
