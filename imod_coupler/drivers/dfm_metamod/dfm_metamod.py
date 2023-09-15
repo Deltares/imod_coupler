@@ -446,13 +446,12 @@ class DfmMetaMod(Driver):
                     dfm_water_depth
                 )[:]
             )
-        #           self.log_matrix_product(
-        #               ponding_msw_m3s,
-        #               self.exchange_balans_2d.demand,
-        #               "dflow2d_stage2msw-ponding",
-        #               self.dfm.get_current_time_days(),
-        #           )
-        pass
+            self.log_matrix_product(
+                msw_water_levels_ptr,
+                self.exchange_stage_2d_dfm2msw,
+                "dflow2d_stage2msw-ponding",
+                self.get_current_time()
+            )
 
     def exchange_ponding_msw2dflow2d(self) -> None:
         ponding_msw_m3dtsw = self.msw.get_surfacewater_ponding_allocation_ptr()
@@ -508,6 +507,12 @@ class DfmMetaMod(Driver):
                 + self.map_msw_dflow2d["dflow2d_flux2msw-ponding"].dot(
                     dfm_flux_2d_realised_m3dtsw
                 )[:]
+            )
+            self.log_matrix_product(
+                ponding_msw,
+                self.exchange_ponding_dflow2d2msw,
+                "dflow2d_flux2msw-ponding",
+                self.get_current_time(),
             )
 
     def exchange_flux_riv_active_mf62dfm(self) -> None:
@@ -584,7 +589,6 @@ class DfmMetaMod(Driver):
                 "msw-ponding2dflow1d_flux",
                 self.get_current_time(),
             )
-        return
 
     def exchange_sprinkling_msw2dflow1d(self) -> None:
         # conversion from (+)m3/dtsw to (+)m3/s
