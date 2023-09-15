@@ -245,9 +245,7 @@ class DfmMetaMod(Driver):
             )
 
             # exchange realised values 2d to metaswap
-            self.exchange_ponding_dflow2d2msw(
-                self.exchange_balans_2d.realised["dflow2d-flux2msw-ponding"]
-            )
+            self.exchange_realised_ponding_dflow2d2msw()
 
             # exchange 2d stage to msw, so it can finish the sw-timestep (now stage at the start of next timestep)
             self.exchange_stage_2d_dfm2msw()
@@ -455,8 +453,8 @@ class DfmMetaMod(Driver):
         pass
 
     def exchange_ponding_msw2dflow2d(self) -> None:
-        ponding_msw_m3dtsw = self.msw.get_surfacewater_ponding_allocation_ptr()
-        ponding_msw_m3s = ponding_msw_m3dtsw / days_to_seconds(self.delt_msw_dflow)
+        self.ponding_msw_m3dtsw = self.msw.get_surfacewater_ponding_allocation_ptr()
+        ponding_msw_m3s = self.ponding_msw_m3dtsw / days_to_seconds(self.delt_msw_dflow)
 
         if self.map_msw_dflow2d["msw-ponding2dflow2d_flux"] is not None:
             self.matrix_product(
@@ -495,20 +493,29 @@ class DfmMetaMod(Driver):
                 )[:]
             )
 
-    def exchange_ponding_dflow2d2msw(
-        self, dfm_flux_2d_realised: NDArray[np.float_]
-    ) -> None:
-        if self.map_msw_dflow2d["dflow2d_flux2msw-ponding"] is not None:
-            dfm_flux_2d_realised_m3dtsw = dfm_flux_2d_realised * days_to_seconds(
-                self.delt_msw_dflow
-            )
+    def exchange_realised_ponding_dflow2d2msw(self) -> None:
+        if self.map_msw_dflow2d["msw-ponding2dflow2d_flux"] is not None:
+            realised_neg = self.exchange_balans_2d.realised[
+                "dflow2d-flux2msw-ponding_negative"
+            ]
+            demand_neg = self.exchange_balans_2d.demand[
+                "msw-ponding2dflow2d_flux_negative"
+            ]
+            mask = np.nonzero(demand_neg)  # prevent zero division
+            realised_fraction = realised_neg * 0.0 + 1.0
+            realised_fraction[mask] = realised_neg[mask] / demand_neg[mask]
+            matrix = self.map_msw_dflow2d["msw-ponding2dflow2d_flux"].transpose()
+
+            # correction only applies to svats which negatively contribute to the dflowfm volumes
+            # in which case the msw demand was POSITIVE, realised == demand
             ponding_msw = self.msw.get_surfacewater_ponding_realised_ptr()
+            mask = self.ponding_msw_m3dtsw * 0.0
+            mask[self.ponding_msw_m3dtsw < 0.0] = 1
             ponding_msw[:] = (
-                self.mask_msw_dflow2d["dflow2d_flux2msw-ponding"][:] * ponding_msw[:]
-                + self.map_msw_dflow2d["dflow2d_flux2msw-ponding"].dot(
-                    dfm_flux_2d_realised_m3dtsw
-                )[:]
+                mask * self.ponding_msw_m3dtsw * (matrix.dot(realised_fraction))[:]
             )
+
+            pass
 
     def exchange_flux_riv_active_mf62dfm(self) -> None:
         """
