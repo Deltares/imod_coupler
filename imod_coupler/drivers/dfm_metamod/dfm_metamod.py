@@ -122,15 +122,16 @@ class DfmMetaMod(Driver):
         self.mapping.set_dfm_lookup(self.dfm.kdtree1D, self.dfm.kdtree2D)
         self.set_mapping()
 
-        # set the surface waterlevels in MSW prior to init sw component
-        self.exchange_stage_2d_dfm2msw()
-        self.msw.initialize_surface_water_component()
+        # initialize logger
+        output_toml_file = self.coupling.dict()["output_config_file"]
+        self.exchange_logger = ExchangeCollector.from_file(output_toml_file)
         self.log_version()
         self.exchange_balans_1d = exchange_balance_1d(self.array_dims["dfm_1d"])
         self.exchange_balans_2d = exchange_balance_2d(self.array_dims["dfm_2d"])
 
-        output_toml_file = self.coupling.dict()["output_config_file"]
-        self.exchange_logger = ExchangeCollector.from_file(output_toml_file)
+        # set the surface waterlevels in MSW prior to init sw component
+        self.exchange_stage_2d_dfm2msw()
+        self.msw.initialize_surface_water_component()
 
     def log_version(self) -> None:
         logger.info(f"MODFLOW version: {self.mf6.get_version()}")
@@ -443,12 +444,6 @@ class DfmMetaMod(Driver):
                 + self.map_msw_dflow2d["dflow2d_stage2msw-ponding"].dot(
                     dfm_water_depth
                 )[:]
-            )
-            self.log_matrix_product(
-                msw_water_levels_ptr,
-                self.exchange_stage_2d_dfm2msw,
-                "dflow2d_stage2msw-ponding",
-                self.get_current_time()
             )
 
     def exchange_ponding_msw2dflow2d(self) -> None:
