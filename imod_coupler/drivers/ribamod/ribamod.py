@@ -9,7 +9,6 @@ from collections import ChainMap
 from typing import Any, Dict
 
 import numpy as np
-import pandas as pd
 from loguru import logger
 from numpy.typing import NDArray
 from ribasim_api import RibasimApi
@@ -145,12 +144,11 @@ class RibaMod(Driver):
         self.map_mod2rib = {}
         self.map_rib2mod = {}
         for key, path in coupling_tables.items():
-            df = pd.read_csv(path, sep="\t")
+            table = np.loadtxt(path, delimiter="\t", dtype=int, skiprows=1)
             package = packages[key]
             # Ribasim sorts the basins during initialization.
-            row = df["basin_index"].to_numpy()
-            col = df["bound_index"].to_numpy()
-            data = np.ones(len(df))
+            row, col = table.T
+            data = np.ones_like(row, dtype=float)
             # Many to one
             matrix = csr_matrix((data, (row, col)), shape=(n_basin, package.n_bound))
             self.map_mod2rib[key] = matrix
