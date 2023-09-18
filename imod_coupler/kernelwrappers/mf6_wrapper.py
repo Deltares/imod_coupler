@@ -511,10 +511,10 @@ class Mf6Drainage(Mf6HeadBoundary):
 
     def __init__(self, mf6_wrapper, mf6_flowmodel_key, mf6_pkg_key):
         super().__init__(mf6_wrapper, mf6_flowmodel_key, mf6_pkg_key)
-        self.elevation_minimum = self.get_elevation().copy()
+        self.elevation_minimum = self.elevation.copy()
 
     def update_bottom_minimum(self) -> None:
-        self.elevation_minimum[:] = self.get_elevation()
+        self.elevation_minimum[:] = self.elevation
 
     @property
     def elevation(self) -> NDArray[np.float64]:

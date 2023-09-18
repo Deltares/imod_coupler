@@ -113,10 +113,10 @@ class RibaMod(Driver):
         self.mf6_passive_river_packages = self.mf6.get_rivers_packages(
             mf6_flowmodel_key, self.coupling.mf6_passive_river_packages
         )
-        self.mf6_active_drainage_packages = self.mf6.get_rivers_packages(
+        self.mf6_active_drainage_packages = self.mf6.get_drainage_packages(
             mf6_flowmodel_key, self.coupling.mf6_active_drainage_packages
         )
-        self.mf6_passive_drainage_packages = self.mf6.get_rivers_packages(
+        self.mf6_passive_drainage_packages = self.mf6.get_drainage_packages(
             mf6_flowmodel_key, self.coupling.mf6_passive_drainage_packages
         )
         self.mf6_river_packages = ChainMap(
@@ -144,7 +144,7 @@ class RibaMod(Driver):
         self.map_mod2rib = {}
         self.map_rib2mod = {}
         for key, path in coupling_tables.items():
-            table = np.loadtxt(path, delimiter="\t", dtype=int, skiprows=1)
+            table = np.atleast_2d(np.loadtxt(path, delimiter="\t", dtype=int, skiprows=1))
             package = packages[key]
             # Ribasim sorts the basins during initialization.
             row, col = table.T

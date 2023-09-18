@@ -133,3 +133,51 @@ def test_ribamod_backwater(
     modflow_budget = (drn + riv).isel(time=-1).sel(y=0).to_numpy()
     budget_diff = ribasim_budget + modflow_budget
     assert (np.abs(budget_diff) < 0.02).all()
+
+
+@parametrize_with_cases("ribamod_model", prefix="two_basin")
+def test_ribamod_two_basin(
+    tmp_path_dev: Path,
+    ribamod_model: RibaMod,
+    modflow_dll_devel: Path,
+    ribasim_dll_devel: Path,
+    ribasim_dll_dep_dir_devel: Path,
+    imod_coupler_exec_devel: Path,
+) -> None:
+    """
+    Test if the backwater model works as expected
+    """
+    ribamod_model.write(
+        tmp_path_dev,
+        modflow6_dll=modflow_dll_devel,
+        ribasim_dll=ribasim_dll_devel,
+        ribasim_dll_dependency=ribasim_dll_dep_dir_devel,
+    )
+
+    subprocess.run(
+        [imod_coupler_exec_devel, tmp_path_dev / ribamod_model._toml_name], check=True
+    )
+
+    # Read Ribasim output
+    basin_df = pd.read_feather(
+        tmp_path_dev / ribamod_model._ribasim_model_dir / "output" / "basin.arrow"
+    )
+    flow_df = pd.read_feather(
+        tmp_path_dev / ribamod_model._ribasim_model_dir / "output" / "flow.arrow"
+    )
+    # Read MODFLOW 6 output
+    head = imod.mf6.open_hds(
+        tmp_path_dev / ribamod_model._modflow6_model_dir / "GWF_1" / "GWF_1.hds",
+        tmp_path_dev / ribamod_model._modflow6_model_dir / "GWF_1" / "dis.dis.grb",
+    ).compute()
+
+    # FUTURE: think of better tests?
+    # The head should only decrease, going from left to right.
+    assert bool(head.isel(time=-1, layer=0).diff("x").all())
+
+    # Water is flowing from basin1 through the ground to basin2.
+    level1, level2 = basin_df.loc[basin_df["time"] == "2030-01-01"]["level"]
+    assert level1 > level2
+
+    # Flow in the edges is always to the right.
+    assert (flow_df["flow"] >= 0).all()

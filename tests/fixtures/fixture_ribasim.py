@@ -30,10 +30,10 @@ def ribasim_two_basin_model() -> ribasim.Model:
     xy = np.array(
         [
             (0, 0.0),  # FlowBoundary
-            (2.50, 0.0),  # Basin 1
-            (7.50, 0.0),  # Basin 2
-            (10.00, 0.0),  # TabulatedRatingCurve
-            (11.00, 0.0),  # Terminal
+            (250.0, 0.0),  # Basin 1
+            (750.0, 0.0),  # Basin 2
+            (1000.00, 0.0),  # TabulatedRatingCurve
+            (1100.00, 0.0),  # Terminal
         ]
     )
     # Rectangular profile
