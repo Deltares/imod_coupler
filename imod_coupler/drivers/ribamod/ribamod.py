@@ -138,7 +138,7 @@ class RibaMod(Driver):
             self.coupling.mf6_active_drainage_packages,
             self.coupling.mf6_passive_drainage_packages,
         )
-        packages = ChainMap(self.mf6_river_packages, self.mf6_drainage_packages)
+        packages: ChainMap[str, Any] = ChainMap(self.mf6_river_packages, self.mf6_drainage_packages)
         n_basin = len(self.ribasim_level)
 
         self.map_mod2rib = {}
