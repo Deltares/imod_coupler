@@ -1,5 +1,6 @@
+from abc import ABC
 from pathlib import Path
-from typing import Any, Union
+from typing import Any, Dict, Sequence, Union
 
 import numpy as np
 from numpy.typing import NDArray
@@ -20,6 +21,18 @@ class Mf6Wrapper(XmiWrapper):
         mf6_head_tag = self.get_var_address("X", mf6_flowmodel_key)
         mf6_head = self.get_value_ptr(mf6_head_tag)
         return mf6_head
+
+    def get_rivers_packages(
+        self, mf6_flowmodel_key: str, mf6_river_keys: Sequence[str]
+    ) -> Dict[str, "Mf6River"]:
+        return {key: Mf6River(self, mf6_flowmodel_key, key) for key in mf6_river_keys}
+
+    def get_drainage_packages(
+        self, mf6_flowmodel_key: str, mf6_drainage_keys: Sequence[str]
+    ) -> Dict[str, "Mf6Drainage"]:
+        return {
+            key: Mf6Drainage(self, mf6_flowmodel_key, key) for key in mf6_drainage_keys
+        }
 
     def get_recharge(
         self, mf6_flowmodel_key: str, mf6_msw_recharge_pkg: str
@@ -359,3 +372,160 @@ class Mf6Wrapper(XmiWrapper):
         q = package_hcof * subset_head - package_rhs
 
         return q
+
+
+class Mf6HeadBoundary(ABC):
+    nodelist: NDArray[np.int32]
+    hcof: NDArray[np.float64]
+    rhs: NDArray[np.float64]
+    bound: NDArray[np.float64]
+    head: NDArray[np.float64]
+
+    def __init__(
+        self, mf6_wrapper: Mf6Wrapper, mf6_flowmodel_key: str, mf6_pkg_key: str
+    ):
+        nodelist_address = mf6_wrapper.get_var_address(
+            "NODELIST",
+            mf6_flowmodel_key,
+            mf6_pkg_key,
+        )
+        bound_address = mf6_wrapper.get_var_address(
+            "BOUND",
+            mf6_flowmodel_key,
+            mf6_pkg_key,
+        )
+        rhs_address = mf6_wrapper.get_var_address(
+            "RHS",
+            mf6_flowmodel_key,
+            mf6_pkg_key,
+        )
+        hcof_address = mf6_wrapper.get_var_address(
+            "HCOF", mf6_flowmodel_key, mf6_pkg_key
+        )
+        # Fortran 1-based versus Python 0-based indexing
+        self.nodelist = mf6_wrapper.get_value_ptr(nodelist_address) - 1
+        self.bound = mf6_wrapper.get_value_ptr(bound_address)
+        self.rhs = mf6_wrapper.get_value_ptr(rhs_address)
+        self.hcof = mf6_wrapper.get_value_ptr(hcof_address)
+        self.head = np.empty_like(self.hcof)
+        self.q = np.empty_like(self.hcof)
+        return
+
+    @property
+    def conductance(
+        self,
+    ) -> NDArray[np.float64]:
+        return self.bound[:, 1]
+
+    @property
+    def n_bound(self) -> int:
+        return len(self.nodelist)
+
+    def get_flux(
+        self,
+        head: NDArray[np.float64],
+    ) -> NDArray[np.float64]:
+        """
+        Returns the calculated river or DRN fluxes of MF6. In MF6 the RIV
+        boundary condition is added to the solution in the following matter:
+
+        RHS = -cond*(hriv-rivbot)
+        HCOF = -cond
+
+        if head < bot then HCOF = 0
+
+        for the DRN package:
+
+        RHS = -f * cond * bot
+        HCOF = -f * cond
+
+        Where f is the 'drainage scaling factor' when using the option 'auxdepthname'.
+
+
+        The MF6 solutions has the form of:
+
+        A * h = Q
+
+        Therefore, the flux contributions of DRN, GHB, and RIV can be
+        calculated by:
+
+        Flux = HCOF * X - RHS
+
+
+        When this function is called before initialisation of a new timestep
+        (t), the calculated flux is of timestep t-1. If function is called
+        before initialisation of the first timestep, the calculated flux will
+        be zero.
+
+        Parameters
+        ----------
+        head: NDArray[np.float64]
+            The MODFLOW6 head for every cell.
+
+        Returns
+        -------
+        NDArray[np.float_]
+            flux (array size = nr of river nodes)
+            sign is positive for infiltration
+        """
+        # Avoid allocating large arrays
+        self.head[:] = head[self.nodelist]
+        np.multiply(self.hcof, self.head, out=self.q)
+        self.q -= self.rhs
+        return self.q
+
+
+class Mf6River(Mf6HeadBoundary):
+    nodelist: NDArray[np.int32]
+    hcof: NDArray[np.float64]
+    rhs: NDArray[np.float64]
+    bound: NDArray[np.float64]
+    head: NDArray[np.float64]
+    bottom_minimum: NDArray[np.float64]
+
+    def __init__(
+        self, mf6_wrapper: Mf6Wrapper, mf6_flowmodel_key: str, mf6_pkg_key: str
+    ):
+        super().__init__(mf6_wrapper, mf6_flowmodel_key, mf6_pkg_key)
+        self.bottom_minimum = self.bottom_elevation.copy()
+
+    def update_bottom_minimum(self) -> None:
+        self.bottom_minimum[:] = self.bottom_elevation
+
+    @property
+    def stage(self) -> NDArray[np.float64]:
+        return self.bound[:, 0]
+
+    @stage.setter
+    def stage(self, new_stage: NDArray[np.float64]) -> None:
+        np.maximum(self.bottom_minimum, new_stage, out=self.bound[:, 0])
+
+    @property
+    def bottom_elevation(self) -> NDArray[np.float64]:
+        return self.bound[:, 2]
+
+
+class Mf6Drainage(Mf6HeadBoundary):
+    nodelist: NDArray[np.int32]
+    hcof: NDArray[np.float64]
+    rhs: NDArray[np.float64]
+    bound: NDArray[np.float64]
+    head: NDArray[np.float64]
+    elevation_minimum: NDArray[np.float64]
+
+    def __init__(
+        self, mf6_wrapper: Mf6Wrapper, mf6_flowmodel_key: str, mf6_pkg_key: str
+    ):
+        super().__init__(mf6_wrapper, mf6_flowmodel_key, mf6_pkg_key)
+        self.elevation_minimum = self.elevation.copy()
+
+    def update_bottom_minimum(self) -> None:
+        self.elevation_minimum[:] = self.elevation
+
+    @property
+    def elevation(self) -> NDArray[np.float64]:
+        return self.bound[:, 0]
+
+    @elevation.setter
+    def elevation(self, new_elevation: NDArray[np.float64]) -> None:
+        np.maximum(self.elevation_minimum, new_elevation, out=self.bound[:, 0])
