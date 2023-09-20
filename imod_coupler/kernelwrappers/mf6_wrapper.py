@@ -1,6 +1,6 @@
 from abc import ABC
 from pathlib import Path
-from typing import Any, Dict, List, Union
+from typing import Any, Dict, Sequence, Union
 
 import numpy as np
 from numpy.typing import NDArray
@@ -23,12 +23,12 @@ class Mf6Wrapper(XmiWrapper):
         return mf6_head
 
     def get_rivers_packages(
-        self, mf6_flowmodel_key: str, mf6_river_keys: List[str]
+        self, mf6_flowmodel_key: str, mf6_river_keys: Sequence[str]
     ) -> Dict[str, "Mf6River"]:
         return {key: Mf6River(self, mf6_flowmodel_key, key) for key in mf6_river_keys}
 
     def get_drainage_packages(
-        self, mf6_flowmodel_key: str, mf6_drainage_keys: List[str]
+        self, mf6_flowmodel_key: str, mf6_drainage_keys: Sequence[str]
     ) -> Dict[str, "Mf6Drainage"]:
         return {
             key: Mf6Drainage(self, mf6_flowmodel_key, key) for key in mf6_drainage_keys
@@ -381,7 +381,9 @@ class Mf6HeadBoundary(ABC):
     bound: NDArray[np.float64]
     head: NDArray[np.float64]
 
-    def __init__(self, mf6_wrapper, mf6_flowmodel_key, mf6_pkg_key):
+    def __init__(
+        self, mf6_wrapper: Mf6Wrapper, mf6_flowmodel_key: str, mf6_pkg_key: str
+    ):
         nodelist_address = mf6_wrapper.get_var_address(
             "NODELIST",
             mf6_flowmodel_key,
@@ -416,13 +418,13 @@ class Mf6HeadBoundary(ABC):
         return self.bound[:, 1]
 
     @property
-    def n_bound(self):
+    def n_bound(self) -> int:
         return len(self.nodelist)
 
     def get_flux(
         self,
-        head: NDArray,
-    ) -> NDArray[np.float_]:
+        head: NDArray[np.float64],
+    ) -> NDArray[np.float64]:
         """
         Returns the calculated river or DRN fluxes of MF6. In MF6 the RIV
         boundary condition is added to the solution in the following matter:
@@ -481,7 +483,9 @@ class Mf6River(Mf6HeadBoundary):
     head: NDArray[np.float64]
     bottom_minimum: NDArray[np.float64]
 
-    def __init__(self, mf6_wrapper, mf6_flowmodel_key, mf6_pkg_key):
+    def __init__(
+        self, mf6_wrapper: Mf6Wrapper, mf6_flowmodel_key: str, mf6_pkg_key: str
+    ):
         super().__init__(mf6_wrapper, mf6_flowmodel_key, mf6_pkg_key)
         self.bottom_minimum = self.bottom_elevation.copy()
 
@@ -493,7 +497,7 @@ class Mf6River(Mf6HeadBoundary):
         return self.bound[:, 0]
 
     @stage.setter
-    def stage(self, new_stage) -> None:
+    def stage(self, new_stage: NDArray[np.float64]) -> None:
         np.maximum(self.bottom_minimum, new_stage, out=self.bound[:, 0])
 
     @property
@@ -509,7 +513,9 @@ class Mf6Drainage(Mf6HeadBoundary):
     head: NDArray[np.float64]
     elevation_minimum: NDArray[np.float64]
 
-    def __init__(self, mf6_wrapper, mf6_flowmodel_key, mf6_pkg_key):
+    def __init__(
+        self, mf6_wrapper: Mf6Wrapper, mf6_flowmodel_key: str, mf6_pkg_key: str
+    ):
         super().__init__(mf6_wrapper, mf6_flowmodel_key, mf6_pkg_key)
         self.elevation_minimum = self.elevation.copy()
 
@@ -521,5 +527,5 @@ class Mf6Drainage(Mf6HeadBoundary):
         return self.bound[:, 0]
 
     @elevation.setter
-    def elevation(self, new_elevation) -> None:
+    def elevation(self, new_elevation: NDArray[np.float64]) -> None:
         np.maximum(self.elevation_minimum, new_elevation, out=self.bound[:, 0])

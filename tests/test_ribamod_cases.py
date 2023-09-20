@@ -22,7 +22,7 @@ def case_bucket_model(
 ) -> RibaMod:
     mf6_modelname, mf6_model = get_mf6_gwf_modelnames(mf6_bucket_model)[0]
     mf6_active_river_packages = get_mf6_river_packagenames(mf6_model)
-    
+
     basin_definition = create_basin_definition(ribasim_bucket_model, buffersize=10.0)
 
     driver_coupling = DriverCoupling(
@@ -45,7 +45,7 @@ def case_backwater_model(
     mf6_modelname, mf6_model = get_mf6_gwf_modelnames(mf6_backwater_model)[0]
     mf6_active_river_packages = get_mf6_river_packagenames(mf6_model)
     mf6_active_drainage_packages = get_mf6_drainage_packagenames(mf6_model)
-    
+
     basin_definition = create_basin_definition(ribasim_backwater_model, buffersize=5.0)
 
     driver_coupling = DriverCoupling(
@@ -60,7 +60,7 @@ def case_backwater_model(
         basin_definition=basin_definition,
         coupling_list=[driver_coupling],
     )
-    
+
 
 def case_two_basin_model(
     mf6_two_basin_model: Modflow6Simulation,
@@ -68,8 +68,10 @@ def case_two_basin_model(
 ):
     mf6_modelname, mf6_model = get_mf6_gwf_modelnames(mf6_two_basin_model)[0]
     mf6_active_river_packages = get_mf6_river_packagenames(mf6_model)
-    
-    basin_definition = create_basin_definition(ribasim_two_basin_model, buffersize=250.0)
+
+    basin_definition = create_basin_definition(
+        ribasim_two_basin_model, buffersize=250.0
+    )
 
     driver_coupling = DriverCoupling(
         mf6_model=mf6_modelname,
