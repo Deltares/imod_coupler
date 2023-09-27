@@ -31,4 +31,5 @@ dependencies:
   - tomli
   - tomli-w
   - twine
+  - xarray=2023.8.0 # Pin until https://github.com/pydata/xarray/issues/8235 is resolved
   - xmipy
