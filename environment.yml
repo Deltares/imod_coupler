@@ -31,5 +31,5 @@ dependencies:
   - tomli
   - tomli-w
   - twine
-  - xarray=2023.8.0 # Pin until https://github.com/pydata/xarray/issues/8235 is resolved
+  - xarray=2023.8.0 # Pin xarray until problems with xugrid are resolved
   - xmipy
