@@ -47,7 +47,9 @@ class WellSvatMapping(MetaModMapping):
         self.dataset["svat"] = well_svat
         self.dataset["layer"] = layer
 
-    def _create_well_id(self, svat: pd.DataFrame) -> tuple[NDArray[Any], NDArray[Any], NDArray[Any]]:
+    def _create_well_id(
+        self, svat: pd.DataFrame
+    ) -> tuple[NDArray[Any], NDArray[Any], NDArray[Any]]:
         """
         Get modflow indices, svats, and layer number for the wells
         """

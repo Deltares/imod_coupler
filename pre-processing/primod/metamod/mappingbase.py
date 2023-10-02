@@ -3,7 +3,6 @@ from io import TextIOWrapper
 from pathlib import Path
 from typing import Any, Union
 
-import numpy as np
 import pandas as pd
 import xarray as xr
 from imod.msw.fixed_format import VariableMetaData, format_fixed_width
@@ -71,7 +70,9 @@ class MetaModMapping(abc.ABC):
     def _index_da(self, da: pd.DataFrame, index: NDArray[Any]) -> Any:
         return da.to_numpy().ravel()[index]
 
-    def _render(self, file: TextIOWrapper, index: NDArray[Any], svat: pd.DataFrame) -> None:
+    def _render(
+        self, file: TextIOWrapper, index: NDArray[Any], svat: pd.DataFrame
+    ) -> None:
         data_dict = {"svat": svat.to_numpy().ravel()[index]}
 
         for var in self._with_subunit:
