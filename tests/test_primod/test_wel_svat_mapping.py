@@ -3,9 +3,8 @@ from pathlib import Path
 
 import numpy as np
 import xarray as xr
-from numpy.testing import assert_equal
-
 from imod import mf6
+from numpy.testing import assert_equal
 from primod.metamod.wel_svat_mapping import WellSvatMapping
 
 

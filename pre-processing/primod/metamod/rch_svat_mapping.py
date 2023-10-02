@@ -2,6 +2,7 @@ import numpy as np
 import xarray as xr
 from imod import mf6
 from imod.msw.fixed_format import VariableMetaData
+
 from primod.metamod.mappingbase import MetaModMapping
 
 

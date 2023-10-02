@@ -4,10 +4,9 @@ from pathlib import Path
 import numpy as np
 import pytest
 import xarray as xr
+from imod import mf6
 from numpy import nan
 from numpy.testing import assert_equal
-
-from imod import mf6
 from primod.metamod.rch_svat_mapping import RechargeSvatMapping
 
 
