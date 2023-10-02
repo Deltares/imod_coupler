@@ -44,9 +44,8 @@ jobs:
         run: |
           ruff check --format=github .
 
-
-  mypy:
-    name: Mypy
+  mypy_imodc:
+    name: Mypy imodc (strict)
     runs-on: ubuntu-latest
     continue-on-error: true
     defaults:
@@ -62,11 +61,54 @@ jobs:
           environment-file: ./environment.yml
       - name: Install python packages
         run: |
-          pip install .
+          pip install --editable .
+          pip install --editable pre-processing/primod
       - name: Run mypy (strict) on imod_coupler
         run: |
           mypy --install-types --non-interactive --ignore-missing-imports --strict imod_coupler
 
+  mypy_primod:
+    name: Mypy primod (strict)
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    defaults:
+      run:
+        shell: bash -l {0}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Micromamba
+        uses: mamba-org/setup-micromamba@v1
+        with:
+          cache-downloads: true
+          cache-environment: true
+          environment-file: ./environment.yml
+      - name: Install python packages
+        run: |
+          pip install --editable .
+          pip install --editable pre-processing/primod
+      - name: Run mypy (strict) on imod_coupler
+        run: |
+          mypy --install-types --non-interactive --ignore-missing-imports --strict pre-processing/primod
+
+  mypy_tests:
+    name: Mypy tests
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    defaults:
+      run:
+        shell: bash -l {0}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Micromamba
+        uses: mamba-org/setup-micromamba@v1
+        with:
+          cache-downloads: true
+          cache-environment: true
+          environment-file: ./environment.yml
+      - name: Install python packages
+        run: |
+          pip install --editable .
+          pip install --editable pre-processing/primod
       - name: Run mypy on tests
         run: |
           mypy --install-types --non-interactive --ignore-missing-imports tests
