@@ -49,11 +49,11 @@ def test_simple_model(fixed_format_parser):
     grid_data = RechargeSvatMapping(svat, recharge)
 
     with tempfile.TemporaryDirectory() as output_dir:
-        output_dir = Path(output_dir)
-        grid_data.write(output_dir, index, svat)
+        output_dir_path = Path(output_dir)
+        grid_data.write(output_dir_path, index, svat)
 
         results = fixed_format_parser(
-            output_dir / RechargeSvatMapping._file_name,
+            output_dir_path / RechargeSvatMapping._file_name,
             RechargeSvatMapping._metadata_dict,
         )
 

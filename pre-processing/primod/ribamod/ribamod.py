@@ -196,7 +196,7 @@ class RibaMod:
         # FUTURE: check for time dimension? Also order and inclusion of layer
         # in conductance.
         # Use xarray where to force the dimension order of conductance.
-        basin_id = xr.where(conductance.notnull(), gridded_basin, np.nan)
+        basin_id = xr.where(conductance.notnull(), gridded_basin, np.nan)  # type: ignore
         include = basin_id.notnull().to_numpy()
         basin_id_values = basin_id.to_numpy()[include].astype(int)
         # Ribasim internally sorts the basin, which determines the order of the

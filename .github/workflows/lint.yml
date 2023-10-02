@@ -62,7 +62,7 @@ jobs:
       - name: Install python packages
         run: |
           pip install --editable .
-          pip install --editable pre-processing/primod
+          pip install --editable pre-processing
       - name: Run mypy (strict) on imod_coupler
         run: |
           mypy --install-types --non-interactive --ignore-missing-imports --strict imod_coupler
@@ -85,7 +85,7 @@ jobs:
       - name: Install python packages
         run: |
           pip install --editable .
-          pip install --editable pre-processing/primod
+          pip install --editable pre-processing
       - name: Run mypy (strict) on imod_coupler
         run: |
           mypy --install-types --non-interactive --ignore-missing-imports --strict pre-processing/primod
@@ -108,7 +108,7 @@ jobs:
       - name: Install python packages
         run: |
           pip install --editable .
-          pip install --editable pre-processing/primod
+          pip install --editable pre-processing
       - name: Run mypy on tests
         run: |
           mypy --install-types --non-interactive --ignore-missing-imports tests

@@ -1,4 +1,5 @@
 import abc
+from io import TextIOWrapper
 from pathlib import Path
 from typing import Any, Union
 
@@ -6,6 +7,7 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 from imod.msw.fixed_format import VariableMetaData, format_fixed_width
+from numpy.typing import NDArray
 
 
 class MetaModMapping(abc.ABC):
@@ -19,6 +21,9 @@ class MetaModMapping(abc.ABC):
 
     __slots__ = "_pkg_id"
     _metadata_dict: dict[str, VariableMetaData]
+    _with_subunit: tuple[str, str, str]
+    _to_fill: tuple[str]
+    _file_name: str
 
     def __init__(self) -> None:
         self.dataset = xr.Dataset()
@@ -31,16 +36,16 @@ class MetaModMapping(abc.ABC):
 
     def isel(self) -> None:
         raise NotImplementedError(
-            f"Selection on packages not yet supported. "
-            f"To make a selection on the xr.Dataset, call {self._pkg_id}.dataset.isel instead. "
-            f"You can create a new package with a selection by calling {__class__.__name__}(**{self._pkg_id}.dataset.isel(**selection))"
+            "Selection on packages not yet supported. "
+            "To make a selection on the xr.Dataset, call dataset.isel instead. "
+            "You can create a new package with a selection by calling (**dataset.isel(**selection))"
         )
 
     def sel(self) -> None:
         raise NotImplementedError(
-            f"Selection on packages not yet supported. "
-            f"To make a selection on the xr.Dataset, call {self._pkg_id}.dataset.sel instead. "
-            f"You can create a new package with a selection by calling {__class__.__name__}(**{self._pkg_id}.dataset.sel(**selection))"
+            "Selection on packages not yet supported. "
+            "To make a selection on the xr.Dataset, call dataset.sel instead. "
+            "You can create a new package with a selection by calling (**dataset.sel(**selection))"
         )
 
     def _check_range(self, dataframe: pd.DataFrame) -> None:
@@ -54,17 +59,19 @@ class MetaModMapping(abc.ABC):
                     f"{varname}: not all values are within range ({min_value}-{max_value})."
                 )
 
-    def write_dataframe_fixed_width(self, file, dataframe: pd.DataFrame) -> None:
+    def write_dataframe_fixed_width(
+        self, file: TextIOWrapper, dataframe: pd.DataFrame
+    ) -> None:
         for row in dataframe.itertuples():
             for index, metadata in enumerate(self._metadata_dict.values()):
                 content = format_fixed_width(row[index + 1], metadata)
                 file.write(content)
             file.write("\n")
 
-    def _index_da(self, da, index) -> Any:
+    def _index_da(self, da: pd.DataFrame, index: NDArray[Any]) -> Any:
         return da.to_numpy().ravel()[index]
 
-    def _render(self, file, index, svat) -> None:
+    def _render(self, file: TextIOWrapper, index: NDArray[Any], svat: pd.DataFrame) -> None:
         data_dict = {"svat": svat.to_numpy().ravel()[index]}
 
         for var in self._with_subunit:
@@ -81,7 +88,7 @@ class MetaModMapping(abc.ABC):
         self.write_dataframe_fixed_width(file, dataframe)
 
     def write(
-        self, directory: Union[str, Path], index: np.array, svat: xr.DataArray
+        self, directory: Union[str, Path], index: NDArray[Any], svat: xr.DataArray
     ) -> None:
         """
         Write mapping to .dxc file.

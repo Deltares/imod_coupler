@@ -1,8 +1,12 @@
+from io import TextIOWrapper
+from typing import Any
+
 import numpy as np
 import pandas as pd
 import xarray as xr
 from imod import mf6
 from imod.msw.fixed_format import VariableMetaData
+from numpy.typing import NDArray
 
 from primod.metamod.mappingbase import MetaModMapping
 
@@ -43,7 +47,7 @@ class WellSvatMapping(MetaModMapping):
         self.dataset["svat"] = well_svat
         self.dataset["layer"] = layer
 
-    def _create_well_id(self, svat):
+    def _create_well_id(self, svat: pd.DataFrame) -> tuple[NDArray[Any], NDArray[Any], NDArray[Any]]:
         """
         Get modflow indices, svats, and layer number for the wells
         """
@@ -68,8 +72,8 @@ class WellSvatMapping(MetaModMapping):
 
         return (well_id_1d, well_svat_1d, layer_1d)
 
-    def _render(self, file, *args):
-        data_dict = {}
+    def _render(self, file: TextIOWrapper, *args: Any) -> None:
+        data_dict: dict[str, Any] = {}
         data_dict["svat"] = self.dataset["svat"].to_numpy()
         data_dict["layer"] = self.dataset["layer"].to_numpy()
         data_dict["wel_id"] = self.dataset["wel_id"].to_numpy()
@@ -82,5 +86,4 @@ class WellSvatMapping(MetaModMapping):
         )
 
         self._check_range(dataframe)
-
-        return self.write_dataframe_fixed_width(file, dataframe)
+        self.write_dataframe_fixed_width(file, dataframe)
