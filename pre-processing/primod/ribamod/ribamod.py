@@ -1,4 +1,4 @@
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any, List, Optional, Type, Union
 
@@ -15,10 +15,10 @@ from imod.mf6 import Drainage, GroundwaterFlowModel, Modflow6Simulation, River
 @dataclass
 class DriverCoupling:
     mf6_model: str
-    mf6_active_river_packages: tuple[str] = ()
-    mf6_passive_river_packages: tuple[str] = ()
-    mf6_active_drainage_packages: tuple[str] = ()
-    mf6_passive_drainage_packages: tuple[str] = ()
+    mf6_active_river_packages: list[str] = field(default_factory=list)
+    mf6_passive_river_packages: list[str] = field(default_factory=list)
+    mf6_active_drainage_packages: list[str] = field(default_factory=list)
+    mf6_passive_drainage_packages: list[str] = field(default_factory=list)
 
 
 class RibaMod:
@@ -70,8 +70,8 @@ class RibaMod:
         modflow6_dll: Union[str, Path],
         ribasim_dll: Union[str, Path],
         ribasim_dll_dependency: Union[str, Path],
-        modflow6_write_kwargs: Optional[dict[Any]] = None,
-    ):
+        modflow6_write_kwargs: Optional[dict[str, Any]] = None,
+    ) -> None:
         """
         Write Ribasim and Modflow 6 model with exchange files, as well as a
         ``.toml`` file which configures the iMOD Coupler run.
@@ -117,7 +117,7 @@ class RibaMod:
         modflow6_dll: Union[str, Path],
         ribasim_dll: Union[str, Path],
         ribasim_dll_dependency: Union[str, Path],
-    ):
+    ) -> None:
         """
         Write .toml file which configures the imod coupler run.
 
@@ -168,28 +168,27 @@ class RibaMod:
     @staticmethod
     def validate_keys(
         gwf_model: GroundwaterFlowModel,
-        active_keys: List[str],
-        passive_keys: List[str],
+        active_keys: list[str],
+        passive_keys: list[str],
         expected_type: Union[Type[River], Type[Drainage]],
-    ):
-        active_keys = set(active_keys)
-        passive_keys = set(passive_keys)
-        intersection = active_keys.intersection(passive_keys)
+    ) -> None:
+        active_keys_set = set(active_keys)
+        passive_keys_set = set(passive_keys)
+        intersection = active_keys_set.intersection(passive_keys_set)
         if intersection:
             raise ValueError(f"active and passive keys share members: {intersection}")
         present = [k for k, v in gwf_model.items() if isinstance(v, expected_type)]
-        missing = (active_keys | passive_keys).difference(present)
+        missing = (active_keys_set | passive_keys_set).difference(present)
         if missing:
             raise ValueError(
                 f"keys with expected type {expected_type.__name__} are not "
                 f"present in the model: {missing}"
             )
-        return
 
     @staticmethod
     def derive_river_drainage_coupling(
         gridded_basin: xr.DataArray,
-        basin_ids: np.ndarray,
+        basin_ids: "pd.Series[int]",
         conductance: xr.DataArray,
     ) -> pd.DataFrame:
         # Conductance is leading parameter to define location, for both river
@@ -249,11 +248,11 @@ class RibaMod:
                 f"occur in the Ribasim model: {missing_basins}"
             )
 
-        exchange_dir = directory / "exchanges"
+        exchange_dir = Path(directory) / "exchanges"
         exchange_dir.mkdir(exist_ok=True, parents=True)
 
         packages = asdict(coupling)
-        coupling_dict = {destination: {} for destination in packages}
+        coupling_dict: dict[str, Any] = {destination: {} for destination in packages}
         coupling_dict["mf6_model"] = packages.pop("mf6_model")
         for destination, keys in packages.items():
             for key in keys:

@@ -57,7 +57,7 @@ ignore = ["E501", "PD901", "PD004"]
 fixable = ["I"]
 
 [tool.mypy]
-plugins = "pydantic.mypy"
+plugins = ["pydantic.mypy", "numpy.typing.mypy_plugin"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

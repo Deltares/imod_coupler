@@ -4,7 +4,7 @@ from imod.mf6 import Drainage, GroundwaterFlowModel, Modflow6Simulation, River
 from primod.ribamod import DriverCoupling, RibaMod
 
 
-def create_basin_definition(ribasim_model, buffersize: float):
+def create_basin_definition(ribasim_model: ribasim.Model, buffersize: float) -> gpd.GeoDataFrame:
     node = ribasim_model.node.static
     basin_nodes = ribasim_model.basin.static["node_id"].unique()
     basin_geometry = node.loc[basin_nodes].geometry
@@ -65,7 +65,7 @@ def case_backwater_model(
 def case_two_basin_model(
     mf6_two_basin_model: Modflow6Simulation,
     ribasim_two_basin_model: ribasim.Model,
-):
+) -> RibaMod:
     mf6_modelname, mf6_model = get_mf6_gwf_modelnames(mf6_two_basin_model)[0]
     mf6_active_river_packages = get_mf6_river_packagenames(mf6_model)
 

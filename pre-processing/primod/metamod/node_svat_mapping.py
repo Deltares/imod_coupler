@@ -48,7 +48,7 @@ class NodeSvatMapping(MetaModMapping):
         self._pkgcheck()
         self._create_mod_id()
 
-    def _create_mod_id(self):
+    def _create_mod_id(self) -> None:
         """
         Create modflow indices for the recharge layer, which is where
         infiltration will take place.
@@ -67,7 +67,7 @@ class NodeSvatMapping(MetaModMapping):
 
         self.dataset["mod_id"].to_numpy()[:, idomain_active] = mod_id_1d
 
-    def _pkgcheck(self):
+    def _pkgcheck(self) -> None:
         # Check if active msw cell inactive in idomain
         active = self.dataset["svat"] != 0
         inactive_in_idomain = active > self.idomain_active

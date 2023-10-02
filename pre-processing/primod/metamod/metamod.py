@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Optional, Union
+from typing import Any, Optional, Union
 
 import tomli_w
 from imod.mf6 import Modflow6Simulation
@@ -47,7 +47,7 @@ class MetaMod:
 
         self.is_sprinkling = self._check_coupler_and_sprinkling()
 
-    def _check_coupler_and_sprinkling(self):
+    def _check_coupler_and_sprinkling(self) -> bool:
         mf6_rch_pkgkey = self.mf6_rch_pkgkey
         mf6_wel_pkgkey = self.mf6_wel_pkgkey
 
@@ -91,8 +91,8 @@ class MetaMod:
         modflow6_dll: Union[str, Path],
         metaswap_dll: Union[str, Path],
         metaswap_dll_dependency: Union[str, Path],
-        modflow6_write_kwargs: Optional[dict] = None,
-    ):
+        modflow6_write_kwargs: Optional[dict[str, Any]] = None,
+    ) -> None:
         """
         Write MetaSWAP and Modflow 6 model with exchange files, as well as a
         ``.toml`` file which configures the imod coupler run.
@@ -158,8 +158,8 @@ class MetaMod:
         modflow6_dll: Union[str, Path],
         metaswap_dll: Union[str, Path],
         metaswap_dll_dependency: Union[str, Path],
-        coupling_dict: dict,
-    ):
+        coupling_dict: dict[str, Any],
+    ) -> None:
         """
         Write .toml file which configures the imod coupler run.
 
@@ -212,7 +212,7 @@ class MetaMod:
         with open(toml_path, "wb") as f:
             tomli_w.dump(coupler_toml, f)
 
-    def _get_gwf_modelnames(self):
+    def _get_gwf_modelnames(self) -> list[str]:
         """
         Get names of gwf models in mf6 simulation
         """
@@ -224,16 +224,16 @@ class MetaMod:
 
     def _get_coupling_dict(
         self,
-        directory: Union[str, Path],
+        directory: Path,
         mf6_rch_pkgkey: str,
         mf6_wel_pkgkey: Optional[str],
-    ) -> dict:
+    ) -> dict[str, Any]:
         """
         Get dictionary with names of coupler packages and paths to mappings.
 
         Parameters
         ----------
-        directory: str or Path
+        directory: Path
             Directory where .dxc files are written.
         mf6_rch_pkgkey: str
             Key of Modflow 6 recharge package to which MetaSWAP is coupled.
@@ -247,7 +247,7 @@ class MetaMod:
             Dictionary with names of coupler packages and paths to mappings.
         """
 
-        coupling_dict = {}
+        coupling_dict: dict[str, Any] = {}
 
         gwf_names = self._get_gwf_modelnames()
 
@@ -279,7 +279,7 @@ class MetaMod:
         directory: Union[str, Path],
         mf6_rch_pkgkey: str,
         mf6_wel_pkgkey: Optional[str],
-    ):
+    ) -> None:
         """
         Write exchange files (.dxc) which map MetaSWAP's svats to Modflow 6 node
         numbers, recharge ids, and well ids.

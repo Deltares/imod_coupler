@@ -2,6 +2,7 @@ import numpy as np
 import xarray as xr
 from imod import mf6
 from imod.msw.fixed_format import VariableMetaData
+from numpy.typing import NDArray
 
 from primod.metamod.mappingbase import MetaModMapping
 
@@ -48,7 +49,7 @@ class RechargeSvatMapping(MetaModMapping):
         self._pkgcheck()
         self._create_rch_id()
 
-    def _create_rch_id(self):
+    def _create_rch_id(self) -> None:
         self.dataset["rch_id"] = xr.full_like(
             self.dataset["svat"], fill_value=0, dtype=np.int64
         )
@@ -59,11 +60,11 @@ class RechargeSvatMapping(MetaModMapping):
         rch_active = self.dataset["rch_active"].to_numpy()
 
         # recharge does not have a subunit dimension, so tile for n_subunits
-        rch_id = np.tile(np.arange(1, n_rch + 1), (n_subunit, 1))
+        rch_id: NDArray[np.int_] = np.tile(np.arange(1, n_rch + 1), (n_subunit, 1))
 
         self.dataset["rch_id"].to_numpy()[:, rch_active] = rch_id
 
-    def _pkgcheck(self):
+    def _pkgcheck(self) -> None:
         rch_dims = self.dataset["rch_active"].dims
         if rch_dims != ("y", "x"):
             raise ValueError(

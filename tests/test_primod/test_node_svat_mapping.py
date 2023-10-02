@@ -32,7 +32,7 @@ def test_simple_model(fixed_format_parser):
         coords={"subunit": subunit, "y": y, "x": x, "dx": dx, "dy": dy}
     )
     # fmt: on
-    index = (svat != 0).values.ravel()
+    index = (svat != 0).to_numpy().ravel()
 
     like = xr.full_like(svat.sel(subunit=1, drop=True), 1.0, dtype=float).expand_dims(
         layer=[1, 2, 3]
@@ -79,7 +79,7 @@ def test_simple_model_1_subunit(fixed_format_parser):
         coords={"subunit": subunit, "y": y, "x": x, "dx": dx, "dy": dy}
     )
     # fmt: on
-    index = (svat != 0).values.ravel()
+    index = (svat != 0).to_numpy().ravel()
 
     like = xr.full_like(svat.sel(subunit=0, drop=True), 1.0, dtype=float).expand_dims(
         layer=[1, 2, 3]

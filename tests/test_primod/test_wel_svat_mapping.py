@@ -31,7 +31,7 @@ def test_simple_model(fixed_format_parser):
         coords={"subunit": subunit, "y": y, "x": x, "dx": dx, "dy": dy}
     )
     # fmt: on
-    index = (svat != 0).values.ravel()
+    index = (svat != 0).to_numpy().ravel()
 
     # Well
     well_layer = [3, 2, 1]
@@ -80,7 +80,7 @@ def test_simple_model_1_subunit(fixed_format_parser):
         coords={"subunit": subunit, "y": y, "x": x, "dx": dx, "dy": dy}
     )
     # fmt: on
-    index = (svat != 0).values.ravel()
+    index = (svat != 0).to_numpy().ravel()
 
     # Well
     well_layer = [3, 2]
@@ -138,7 +138,7 @@ def test_simple_model_inactive(fixed_format_parser):
         coords={"subunit": subunit, "y": y, "x": x, "dx": dx, "dy": dy}
     )
     # fmt: on
-    index = (svat != 0).values.ravel()
+    index = (svat != 0).to_numpy().ravel()
 
     # Well
     well_layer = [1, 3, 2, 1]

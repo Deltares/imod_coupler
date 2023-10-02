@@ -150,7 +150,6 @@ def test_ribamod_write_toml(
         toml_dict = tomllib.load(f)
 
     # This contains empty tupled, which are removed in the TOML
-    dict_coupling_expected = {k: v for k, v in coupling_dict.items()}
     dict_expected = {
         "timing": False,
         "log_level": "INFO",
@@ -167,7 +166,7 @@ def test_ribamod_write_toml(
                     "config_file": str(Path("ribasim") / "bucket.toml"),
                 },
             },
-            "coupling": [dict_coupling_expected],
+            "coupling": [coupling_dict],
         },
     }
     assert toml_dict == dict_expected
