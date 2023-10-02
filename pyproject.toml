@@ -53,7 +53,7 @@ Source = "https://github.com/Deltares/imod_coupler"
 
 [tool.ruff]
 select = ["E", "F", "NPY", "PD", "C4", "I"]
-ignore = ["E501", "PD901"]
+ignore = ["E501", "PD901", "PD004"]
 fixable = ["I"]
 
 [tool.mypy]

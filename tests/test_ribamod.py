@@ -4,8 +4,8 @@ from pathlib import Path
 import imod
 import numpy as np
 import pandas as pd
-from imod.couplers.ribamod import RibaMod
 from numpy.testing import assert_allclose
+from primod.ribamod import RibaMod
 from pytest_cases import parametrize_with_cases
 
 

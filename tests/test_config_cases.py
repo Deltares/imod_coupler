@@ -1,6 +1,6 @@
-from imod.couplers.metamod import MetaMod
 from imod.mf6 import Modflow6Simulation
 from imod.msw import MetaSwapModel
+from primod.metamod import MetaMod
 
 
 def case_sprinkling(

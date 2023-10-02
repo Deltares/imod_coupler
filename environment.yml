@@ -9,6 +9,7 @@ dependencies:
   - black
   - build
   - geopandas
+  - geopackages
   - h5netcdf
   - loguru
   - mypy

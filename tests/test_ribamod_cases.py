@@ -1,7 +1,7 @@
 import geopandas as gpd
 import ribasim
-from imod.couplers.ribamod import DriverCoupling, RibaMod
 from imod.mf6 import Drainage, GroundwaterFlowModel, Modflow6Simulation, River
+from primod.ribamod import DriverCoupling, RibaMod
 
 
 def create_basin_definition(ribasim_model, buffersize: float):

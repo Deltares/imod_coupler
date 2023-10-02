@@ -7,7 +7,7 @@ import pydantic
 import pytest
 import tomli
 import tomli_w
-from imod.couplers.metamod import MetaMod
+from primod.metamod import MetaMod
 from pytest_cases import parametrize_with_cases
 
 from imod_coupler.__main__ import run_coupler
