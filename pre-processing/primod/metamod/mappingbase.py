@@ -80,7 +80,9 @@ class MetaModMapping(abc.ABC):
         self._check_range(dataframe)
         self.write_dataframe_fixed_width(file, dataframe)
 
-    def write(self, directory: Union[str, Path], index: np.array, svat: xr.DataArray) -> None:
+    def write(
+        self, directory: Union[str, Path], index: np.array, svat: xr.DataArray
+    ) -> None:
         """
         Write mapping to .dxc file.
 

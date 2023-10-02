@@ -32,7 +32,7 @@ def test_simple_model(fixed_format_parser):
         dims=("subunit", "y", "x"),
         coords={"subunit": subunit, "y": y, "x": x, "dx": dx, "dy": dy}
     )
-    index = (svat != 0).values.ravel()
+    index = (svat != 0).to_numpy().ravel()
     rate = xr.DataArray(
         np.array(
             [[0.0, 0.0, 0.0],
@@ -80,7 +80,7 @@ def test_simple_model_1_subunit(fixed_format_parser):
         dims=("subunit", "y", "x"),
         coords={"subunit": subunit, "y": y, "x": x, "dx": dx, "dy": dy}
     )
-    index = (svat != 0).values.ravel()
+    index = (svat != 0).to_numpy().ravel()
     rate = xr.DataArray(
         np.array(
             [[0.0, 0.0, 0.0],
@@ -136,7 +136,7 @@ def test_simple_model_inactive_rch(fixed_format_parser):
         dims=("subunit", "y", "x"),
         coords={"subunit": subunit, "y": y, "x": x, "dx": dx, "dy": dy}
     )
-    index = (svat != 0).values.ravel()
+    index = (svat != 0).to_numpy().ravel()
 
     rate = xr.DataArray(
         np.array(

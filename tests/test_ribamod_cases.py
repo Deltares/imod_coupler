@@ -4,7 +4,9 @@ from imod.mf6 import Drainage, GroundwaterFlowModel, Modflow6Simulation, River
 from primod.ribamod import DriverCoupling, RibaMod
 
 
-def create_basin_definition(ribasim_model: ribasim.Model, buffersize: float) -> gpd.GeoDataFrame:
+def create_basin_definition(
+    ribasim_model: ribasim.Model, buffersize: float
+) -> gpd.GeoDataFrame:
     node = ribasim_model.node.static
     basin_nodes = ribasim_model.basin.static["node_id"].unique()
     basin_geometry = node.loc[basin_nodes].geometry
