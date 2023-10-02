@@ -1,4 +1,5 @@
 pytest_plugins = [
+    "fixtures.fixture_fixed_format_parser",
     "fixtures.fixture_ribasim",
     "fixtures.fixture_metaswap",
     "fixtures.fixture_modflow",

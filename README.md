@@ -59,6 +59,7 @@ conda activate imod_coupler
 
 ```
 pip install --editable .
+pip install --editable pre-processing
 ```
 
 - With your Deltares credentials download
