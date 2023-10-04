@@ -42,7 +42,7 @@ pyinstaller coupler/imod_coupler/__main__.py --name imodc]]></param>
       </runner>
       <runner id="RUNNER_1232" name="Get version from imod coupler" type="simpleRunner">
         <parameters>
-          <param name="script.content" value="dist\imodc\imodc --version" />
+          <param name="script.content" value="./dist/imodc/imodc --version" />
           <param name="teamcity.step.mode" value="default" />
           <param name="use.custom.script" value="true" />
         </parameters>
