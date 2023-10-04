@@ -1,6 +1,7 @@
 from pathlib import Path
 
 import numpy as np
+import pytest
 from imod import mf6
 from numpy.typing import NDArray
 
@@ -36,6 +37,9 @@ def test_mf6_set_river_stage(
     mf6wrapper.finalize()
 
 
+@pytest.mark.skip(
+    "MODFLOW 6 internals changed, we should enable this test again as soon as possible"
+)
 def test_mf6_get_river_flux_estimate(
     mf6_model_with_river: mf6.Modflow6Simulation,
     modflow_dll_devel: Path,
