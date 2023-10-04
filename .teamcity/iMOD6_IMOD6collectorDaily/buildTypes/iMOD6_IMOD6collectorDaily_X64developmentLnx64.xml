@@ -47,6 +47,13 @@ pyinstaller coupler/imod_coupler/__main__.py --name imodc]]></param>
           <param name="use.custom.script" value="true" />
         </parameters>
       </runner>
+      <runner id="RUNNER_2341" name="list modules" type="simpleRunner">
+        <parameters>
+          <param name="script.content" value="module avail" />
+          <param name="teamcity.step.mode" value="default" />
+          <param name="use.custom.script" value="true" />
+        </parameters>
+      </runner>
     </build-runners>
     <vcs-settings>
       <vcs-entry-ref root-id="iMOD6_IMOD6collectorDaily_ImodCoupler">
