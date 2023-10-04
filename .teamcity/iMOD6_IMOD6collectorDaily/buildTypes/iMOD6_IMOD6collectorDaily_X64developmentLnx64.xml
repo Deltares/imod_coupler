@@ -96,7 +96,7 @@ pyinstaller coupler/imod_coupler/__main__.py --name imodc]]></param>
       </dependency>
       <dependency id="ARTIFACT_DEPENDENCY_560" sourceBuildTypeId="MSWMOD_MetaSWAP_MetaSWAPDevelopLnx64" cleanDestination="true">
         <revisionRule name="lastSuccessful" revision="latest.lastSuccessful" />
-        <artifact sourcePath="MetaSWAP.zip!/x64/Release =&gt; metaswap&#xD;&#xA;libmsw.so =&gt; metaswap/" />
+        <artifact sourcePath="libmsw.so =&gt; metaswap/" />
       </dependency>
     </artifact-dependencies>
     <dependencies>
