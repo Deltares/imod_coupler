@@ -55,6 +55,7 @@ pyinstaller coupler/imod_coupler/__main__.py --name imodc]]></param>
     </vcs-settings>
     <requirements>
       <equals id="RQ_59" name="env.OS" value="Windows_NT" />
+      <equals id="RQ_341" name="teamcity.agent.jvm.os.name" value="Linux" />
     </requirements>
     <build-triggers>
       <build-trigger id="TRIGGER_59" type="buildDependencyTrigger">
