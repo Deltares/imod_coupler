@@ -57,6 +57,13 @@ pyinstaller coupler/imod_coupler/__main__.py --name imodc]]></param>
           <param name="use.custom.script" value="true" />
         </parameters>
       </runner>
+      <runner id="RUNNER_2342" name="conda init" type="simpleRunner">
+        <parameters>
+          <param name="script.content" value="conda init bash" />
+          <param name="teamcity.step.mode" value="default" />
+          <param name="use.custom.script" value="true" />
+        </parameters>
+      </runner>
     </build-runners>
     <vcs-settings>
       <vcs-entry-ref root-id="iMOD6_IMOD6collectorDaily_ImodCoupler">
