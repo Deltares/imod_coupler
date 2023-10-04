@@ -24,8 +24,8 @@ conda env create --file coupler/environment-minimal.yml -p "%conda_env_path%"]]>
       </runner>
       <runner id="RUNNER_299" name="Install imod_coupler" type="simpleRunner">
         <parameters>
-          <param name="script.content"><![CDATA[call conda activate %conda_env_path%
-call pip install -e .]]></param>
+          <param name="script.content"><![CDATA[conda activate %conda_env_path%
+pip install -e .]]></param>
           <param name="teamcity.build.workingDir" value="coupler" />
           <param name="teamcity.step.mode" value="default" />
           <param name="use.custom.script" value="true" />
