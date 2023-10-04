@@ -6,9 +6,6 @@
     <options>
       <option name="artifactRules" value="dist/imodc/ =&gt; imod_collector.zip!/imod_coupler/&#xA;modflow6/ =&gt; imod_collector.zip!/modflow6/&#xA;metaswap/ =&gt; imod_collector.zip!/metaswap/&#xA;ribasim/ =&gt; imod_collector.zip!/ribasim/" />
     </options>
-    <disabled-settings>
-      <setting-ref ref="TRIGGER_58" />
-    </disabled-settings>
     <parameters>
       <param name="conda_env_path" value="%system.teamcity.build.checkoutDir%/imod_collector_env" />
     </parameters>
@@ -56,13 +53,6 @@ pyinstaller coupler/imod_coupler/__main__.py --name imodc]]></param>
       <equals id="RQ_59" name="env.OS" value="Windows_NT" />
     </requirements>
     <build-triggers>
-      <build-trigger id="TRIGGER_58" type="buildDependencyTrigger">
-        <parameters>
-          <param name="afterSuccessfulBuildOnly" value="true" />
-          <param name="branchFilter" value="+:&lt;default&gt;" />
-          <param name="dependsOn" value="MSWMOD_MetaSWAP_MetaSWAPBuildWin64trunk" />
-        </parameters>
-      </build-trigger>
       <build-trigger id="TRIGGER_59" type="buildDependencyTrigger">
         <parameters>
           <param name="afterSuccessfulBuildOnly" value="true" />
