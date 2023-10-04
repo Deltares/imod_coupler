@@ -6,6 +6,9 @@
     <options>
       <option name="artifactRules" value="dist/imodc/ =&gt; imod_collector.zip!/imod_coupler/&#xA;modflow6/ =&gt; imod_collector.zip!/modflow6/&#xA;metaswap/ =&gt; imod_collector.zip!/metaswap/&#xA;ribasim/ =&gt; imod_collector.zip!/ribasim/" />
     </options>
+    <disabled-settings>
+      <setting-ref ref="TRIGGER_58" />
+    </disabled-settings>
     <parameters>
       <param name="conda_env_path" value="%system.teamcity.build.checkoutDir%/imod_collector_env" />
     </parameters>
