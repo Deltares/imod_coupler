@@ -59,7 +59,8 @@ pyinstaller coupler/imod_coupler/__main__.py --name imodc]]></param>
       </runner>
       <runner id="RUNNER_2342" name="conda init" type="simpleRunner">
         <parameters>
-          <param name="script.content" value="conda init bash" />
+          <param name="script.content"><![CDATA[module load anaconda3/2021.05
+conda init bash]]></param>
           <param name="teamcity.step.mode" value="default" />
           <param name="use.custom.script" value="true" />
         </parameters>
