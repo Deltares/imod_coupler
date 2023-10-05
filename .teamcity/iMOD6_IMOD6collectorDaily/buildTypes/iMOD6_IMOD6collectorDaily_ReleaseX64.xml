@@ -93,7 +93,7 @@ pyinstaller coupler/imod_coupler/__main__.py --name imodc]]></param>
         <revisionRule name="lastSuccessful" revision="latest.lastSuccessful" />
         <artifact sourcePath="libribasim.zip!** =&gt; ribasim" />
       </dependency>
-      <dependency id="ARTIFACT_DEPENDENCY_553" sourceBuildTypeId="MetaSWAP_Modflow_Modflow6ReleaseTrunkMeson" cleanDestination="true">
+      <dependency id="ARTIFACT_DEPENDENCY_553" sourceBuildTypeId="MetaSWAP_Modflow_ModflowPinned" cleanDestination="true">
         <revisionRule name="lastSuccessful" revision="latest.lastSuccessful" />
         <artifact sourcePath="srcbmi/libmf6.dll =&gt; modflow6/" />
       </dependency>
