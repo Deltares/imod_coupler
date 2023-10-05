@@ -102,15 +102,6 @@ pyinstaller coupler/imod_coupler/__main__.py --name imodc]]></param>
         <artifact sourcePath="MetaSWAP.zip!/x64/Release =&gt; metaswap" />
       </dependency>
     </artifact-dependencies>
-    <dependencies>
-      <depend-on sourceBuildTypeId="iMOD6_Modflow6buildWin64">
-        <options>
-          <option name="run-build-if-dependency-failed" value="RUN_ADD_PROBLEM" />
-          <option name="take-started-build-with-same-revisions" value="true" />
-          <option name="take-successful-builds-only" value="true" />
-        </options>
-      </depend-on>
-    </dependencies>
     <cleanup />
   </settings>
 </build-type>
