@@ -37,7 +37,7 @@ call conda env create --file environment.yml -p "%conda_env_path%"]]></param>
         <parameters>
           <param name="script.content"><![CDATA[call conda activate "%conda_env_path%"
 pip install --editable "."
-pip install -editable "pre-processing"]]></param>
+pip install --editable "pre-processing"]]></param>
           <param name="teamcity.build.workingDir" value="imod_coupler" />
           <param name="teamcity.step.mode" value="default" />
           <param name="use.custom.script" value="true" />
