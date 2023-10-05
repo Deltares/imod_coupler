@@ -94,7 +94,7 @@ pyinstaller coupler/imod_coupler/__main__.py --name imodc]]></param>
         <artifact sourcePath="libribasim.zip!** =&gt; ribasim" />
       </dependency>
       <dependency id="ARTIFACT_DEPENDENCY_553" sourceBuildTypeId="iMOD6_Modflow6buildWin64" cleanDestination="true">
-        <revisionRule name="buildNumber" revision="647" />
+        <revisionRule name="buildNumber" revision="649" />
         <artifact sourcePath="libmf6.dll =&gt; modflow6/" />
       </dependency>
       <dependency id="ARTIFACT_DEPENDENCY_560" sourceBuildTypeId="MSWMOD_MetaSWAP_MetaSWAPBuildWin64trunk" cleanDestination="true">
