@@ -376,6 +376,7 @@ class DfmMetaMod(Driver):
         fluxes = self.dfm.get_1d_river_fluxes_ptr()
         if fluxes is not None:
             fluxes[:] = flux2dflow[:]
+            pass
 
     def exchange_balans2d_todfm(self, flux2dflow: NDArray[float_]) -> None:
         if self.dfm.get_number_2d_nodes():
@@ -428,12 +429,13 @@ class DfmMetaMod(Driver):
         MSW unit: m+DEM (depth)
         DFM unit: m+NAP
         """
-        dfm_water_levels = self.dfm.get_waterlevels_2d_ptr()
-        dfm_bed_level = self.dfm.get_bed_level_2d_ptr()
-        dfm_water_depth = dfm_bed_level
-        condition = dfm_water_levels > (dfm_bed_level + np.double(0.001))
-        dfm_water_depth[condition] = dfm_water_levels[condition]
-
+        dfm_water_levels_ptr = self.dfm.get_waterlevels_2d_ptr()
+        dfm_bed_level_ptr = self.dfm.get_bed_level_2d_ptr()
+        dfm_water_level = np.copy(dfm_bed_level_ptr)
+        condition = dfm_water_levels_ptr > (dfm_bed_level_ptr + np.double(0.001))
+        dfm_water_level[condition] = dfm_water_levels_ptr[condition]
+        if any(condition):
+            pass
         msw_water_levels_ptr = self.msw.get_ponding_level_2d_ptr()
 
         if self.map_msw_dflow2d["dflow2d_stage2msw-ponding"] is not None:
@@ -441,7 +443,7 @@ class DfmMetaMod(Driver):
                 self.mask_msw_dflow2d["dflow2d_stage2msw-ponding"][:]
                 * msw_water_levels_ptr[:]
                 + self.map_msw_dflow2d["dflow2d_stage2msw-ponding"].dot(
-                    dfm_water_depth
+                    dfm_water_level
                 )[:]
             )
         #           self.log_matrix_product(
@@ -453,7 +455,9 @@ class DfmMetaMod(Driver):
         pass
 
     def exchange_ponding_msw2dflow2d(self) -> None:
-        self.ponding_msw_m3dtsw = self.msw.get_surfacewater_ponding_allocation_ptr()
+        self.ponding_msw_m3dtsw = np.copy(
+            self.msw.get_surfacewater_ponding_allocation_ptr()
+        )
         ponding_msw_m3s = self.ponding_msw_m3dtsw / days_to_seconds(self.delt_msw_dflow)
 
         if self.map_msw_dflow2d["msw-ponding2dflow2d_flux"] is not None:
@@ -495,6 +499,7 @@ class DfmMetaMod(Driver):
 
     def exchange_realised_ponding_dflow2d2msw(self) -> None:
         if self.map_msw_dflow2d["msw-ponding2dflow2d_flux"] is not None:
+            # realised fraction is computed at the dflow-side of mapping
             realised_neg = self.exchange_balans_2d.realised[
                 "dflow2d-flux2msw-ponding_negative"
             ]
@@ -509,8 +514,10 @@ class DfmMetaMod(Driver):
             # correction only applies to svats which negatively contribute to the dflowfm volumes
             # in which case the msw demand was POSITIVE, realised == demand
             ponding_msw = self.msw.get_surfacewater_ponding_realised_ptr()
-            condition = np.greater_equal(self.ponding_msw_m3dtsw, 0)
-            ponding_msw = self.ponding_msw_m3dtsw
+            condition = np.greater_equal(0, self.ponding_msw_m3dtsw)
+            ponding_msw[:] = self.ponding_msw_m3dtsw[
+                :
+            ]  # assign values from copy of demand pointer
             ponding_msw[condition] = (
                 self.ponding_msw_m3dtsw * (matrix.dot(realised_fraction))
             )[condition]

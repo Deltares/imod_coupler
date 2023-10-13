@@ -222,7 +222,6 @@ class DfmWrapper(BMIWrapper):  # type: ignore
         Optional[NDArray[np.float_]]
             the DFLOW_FM external fluxes ( "qext") for the 2d nodes
         """
-        nr_nodes_1d = self.get_number_1d_nodes()
         nr_nodes_2d = self.get_number_2d_nodes()
         if nr_nodes_2d == 0:
             raise ValueError("No dflow 2d nodes found!")
