@@ -444,12 +444,13 @@ class DfmMetaMod(Driver):
                     dfm_water_depth
                 )[:]
             )
-            self.log_matrix_product(
-                msw_water_levels_ptr,
-                self.exchange_stage_2d_dfm2msw,
-                "dflow2d_stage2msw-ponding",
-                self.get_current_time()
-            )
+        #           self.log_matrix_product(
+        #               ponding_msw_m3s,
+        #               self.exchange_balans_2d.demand,
+        #               "dflow2d_stage2msw-ponding",
+        #               self.dfm.get_current_time_days(),
+        #           )
+        pass
 
     def exchange_ponding_msw2dflow2d(self) -> None:
         self.ponding_msw_m3dtsw = self.msw.get_surfacewater_ponding_allocation_ptr()
@@ -467,7 +468,7 @@ class DfmMetaMod(Driver):
                 ponding_msw_m3s,
                 self.exchange_balans_2d.demand,
                 "msw-ponding2dflow2d_flux",
-                self.get_current_time(),
+                self.dfm.get_current_time_days(),
             )
 
             # for calculating the realised ponding volume, the flux need to be split up in positive and negative values
@@ -508,18 +509,11 @@ class DfmMetaMod(Driver):
             # correction only applies to svats which negatively contribute to the dflowfm volumes
             # in which case the msw demand was POSITIVE, realised == demand
             ponding_msw = self.msw.get_surfacewater_ponding_realised_ptr()
-            mask = self.ponding_msw_m3dtsw * 0.0
-            mask[self.ponding_msw_m3dtsw < 0.0] = 1
-            ponding_msw[:] = (
-                mask * self.ponding_msw_m3dtsw * (matrix.dot(realised_fraction))[:]
-            )
-            self.log_matrix_product(
-                ponding_msw,
-                self.exchange_ponding_dflow2d2msw,
-                "dflow2d_flux2msw-ponding",
-                self.get_current_time(),
-            )
-
+            condition = np.greater_equal(self.ponding_msw_m3dtsw, 0)
+            ponding_msw = self.ponding_msw_m3dtsw
+            ponding_msw[condition] = (
+                self.ponding_msw_m3dtsw * (matrix.dot(realised_fraction))
+            )[condition]
             pass
 
     def exchange_flux_riv_active_mf62dfm(self) -> None:
@@ -553,7 +547,7 @@ class DfmMetaMod(Driver):
                 mf6_river_aquifer_flux_sec,
                 self.exchange_balans_1d.demand,
                 "mf-riv2dflow1d_flux",
-                self.get_current_time(),
+                self.dfm.get_current_time_days(),
             )
             # for calculating the correction flux, the flux need to be split up in positive and negative values
             # since the sign is already swapped, positive values means drainage from mf6 to dflow and
@@ -594,8 +588,9 @@ class DfmMetaMod(Driver):
                 msw_ponding_flux_sec,
                 self.exchange_balans_1d.demand,
                 "msw-ponding2dflow1d_flux",
-                self.get_current_time(),
+                self.dfm.get_current_time_days(),
             )
+        return
 
     def exchange_sprinkling_msw2dflow1d(self) -> None:
         # conversion from (+)m3/dtsw to (+)m3/s
@@ -615,7 +610,7 @@ class DfmMetaMod(Driver):
             msw_sprinkling_flux_sec,
             self.exchange_balans_1d.demand,
             "msw-sprinkling2dflow1d_flux",
-            self.get_current_time(),
+            self.dfm.get_current_time_days(),
         )
 
     def exchange_sprinkling_dflow1d2msw(
@@ -640,7 +635,7 @@ class DfmMetaMod(Driver):
             self.exchange_logger.log_exchange(
                 "dflow1d_flux2sprinkling_msw_input",
                 sprinkling_dflow_dtsw,
-                self.get_current_time(),
+                self.dfm.get_current_time_days(),
             )
 
     def exchange_flux_riv_passive_mf62dfm(self) -> None:
@@ -675,7 +670,7 @@ class DfmMetaMod(Driver):
             mf6_riv2_flux_sec,
             self.exchange_balans_1d.demand,
             "mf-riv2dflow1d_passive_flux",
-            self.get_current_time(),
+            self.dfm.get_current_time_days(),
         )
 
     def exchange_flux_drn_passive_mf62dfm(
@@ -712,7 +707,7 @@ class DfmMetaMod(Driver):
             mf6_drn_flux_sec,
             self.exchange_balans_1d.demand,
             "mf-drn2dflow1d_flux",
-            self.get_current_time(),
+            self.dfm.get_current_time_days(),
         )
 
     def exchange_correction_dflow2mf6(self) -> None:
