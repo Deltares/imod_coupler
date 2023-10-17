@@ -28,9 +28,8 @@ def test_mf6_set_river_stage(
         new_river_stage,
     )
 
-    bound_adress = mf6wrapper.get_var_address("BOUND", "GWF_1", "Oosterschelde")
-    bound = mf6wrapper.get_value_ptr(bound_adress)
-    stage = bound[:, 0]
+    stage_address = mf6wrapper.get_var_address("STAGE", "GWF_1", "Oosterschelde")
+    stage = mf6wrapper.get_value_ptr(stage_address)
 
     np.testing.assert_allclose(stage, new_river_stage)
     mf6wrapper.finalize()
