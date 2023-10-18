@@ -104,8 +104,10 @@ class Mf6Wrapper(XmiWrapper):
          NDArray[np.float_]:
             Drainage elevation in modflow
         """
-        bound_adress = self.get_var_address("BOUND", mf6_flowmodel_key, mf6_package_key)
-        bound = self.get_value_ptr(bound_adress)
+        bound_address = self.get_var_address(
+            "BOUND", mf6_flowmodel_key, mf6_package_key
+        )
+        bound = self.get_value_ptr(bound_address)
         stage = bound[:, 0]
         return stage
 
@@ -136,8 +138,10 @@ class Mf6Wrapper(XmiWrapper):
         stage = self.get_drainage_elevation(mf6_flowmodel_key, mf6_package_key)
         if len(new_drainage_elevation) != len(stage):
             raise ValueError(f"Expected size of new_drainage_elevation is {len(stage)}")
-        bound_adress = self.get_var_address("BOUND", mf6_flowmodel_key, mf6_package_key)
-        bound = self.get_value_ptr(bound_adress)
+        bound_address = self.get_var_address(
+            "BOUND", mf6_flowmodel_key, mf6_package_key
+        )
+        bound = self.get_value_ptr(bound_address)
         bound[:, 0] = new_drainage_elevation[:]
 
     def set_river_stages(
@@ -167,9 +171,11 @@ class Mf6Wrapper(XmiWrapper):
         stage = self.get_river_stages(mf6_flowmodel_key, mf6_package_key)
         if len(new_river_stages) != len(stage):
             raise ValueError(f"Expected size of new_river_stages is {len(stage)}")
-        bound_adress = self.get_var_address("BOUND", mf6_flowmodel_key, mf6_package_key)
-        bound = self.get_value_ptr(bound_adress)
-        bound[:, 0] = new_river_stages[:]
+        stage_address = self.get_var_address(
+            "STAGE", mf6_flowmodel_key, mf6_package_key
+        )
+        stage = self.get_value_ptr(stage_address)
+        stage[:] = new_river_stages[:]
 
     def get_river_stages(
         self,
@@ -191,9 +197,10 @@ class Mf6Wrapper(XmiWrapper):
          NDArray[np.float_]:
             stages of the rivers in modflow
         """
-        bound_adress = self.get_var_address("BOUND", mf6_flowmodel_key, mf6_package_key)
-        bound = self.get_value_ptr(bound_adress)
-        stage = bound[:, 0]
+        stage_address = self.get_var_address(
+            "STAGE", mf6_flowmodel_key, mf6_package_key
+        )
+        stage = self.get_value_ptr(stage_address)
         return stage
 
     def get_river_bot(
@@ -216,10 +223,9 @@ class Mf6Wrapper(XmiWrapper):
          NDArray[np.float_]:
             bots of the rivers in modflow
         """
-        bound_adress = self.get_var_address("BOUND", mf6_flowmodel_key, mf6_package_key)
-        bound = self.get_value_ptr(bound_adress)
-        bot = bound[:, 2]
-        return bot
+        rbot_address = self.get_var_address("RBOT", mf6_flowmodel_key, mf6_package_key)
+        rbot = self.get_value_ptr(rbot_address)
+        return rbot
 
     def set_well_flux(
         self,
@@ -246,15 +252,17 @@ class Mf6Wrapper(XmiWrapper):
         ValueError
             the size of the provided flux array does not match the expected size
         """
-        bound_adress = self.get_var_address("BOUND", mf6_flowmodel_key, mf6_wel_pkg_key)
-        mf6_flux = self.get_value_ptr(bound_adress)
+        bound_address = self.get_var_address(
+            "BOUND", mf6_flowmodel_key, mf6_wel_pkg_key
+        )
+        mf6_flux = self.get_value_ptr(bound_address)
 
         if len(assigned_flux) != len(mf6_flux):
             raise ValueError(f"Expected size of flux is {len(mf6_flux)}")
         for i in range(len(assigned_flux)):
             mf6_flux[i, 0] = assigned_flux[i]
 
-        self.set_value(bound_adress, mf6_flux)
+        self.set_value(bound_address, mf6_flux)
 
     def get_river_flux_estimate(
         self,
@@ -284,23 +292,30 @@ class Mf6Wrapper(XmiWrapper):
             flux (array size = nr of river nodes)
             sign is positive for infiltration
         """
-        bound_adress = self.get_var_address(
-            "BOUND", mf6_flowmodel_key, mf6_river_pkg_key
+        stage_address = self.get_var_address(
+            "STAGE", mf6_flowmodel_key, mf6_river_pkg_key
         )
-        bound = self.get_value_ptr(bound_adress)
+        cond_address = self.get_var_address(
+            "COND", mf6_flowmodel_key, mf6_river_pkg_key
+        )
+        rbot_address = self.get_var_address(
+            "RBOT", mf6_flowmodel_key, mf6_river_pkg_key
+        )
+        stage = self.get_value_ptr(stage_address)
+        cond = self.get_value_ptr(cond_address)
+        rbot = self.get_value_ptr(rbot_address)
 
-        head_adress = self.get_var_address("X", mf6_flowmodel_key)
-        head = self.get_value_ptr(head_adress)
-        nodelist_adress = self.get_var_address(
+        head_address = self.get_var_address("X", mf6_flowmodel_key)
+        head = self.get_value_ptr(head_address)
+        nodelist_address = self.get_var_address(
             "NODELIST", mf6_flowmodel_key, mf6_river_pkg_key
         )
-        nodelist = self.get_value_ptr(nodelist_adress)
+        nodelist = self.get_value_ptr(nodelist_address)
 
         subset_head = head[nodelist - 1]
-        bot = bound[:, 2]
-        river_head = np.maximum(subset_head, bot)
+        river_head = np.maximum(subset_head, rbot)
         q = NDArray[np.float_](len(nodelist))
-        q[:] = bound[:, 1] * (bound[:, 0] - river_head)
+        q[:] = cond * (stage - river_head)
 
         return q
 
@@ -352,20 +367,20 @@ class Mf6Wrapper(XmiWrapper):
             sign is positive for infiltration
         """
 
-        rhs_adress = self.get_var_address(
+        rhs_address = self.get_var_address(
             "RHS", mf6_flowmodel_key, mf6_river_drain_pkg_key
         )
-        package_rhs = self.get_value_ptr(rhs_adress)
-        hcof_adress = self.get_var_address(
+        package_rhs = self.get_value_ptr(rhs_address)
+        hcof_address = self.get_var_address(
             "HCOF", mf6_flowmodel_key, mf6_river_drain_pkg_key
         )
-        package_hcof = self.get_value_ptr(hcof_adress)
-        head_adress = self.get_var_address("X", mf6_flowmodel_key)
-        head = self.get_value_ptr(head_adress)
-        package_nodelist_adress = self.get_var_address(
+        package_hcof = self.get_value_ptr(hcof_address)
+        head_address = self.get_var_address("X", mf6_flowmodel_key)
+        head = self.get_value_ptr(head_address)
+        package_nodelist_address = self.get_var_address(
             "NODELIST", mf6_flowmodel_key, mf6_river_drain_pkg_key
         )
-        package_nodelist = self.get_value_ptr(package_nodelist_adress)
+        package_nodelist = self.get_value_ptr(package_nodelist_address)
         subset_head = head[package_nodelist - 1]
 
         q = NDArray[np.float_](len(package_nodelist))

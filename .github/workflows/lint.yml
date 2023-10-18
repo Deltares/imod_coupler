@@ -34,15 +34,7 @@ jobs:
         shell: bash -l {0}
     steps:
       - uses: actions/checkout@v4
-      - name: Setup Micromamba
-        uses: mamba-org/setup-micromamba@v1
-        with:
-          cache-downloads: true
-          cache-environment: true
-          environment-file: ./environment.yml
-      - name: Run ruff
-        run: |
-          ruff check --format=github .
+      - uses: chartboost/ruff-action@v1
 
   mypy_imodc:
     name: Mypy imodc (strict)
