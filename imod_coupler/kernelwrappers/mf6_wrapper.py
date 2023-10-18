@@ -104,7 +104,9 @@ class Mf6Wrapper(XmiWrapper):
          NDArray[np.float_]:
             Drainage elevation in modflow
         """
-        bound_address = self.get_var_address("BOUND", mf6_flowmodel_key, mf6_package_key)
+        bound_address = self.get_var_address(
+            "BOUND", mf6_flowmodel_key, mf6_package_key
+        )
         bound = self.get_value_ptr(bound_address)
         stage = bound[:, 0]
         return stage
@@ -136,7 +138,9 @@ class Mf6Wrapper(XmiWrapper):
         stage = self.get_drainage_elevation(mf6_flowmodel_key, mf6_package_key)
         if len(new_drainage_elevation) != len(stage):
             raise ValueError(f"Expected size of new_drainage_elevation is {len(stage)}")
-        bound_address = self.get_var_address("BOUND", mf6_flowmodel_key, mf6_package_key)
+        bound_address = self.get_var_address(
+            "BOUND", mf6_flowmodel_key, mf6_package_key
+        )
         bound = self.get_value_ptr(bound_address)
         bound[:, 0] = new_drainage_elevation[:]
 
@@ -167,7 +171,9 @@ class Mf6Wrapper(XmiWrapper):
         stage = self.get_river_stages(mf6_flowmodel_key, mf6_package_key)
         if len(new_river_stages) != len(stage):
             raise ValueError(f"Expected size of new_river_stages is {len(stage)}")
-        stage_address = self.get_var_address("STAGE", mf6_flowmodel_key, mf6_package_key)
+        stage_address = self.get_var_address(
+            "STAGE", mf6_flowmodel_key, mf6_package_key
+        )
         stage = self.get_value_ptr(stage_address)
         stage[:] = new_river_stages[:]
 
@@ -191,7 +197,9 @@ class Mf6Wrapper(XmiWrapper):
          NDArray[np.float_]:
             stages of the rivers in modflow
         """
-        stage_address = self.get_var_address("STAGE", mf6_flowmodel_key, mf6_package_key)
+        stage_address = self.get_var_address(
+            "STAGE", mf6_flowmodel_key, mf6_package_key
+        )
         stage = self.get_value_ptr(stage_address)
         return stage
 
@@ -244,7 +252,9 @@ class Mf6Wrapper(XmiWrapper):
         ValueError
             the size of the provided flux array does not match the expected size
         """
-        bound_address = self.get_var_address("BOUND", mf6_flowmodel_key, mf6_wel_pkg_key)
+        bound_address = self.get_var_address(
+            "BOUND", mf6_flowmodel_key, mf6_wel_pkg_key
+        )
         mf6_flux = self.get_value_ptr(bound_address)
 
         if len(assigned_flux) != len(mf6_flux):
