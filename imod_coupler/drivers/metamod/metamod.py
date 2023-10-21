@@ -265,17 +265,20 @@ class MetaMod(Driver):
             "msw_storage", self.msw_storage, self.get_current_time()
         )
 
-        # Divide recharge and extraction by delta time
-        tled = 1 / self.delt
+        # Set recharge
+        nodelist_address = self.mf6.get_var_address(
+            "NODELIST", self.coupling.mf6_model, self.coupling.mf6_msw_recharge_pkg
+        )
+        nodelist = self.mf6.get_value_ptr(nodelist_address)
         self.mf6_recharge[:] = (
             self.mask_msw2mod["recharge"][:] * self.mf6_recharge[:]
-            + tled * self.map_msw2mod["recharge"].dot(self.msw_volume)[:]
-        )
+            + self.map_msw2mod["recharge"].dot(self.msw_volume)[:] / self.delt
+        ) / self.mf6_area[nodelist]
 
         if self.coupling.enable_sprinkling:
             self.mf6_sprinkling_wells[:] = (
                 self.mask_msw2mod["sprinkling"][:] * self.mf6_sprinkling_wells[:]
-                + tled * self.map_msw2mod["sprinkling"].dot(self.msw_volume)[:]
+                + self.map_msw2mod["sprinkling"].dot(self.msw_volume)[:] / self.delt
             )
 
     def exchange_mod2msw(self) -> None:
