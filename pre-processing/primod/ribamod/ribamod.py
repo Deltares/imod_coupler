@@ -154,7 +154,7 @@ class RibaMod:
                         "dll_dep_dir": str(ribasim_dll_dependency),
                         "config_file": str(
                             Path(self._ribasim_model_dir)
-                            / f"{self.ribasim_model.modelname}.toml"
+                            / "ribasim.toml"
                         ),
                     },
                 },
