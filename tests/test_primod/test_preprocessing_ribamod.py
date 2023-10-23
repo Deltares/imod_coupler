@@ -163,7 +163,7 @@ def test_ribamod_write_toml(
                 "ribasim": {
                     "dll": "./ribasim.dll",
                     "dll_dep_dir": "./ribasim-bin",
-                    "config_file": str(Path("ribasim") / "bucket.toml"),
+                    "config_file": str(Path("ribasim") / "ribasim.toml"),
                 },
             },
             "coupling": [coupling_dict],
