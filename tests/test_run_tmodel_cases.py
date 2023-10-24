@@ -84,7 +84,7 @@ def case_tmodel_f_without_dflow(
     files_to_skip = {
         "msw_ponding_to_dfm_2d_dv_dmm",
         "dfm_2d_waterlevels_to_msw_h_dmm",
-        "mf6_river2_to_dmf_1d_q_dmm",
+        "mf6_river2_to_dfm_1d_q_dmm",
         "mf6_drainage_to_dfm_1d_q_dmm",
         "msw_sprinkling_to_dfm_1d_q_dmm",
         "msw_runoff_to_dfm_1d_q_dmm",

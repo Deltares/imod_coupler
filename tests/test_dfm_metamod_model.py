@@ -25,7 +25,7 @@ def test_write_toml_file(
         "wells_msw",  # mf6_wel_correction_pkg
         Path("mf6_river_to_dfm_1d_q_dmm_path"),
         Path("dfm_1d_waterlevel_to_mf6_river_stage_dmm_path"),
-        Path("mf6_river2_to_dmf_1d_q_dmm_path"),
+        Path("mf6_river2_to_dfm_1d_q_dmm_path"),
         Path("mf6_drainage_to_dfm_1d_q_dmm_path"),
         Path("msw_runoff_to_dfm_1d_q_dmm_path"),
         Path("msw_sprinkling_to_dfm_1d_q_dmm_path"),
@@ -71,7 +71,7 @@ def test_write_toml_file(
     mf6_msw_sprinkling_map = "./exchanges/wellindex2svat.dxc"
     mf6_river_to_dfm_1d_q_dmm = "mf6_river_to_dfm_1d_q_dmm_path"
     dfm_1d_waterlevel_to_mf6_river_stage_dmm = "dfm_1d_waterlevel_to_mf6_river_stage_dmm_path"
-    mf6_river2_to_dmf_1d_q_dmm = "mf6_river2_to_dmf_1d_q_dmm_path"
+    mf6_river2_to_dfm_1d_q_dmm = "mf6_river2_to_dfm_1d_q_dmm_path"
     mf6_drainage_to_dfm_1d_q_dmm = "mf6_drainage_to_dfm_1d_q_dmm_path"
     msw_runoff_to_dfm_1d_q_dmm = "msw_runoff_to_dfm_1d_q_dmm_path"
     msw_sprinkling_to_dfm_1d_q_dmm = "msw_sprinkling_to_dfm_1d_q_dmm_path"

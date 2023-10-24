@@ -253,9 +253,9 @@ class Mapping:
         # MF RIV 2 -> DFLOW 1D (flux)
         map_passive_mod_dflow1d["mf-riv2dflow1d_passive_flux"] = None
         mask_passive_mod_dflow1d["mf-riv2dflow1d_passive_flux"] = np.array([])
-        if self.coupling.mf6_river2_to_dmf_1d_q_dmm is not None:
+        if self.coupling.mf6_river2_to_dfm_1d_q_dmm is not None:
             table_passive_mfriv2dflow1d: NDArray[np.single] = np.loadtxt(
-                self.coupling.mf6_river2_to_dmf_1d_q_dmm,
+                self.coupling.mf6_river2_to_dfm_1d_q_dmm,
                 dtype=np.single,
                 ndmin=2,
                 skiprows=1,

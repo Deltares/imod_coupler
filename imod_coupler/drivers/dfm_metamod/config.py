@@ -49,7 +49,7 @@ class Coupling(BaseModel):
 
     mf6_river_to_dfm_1d_q_dmm: Optional[FilePath]
     dfm_1d_waterlevel_to_mf6_river_stage_dmm: Optional[FilePath]
-    mf6_river2_to_dmf_1d_q_dmm: Optional[FilePath]
+    mf6_river2_to_dfm_1d_q_dmm: Optional[FilePath]
     mf6_drainage_to_dfm_1d_q_dmm: Optional[FilePath]
     msw_runoff_to_dfm_1d_q_dmm: Optional[FilePath]
 
@@ -82,7 +82,7 @@ class Coupling(BaseModel):
     @validator(
         "mf6_river_to_dfm_1d_q_dmm",
         "dfm_1d_waterlevel_to_mf6_river_stage_dmm",
-        "mf6_river2_to_dmf_1d_q_dmm",
+        "mf6_river2_to_dfm_1d_q_dmm",
         "mf6_drainage_to_dfm_1d_q_dmm",
         "msw_runoff_to_dfm_1d_q_dmm",
         "dfm_2d_waterlevels_to_msw_h_dmm",
