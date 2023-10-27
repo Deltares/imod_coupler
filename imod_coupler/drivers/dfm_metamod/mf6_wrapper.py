@@ -14,7 +14,13 @@ class Mf6Wrapper(XmiWrapper):
         working_directory: Union[str, Path, None] = None,
         timing: bool = False,
     ):
+        self.valueptrs = {}
         super().__init__(lib_path, lib_dependency, working_directory, timing)
+
+    def get_value_ptr(self, name: str) -> NDArray:
+        if name not in self.valueptrs:
+            self.valueptrs[name] = super().get_value_ptr(name)
+        return self.valueptrs[name]
 
     def get_head(self, mf6_flowmodel_key: str) -> NDArray[np.float_]:
         mf6_head_tag = self.get_var_address("X", mf6_flowmodel_key)

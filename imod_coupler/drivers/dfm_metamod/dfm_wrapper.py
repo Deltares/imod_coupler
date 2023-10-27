@@ -9,6 +9,15 @@ from scipy.spatial import KDTree
 
 
 class DfmWrapper(BMIWrapper):  # type: ignore
+    def __init__(self, engine, configfile=None):
+        self.valueptrs = {}
+        super().__init__(engine, configfile)
+
+    def get_var(self, name: str) -> NDArray:
+        if name not in self.valueptrs:
+            self.valueptrs[name] = super().get_var(name)
+        return self.valueptrs[name]
+
     def get_number_nodes(self) -> int:
         """
         Returns
