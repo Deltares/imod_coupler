@@ -137,8 +137,7 @@ class DfmMetaMod(Driver):
     def log_version(self) -> None:
         logger.info(f"MODFLOW version : {self.mf6.get_version()}")
         logger.info(f"MetaSWAP version: {self.msw.get_version()}")
-#       logger.info(f"DflowFM version : {self.dfm.get_version_string()}")
-        logger.info(f"Dflow FM version: version fetching not implemented in BMI")
+        logger.info(f"DflowFM version : {self.dfm.get_version()}")
 
     def log_couplings(self) -> None:
         logger.info("")
