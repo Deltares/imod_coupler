@@ -61,7 +61,6 @@ def test_metaswap_dll_dep_dir_devel_contains_dependencies(
         "fmpich2.dll",
         "mpich2mpi.dll",
         "mpich2nemesis.dll",
-        "TRANSOL.dll",
     )
 
     for dependency in expected_dependencies:
@@ -76,7 +75,6 @@ def test_metaswap_dll_dep_dir_regression_contains_dependencies(
         "fmpich2.dll",
         "mpich2mpi.dll",
         "mpich2nemesis.dll",
-        "TRANSOL.dll",
     )
 
     for dependency in expected_dependencies:
