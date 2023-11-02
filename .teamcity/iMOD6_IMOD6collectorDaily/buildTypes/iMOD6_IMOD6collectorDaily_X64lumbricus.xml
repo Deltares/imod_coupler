@@ -93,7 +93,7 @@ pyinstaller --onefile coupler/imod_coupler/__main__.py --name imodc]]></param>
       </dependency>
       <dependency id="ARTIFACT_DEPENDENCY_553" sourceBuildTypeId="iMOD6_Modflow6buildWin64" cleanDestination="true">
         <revisionRule name="sameChainOrLastFinished" revision="latest.sameChainOrLastFinished" />
-        <artifact sourcePath="libmf6.dll =&gt; modflow6/" />
+        <artifact sourcePath="srcbmi/libmf6.dll =&gt; modflow6/" />
       </dependency>
       <dependency id="ARTIFACT_DEPENDENCY_579" sourceBuildTypeId="MSWMOD_MetaSWAP_MetaSWAPBuildWin64trunk" cleanDestination="false">
         <revisionRule name="buildTag" revision="lumbricus.tcbuildtag" />
