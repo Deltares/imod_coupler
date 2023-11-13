@@ -30,78 +30,190 @@ default_tolerance_balance: Dict[str, Tuple[float, float]] = {
 }
 
 
-def case_tmodel_d_no_sprinkling(
+def case_tmodel_a(
     test_data_folder: Path,
 ) -> Tuple[Path, Set[str], str, str, Dict[str, Tuple[float, float]]]:
-    tmodel_input_folder = test_data_folder / "t_model"
+    tmodel_input_folder = test_data_folder / "t_model" / "t_model_A"
 
-    files_to_skip = {
-        "mf6_msw_sprinkling_map",
-        "mf6_msw_well_pkg",
-    }
-
+    files_to_skip = {}
     mf6_model_rootname = "T-MODEL-D.LST"
-
-    csv_reference_file = "waterbalance_tmodel_d_no_sprinkling.csv"
-
+    csv_reference_file = "waterbalance_tmodel_a.csv"
     tolerance_balance = default_tolerance_balance
 
     return (
         tmodel_input_folder,
-        files_to_skip,
         mf6_model_rootname,
         csv_reference_file,
         tolerance_balance,
     )
 
-
-def case_tmodel_f_no_sprinkling(
+def case_tmodel_a(
     test_data_folder: Path,
 ) -> Tuple[Path, Set[str], str, str, Dict[str, Tuple[float, float]]]:
-    tmodel_input_folder = test_data_folder / "t_model_f"
-    files_to_skip = {
-        "mf6_msw_sprinkling_map",
-        "mf6_msw_well_pkg",
-    }
-    mf6_model_rootname = "T-MODEL-F.LST"
+    tmodel_input_folder = test_data_folder / "t_model" / "t_model_A"
 
-    csv_reference_file = "waterbalance_tmodel_f_no_sprinkling.csv"
+    files_to_skip = {}
+    mf6_model_rootname = "T-MODEL-D.LST"
+    csv_reference_file = "waterbalance_tmodel_a.csv"
     tolerance_balance = default_tolerance_balance
 
     return (
         tmodel_input_folder,
-        files_to_skip,
         mf6_model_rootname,
         csv_reference_file,
         tolerance_balance,
     )
 
-
-def case_tmodel_f_without_dflow(
+def case_tmodel_a(
     test_data_folder: Path,
 ) -> Tuple[Path, Set[str], str, str, Dict[str, Tuple[float, float]]]:
-    tmodel_input_folder = test_data_folder / "t_model_f"
-    files_to_skip = {
-        "msw_ponding_to_dfm_2d_dv_dmm",
-        "dfm_2d_waterlevels_to_msw_h_dmm",
-        "mf6_river2_to_dmf_1d_q_dmm",
-        "mf6_drainage_to_dfm_1d_q_dmm",
-        "msw_sprinkling_to_dfm_1d_q_dmm",
-        "msw_runoff_to_dfm_1d_q_dmm",
-        "mf6_river_to_dfm_1d_q_dmm",
-        "dfm_1d_waterlevel_to_mf6_river_stage_dmm",
-        "mf6_msw_sprinkling_map",
-        "mf6_msw_well_pkg",
-    }
-    mf6_model_rootname = "T-MODEL-F.LST"
+    tmodel_input_folder = test_data_folder / "t_model" / "t_model_A"
 
-    csv_reference_file = "waterbalance_tmodel_f_without_dflow.csv"
+    files_to_skip = {}
+    mf6_model_rootname = "T-MODEL-D.LST"
+    csv_reference_file = "waterbalance_tmodel_a.csv"
     tolerance_balance = default_tolerance_balance
 
     return (
         tmodel_input_folder,
-        files_to_skip,
         mf6_model_rootname,
         csv_reference_file,
         tolerance_balance,
     )
+
+def case_tmodel_a(
+    test_data_folder: Path,
+) -> Tuple[Path, Set[str], str, str, Dict[str, Tuple[float, float]]]:
+    tmodel_input_folder = test_data_folder / "t_model" / "t_model_A"
+
+    files_to_skip = {}
+    mf6_model_rootname = "T-MODEL-A.LST"
+    csv_reference_file = "waterbalance_tmodel_a.csv"
+    tolerance_balance = default_tolerance_balance
+
+    return (
+        tmodel_input_folder,
+        mf6_model_rootname,
+        csv_reference_file,
+        tolerance_balance,
+    )
+
+def case_tmodel_b(
+    test_data_folder: Path,
+) -> Tuple[Path, Set[str], str, str, Dict[str, Tuple[float, float]]]:
+    tmodel_input_folder = test_data_folder / "t_model" / "t_model_B"
+
+    files_to_skip = {}
+    mf6_model_rootname = "T-MODEL-B.LST"
+    csv_reference_file = "waterbalance_tmodel_b.csv"
+    tolerance_balance = default_tolerance_balance
+
+    return (
+        tmodel_input_folder,
+        mf6_model_rootname,
+        csv_reference_file,
+        tolerance_balance,
+    )
+
+def case_tmodel_c(
+    test_data_folder: Path,
+) -> Tuple[Path, Set[str], str, str, Dict[str, Tuple[float, float]]]:
+    tmodel_input_folder = test_data_folder / "t_model" / "t_model_C"
+
+    files_to_skip = {}
+    mf6_model_rootname = "T-MODEL-C.LST"
+    csv_reference_file = "waterbalance_tmodel_c.csv"
+    tolerance_balance = default_tolerance_balance
+
+    return (
+        tmodel_input_folder,
+        mf6_model_rootname,
+        csv_reference_file,
+        tolerance_balance,
+    )
+
+def case_tmodel_d(
+    test_data_folder: Path,
+) -> Tuple[Path, Set[str], str, str, Dict[str, Tuple[float, float]]]:
+    tmodel_input_folder = test_data_folder / "t_model" / "t_model_D"
+
+    files_to_skip = {}
+    mf6_model_rootname = "T-MODEL-D.LST"
+    csv_reference_file = "waterbalance_tmodel_d.csv"
+    tolerance_balance = default_tolerance_balance
+
+    return (
+        tmodel_input_folder,
+        mf6_model_rootname,
+        csv_reference_file,
+        tolerance_balance,
+    )
+
+def case_tmodel_e(
+    test_data_folder: Path,
+) -> Tuple[Path, Set[str], str, str, Dict[str, Tuple[float, float]]]:
+    tmodel_input_folder = test_data_folder / "t_model" / "t_model_E"
+
+    files_to_skip = {}
+    mf6_model_rootname = "T-MODEL-E.LST"
+    csv_reference_file = "waterbalance_tmodel_e.csv"
+    tolerance_balance = default_tolerance_balance
+
+    return (
+        tmodel_input_folder,
+        mf6_model_rootname,
+        csv_reference_file,
+        tolerance_balance,
+    )
+
+def case_tmodel_e(
+    test_data_folder: Path,
+) -> Tuple[Path, Set[str], str, str, Dict[str, Tuple[float, float]]]:
+    tmodel_input_folder = test_data_folder / "t_model" / "t_model_E"
+
+    files_to_skip = {}
+    mf6_model_rootname = "T-MODEL-E.LST"
+    csv_reference_file = "waterbalance_tmodel_e.csv"
+    tolerance_balance = default_tolerance_balance
+
+    return (
+        tmodel_input_folder,
+        mf6_model_rootname,
+        csv_reference_file,
+        tolerance_balance,
+    )
+
+def case_tmodel_f(
+    test_data_folder: Path,
+) -> Tuple[Path, Set[str], str, str, Dict[str, Tuple[float, float]]]:
+    tmodel_input_folder = test_data_folder / "t_model" / "t_model_F"
+
+    files_to_skip = {}
+    mf6_model_rootname = "T-MODEL-F.LST"
+    csv_reference_file = "waterbalance_tmodel_f.csv"
+    tolerance_balance = default_tolerance_balance
+
+    return (
+        tmodel_input_folder,
+        mf6_model_rootname,
+        csv_reference_file,
+        tolerance_balance,
+    )
+
+def case_tmodel_g(
+    test_data_folder: Path,
+) -> Tuple[Path, Set[str], str, str, Dict[str, Tuple[float, float]]]:
+    tmodel_input_folder = test_data_folder / "t_model" / "t_model_G"
+
+    files_to_skip = {}
+    mf6_model_rootname = "T-MODEL-G.LST"
+    csv_reference_file = "waterbalance_tmodel_g.csv"
+    tolerance_balance = default_tolerance_balance
+
+    return (
+        tmodel_input_folder,
+        mf6_model_rootname,
+        csv_reference_file,
+        tolerance_balance,
+    )
+
