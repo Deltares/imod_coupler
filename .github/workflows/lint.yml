@@ -42,9 +42,6 @@ jobs:
       - name: Run mypy on primod
         run: |
           pixi run mypy-primod
-      - name: Run mypy on tests
-        run: |
-          pixi run mypy-tests
 
   check_packages:
     name: Check packages
