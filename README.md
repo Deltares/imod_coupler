@@ -29,37 +29,12 @@ Deltares colleagues can find the issue tracker at [Jira](https://issuetracker.de
 
 In order to develop on `imod_coupler` locally, please follow the following steps:
 
-- Download and install [miniconda](https://docs.conda.io/en/latest/miniconda.html).
-
-- Initialize `conda` by running the following in the `Miniconda prompt`:
-
-```
-conda init
-```
-
-- Depending on your company settings, you might also have to run the following in a Powershell terminal as administrator:
-
-```
-Set-ExecutionPolicy -ExecutionPolicy RemoteSigned
-```
+- Download and install [pixi](https://prefix.dev/docs/pixi/overview).
 
 - Create the environment by executing the following in your terminal:
 
 ```
-conda env create --file=environment.yml
-```
-
-- Activate the environment
-
-```
-conda activate imod_coupler
-```
-
-- Install `imod_coupler` by executing (this will also put the executable `imodc` in your `PATH`):
-
-```
-pip install --editable .
-pip install --editable pre-processing
+pixi run install
 ```
 
 - With your Deltares credentials download
@@ -95,5 +70,11 @@ RIBASIM_DLL_REGRESSION='${IMOD_COLLECTOR_REGRESSION}/ribasim/bin/libribasim.dll'
 - The tests can then be run with:
 
 ```bash
-pytest -n=auto --basetemp=tests/temp
+pixi run tests
+```
+
+- Lint the codebase with:
+
+```bash
+pixi run lint
 ```

@@ -35,7 +35,7 @@
       </runner>
       <runner id="RUNNER_1503" name="Run tests" type="simpleRunner">
         <parameters>
-          <param name="script.content" value="pixi run test" />
+          <param name="script.content" value="pixi run tests" />
           <param name="teamcity.build.workingDir" value="imod_coupler" />
           <param name="teamcity.step.mode" value="default" />
           <param name="use.custom.script" value="true" />
