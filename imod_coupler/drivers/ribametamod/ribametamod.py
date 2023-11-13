@@ -16,7 +16,7 @@ from scipy.sparse import csr_matrix
 
 from imod_coupler.config import BaseConfig
 from imod_coupler.drivers.driver import Driver
-from imod_coupler.drivers.ribamod.config import Coupling, RibaMetaModConfig
+from imod_coupler.drivers.ribametamod.config import Coupling, RibaMetaModConfig
 from imod_coupler.kernelwrappers.mf6_wrapper import Mf6Drainage, Mf6River, Mf6Wrapper
 from imod_coupler.logging.exchange_collector import ExchangeCollector
 

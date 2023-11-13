@@ -71,8 +71,7 @@ class Coupling(BaseModel):
     mf6_active_drainage_packages: Dict[str, str]
     mf6_passive_river_packages: Dict[str, str]
     mf6_passive_drainage_packages: Dict[str, str]
-    output_config_file: Optional[FilePath] = None
-    
+
     enable_sprinkling: bool  # true whemn sprinkling is active
     mf6_msw_recharge_pkg: str  # the recharge package that will be used for coupling
     mf6_msw_well_pkg: Optional[
@@ -87,10 +86,6 @@ class Coupling(BaseModel):
 
     class Config:
         arbitrary_types_allowed = True  # Needed for `mf6_msw_sprinkling_map`
-    
-    @validator("output_config_file")
-    def resolve_file_path(cls, file_path: FilePath) -> FilePath:
-        return file_path.resolve()
 
     @validator("mf6_msw_well_pkg")
     def validate_mf6_msw_well_pkg(
@@ -102,7 +97,12 @@ class Coupling(BaseModel):
             )
         return mf6_msw_well_pkg
 
-    @validator("mf6_msw_node_map", "mf6_msw_recharge_map", "output_config_file")
+    @validator(
+        "output_config_file",
+        "mf6_msw_node_map",
+        "mf6_msw_recharge_map",
+        "output_config_file",
+    )
     def resolve_file_path(cls, file_path: FilePath) -> FilePath:
         return file_path.resolve()
 
