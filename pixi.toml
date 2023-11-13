@@ -26,13 +26,13 @@ mypy-imodc = "mypy --ignore-missing-imports --strict imod_coupler"
 mypy-primod = "mypy --ignore-missing-imports pre-processing/primod"
 format = "ruff format ."
 ruff = "ruff check ."
-check-packages = "python -m build && twine check --strict dist/*"
+check-package-primod = { cmd = "rm --recursive --force dist/* && python -m build && twine check --strict dist/*", cwd = "pre-processing" }
 lint = { depends_on = [
     "format",
     "ruff",
     "mypy-imodc",
     "mypy-primod",
-    "check-packages"
+    "check-packages",
 ] }
 
 [dependencies]
