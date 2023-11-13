@@ -25,20 +25,9 @@
       <param name="env.RIBASIM_DLL_REGRESSION" value="%system.teamcity.build.checkoutDir%/imod_collector_regression/ribasim/bin/libribasim.dll" />
     </parameters>
     <build-runners>
-      <runner id="RUNNER_1501" name="Set up virtual environment" type="simpleRunner">
+      <runner id="RUNNER_1501" name="Set up pixi" type="simpleRunner">
         <parameters>
-          <param name="script.content"><![CDATA[if exist "%conda_env_path%" rd /q /s "%conda_env_path%"
-call conda env create --file environment.yml -p "%conda_env_path%"]]></param>
-          <param name="teamcity.build.workingDir" value="imod_coupler" />
-          <param name="teamcity.step.mode" value="default" />
-          <param name="use.custom.script" value="true" />
-        </parameters>
-      </runner>
-      <runner id="RUNNER_1502" name="Install iMOD Coupler &amp; primod" type="simpleRunner">
-        <parameters>
-          <param name="script.content"><![CDATA[call conda activate "%conda_env_path%"
-pip install --editable "."
-pip install --editable "pre-processing"]]></param>
+          <param name="script.content" value="pixi run install" />
           <param name="teamcity.build.workingDir" value="imod_coupler" />
           <param name="teamcity.step.mode" value="default" />
           <param name="use.custom.script" value="true" />
@@ -46,8 +35,7 @@ pip install --editable "pre-processing"]]></param>
       </runner>
       <runner id="RUNNER_1503" name="Run tests" type="simpleRunner">
         <parameters>
-          <param name="script.content"><![CDATA[call conda activate "%conda_env_path%"
-call pytest tests --basetemp=tests/temp --junitxml="report.xml" -n=auto]]></param>
+          <param name="script.content" value="pixi run test" />
           <param name="teamcity.build.workingDir" value="imod_coupler" />
           <param name="teamcity.step.mode" value="default" />
           <param name="use.custom.script" value="true" />
@@ -121,4 +109,3 @@ call pytest tests --basetemp=tests/temp --junitxml="report.xml" -n=auto]]></para
     <cleanup />
   </settings>
 </build-type>
-
