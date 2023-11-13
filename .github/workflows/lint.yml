@@ -56,4 +56,4 @@ jobs:
         run: pixi run install
       - name: Check packages
         run: |
-          pixi run check-packages
+          pixi run check-package-primod
