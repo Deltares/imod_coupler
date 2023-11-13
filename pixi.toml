@@ -1,0 +1,59 @@
+[project]
+name = "imod_coupler"
+version = "0.1.0"
+authors = ["Hofer-Julian <julianhofer@gnome.org>"]
+channels = ["conda-forge"]
+platforms = ["win-64", "linux-64"]
+
+[tasks]
+# Install
+install-ribasim-python = "pip install git+https://github.com/Deltares/Ribasim.git/#subdirectory=python/ribasim"
+install-ribasim-api = "pip install git+https://github.com/Deltares/Ribasim.git/#subdirectory=python/ribasim_api"
+install-ribasim-testmodels = "pip install git+https://github.com/Deltares/Ribasim.git/#subdirectory=python/ribasim_testmodels"
+install-primod = "pip install --no-deps --editable pre-processing"
+install-imodc = "pip install --no-deps --editable ."
+install = { depends_on = [
+    "install-ribasim-python",
+    "install-ribasim-api",
+    "install-ribasim-testmodels",
+    "install-primod",
+    "install-imodc",
+] }
+# Tests
+tests = "pytest -n=auto --basetemp=tests/temp --junitxml=report.xml"
+# Lint
+mypy-imodc = "mypy --ignore-missing-imports --strict imod_coupler"
+mypy-primod = "mypy --ignore-missing-imports pre-processing/primod"
+format = "ruff format ."
+ruff = "ruff check ."
+check-package-primod = { cmd = "rm --recursive --force dist && python -m build && twine check --strict dist/*", cwd = "pre-processing" }
+lint = { depends_on = [
+    "format",
+    "ruff",
+    "mypy-imodc",
+    "mypy-primod",
+    "check-package-primod",
+] }
+
+[dependencies]
+black = "*"
+build = "*"
+geopandas = "*"
+h5netcdf = "*"
+loguru = "*"
+mypy = "*"
+numpy = "*"
+imod = "*"
+pip = "*"
+pydantic = "1.*"
+pytest = "*"
+pytest-cases = "*"
+pytest-dotenv = "*"
+pytest-xdist = "*"
+python = "3.10"
+rasterio = ">=1.0"
+ruff = "*"
+scipy = "*"
+tomli-w = "*"
+twine = "*"
+xmipy = "*"
