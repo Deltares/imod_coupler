@@ -18,7 +18,7 @@ class MetaModMapping(abc.ABC):
     packages.
     """
 
-    __slots__ = "_pkg_id"
+    __slots__ = "_pkg_id", "dataset"
     _metadata_dict: dict[str, VariableMetaData]
     _with_subunit: tuple[str, str, str]
     _to_fill: tuple[str]

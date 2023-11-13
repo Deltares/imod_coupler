@@ -27,12 +27,14 @@ class MetaMod(Driver):
     """The driver coupling MetaSWAP and MODFLOW 6"""
 
     base_config: BaseConfig  # the parsed information from the configuration file
-    metamod_config: MetaModConfig  # the parsed information from the configuration file specific to MetaMod
+    metamod_config: (
+        MetaModConfig
+    )  # the parsed information from the configuration file specific to MetaMod
     coupling: Coupling  # the coupling information
 
     timing: bool  # true, when timing is enabled
-    mf6: XmiWrapper  # the MODFLOW 6 XMI kernel
-    msw: XmiWrapper  # the MetaSWAP XMI kernel
+    mf6: Mf6Wrapper  # the MODFLOW 6 XMI kernel
+    msw: MswWrapper  # the MetaSWAP XMI kernel
 
     max_iter: NDArray[Any]  # max. nr outer iterations in MODFLOW kernel
     delt: float  # time step from MODFLOW 6 (leading)
@@ -40,7 +42,9 @@ class MetaMod(Driver):
     mf6_head: NDArray[Any]  # the hydraulic head array in the coupled model
     mf6_recharge: NDArray[Any]  # the coupled recharge array from the RCH package
     mf6_storage: NDArray[Any]  # the specific storage array (ss)
-    mf6_has_sc1: bool  # when true, specific storage in mf6 is given as a storage coefficient (sc1)
+    mf6_has_sc1: (
+        bool
+    )  # when true, specific storage in mf6 is given as a storage coefficient (sc1)
     mf6_area: NDArray[Any]  # cell area (size:nodes)
     mf6_top: NDArray[Any]  # top of cell (size:nodes)
     mf6_bot: NDArray[Any]  # bottom of cell (size:nodes)
