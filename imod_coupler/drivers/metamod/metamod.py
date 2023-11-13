@@ -12,7 +12,6 @@ import numpy as np
 from loguru import logger
 from numpy.typing import NDArray
 from scipy.sparse import csr_matrix, dia_matrix
-from xmipy import XmiWrapper
 
 from imod_coupler.config import BaseConfig
 from imod_coupler.drivers.driver import Driver
