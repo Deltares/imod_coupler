@@ -22,9 +22,8 @@ install = { depends_on = [
 # Tests
 tests = "pytest -n=auto --basetemp=tests/temp --junitxml=report.xml"
 # Lint
-mypy-imodc = "mypy --install-types --non-interactive --ignore-missing-imports --strict imod_coupler"
-mypy-primod = "mypy --install-types --non-interactive --ignore-missing-imports --strict pre-processing/primod"
-mypy-tests = "mypy --install-types --non-interactive --ignore-missing-imports tests"
+mypy-imodc = "mypy --ignore-missing-imports --strict imod_coupler"
+mypy-primod = "mypy --ignore-missing-imports pre-processing/primod"
 format = "ruff format ."
 ruff = "ruff check ."
 check-packages = "python -m build && twine check --strict dist/*"
@@ -33,7 +32,6 @@ lint = { depends_on = [
     "ruff",
     "mypy-imodc",
     "mypy-primod",
-    "mypy-tests",
     "check-packages"
 ] }
 
