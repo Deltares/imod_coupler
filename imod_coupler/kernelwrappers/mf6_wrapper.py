@@ -39,7 +39,7 @@ class Mf6Wrapper(XmiWrapper):
         mf6_flowmodel_key: str,
         mf6_msw_recharge_pkg: str,
         include_nodes: bool = False,
-    ) -> Union[NDArray[np.float_], tuple(NDArray[np.float_], NDArray[np.int_])]:
+    ) -> Union[NDArray[np.float_], tuple[NDArray[np.float_], NDArray[np.int_]]]:
         mf6_recharge_tag = self.get_var_address(
             "RECHARGE", mf6_flowmodel_key, mf6_msw_recharge_pkg
         )
@@ -47,7 +47,7 @@ class Mf6Wrapper(XmiWrapper):
         mf6_recharge_nodes_tag = self.get_var_address(
             "NODELIST", mf6_flowmodel_key, mf6_msw_recharge_pkg
         )
-        mf6_recharge_nodes = self.mf6.get_value_ptr(mf6_recharge_nodes_tag)
+        mf6_recharge_nodes = self.get_value_ptr(mf6_recharge_nodes_tag)
         if include_nodes:
             return mf6_recharge, mf6_recharge_nodes
         else:

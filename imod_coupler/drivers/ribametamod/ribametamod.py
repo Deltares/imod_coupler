@@ -6,13 +6,12 @@ description:
 from __future__ import annotations
 
 from collections import ChainMap
-from typing import Any, Dict, Union
+from typing import Any, Dict
 
 import numpy as np
 from loguru import logger
 from numpy.typing import NDArray
 from ribasim_api import RibasimApi
-from scipy.sparse import csr_matrix
 
 from imod_coupler.config import BaseConfig
 from imod_coupler.drivers.driver import Driver
@@ -40,6 +39,7 @@ class RibaMetaMod(Driver):
 
     mf6_head: NDArray[Any]  # the hydraulic head array in the coupled model
     mf6_recharge: NDArray[Any]  # the coupled recharge array from the RCH package
+    mf6_recharge_nodes: NDArray[Any]  # node selection of rch nodes
     mf6_storage: NDArray[Any]  # the specific storage array (ss)
     mf6_has_sc1: bool  # when true, specific storage in mf6 is given as a storage coefficient (sc1)
     mf6_area: NDArray[Any]  # cell area (size:nodes)

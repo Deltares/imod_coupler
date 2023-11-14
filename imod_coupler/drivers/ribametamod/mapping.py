@@ -14,18 +14,20 @@ class SetMapping:
     # TODO: check who should be leading if no changes are defined
     mod2rib: Dict[str, csr_matrix]
     rib2mod: Dict[str, csr_matrix]
+    msw2mod: Dict[str, csr_matrix]
+    mod2msw: Dict[str, csr_matrix]
 
     def __init__(
         self,
         coupling: Coupling,
-        packages: Dict[str, NDArray],
-        mod2svat: str,
+        packages: ChainMap[str, Any],
+        mod2svat: Path,
     ):
         self.coupling = coupling
         self.set_ribasim_modflow_mapping(packages)
         self.set_metaswap_modflow_mapping(packages, mod2svat)
 
-    def set_ribasim_modflow_mapping(self, packages: Dict[str, NDArray]) -> None:
+    def set_ribasim_modflow_mapping(self, packages: ChainMap[str, Any]) -> None:
         coupling_tables = ChainMap(
             self.coupling.mf6_active_river_packages,
             self.coupling.mf6_passive_river_packages,
@@ -49,9 +51,12 @@ class SetMapping:
             self.rib2mod[key] = matrix.T
 
     def set_metaswap_modflow_mapping(
-        self, packages: Dict[str, NDArray], mod2svat: str
+        self, packages: ChainMap[str, Any], mod2svat: Path
     ) -> None:
         svat_lookup = set_svat_lookup(mod2svat)
+
+        self.mod2msw = {}
+        self.msw2mod = {}
 
         table_node2svat: NDArray[np.int32] = np.loadtxt(
             self.coupling.mf6_msw_node_map, dtype=np.int32, ndmin=2
@@ -84,7 +89,7 @@ class SetMapping:
             shape=(packages["mf6_area"].size, packages["mf6_area"].size),
             dtype=packages["mf6_area"].dtype,
         )
-        self.msw2mod["storage"] = conversion_matrix * self.map_msw2mod["storage"]
+        self.msw2mod["storage"] = conversion_matrix * self.msw2mod["storage"]
 
         self.mod2msw["head"], self.mod2msw["head_mask"] = create_mapping(
             node_idx,
@@ -136,7 +141,7 @@ class SetMapping:
             )
 
 
-def set_svat_lookup(mod2svat: str) -> None:
+def set_svat_lookup(mod2svat: Path) -> Dict[Any, Any]:
     svat_lookup = {}
     msw_mod2svat_file = mod2svat
     if msw_mod2svat_file.is_file():
