@@ -4,11 +4,13 @@ from pathlib import Path
 import imod
 import numpy as np
 import pandas as pd
+import pytest
 from numpy.testing import assert_allclose
 from primod.ribametamod import RibaMetaMod
 from pytest_cases import parametrize_with_cases
 
 
+@pytest.mark.xdist_group(name="ribasim")
 @parametrize_with_cases("ribametamod_model")
 def test_ribametamod_develop(
     tmp_path_dev: Path,
@@ -34,6 +36,7 @@ def test_ribametamod_develop(
     )
 
 
+@pytest.mark.xdist_group(name="ribasim")
 @parametrize_with_cases("ribametamod_model", prefix="bucket_model")
 def test_ribamod_bucket(
     tmp_path_dev: Path,
@@ -71,6 +74,7 @@ def test_ribamod_bucket(
     assert final_storage < 60
 
 
+@pytest.mark.xdist_group(name="ribasim")
 @parametrize_with_cases("ribametamod_model", prefix="backwater")
 def test_ribametamod_backwater(
     tmp_path_dev: Path,
@@ -138,6 +142,7 @@ def test_ribametamod_backwater(
     assert (np.abs(budget_diff) < 0.02).all()
 
 
+@pytest.mark.xdist_group(name="ribasim")
 @parametrize_with_cases("ribametamod_model", prefix="two_basin")
 def test_ribamod_two_basin(
     tmp_path_dev: Path,

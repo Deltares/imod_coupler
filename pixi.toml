@@ -20,7 +20,7 @@ install = { depends_on = [
     "install-imodc",
 ] }
 # Tests
-tests = "pytest -n=auto --basetemp=tests/temp --junitxml=report.xml"
+tests = "pytest --numprocesses=auto --dist=loadgroup --basetemp=tests/temp --junitxml=report.xml"
 # Lint
 mypy-imodc = "mypy --ignore-missing-imports --strict imod_coupler"
 mypy-primod = "mypy --ignore-missing-imports pre-processing/primod"
