@@ -238,6 +238,7 @@ class RibaMetaMod:
             column="node_id",
         )
 
+        assert self.ribasim_model.basin.profile.df is not None
         basin_ids = np.unique(self.ribasim_model.basin.profile.df["node_id"])
         missing = ~np.isin(self.basin_definition["node_id"], basin_ids)
         if missing.any():
