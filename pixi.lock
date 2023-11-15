@@ -213,6 +213,48 @@ package:
   size: 554938
   timestamp: 1693607226431
 - platform: linux-64
+  name: annotated-types
+  version: 0.6.0
+  category: main
+  manager: conda
+  dependencies:
+  - python >=3.7
+  - typing-extensions >=4.0.0
+  url: https://conda.anaconda.org/conda-forge/noarch/annotated-types-0.6.0-pyhd8ed1ab_0.conda
+  hash:
+    md5: 997c29372bdbe2afee073dff71f35923
+    sha256: 3a2c98154d95cfd54daba6b7d507d31f5ba07ac2ad955c44eb041b66563193cd
+  build: pyhd8ed1ab_0
+  arch: x86_64
+  subdir: linux-64
+  build_number: 0
+  license: MIT
+  license_family: MIT
+  noarch: python
+  size: 17026
+  timestamp: 1696634393637
+- platform: win-64
+  name: annotated-types
+  version: 0.6.0
+  category: main
+  manager: conda
+  dependencies:
+  - python >=3.7
+  - typing-extensions >=4.0.0
+  url: https://conda.anaconda.org/conda-forge/noarch/annotated-types-0.6.0-pyhd8ed1ab_0.conda
+  hash:
+    md5: 997c29372bdbe2afee073dff71f35923
+    sha256: 3a2c98154d95cfd54daba6b7d507d31f5ba07ac2ad955c44eb041b66563193cd
+  build: pyhd8ed1ab_0
+  arch: x86_64
+  subdir: win-64
+  build_number: 0
+  license: MIT
+  license_family: MIT
+  noarch: python
+  size: 17026
+  timestamp: 1696634393637
+- platform: linux-64
   name: aom
   version: 3.7.0
   category: main
@@ -12302,50 +12344,96 @@ package:
   timestamp: 1636257201998
 - platform: linux-64
   name: pydantic
-  version: 1.10.13
+  version: 2.5.0
+  category: main
+  manager: conda
+  dependencies:
+  - annotated-types >=0.4.0
+  - pydantic-core 2.14.1
+  - python >=3.7
+  - typing-extensions >=4.6.1
+  url: https://conda.anaconda.org/conda-forge/noarch/pydantic-2.5.0-pyhd8ed1ab_0.conda
+  hash:
+    md5: e0c41d8a5ecffc34d6b7f2b49687c665
+    sha256: d513a539cb199ff35269d633844bed03138a2451d536fc7a9044f05c5a6c3e66
+  build: pyhd8ed1ab_0
+  arch: x86_64
+  subdir: linux-64
+  build_number: 0
+  license: MIT
+  license_family: MIT
+  noarch: python
+  size: 283055
+  timestamp: 1699947684640
+- platform: win-64
+  name: pydantic
+  version: 2.5.0
+  category: main
+  manager: conda
+  dependencies:
+  - annotated-types >=0.4.0
+  - pydantic-core 2.14.1
+  - python >=3.7
+  - typing-extensions >=4.6.1
+  url: https://conda.anaconda.org/conda-forge/noarch/pydantic-2.5.0-pyhd8ed1ab_0.conda
+  hash:
+    md5: e0c41d8a5ecffc34d6b7f2b49687c665
+    sha256: d513a539cb199ff35269d633844bed03138a2451d536fc7a9044f05c5a6c3e66
+  build: pyhd8ed1ab_0
+  arch: x86_64
+  subdir: win-64
+  build_number: 0
+  license: MIT
+  license_family: MIT
+  noarch: python
+  size: 283055
+  timestamp: 1699947684640
+- platform: linux-64
+  name: pydantic-core
+  version: 2.14.1
   category: main
   manager: conda
   dependencies:
   - libgcc-ng >=12
   - python >=3.10,<3.11.0a0
   - python_abi 3.10.* *_cp310
-  - typing-extensions >=4.2.0
-  url: https://conda.anaconda.org/conda-forge/linux-64/pydantic-1.10.13-py310h2372a71_1.conda
+  - typing-extensions >=4.6.0
+  url: https://conda.anaconda.org/conda-forge/linux-64/pydantic-core-2.14.1-py310hcb5633a_0.conda
   hash:
-    md5: cc014fc24717772959bf4fb4c7e66057
-    sha256: 725b7d3687136c6e1a78bc42341ddc0e3929461954f6bdf4aa73a9ab94bb9048
-  build: py310h2372a71_1
+    md5: bd530722ab8e10ddad93ea97a74d1c63
+    sha256: 7114da2e4794d416b6ed4081cf4e1a9218b2b959b0ebb4764543f960f2cede51
+  build: py310hcb5633a_0
   arch: x86_64
   subdir: linux-64
-  build_number: 1
+  build_number: 0
   license: MIT
   license_family: MIT
-  size: 2175831
-  timestamp: 1697791280298
+  size: 1600914
+  timestamp: 1699546494175
 - platform: win-64
-  name: pydantic
-  version: 1.10.13
+  name: pydantic-core
+  version: 2.14.1
   category: main
   manager: conda
   dependencies:
   - python >=3.10,<3.11.0a0
   - python_abi 3.10.* *_cp310
-  - typing-extensions >=4.2.0
+  - typing-extensions >=4.6.0
   - ucrt >=10.0.20348.0
   - vc >=14.2,<15
   - vc14_runtime >=14.29.30139
-  url: https://conda.anaconda.org/conda-forge/win-64/pydantic-1.10.13-py310h8d17308_1.conda
+  url: https://conda.anaconda.org/conda-forge/win-64/pydantic-core-2.14.1-py310h87d50f1_0.conda
   hash:
-    md5: 2656c82501c3806ba0d619043eb1f1e5
-    sha256: e15d163e3739ed5480753a9e6a22f150108e6b445a807fbdbc9a82a1513ee972
-  build: py310h8d17308_1
+    md5: c5c9dff0e0aea2fb1a89c11a2152b3e9
+    sha256: 45f502c9c5e5a9af9089467563911307c30d9a5e121a902bd111c0eac7b25068
+  build: py310h87d50f1_0
   arch: x86_64
   subdir: win-64
-  build_number: 1
+  build_number: 0
   license: MIT
   license_family: MIT
-  size: 1521081
-  timestamp: 1697791735803
+  size: 1584133
+  timestamp: 1699547784956
 - platform: linux-64
   name: pygments
   version: 2.16.1

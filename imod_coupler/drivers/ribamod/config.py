@@ -1,13 +1,13 @@
 import os
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 from pydantic import BaseModel, DirectoryPath, FilePath, validator
 
 
 class Modflow6(BaseModel):
     dll: FilePath
-    dll_dep_dir: Optional[DirectoryPath]
+    dll_dep_dir: DirectoryPath | None
     work_dir: DirectoryPath
 
     @validator("dll")
@@ -16,8 +16,8 @@ class Modflow6(BaseModel):
 
     @validator("dll_dep_dir")
     def resolve_dll_dep_dir(
-        cls, dll_dep_dir: Optional[DirectoryPath]
-    ) -> Optional[DirectoryPath]:
+        cls, dll_dep_dir: DirectoryPath | None
+    ) -> DirectoryPath | None:
         if dll_dep_dir is not None:
             dll_dep_dir = dll_dep_dir.resolve()
         return dll_dep_dir
@@ -34,8 +34,8 @@ class Ribasim(BaseModel):
 
     @validator("dll_dep_dir")
     def resolve_dll_dep_dir(
-        cls, dll_dep_dir: Optional[DirectoryPath]
-    ) -> Optional[DirectoryPath]:
+        cls, dll_dep_dir: DirectoryPath | None
+    ) -> DirectoryPath | None:
         if dll_dep_dir is not None:
             dll_dep_dir = dll_dep_dir.resolve()
         return dll_dep_dir
@@ -52,7 +52,7 @@ class Coupling(BaseModel):
     mf6_active_drainage_packages: Dict[str, str]
     mf6_passive_river_packages: Dict[str, str]
     mf6_passive_drainage_packages: Dict[str, str]
-    output_config_file: Optional[FilePath] = None
+    output_config_file: FilePath | None = None
 
     @validator("output_config_file")
     def resolve_file_path(cls, file_path: FilePath) -> FilePath:
