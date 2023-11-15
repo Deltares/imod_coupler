@@ -38,7 +38,7 @@ class MetaMod:
         msw_model: MetaSwapModel,
         mf6_simulation: Modflow6Simulation,
         mf6_rch_pkgkey: str,
-        mf6_wel_pkgkey: Optional[str] = None,
+        mf6_wel_pkgkey: str | None = None,
     ):
         self.msw_model = msw_model
         self.mf6_simulation = mf6_simulation
@@ -226,7 +226,7 @@ class MetaMod:
         self,
         directory: Path,
         mf6_rch_pkgkey: str,
-        mf6_wel_pkgkey: Optional[str],
+        mf6_wel_pkgkey: str | None,
     ) -> dict[str, Any]:
         """
         Get dictionary with names of coupler packages and paths to mappings.
@@ -278,7 +278,7 @@ class MetaMod:
         self,
         directory: Union[str, Path],
         mf6_rch_pkgkey: str,
-        mf6_wel_pkgkey: Optional[str],
+        mf6_wel_pkgkey: str | None,
     ) -> None:
         """
         Write exchange files (.dxc) which map MetaSWAP's svats to Modflow 6 node

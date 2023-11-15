@@ -74,7 +74,7 @@ def ribasim_two_basin_model() -> ribasim.Model:
             }
         )
     )
-    node_id, node_type = ribasim.Node.get_node_ids_and_types(
+    node_id, node_type = ribasim.Node.node_ids_and_types(
         basin,
         rating_curve,
         flow_boundary,
@@ -84,7 +84,7 @@ def ribasim_two_basin_model() -> ribasim.Model:
 
     # Make sure the feature id starts at 1: explicitly give an index.
     node = ribasim.Node(
-        static=gpd.GeoDataFrame(
+        df=gpd.GeoDataFrame(
             data={"type": node_type},
             index=pd.Index(node_id, name="fid"),
             geometry=node_xy,
@@ -96,7 +96,7 @@ def ribasim_two_basin_model() -> ribasim.Model:
     to_id = np.array([2, 4, 5], dtype=np.int64)
     lines = ribasim.utils.geometry_from_connectivity(node, from_id, to_id)
     edge = ribasim.Edge(
-        static=gpd.GeoDataFrame(
+        df=gpd.GeoDataFrame(
             data={
                 "from_node_id": from_id,
                 "to_node_id": to_id,
@@ -108,9 +108,7 @@ def ribasim_two_basin_model() -> ribasim.Model:
     )
 
     ribasim_model = ribasim.Model(
-        modelname="two-basins",
-        node=node,
-        edge=edge,
+        database=ribasim.Database(node=node, edge=edge),
         basin=basin,
         flow_boundary=flow_boundary,
         tabulated_rating_curve=rating_curve,
