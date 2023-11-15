@@ -36,7 +36,7 @@ def test_ribamod_develop(
 
 
 @pytest.mark.xdist_group(name="ribasim")
-@parametrize_with_cases("ribamod_model", prefix="bucket_model")
+@parametrize_with_cases("ribamod_model", glob="bucket_model")
 def test_ribamod_bucket(
     tmp_path_dev: Path,
     ribamod_model: RibaMod,
@@ -60,7 +60,7 @@ def test_ribamod_bucket(
     )
 
     basin_df = pd.read_feather(
-        tmp_path_dev / ribamod_model._ribasim_model_dir / "output" / "basin.arrow"
+        tmp_path_dev / ribamod_model._ribasim_model_dir / "results" / "basin.arrow"
     )
 
     # There should be only a single node in the model
@@ -73,7 +73,7 @@ def test_ribamod_bucket(
 
 
 @pytest.mark.xdist_group(name="ribasim")
-@parametrize_with_cases("ribamod_model", prefix="backwater")
+@parametrize_with_cases("ribamod_model", glob="backwater_model")
 def test_ribamod_backwater(
     tmp_path_dev: Path,
     ribamod_model: RibaMod,
@@ -98,10 +98,10 @@ def test_ribamod_backwater(
 
     # Read Ribasim output
     basin_df = pd.read_feather(
-        tmp_path_dev / ribamod_model._ribasim_model_dir / "output" / "basin.arrow"
+        tmp_path_dev / ribamod_model._ribasim_model_dir / "results" / "basin.arrow"
     )
     flow_df = pd.read_feather(
-        tmp_path_dev / ribamod_model._ribasim_model_dir / "output" / "flow.arrow"
+        tmp_path_dev / ribamod_model._ribasim_model_dir / "results" / "flow.arrow"
     )
     # Read MODFLOW 6 output
     head = imod.mf6.open_hds(
@@ -140,7 +140,7 @@ def test_ribamod_backwater(
 
 
 @pytest.mark.xdist_group(name="ribasim")
-@parametrize_with_cases("ribamod_model", prefix="two_basin")
+@parametrize_with_cases("ribamod_model", glob="two_basin_model")
 def test_ribamod_two_basin(
     tmp_path_dev: Path,
     ribamod_model: RibaMod,
@@ -165,10 +165,10 @@ def test_ribamod_two_basin(
 
     # Read Ribasim output
     basin_df = pd.read_feather(
-        tmp_path_dev / ribamod_model._ribasim_model_dir / "output" / "basin.arrow"
+        tmp_path_dev / ribamod_model._ribasim_model_dir / "results" / "basin.arrow"
     )
     flow_df = pd.read_feather(
-        tmp_path_dev / ribamod_model._ribasim_model_dir / "output" / "flow.arrow"
+        tmp_path_dev / ribamod_model._ribasim_model_dir / "results" / "flow.arrow"
     )
     # Read MODFLOW 6 output
     head = imod.mf6.open_hds(
