@@ -2,30 +2,14 @@ import os
 from pathlib import Path
 from typing import Any, List
 
-from pydantic import BaseModel, DirectoryPath, FilePath, validator
+from pydantic import BaseModel, FilePath, validator
 
-
-class Kernel(BaseModel):
-    dll: FilePath
-    dll_dep_dir: DirectoryPath | None
-    work_dir: DirectoryPath
-
-    @validator("dll")
-    def resolve_dll(cls, dll: FilePath) -> FilePath:
-        return dll.resolve()
-
-    @validator("dll_dep_dir")
-    def resolve_dll_dep_dir(
-        cls, dll_dep_dir: DirectoryPath | None
-    ) -> DirectoryPath | None:
-        if dll_dep_dir is not None:
-            dll_dep_dir = dll_dep_dir.resolve()
-        return dll_dep_dir
+from imod_coupler.drivers.kernel_config import Metaswap, Modflow6
 
 
 class Kernels(BaseModel):
-    modflow6: Kernel
-    metaswap: Kernel
+    modflow6: Modflow6
+    metaswap: Metaswap
 
 
 class Coupling(BaseModel):

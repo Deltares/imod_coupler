@@ -2,43 +2,9 @@ import os
 from pathlib import Path
 from typing import Any, Dict, List
 
-from pydantic import BaseModel, DirectoryPath, FilePath, validator
+from pydantic import BaseModel, FilePath, validator
 
-
-class Modflow6(BaseModel):
-    dll: FilePath
-    dll_dep_dir: DirectoryPath | None
-    work_dir: DirectoryPath
-
-    @validator("dll")
-    def resolve_dll(cls, dll: FilePath) -> FilePath:
-        return dll.resolve()
-
-    @validator("dll_dep_dir")
-    def resolve_dll_dep_dir(
-        cls, dll_dep_dir: DirectoryPath | None
-    ) -> DirectoryPath | None:
-        if dll_dep_dir is not None:
-            dll_dep_dir = dll_dep_dir.resolve()
-        return dll_dep_dir
-
-
-class Ribasim(BaseModel):
-    dll: FilePath
-    dll_dep_dir: DirectoryPath
-    config_file: FilePath
-
-    @validator("dll")
-    def resolve_dll(cls, dll: FilePath) -> FilePath:
-        return dll.resolve()
-
-    @validator("dll_dep_dir")
-    def resolve_dll_dep_dir(
-        cls, dll_dep_dir: DirectoryPath | None
-    ) -> DirectoryPath | None:
-        if dll_dep_dir is not None:
-            dll_dep_dir = dll_dep_dir.resolve()
-        return dll_dep_dir
+from imod_coupler.drivers.kernel_config import Modflow6, Ribasim
 
 
 class Kernels(BaseModel):

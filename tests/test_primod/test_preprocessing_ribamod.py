@@ -27,7 +27,7 @@ def basin_definition(mf6_bucket_model, ribasim_bucket_model) -> gpd.GeoDataFrame
     _, xmin, xmax, _, ymin, ymax = imod.util.spatial_reference(
         mf6_model["dis"]["idomain"]
     )
-    node_id = ribasim_bucket_model.basin.static["node_id"].unique()
+    node_id = ribasim_bucket_model.basin.static.df["node_id"].unique()
     polygon = Polygon(
         [
             [xmin, ymin],
