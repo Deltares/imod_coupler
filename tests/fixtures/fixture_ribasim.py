@@ -108,7 +108,7 @@ def ribasim_two_basin_model() -> ribasim.Model:
     )
 
     ribasim_model = ribasim.Model(
-        database=ribasim.Database(node=node, edge=edge),
+        network=ribasim.Network(node=node, edge=edge),
         basin=basin,
         flow_boundary=flow_boundary,
         tabulated_rating_curve=rating_curve,
