@@ -234,9 +234,7 @@ def test_metamod_regression(
         )
 
 
-@parametrize_with_cases(
-    "metamod_model", prefix="case_storage_coefficient_no_sprinkling"
-)
+@parametrize_with_cases("metamod_model", glob="storage_coefficient_no_sprinkling")
 def test_metamod_regression_balance_output(
     metamod_model: MetaMod,
     tmp_path_dev: Path,
@@ -366,9 +364,7 @@ def test_metamodel_storage_options(
         )
 
 
-@parametrize_with_cases(
-    "metamod_model", prefix="case_storage_coefficient_no_sprinkling"
-)
+@parametrize_with_cases("metamod_model", glob="storage_coefficient_no_sprinkling")
 def test_metamod_exchange_logging(
     tmp_path_dev: Path,
     metamod_model: MetaMod,
