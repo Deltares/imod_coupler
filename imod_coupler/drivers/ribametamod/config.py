@@ -43,8 +43,8 @@ class Ribasim(BaseModel):
 
 class Metaswap(BaseModel):
     dll: FilePath
-    dll_dep_dir: DirectoryPath
-    config_file: FilePath
+    dll_dep_dir: Optional[DirectoryPath]
+    work_dir: DirectoryPath
 
     @validator("dll")
     def resolve_dll(cls, dll: FilePath) -> FilePath:
