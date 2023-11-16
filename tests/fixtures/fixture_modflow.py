@@ -213,6 +213,11 @@ def mf6_model_with_river(
     bottom_elevation[{"x": 2}] = -0.1
     river_package = mf6.River(stage, conductance, bottom_elevation, save_flows=True)
     flow_model["Oosterschelde"] = river_package
+    flow_model["Drainage"] = mf6.Drainage(
+        elevation=stage,
+        conductance=conductance,
+        save_flows=True,
+    )
     return coupled_mf6_model
 
 

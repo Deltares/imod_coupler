@@ -93,7 +93,8 @@ def test_ribamod_backwater(
     )
 
     subprocess.run(
-        [imod_coupler_exec_devel, tmp_path_dev / ribamod_model._toml_name], check=True
+        [imod_coupler_exec_devel, tmp_path_dev / ribamod_model._toml_name],
+        check=True,
     )
 
     # Read Ribasim output
@@ -119,7 +120,7 @@ def test_ribamod_backwater(
     # Assert that the final level is a mototonically decreasing curve.
     assert (np.diff(final_level) < 0).all()
     # The head should follow the same pattern.
-    assert (head.isel(layer=0, time=-1).diff("x") < 0).all()
+    assert (head.isel(layer=0, time=-1).diff("x") < 0.0).all()
 
     drn = budgets["drn-1"].compute()
     riv = budgets["riv-1"].compute()
@@ -136,7 +137,7 @@ def test_ribamod_backwater(
     ribasim_budget = np.diff(final_flow) * 86_400.0
     modflow_budget = (drn + riv).isel(time=-1).sel(y=0).to_numpy()
     budget_diff = ribasim_budget + modflow_budget
-    assert (np.abs(budget_diff) < 0.02).all()
+    assert (np.abs(budget_diff) < 0.001).all()
 
 
 @pytest.mark.xdist_group(name="ribasim")
@@ -185,4 +186,4 @@ def test_ribamod_two_basin(
     assert level1 > level2
 
     # Flow in the edges is always to the right.
-    assert (flow_df["flow"] >= 0).all()
+    assert (flow_df["flow"].loc[flow_df["edge_id"].notna()] >= 0).all()
