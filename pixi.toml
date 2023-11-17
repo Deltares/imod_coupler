@@ -19,6 +19,10 @@ install = { depends_on = [
     "install-primod",
     "install-imodc",
 ] }
+update-git-dependencies = """pip install --upgrade --force-reinstall --no-deps
+                             git+https://github.com/Deltares/Ribasim.git/#subdirectory=python/ribasim
+                             git+https://github.com/Deltares/Ribasim.git/#subdirectory=python/ribasim_api
+                             git+https://github.com/Deltares/Ribasim.git/#subdirectory=python/ribasim_testmodels"""
 # Tests
 tests = "pytest --numprocesses=auto --dist=loadgroup --basetemp=tests/temp --junitxml=report.xml"
 # Lint

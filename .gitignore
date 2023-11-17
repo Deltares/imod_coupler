@@ -134,3 +134,4 @@ dmypy.json
 # Tests
 tests/temp
 report.xml
+.pixi
