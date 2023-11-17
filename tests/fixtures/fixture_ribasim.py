@@ -94,7 +94,7 @@ def ribasim_two_basin_model() -> ribasim.Model:
 
     from_id = np.array([1, 3, 4], dtype=np.int64)
     to_id = np.array([2, 4, 5], dtype=np.int64)
-    lines = ribasim.utils.geometry_from_connectivity(node, from_id, to_id)
+    lines = node.geometry_from_connectivity(from_id, to_id)
     edge = ribasim.Edge(
         df=gpd.GeoDataFrame(
             data={
