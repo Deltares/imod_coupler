@@ -71,11 +71,11 @@ class Coupling(BaseModel):
     mf6_active_drainage_packages: Dict[str, str]
     mf6_passive_river_packages: Dict[str, str]
     mf6_passive_drainage_packages: Dict[str, str]
-    mf6_msw_exchanges:  Dict[str, str]
+    mf6_msw_mappings:  Optional[Dict[str, str]]
 
-#    enable_sprinkling: Optional[bool] = False  # true whemn sprinkling is active
-#    mf6_msw_recharge_pkg: Optional[str] = None  # the recharge package that will be used for coupling
-#    mf6_msw_well_pkg: Optional[str] = None  # the well package that will be used for coupling when sprinkling is active
+    enable_sprinkling: Optional[bool] = False  # true whemn sprinkling is active
+    mf6_msw_recharge_pkg: Optional[str] = None  # the recharge package that will be used for coupling
+    mf6_msw_well_pkg: Optional[str] = None  # the well package that will be used for coupling when sprinkling is active
 #    mf6_msw_node_map: Optional[FilePath] = None  # the path to the node map file
 #    mf6_msw_recharge_map: Optional[FilePath] = None  # the pach to the recharge map file
 #    mf6_msw_sprinkling_map: Optional[FilePath] = None  # the path to the sprinkling map file

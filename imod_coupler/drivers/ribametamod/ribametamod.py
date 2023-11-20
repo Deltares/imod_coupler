@@ -95,6 +95,8 @@ class RibaMetaMod(Driver):
                 working_directory=self.ribametamod_config.kernels.metaswap.work_dir,
                 timing=self.base_config.timing,
             )
+        else:
+            self.msw = None
 
         # Print output to stdout
         self.mf6.set_int("ISTDOUTTOFILE", 0)
@@ -103,7 +105,7 @@ class RibaMetaMod(Driver):
         self.ribasim.initialize(
             str(self.ribametamod_config.kernels.ribasim.config_file)
         )
-        if hasattr(RibaMetaMod,'msw'):
+        if self.msw is not None:
             self.msw.initialize()
         self.log_version()
         if self.coupling.output_config_file is not None:
@@ -118,7 +120,7 @@ class RibaMetaMod(Driver):
         logger.info(f"MODFLOW version: {self.mf6.get_version()}")
         # Getting the version from ribasim does not work at the moment
         # https://github.com/Deltares/Ribasim/issues/364
-        if hasattr(self,'msw'):
+        if self.msw is not None:
             logger.info(f"MetaSWAP version: {self.msw.get_version()}")
 
     def couple(self) -> None:
@@ -149,7 +151,7 @@ class RibaMetaMod(Driver):
         )
 
         # Get all MODFLOW 6 pointers, relevant for optional coupling with MetaSWAP
-        if hasattr(self.coupling,'mf6_msw_recharge_pkg'):
+        if self.coupling.mf6_msw_recharge_pkg is not None:
             self.mf6_recharge, self.mf6_recharge_nodes = self.mf6.get_recharge(
                 self.coupling.mf6_model, self.coupling.mf6_msw_recharge_pkg, True
             )
@@ -166,7 +168,7 @@ class RibaMetaMod(Driver):
         self.ribasim_level = self.ribasim.get_value_ptr("level")
 
         # Get all relevant MetaSWAP pointers
-        if hasattr(self,'msw'):
+        if self.msw is not None:
             self.msw_head = self.msw.get_head_ptr()
             self.msw_volume = self.msw.get_volume_ptr()
             self.msw_storage = self.msw.get_storage_ptr()
@@ -178,7 +180,7 @@ class RibaMetaMod(Driver):
         )
         packages["ribasim_nbound"] = len(self.ribasim_level)
         # MetaSWAP - MODFLOW
-        if hasattr(self, 'msw'):
+        if self.msw is not None: 
             packages["msw_head"] = self.msw_head
             packages["msw_volume"] = self.msw_volume
             packages["msw_storage"] = self.msw_storage
@@ -199,7 +201,7 @@ class RibaMetaMod(Driver):
         self.mapping = SetMapping(
             self.coupling,
             packages,
-            self.msw.working_directory / "mod2svat.inp",
+            (None if self.msw is None else self.msw.working_directory / "mod2svat.inp"),
         )
 
     def update(self) -> None:
