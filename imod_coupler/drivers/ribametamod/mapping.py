@@ -25,7 +25,8 @@ class SetMapping:
     ):
         self.coupling = coupling
         self.set_ribasim_modflow_mapping(packages)
-        self.set_metaswap_modflow_mapping(packages, mod2svat)
+        if self.coupling.mf6_msw_mappings is not None:
+            self.set_metaswap_modflow_mapping(packages, mod2svat)
 
     def set_ribasim_modflow_mapping(self, packages: ChainMap[str, Any]) -> None:
         coupling_tables = ChainMap(
