@@ -19,7 +19,8 @@ class Coupling(BaseModel):
     mf6_active_drainage_packages: Dict[str, str]
     mf6_passive_river_packages: Dict[str, str]
     mf6_passive_drainage_packages: Dict[str, str]
-    enable_sprinkling: bool  # true when sprinkling is active
+
+    enable_sprinkling: bool  # true whemn sprinkling is active
     mf6_msw_recharge_pkg: str  # the recharge package that will be used for coupling
     mf6_msw_well_pkg: (
         str | None
