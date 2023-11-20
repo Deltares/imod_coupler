@@ -403,19 +403,14 @@ class Mf6HeadBoundary(ABC):
     nodelist: NDArray[np.int32]
     hcof: NDArray[np.float64]
     rhs: NDArray[np.float64]
-    bound: NDArray[np.float64]
     head: NDArray[np.float64]
 
     def __init__(
         self, mf6_wrapper: Mf6Wrapper, mf6_flowmodel_key: str, mf6_pkg_key: str
     ):
-        nodelist_address = mf6_wrapper.get_var_address(
+        self.mf6_wrapper = mf6_wrapper
+        self.nodelist_address = mf6_wrapper.get_var_address(
             "NODELIST",
-            mf6_flowmodel_key,
-            mf6_pkg_key,
-        )
-        bound_address = mf6_wrapper.get_var_address(
-            "BOUND",
             mf6_flowmodel_key,
             mf6_pkg_key,
         )
@@ -428,8 +423,6 @@ class Mf6HeadBoundary(ABC):
             "HCOF", mf6_flowmodel_key, mf6_pkg_key
         )
         # Fortran 1-based versus Python 0-based indexing
-        self.nodelist = mf6_wrapper.get_value_ptr(nodelist_address) - 1
-        self.bound = mf6_wrapper.get_value_ptr(bound_address)
         self.rhs = mf6_wrapper.get_value_ptr(rhs_address)
         self.hcof = mf6_wrapper.get_value_ptr(hcof_address)
         self.head = np.empty_like(self.hcof)
@@ -437,14 +430,18 @@ class Mf6HeadBoundary(ABC):
         return
 
     @property
-    def conductance(
-        self,
-    ) -> NDArray[np.float64]:
-        return self.bound[:, 1]
-
-    @property
     def n_bound(self) -> int:
-        return len(self.nodelist)
+        return len(self.rhs)
+
+    def get_nodelist(self) -> None:
+        """
+        The nodelist behaves differently than HCOF and RHS.
+
+        While the nodelist can be fetched from MODFLOW 6, this will result in a
+        dummy array of only -1 values. Apparently, it is not allocated yet (?)
+        and the allocation only occurs after the first prepare_time_step.
+        """
+        self.nodelist = self.mf6_wrapper.get_value_ptr(self.nodelist_address) - 1
 
     def get_flux(
         self,
@@ -494,6 +491,7 @@ class Mf6HeadBoundary(ABC):
             sign is positive for infiltration
         """
         # Avoid allocating large arrays
+        self.get_nodelist()
         self.head[:] = head[self.nodelist]
         np.multiply(self.hcof, self.head, out=self.q)
         self.q -= self.rhs
@@ -504,7 +502,9 @@ class Mf6River(Mf6HeadBoundary):
     nodelist: NDArray[np.int32]
     hcof: NDArray[np.float64]
     rhs: NDArray[np.float64]
-    bound: NDArray[np.float64]
+    stage: NDArray[np.float64]
+    conductance: NDArray[np.float64]
+    bottom_elevation: NDArray[np.float64]
     head: NDArray[np.float64]
     bottom_minimum: NDArray[np.float64]
 
@@ -512,29 +512,34 @@ class Mf6River(Mf6HeadBoundary):
         self, mf6_wrapper: Mf6Wrapper, mf6_flowmodel_key: str, mf6_pkg_key: str
     ):
         super().__init__(mf6_wrapper, mf6_flowmodel_key, mf6_pkg_key)
+
+        stage_address = mf6_wrapper.get_var_address(
+            "STAGE", mf6_flowmodel_key, mf6_pkg_key
+        )
+        self.stage = mf6_wrapper.get_value_ptr(stage_address)
+        cond_address = mf6_wrapper.get_var_address(
+            "COND", mf6_flowmodel_key, mf6_pkg_key
+        )
+        self.conductance = mf6_wrapper.get_value_ptr(cond_address)
+        rbot_address = mf6_wrapper.get_var_address(
+            "RBOT", mf6_flowmodel_key, mf6_pkg_key
+        )
+        self.bottom_elevation = mf6_wrapper.get_value_ptr(rbot_address)
         self.bottom_minimum = self.bottom_elevation.copy()
 
     def update_bottom_minimum(self) -> None:
-        self.bottom_minimum[:] = self.bottom_elevation
+        self.bottom_minimum[:] = self.bottom_elevation[:]
 
-    @property
-    def stage(self) -> NDArray[np.float64]:
-        return self.bound[:, 0]
-
-    @stage.setter
-    def stage(self, new_stage: NDArray[np.float64]) -> None:
-        np.maximum(self.bottom_minimum, new_stage, out=self.bound[:, 0])
-
-    @property
-    def bottom_elevation(self) -> NDArray[np.float64]:
-        return self.bound[:, 2]
+    def set_stage(self, new_stage: NDArray[np.float64]) -> None:
+        np.maximum(self.bottom_minimum, new_stage, out=self.stage)
 
 
 class Mf6Drainage(Mf6HeadBoundary):
     nodelist: NDArray[np.int32]
     hcof: NDArray[np.float64]
     rhs: NDArray[np.float64]
-    bound: NDArray[np.float64]
+    conductance: NDArray[np.float64]
+    elevation: NDArray[np.float64]
     head: NDArray[np.float64]
     elevation_minimum: NDArray[np.float64]
 
@@ -542,15 +547,18 @@ class Mf6Drainage(Mf6HeadBoundary):
         self, mf6_wrapper: Mf6Wrapper, mf6_flowmodel_key: str, mf6_pkg_key: str
     ):
         super().__init__(mf6_wrapper, mf6_flowmodel_key, mf6_pkg_key)
+        elev_address = mf6_wrapper.get_var_address(
+            "ELEV", mf6_flowmodel_key, mf6_pkg_key
+        )
+        self.elevation = mf6_wrapper.get_value_ptr(elev_address)
+        cond_address = mf6_wrapper.get_var_address(
+            "COND", mf6_flowmodel_key, mf6_pkg_key
+        )
+        self.conductance = mf6_wrapper.get_value_ptr(cond_address)
         self.elevation_minimum = self.elevation.copy()
 
     def update_bottom_minimum(self) -> None:
         self.elevation_minimum[:] = self.elevation
 
-    @property
-    def elevation(self) -> NDArray[np.float64]:
-        return self.bound[:, 0]
-
-    @elevation.setter
-    def elevation(self, new_elevation: NDArray[np.float64]) -> None:
-        np.maximum(self.elevation_minimum, new_elevation, out=self.bound[:, 0])
+    def set_elevation(self, new_elevation: NDArray[np.float64]) -> None:
+        np.maximum(self.elevation_minimum, new_elevation, out=self.elevation)

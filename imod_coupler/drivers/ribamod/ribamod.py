@@ -170,10 +170,11 @@ class RibaMod(Driver):
         # Set the MODFLOW 6 river stage and drainage to value of waterlevel of Ribasim basin
         for key, river in self.mf6_active_river_packages.items():
             # TODO: use specific level after Ribasim can export levels
-            river.stage[:] = self.map_rib2mod[key].dot(self.ribasim_level)
+            river.set_stage(new_stage=self.map_rib2mod[key].dot(self.ribasim_level))
         for key, drainage in self.mf6_active_drainage_packages.items():
-            # TODO: use specific level after Ribasim can export levels
-            drainage.elevation[:] = self.map_rib2mod[key].dot(self.ribasim_level)
+            drainage.set_elevation(
+                new_elevation=self.map_rib2mod[key].dot(self.ribasim_level)
+            )
 
         # One time step in MODFLOW 6
         self.mf6.update()

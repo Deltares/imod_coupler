@@ -4,11 +4,13 @@ from pathlib import Path
 import imod
 import numpy as np
 import pandas as pd
+import pytest
 from numpy.testing import assert_allclose
 from primod.ribamod import RibaMod
 from pytest_cases import parametrize_with_cases
 
 
+@pytest.mark.xdist_group(name="ribasim")
 @parametrize_with_cases("ribamod_model")
 def test_ribamod_develop(
     tmp_path_dev: Path,
@@ -33,7 +35,8 @@ def test_ribamod_develop(
     )
 
 
-@parametrize_with_cases("ribamod_model", prefix="bucket_model")
+@pytest.mark.xdist_group(name="ribasim")
+@parametrize_with_cases("ribamod_model", glob="bucket_model")
 def test_ribamod_bucket(
     tmp_path_dev: Path,
     ribamod_model: RibaMod,
@@ -57,7 +60,7 @@ def test_ribamod_bucket(
     )
 
     basin_df = pd.read_feather(
-        tmp_path_dev / ribamod_model._ribasim_model_dir / "output" / "basin.arrow"
+        tmp_path_dev / ribamod_model._ribasim_model_dir / "results" / "basin.arrow"
     )
 
     # There should be only a single node in the model
@@ -69,7 +72,8 @@ def test_ribamod_bucket(
     assert final_storage < 60
 
 
-@parametrize_with_cases("ribamod_model", prefix="backwater")
+@pytest.mark.xdist_group(name="ribasim")
+@parametrize_with_cases("ribamod_model", glob="backwater_model")
 def test_ribamod_backwater(
     tmp_path_dev: Path,
     ribamod_model: RibaMod,
@@ -89,15 +93,16 @@ def test_ribamod_backwater(
     )
 
     subprocess.run(
-        [imod_coupler_exec_devel, tmp_path_dev / ribamod_model._toml_name], check=True
+        [imod_coupler_exec_devel, tmp_path_dev / ribamod_model._toml_name],
+        check=True,
     )
 
     # Read Ribasim output
     basin_df = pd.read_feather(
-        tmp_path_dev / ribamod_model._ribasim_model_dir / "output" / "basin.arrow"
+        tmp_path_dev / ribamod_model._ribasim_model_dir / "results" / "basin.arrow"
     )
     flow_df = pd.read_feather(
-        tmp_path_dev / ribamod_model._ribasim_model_dir / "output" / "flow.arrow"
+        tmp_path_dev / ribamod_model._ribasim_model_dir / "results" / "flow.arrow"
     )
     # Read MODFLOW 6 output
     head = imod.mf6.open_hds(
@@ -115,7 +120,7 @@ def test_ribamod_backwater(
     # Assert that the final level is a mototonically decreasing curve.
     assert (np.diff(final_level) < 0).all()
     # The head should follow the same pattern.
-    assert (head.isel(layer=0, time=-1).diff("x") < 0).all()
+    assert (head.isel(layer=0, time=-1).diff("x") < 0.0).all()
 
     drn = budgets["drn-1"].compute()
     riv = budgets["riv-1"].compute()
@@ -132,10 +137,11 @@ def test_ribamod_backwater(
     ribasim_budget = np.diff(final_flow) * 86_400.0
     modflow_budget = (drn + riv).isel(time=-1).sel(y=0).to_numpy()
     budget_diff = ribasim_budget + modflow_budget
-    assert (np.abs(budget_diff) < 0.02).all()
+    assert (np.abs(budget_diff) < 0.001).all()
 
 
-@parametrize_with_cases("ribamod_model", prefix="two_basin")
+@pytest.mark.xdist_group(name="ribasim")
+@parametrize_with_cases("ribamod_model", glob="two_basin_model")
 def test_ribamod_two_basin(
     tmp_path_dev: Path,
     ribamod_model: RibaMod,
@@ -160,10 +166,10 @@ def test_ribamod_two_basin(
 
     # Read Ribasim output
     basin_df = pd.read_feather(
-        tmp_path_dev / ribamod_model._ribasim_model_dir / "output" / "basin.arrow"
+        tmp_path_dev / ribamod_model._ribasim_model_dir / "results" / "basin.arrow"
     )
     flow_df = pd.read_feather(
-        tmp_path_dev / ribamod_model._ribasim_model_dir / "output" / "flow.arrow"
+        tmp_path_dev / ribamod_model._ribasim_model_dir / "results" / "flow.arrow"
     )
     # Read MODFLOW 6 output
     head = imod.mf6.open_hds(
@@ -180,4 +186,4 @@ def test_ribamod_two_basin(
     assert level1 > level2
 
     # Flow in the edges is always to the right.
-    assert (flow_df["flow"] >= 0).all()
+    assert (flow_df["flow"].loc[flow_df["edge_id"].notna()] >= 0).all()

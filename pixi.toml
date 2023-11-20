@@ -19,8 +19,12 @@ install = { depends_on = [
     "install-primod",
     "install-imodc",
 ] }
+update-git-dependencies = """pip install --upgrade --force-reinstall --no-deps
+                             git+https://github.com/Deltares/Ribasim.git/#subdirectory=python/ribasim
+                             git+https://github.com/Deltares/Ribasim.git/#subdirectory=python/ribasim_api
+                             git+https://github.com/Deltares/Ribasim.git/#subdirectory=python/ribasim_testmodels"""
 # Tests
-tests = "pytest -n=auto --basetemp=tests/temp --junitxml=report.xml"
+tests = "pytest --numprocesses=auto --dist=loadgroup --basetemp=tests/temp --junitxml=report.xml"
 # Lint
 mypy-imodc = "mypy --ignore-missing-imports --strict imod_coupler"
 mypy-primod = "mypy --ignore-missing-imports pre-processing/primod"
@@ -45,7 +49,7 @@ mypy = "*"
 numpy = "*"
 imod = "*"
 pip = "*"
-pydantic = "1.*"
+pydantic = "2.*"
 pytest = "*"
 pytest-cases = "*"
 pytest-dotenv = "*"
