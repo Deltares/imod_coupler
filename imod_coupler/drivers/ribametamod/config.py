@@ -61,7 +61,7 @@ class Metaswap(BaseModel):
 
 class Kernels(BaseModel):
     modflow6: Modflow6
-    ribasim: Ribasim
+    ribasim: Optional[Ribasim]
     metaswap: Optional[Metaswap]
 
 
