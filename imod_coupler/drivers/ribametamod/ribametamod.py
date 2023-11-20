@@ -88,15 +88,12 @@ class RibaMetaMod(Driver):
             lib_dependency=self.ribametamod_config.kernels.ribasim.dll_dep_dir,
             timing=self.base_config.timing,
         )
-        if self.ribametamod_config.kernels.metaswap is not None:
-            self.msw = MswWrapper(
-                lib_path=self.ribametamod_config.kernels.metaswap.dll,
-                lib_dependency=self.ribametamod_config.kernels.metaswap.dll_dep_dir,
-                working_directory=self.ribametamod_config.kernels.metaswap.work_dir,
-                timing=self.base_config.timing,
-            )
-        else:
-            self.msw = None
+        self.msw = MswWrapper(
+            lib_path=self.ribametamod_config.kernels.metaswap.dll,
+            lib_dependency=self.ribametamod_config.kernels.metaswap.dll_dep_dir,
+            working_directory=self.ribametamod_config.kernels.metaswap.work_dir,
+            timing=self.base_config.timing,
+        )
 
         # Print output to stdout
         self.mf6.set_int("ISTDOUTTOFILE", 0)
@@ -105,8 +102,7 @@ class RibaMetaMod(Driver):
         self.ribasim.initialize(
             str(self.ribametamod_config.kernels.ribasim.config_file)
         )
-        if self.msw is not None:
-            self.msw.initialize()
+        self.msw.initialize()
         self.log_version()
         if self.coupling.output_config_file is not None:
             self.exchange_logger = ExchangeCollector.from_file(
@@ -120,8 +116,7 @@ class RibaMetaMod(Driver):
         logger.info(f"MODFLOW version: {self.mf6.get_version()}")
         # Getting the version from ribasim does not work at the moment
         # https://github.com/Deltares/Ribasim/issues/364
-        if self.msw is not None:
-            logger.info(f"MetaSWAP version: {self.msw.get_version()}")
+        logger.info(f"MetaSWAP version: {self.msw.get_version()}")
 
     def couple(self) -> None:
         """Couple Modflow, MetaSWAP and Ribasim"""
@@ -168,10 +163,9 @@ class RibaMetaMod(Driver):
         self.ribasim_level = self.ribasim.get_value_ptr("level")
 
         # Get all relevant MetaSWAP pointers
-        if self.msw is not None:
-            self.msw_head = self.msw.get_head_ptr()
-            self.msw_volume = self.msw.get_volume_ptr()
-            self.msw_storage = self.msw.get_storage_ptr()
+        self.msw_head = self.msw.get_head_ptr()
+        self.msw_volume = self.msw.get_volume_ptr()
+        self.msw_storage = self.msw.get_storage_ptr()
 
         # set mapping
         # Ribasim - MODFLOW 6
@@ -182,21 +176,18 @@ class RibaMetaMod(Driver):
         )
         # MetaSWAP - MODFLOW 6
         mswmod_packages = {}
-        if self.msw is not None:
-            mswmod_packages["msw_head"] = self.msw_head
-            mswmod_packages["msw_volume"] = self.msw_volume
-            mswmod_packages["msw_storage"] = self.msw_storage
-            mswmod_packages[
-                "mf6_recharge"
-            ] = self.mf6_recharge  # waar komt mf6_recharge vandaan
-            if self.coupling.enable_sprinkling:
-                mf6_sprinkling_tag = self.mf6.get_var_address(
-                    "BOUND", self.coupling.mf6_model, self.coupling.mf6_msw_well_pkg
-                )
-                self.mf6_sprinkling_wells = self.mf6.get_value_ptr(mf6_sprinkling_tag)[
-                    :, 0
-                ]
-                mswmod_packages["mf6_sprinkling_wells"] = self.mf6_sprinkling_wells
+        mswmod_packages["msw_head"] = self.msw_head
+        mswmod_packages["msw_volume"] = self.msw_volume
+        mswmod_packages["msw_storage"] = self.msw_storage
+        mswmod_packages[
+            "mf6_recharge"
+        ] = self.mf6_recharge  # waar komt mf6_recharge vandaan
+        if self.coupling.enable_sprinkling:
+            mf6_sprinkling_tag = self.mf6.get_var_address(
+                "BOUND", self.coupling.mf6_model, self.coupling.mf6_msw_well_pkg
+            )
+            self.mf6_sprinkling_wells = self.mf6.get_value_ptr(mf6_sprinkling_tag)[:, 0]
+            mswmod_packages["mf6_sprinkling_wells"] = self.mf6_sprinkling_wells
         mswmod_packages["mf6_head"] = self.mf6_head
         mswmod_packages["mf6_storage"] = self.mf6_storage
         mswmod_packages["mf6_has_sc1"] = self.mf6_has_sc1
@@ -209,7 +200,7 @@ class RibaMetaMod(Driver):
                 ribmod_packages,
                 mswmod_packages,
             ),
-            (None if self.msw is None else self.msw.working_directory / "mod2svat.inp"),
+            self.msw.working_directory / "mod2svat.inp",
         )
 
     def update(self) -> None:

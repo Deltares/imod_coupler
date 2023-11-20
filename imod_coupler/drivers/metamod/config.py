@@ -1,6 +1,6 @@
 import os
 from pathlib import Path
-from typing import Any, List
+from typing import Any, List, Optional
 
 from pydantic import BaseModel, FilePath, validator
 
@@ -54,6 +54,7 @@ class Coupling(BaseModel):
                 "If `enable_sprinkling` is True, then `mf6_msw_sprinkling_map` needs to be set."
             )
         return mf6_msw_sprinkling_map
+
 
 class MetaModConfig(BaseModel):
     kernels: Kernels
