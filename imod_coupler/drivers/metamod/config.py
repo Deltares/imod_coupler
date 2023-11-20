@@ -1,6 +1,6 @@
 import os
 from pathlib import Path
-from typing import Any, List, Optional
+from typing import Any, List
 
 from pydantic import BaseModel, FilePath, validator
 
@@ -13,7 +13,7 @@ class Kernels(BaseModel):
 
 
 class Coupling(BaseModel):
-    enable_sprinkling: Optional[bool] = False  # true whemn sprinkling is active
+    enable_sprinkling: bool  # true whemn sprinkling is active
     mf6_model: str  # the MODFLOW 6 model that will be coupled
     mf6_msw_recharge_pkg: str  # the recharge package that will be used for coupling
     mf6_msw_well_pkg: (
@@ -29,7 +29,7 @@ class Coupling(BaseModel):
     class Config:
         arbitrary_types_allowed = True  # Needed for `mf6_msw_sprinkling_map`
 
-    @validator("mf6_well_pkg")
+    @validator("mf6_msw_well_pkg")
     def validate_mf6_msw_well_pkg(
         cls, mf6_msw_well_pkg: str | None, values: Any
     ) -> str | None:
@@ -39,7 +39,7 @@ class Coupling(BaseModel):
             )
         return mf6_msw_well_pkg
 
-    @validator("output_config_file")
+    @validator("mf6_msw_node_map", "mf6_msw_recharge_map", "output_config_file")
     def resolve_file_path(cls, file_path: FilePath) -> FilePath:
         return file_path.resolve()
 
