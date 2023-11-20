@@ -88,12 +88,13 @@ class RibaMetaMod(Driver):
             lib_dependency=self.ribametamod_config.kernels.ribasim.dll_dep_dir,
             timing=self.base_config.timing,
         )
-        self.msw = MswWrapper(
-            lib_path=self.ribametamod_config.kernels.metaswap.dll,
-            lib_dependency=self.ribametamod_config.kernels.metaswap.dll_dep_dir,
-            working_directory=self.ribametamod_config.kernels.metaswap.work_dir,
-            timing=self.base_config.timing,
-        )
+        if self.ribametamod_config.kernels.metaswap is not None:
+            self.msw = MswWrapper(
+                lib_path=self.ribametamod_config.kernels.metaswap.dll,
+                lib_dependency=self.ribametamod_config.kernels.metaswap.dll_dep_dir,
+                working_directory=self.ribametamod_config.kernels.metaswap.work_dir,
+                timing=self.base_config.timing,
+            )
 
         # Print output to stdout
         self.mf6.set_int("ISTDOUTTOFILE", 0)
@@ -102,7 +103,8 @@ class RibaMetaMod(Driver):
         self.ribasim.initialize(
             str(self.ribametamod_config.kernels.ribasim.config_file)
         )
-        self.msw.initialize()
+        if hasattr(RibaMetaMod,'msw'):
+            self.msw.initialize()
         self.log_version()
         if self.coupling.output_config_file is not None:
             self.exchange_logger = ExchangeCollector.from_file(
@@ -116,7 +118,8 @@ class RibaMetaMod(Driver):
         logger.info(f"MODFLOW version: {self.mf6.get_version()}")
         # Getting the version from ribasim does not work at the moment
         # https://github.com/Deltares/Ribasim/issues/364
-        logger.info(f"MetaSWAP version: {self.msw.get_version()}")
+        if hasattr(self,'msw'):
+            logger.info(f"MetaSWAP version: {self.msw.get_version()}")
 
     def couple(self) -> None:
         """Couple Modflow, MetaSWAP and Ribasim"""
@@ -145,10 +148,11 @@ class RibaMetaMod(Driver):
             self.mf6_active_drainage_packages, self.mf6_passive_drainage_packages
         )
 
-        # Get all MODFLOW 6 pointers, relevant for coupling with MetaSWAP
-        self.mf6_recharge, self.mf6_recharge_nodes = self.mf6.get_recharge(
-            self.coupling.mf6_model, self.coupling.mf6_msw_recharge_pkg, True
-        )
+        # Get all MODFLOW 6 pointers, relevant for optional coupling with MetaSWAP
+        if hasattr(self.coupling,'mf6_msw_recharge_pkg'):
+            self.mf6_recharge, self.mf6_recharge_nodes = self.mf6.get_recharge(
+                self.coupling.mf6_model, self.coupling.mf6_msw_recharge_pkg, True
+            )
 
         self.mf6_storage = self.mf6.get_storage(self.coupling.mf6_model)
         self.mf6_has_sc1 = self.mf6.has_sc1(self.coupling.mf6_model)
@@ -162,9 +166,10 @@ class RibaMetaMod(Driver):
         self.ribasim_level = self.ribasim.get_value_ptr("level")
 
         # Get all relevant MetaSWAP pointers
-        self.msw_head = self.msw.get_head_ptr()
-        self.msw_volume = self.msw.get_volume_ptr()
-        self.msw_storage = self.msw.get_storage_ptr()
+        if hasattr(self,'msw'):
+            self.msw_head = self.msw.get_head_ptr()
+            self.msw_volume = self.msw.get_volume_ptr()
+            self.msw_storage = self.msw.get_storage_ptr()
 
         # set mapping
         # Ribasim - MODFLOW 6
@@ -173,22 +178,23 @@ class RibaMetaMod(Driver):
         )
         packages["ribasim_nbound"] = len(self.ribasim_level)
         # MetaSWAP - MODFLOW
-        packages["msw_head"] = self.msw_head
-        packages["msw_volume"] = self.msw_volume
-        packages["msw_storage"] = self.msw_storage
+        if hasattr(self, 'msw'):
+            packages["msw_head"] = self.msw_head
+            packages["msw_volume"] = self.msw_volume
+            packages["msw_storage"] = self.msw_storage
+            packages["mf6_recharge"] = self.mf6_recharge    # waar komt mf6_recharge vandaan
+            if self.coupling.enable_sprinkling:
+                mf6_sprinkling_tag = self.mf6.get_var_address(
+                    "BOUND", self.coupling.mf6_model, self.coupling.mf6_msw_well_pkg
+                )
+                self.mf6_sprinkling_wells = self.mf6.get_value_ptr(mf6_sprinkling_tag)[:, 0]
+                packages["mf6_sprinkling_wells"] = self.mf6_sprinkling_wells
         packages["mf6_head"] = self.mf6_head
-        packages["mf6_recharge"] = self.mf6_recharge
         packages["mf6_storage"] = self.mf6_storage
         packages["mf6_has_sc1"] = self.mf6_has_sc1
         packages["mf6_area"] = self.mf6_area
         packages["mf6_top"] = self.mf6_top
         packages["mf6_bot"] = self.mf6_bot
-        if self.coupling.enable_sprinkling:
-            mf6_sprinkling_tag = self.mf6.get_var_address(
-                "BOUND", self.coupling.mf6_model, self.coupling.mf6_msw_well_pkg
-            )
-            self.mf6_sprinkling_wells = self.mf6.get_value_ptr(mf6_sprinkling_tag)[:, 0]
-            packages["mf6_sprinkling_wells"] = self.mf6_sprinkling_wells
 
         self.mapping = SetMapping(
             self.coupling,
