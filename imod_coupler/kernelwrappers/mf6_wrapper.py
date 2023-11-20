@@ -38,21 +38,20 @@ class Mf6Wrapper(XmiWrapper):
         self,
         mf6_flowmodel_key: str,
         mf6_msw_recharge_pkg: str,
-    ) -> NDArray[np.float_]:
+        include_nodes: bool = False,
+    ) -> Union[NDArray[np.float_], tuple[NDArray[np.float_], NDArray[np.int_]]]:
         mf6_recharge_tag = self.get_var_address(
             "RECHARGE", mf6_flowmodel_key, mf6_msw_recharge_pkg
         )
-        return self.get_value_ptr(mf6_recharge_tag)
-
-    def get_recharge_nodes(
-        self,
-        mf6_flowmodel_key: str,
-        mf6_msw_recharge_pkg: str,
-    ) -> NDArray[Any]:
+        mf6_recharge = self.get_value_ptr(mf6_recharge_tag)
         mf6_recharge_nodes_tag = self.get_var_address(
             "NODELIST", mf6_flowmodel_key, mf6_msw_recharge_pkg
         )
-        return self.get_value_ptr(mf6_recharge_nodes_tag)
+        mf6_recharge_nodes = self.get_value_ptr(mf6_recharge_nodes_tag)
+        if include_nodes:
+            return mf6_recharge, mf6_recharge_nodes
+        else:
+            return mf6_recharge
 
     def get_storage(self, mf6_flowmodel_key: str) -> NDArray[np.float_]:
         mf6_storage_tag = self.get_var_address("SS", mf6_flowmodel_key, "STO")
