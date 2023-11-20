@@ -84,11 +84,17 @@ class RibaMetaMod(Driver):
             working_directory=self.ribametamod_config.kernels.modflow6.work_dir,
             timing=self.base_config.timing,
         )
-        self.ribasim = RibasimApi(
-            lib_path=self.ribametamod_config.kernels.ribasim.dll,
-            lib_dependency=self.ribametamod_config.kernels.ribasim.dll_dep_dir,
-            timing=self.base_config.timing,
-        )
+        if self.ribametamod_config.kernels.ribasim is not None:
+            self.ribasim = RibasimApi(
+                lib_path=self.ribametamod_config.kernels.ribasim.dll,
+                lib_dependency=self.ribametamod_config.kernels.ribasim.dll_dep_dir,
+                timing=self.base_config.timing,
+            )
+            self.has_ribasim = True
+        else:
+            self.ribasim = None
+            self.has_ribasim = False
+
         if self.ribametamod_config.kernels.metaswap is not None:
             self.msw = MswWrapper(
                 lib_path=self.ribametamod_config.kernels.metaswap.dll,
@@ -104,10 +110,11 @@ class RibaMetaMod(Driver):
         # Print output to stdout
         self.mf6.set_int("ISTDOUTTOFILE", 0)
         self.mf6.initialize()
-        self.ribasim.init_julia()
-        self.ribasim.initialize(
-            str(self.ribametamod_config.kernels.ribasim.config_file)
-        )
+        if self.has_ribasim:
+            self.ribasim.init_julia()
+            self.ribasim.initialize(
+                str(self.ribametamod_config.kernels.ribasim.config_file)
+            )
         if self.has_metaswap:
             self.msw.initialize()
         self.log_version()
@@ -166,9 +173,10 @@ class RibaMetaMod(Driver):
         self.mf6_bot = self.mf6.get_bot(self.coupling.mf6_model)
 
         # Get all relevant Ribasim pointers
-        self.ribasim_infiltration = self.ribasim.get_value_ptr("infiltration")
-        self.ribasim_drainage = self.ribasim.get_value_ptr("drainage")
-        self.ribasim_level = self.ribasim.get_value_ptr("level")
+        if self.has_ribasim:
+            self.ribasim_infiltration = self.ribasim.get_value_ptr("infiltration")
+            self.ribasim_drainage = self.ribasim.get_value_ptr("drainage")
+            self.ribasim_level = self.ribasim.get_value_ptr("level")
 
         # Get all relevant MetaSWAP pointers
         if self.has_metaswap:
@@ -178,11 +186,15 @@ class RibaMetaMod(Driver):
 
         # set mapping
         # Ribasim - MODFLOW 6
-        ribmod_packages: ChainMap[str, Any] = ChainMap(
-            self.mf6_river_packages,
-            self.mf6_drainage_packages,
-            {"ribasim_nbound": len(self.ribasim_level)},
-        )
+        if self.has_ribasim:
+            ribmod_packages: ChainMap[str, Any] = ChainMap(
+                self.mf6_river_packages,
+                self.mf6_drainage_packages,
+                {"ribasim_nbound": len(self.ribasim_level)},
+            )
+        else:
+            ribmod_packages = {}
+
         # MetaSWAP - MODFLOW 6
         mswmod_packages = {}
         if self.has_metaswap:
@@ -200,19 +212,22 @@ class RibaMetaMod(Driver):
                     :, 0
                 ]
                 mswmod_packages["mf6_sprinkling_wells"] = self.mf6_sprinkling_wells
-        mswmod_packages["mf6_head"] = self.mf6_head
-        mswmod_packages["mf6_storage"] = self.mf6_storage
-        mswmod_packages["mf6_has_sc1"] = self.mf6_has_sc1
-        mswmod_packages["mf6_area"] = self.mf6_area
-        mswmod_packages["mf6_top"] = self.mf6_top
-        mswmod_packages["mf6_bot"] = self.mf6_bot
+            mswmod_packages["mf6_head"] = self.mf6_head
+            mswmod_packages["mf6_storage"] = self.mf6_storage
+            mswmod_packages["mf6_has_sc1"] = self.mf6_has_sc1
+            mswmod_packages["mf6_area"] = self.mf6_area
+            mswmod_packages["mf6_top"] = self.mf6_top
+            mswmod_packages["mf6_bot"] = self.mf6_bot
+
         self.mapping = SetMapping(
             self.coupling,
             ChainMap(
                 ribmod_packages,
                 mswmod_packages,
             ),
-            (None if self.msw is None else self.msw.working_directory / "mod2svat.inp"),
+            self.has_metaswap,
+            self.has_ribasim,
+            (self.msw.working_directory / "mod2svat.inp" if self.has_metaswap else None),
         )
 
     def update(self) -> None:
@@ -222,16 +237,17 @@ class RibaMetaMod(Driver):
         # update every stress period.
 
         # exchange stages from Ribasim to MODFLOW
-        self.exchange_mod2rib()
+        if self.has_ribasim:
+            self.exchange_mod2rib()
 
         # Do one MODFLOW 6 - MetaSWAP timestep
         self.update_MODFLOW6_MetaSWAP()
 
-        # exchange drainage fluxes from MODFLOW 6 to Ribasim
-        self.exchange_rib2mod()
-
-        # Update Ribasim until current time of MODFLOW 6
-        self.ribasim.update_until(self.get_current_time() * days_to_seconds(self.delt))
+        if self.has_ribasim:
+            # exchange drainage fluxes from MODFLOW 6 to Ribasim
+            self.exchange_rib2mod()
+            # Update Ribasim until current time of MODFLOW 6
+            self.ribasim.update_until(self.get_current_time() * days_to_seconds(self.delt))
 
     def update_MODFLOW6_MetaSWAP(self) -> None:
         # exchange MODFLOW head to MetaSWAP
@@ -332,8 +348,9 @@ class RibaMetaMod(Driver):
 
     def finalize(self) -> None:
         self.mf6.finalize()
-        self.ribasim.finalize()
-        self.ribasim.shutdown_julia()
+        if self.has_ribasim:
+            self.ribasim.finalize()
+            self.ribasim.shutdown_julia()
         self.exchange_logger.finalize()
 
     def get_current_time(self) -> float:
