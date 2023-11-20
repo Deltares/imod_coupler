@@ -17,7 +17,8 @@ from imod_coupler.config import BaseConfig
 from imod_coupler.drivers.driver import Driver
 from imod_coupler.drivers.ribametamod.config import Coupling, RibaMetaModConfig
 from imod_coupler.drivers.ribametamod.mapping import SetMapping
-from imod_coupler.kernelwrappers.mf6_wrapper import Mf6Drainage, Mf6River, Mf6Wrapper
+from imod_coupler.kernelwrappers.mf6_wrapper import (Mf6Drainage, Mf6River,
+                                                     Mf6Wrapper)
 from imod_coupler.kernelwrappers.msw_wrapper import MswWrapper
 from imod_coupler.logging.exchange_collector import ExchangeCollector
 
@@ -175,7 +176,7 @@ class RibaMetaMod(Driver):
             {"ribasim_nbound": len(self.ribasim_level)},
         )
         # MetaSWAP - MODFLOW 6
-        mswmod_packages = {}
+        mswmod_packages: Dict[str,Any] = {}
         mswmod_packages["msw_head"] = self.msw_head
         mswmod_packages["msw_volume"] = self.msw_volume
         mswmod_packages["msw_storage"] = self.msw_storage
