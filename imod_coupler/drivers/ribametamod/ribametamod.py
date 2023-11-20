@@ -17,8 +17,7 @@ from imod_coupler.config import BaseConfig
 from imod_coupler.drivers.driver import Driver
 from imod_coupler.drivers.ribametamod.config import Coupling, RibaMetaModConfig
 from imod_coupler.drivers.ribametamod.mapping import SetMapping
-from imod_coupler.kernelwrappers.mf6_wrapper import (Mf6Drainage, Mf6River,
-                                                     Mf6Wrapper)
+from imod_coupler.kernelwrappers.mf6_wrapper import Mf6Drainage, Mf6River, Mf6Wrapper
 from imod_coupler.kernelwrappers.msw_wrapper import MswWrapper
 from imod_coupler.logging.exchange_collector import ExchangeCollector
 
@@ -148,8 +147,11 @@ class RibaMetaMod(Driver):
 
         # Get all MODFLOW 6 pointers, relevant for optional coupling with MetaSWAP
         if self.coupling.mf6_msw_recharge_pkg is not None:
-            self.mf6_recharge, self.mf6_recharge_nodes = self.mf6.get_recharge(
-                self.coupling.mf6_model, self.coupling.mf6_msw_recharge_pkg, True
+            self.mf6_recharge = self.mf6.get_recharge(
+                self.coupling.mf6_model, self.coupling.mf6_msw_recharge_pkg
+            )
+            self.mf6_recharge_nodes = self.mf6.get_recharge_nodes(
+                self.coupling.mf6_model, self.coupling.mf6_msw_recharge_pkg
             )
 
         self.mf6_storage = self.mf6.get_storage(self.coupling.mf6_model)
@@ -176,7 +178,7 @@ class RibaMetaMod(Driver):
             {"ribasim_nbound": len(self.ribasim_level)},
         )
         # MetaSWAP - MODFLOW 6
-        mswmod_packages: Dict[str,Any] = {}
+        mswmod_packages: Dict[str, Any] = {}
         mswmod_packages["msw_head"] = self.msw_head
         mswmod_packages["msw_volume"] = self.msw_volume
         mswmod_packages["msw_storage"] = self.msw_storage
