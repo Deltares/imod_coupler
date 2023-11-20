@@ -33,6 +33,7 @@ class RibaMetaMod(Driver):
     mf6: Mf6Wrapper  # the MODFLOW 6 kernel
     ribasim: RibasimApi  # the Ribasim kernel
     msw: MswWrapper  # the MetaSWAP XMI kernel
+    has_metaswap: bool  # configured with or without metaswap
 
     max_iter: NDArray[Any]  # max. nr outer iterations in MODFLOW kernel
     delt: float  # time step from MODFLOW 6 (leading)
@@ -95,8 +96,10 @@ class RibaMetaMod(Driver):
                 working_directory=self.ribametamod_config.kernels.metaswap.work_dir,
                 timing=self.base_config.timing,
             )
+            self.has_metaswap = True
         else:
             self.msw = None
+            self.has_metaswap = False
 
         # Print output to stdout
         self.mf6.set_int("ISTDOUTTOFILE", 0)
@@ -105,7 +108,7 @@ class RibaMetaMod(Driver):
         self.ribasim.initialize(
             str(self.ribametamod_config.kernels.ribasim.config_file)
         )
-        if self.msw is not None:
+        if self.has_metaswap:
             self.msw.initialize()
         self.log_version()
         if self.coupling.output_config_file is not None:
@@ -120,7 +123,7 @@ class RibaMetaMod(Driver):
         logger.info(f"MODFLOW version: {self.mf6.get_version()}")
         # Getting the version from ribasim does not work at the moment
         # https://github.com/Deltares/Ribasim/issues/364
-        if self.msw is not None:
+        if self.has_metaswap:
             logger.info(f"MetaSWAP version: {self.msw.get_version()}")
 
     def couple(self) -> None:
@@ -168,7 +171,7 @@ class RibaMetaMod(Driver):
         self.ribasim_level = self.ribasim.get_value_ptr("level")
 
         # Get all relevant MetaSWAP pointers
-        if self.msw is not None:
+        if self.has_metaswap:
             self.msw_head = self.msw.get_head_ptr()
             self.msw_volume = self.msw.get_volume_ptr()
             self.msw_storage = self.msw.get_storage_ptr()
@@ -182,7 +185,7 @@ class RibaMetaMod(Driver):
         )
         # MetaSWAP - MODFLOW 6
         mswmod_packages = {}
-        if self.msw is not None:
+        if self.has_metaswap:
             mswmod_packages["msw_head"] = self.msw_head
             mswmod_packages["msw_volume"] = self.msw_volume
             mswmod_packages["msw_storage"] = self.msw_storage
@@ -232,24 +235,29 @@ class RibaMetaMod(Driver):
 
     def update_MODFLOW6_MetaSWAP(self) -> None:
         # exchange MODFLOW head to MetaSWAP
-        self.exchange_mod2msw()
+        if hasattr(self,'mod2msw'):
+            self.exchange_mod2msw()
 
         # Do one MODFLOW 6 - MetaSWAP timestep
         self.mf6.prepare_time_step(0.0)
         self.delt = self.mf6.get_time_step()
-        self.msw.prepare_time_step(self.delt)
-
         self.mf6.prepare_solve(1)
-        for kiter in range(1, self.max_iter + 1):
-            has_converged = self.do_MODFLOW6_MetaSWAP_iter(1)
-            if has_converged:
-                logger.debug(f"MF6-MSW converged in {kiter} iterations")
-                break
-        self.mf6.finalize_solve(1)
+
+        if self.has_metaswap:
+            self.msw.prepare_time_step(self.delt)
+            for kiter in range(1, self.max_iter + 1):
+                has_converged = self.do_MODFLOW6_MetaSWAP_iter(1)
+                if has_converged:
+                    logger.debug(f"MF6-MSW converged in {kiter} iterations")
+                    break
+            self.mf6.finalize_solve(1)
+        else:
+            self.mf6.update()
 
         # finish MODFLOW 6 - MetaSWAP timestep
         self.mf6.finalize_time_step()
-        self.msw.finalize_time_step()
+        if self.has_metaswap:
+            self.msw.finalize_time_step()
 
     def do_MODFLOW6_MetaSWAP_iter(self, sol_id: int) -> bool:
         """Execute a single iteration"""
