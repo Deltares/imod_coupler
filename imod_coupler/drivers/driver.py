@@ -69,7 +69,6 @@ def get_driver(
     from imod_coupler.drivers.ribametamod.ribametamod import RibaMetaMod
     from imod_coupler.drivers.ribamod.config import RibaModConfig
     from imod_coupler.drivers.ribamod.ribamod import RibaMod
-    from imod_coupler.drivers.ribametamod.ribametamod import RibaMetaMod
 
     if base_config.driver_type == "metamod":
         metamod_config = MetaModConfig(config_dir=config_dir, **config_dict["driver"])
