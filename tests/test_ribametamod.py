@@ -1,6 +1,5 @@
 import shutil
 from pathlib import Path
-from typing import Union
 
 import tomli_w
 
@@ -112,12 +111,12 @@ def test_ribametamod(
 
 
 def write_metamod_toml(
-    tmp_path_dev: Union[str, Path],
-    modflow6_dll: Union[str, Path],
-    modflow6_model_dir: Union[str, Path],
-    metaswap_dll: Union[str, Path],
-    metaswap_dll_dependency: Union[str, Path],
-    metaswap_model_dir: Union[str, Path],
+    tmp_path_dev: str | Path,
+    modflow6_dll: str | Path,
+    modflow6_model_dir: str | Path,
+    metaswap_dll: str | Path,
+    metaswap_dll_dependency: str | Path,
+    metaswap_model_dir: str | Path,
 ) -> None:
     """
     Write .toml file which configures the imod coupler run.
@@ -173,12 +172,12 @@ def write_metamod_toml(
 
 
 def write_ribamod_toml(
-    tmp_path_dev: Union[str, Path],
-    modflow6_dll: Union[str, Path],
-    modflow6_model_dir: Union[str, Path],
-    ribasim_dll: Union[str, Path],
-    ribasim_dll_dependency: Union[str, Path],
-    ribasim_config_file: Union[str, Path],
+    tmp_path_dev: str | Path,
+    modflow6_dll: str | Path,
+    modflow6_model_dir: str | Path,
+    ribasim_dll: str | Path,
+    ribasim_dll_dependency: str | Path,
+    ribasim_config_file: str | Path,
 ) -> None:
     """
     Write .toml file which configures the imod coupler run.
@@ -234,15 +233,15 @@ def write_ribamod_toml(
 
 
 def write_ribametamod_toml(
-    tmp_path_dev: Union[str, Path],
-    modflow6_dll: Union[str, Path],
-    modflow6_model_dir: Union[str, Path],
-    metaswap_dll: Union[str, Path],
-    metaswap_dll_dependency: Union[str, Path],
-    metaswap_model_dir: Union[str, Path],
-    ribasim_dll: Union[str, Path],
-    ribasim_dll_dependency: Union[str, Path],
-    ribasim_config_file: Union[str, Path],
+    tmp_path_dev: str | Path,
+    modflow6_dll: str | Path,
+    modflow6_model_dir: str | Path,
+    metaswap_dll: str | Path,
+    metaswap_dll_dependency: str | Path,
+    metaswap_model_dir: str | Path,
+    ribasim_dll: str | Path,
+    ribasim_dll_dependency: str | Path,
+    ribasim_config_file: str | Path,
 ) -> None:
     """
     Write .toml file which configures the imod coupler run.
