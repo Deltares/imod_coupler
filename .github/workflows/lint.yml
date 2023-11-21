@@ -20,7 +20,7 @@ jobs:
         run: pixi run install
       - name: Run ruff format
         run: |
-          pixi run format
+          pixi run format-check
       - name: Run ruff check
         run: |
           pixi run ruff
