@@ -17,7 +17,7 @@ def listfile_to_dataframe(file_in: Path) -> pd.DataFrame:
     ignore = ["IN - OUT", "DISCREPANCY"]
     df_data_out = pd.DataFrame()
     budgetblock_counter = -1
-    with open(file_in, "r") as fnin_mflist:
+    with open(file_in) as fnin_mflist:
         stat = status.NO_OPERATION
         for line in fnin_mflist:
             if re.match(r"^.*TIME SUMMARY", line):
@@ -49,9 +49,6 @@ def listfile_to_dataframe(file_in: Path) -> pd.DataFrame:
                     _, part2 = re.split(splitter, line)[-2:]
                     thisval = float(part2.split()[0])
                     pkgtype = re.sub(r"\s+", "_", re.sub(r"\s*=\s*", "", splitter))
-                    pkgname = "%s:%s" % (
-                        pkgtype,
-                        part2.split()[1],
-                    )  # modflow6 format
+                    pkgname = f"{pkgtype}:{part2.split()[1]}"  # modflow6 format
                     df_data_out.loc[budgetblock_counter, pkgname + postfix] = thisval
         return df_data_out

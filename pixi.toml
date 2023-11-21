@@ -37,7 +37,6 @@ lint = { depends_on = [
     "ruff",
     "mypy-imodc",
     "mypy-primod",
-    "check-package-primod",
 ] }
 
 [dependencies]

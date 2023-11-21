@@ -1,6 +1,6 @@
 import abc
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 import h5netcdf.legacyapi as nc
 import numpy as np
@@ -68,7 +68,7 @@ class ExchangeCollector:
     exchanges: dict[str, AbstractExchange]
     output_dir: Path
 
-    def __init__(self, config: Optional[dict[str, dict[str, Any]]] = None):
+    def __init__(self, config: dict[str, dict[str, Any]] | None = None):
         self.exchanges = {}
 
     @classmethod

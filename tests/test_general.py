@@ -29,5 +29,5 @@ def test_log_file(
     setup_logger(LogLevel.INFO, log_file)
     logger.warning(test_string)
 
-    with open(log_file, "r") as f:
+    with open(log_file) as f:
         assert test_string in f.read()

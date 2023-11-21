@@ -52,7 +52,7 @@ imodc = "imod_coupler.__main__:main"
 Source = "https://github.com/Deltares/imod_coupler"
 
 [tool.ruff]
-select = ["E", "F", "NPY", "PD", "C4", "I"]
+select = ["C4", "E", "F", "I", "NPY", "PD", "UP"]
 ignore = ["E501", "PD901", "PD004"]
 fixable = ["I"]
 

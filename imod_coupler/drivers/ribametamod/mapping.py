@@ -1,6 +1,6 @@
 from collections import ChainMap
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 import numpy as np
 from numpy.typing import NDArray
@@ -12,10 +12,10 @@ from imod_coupler.utils import create_mapping
 
 class SetMapping:
     # TODO: check who should be leading if no changes are defined
-    mod2rib: Dict[str, csr_matrix]
-    rib2mod: Dict[str, csr_matrix]
-    msw2mod: Dict[str, csr_matrix]
-    mod2msw: Dict[str, csr_matrix]
+    mod2rib: dict[str, csr_matrix]
+    rib2mod: dict[str, csr_matrix]
+    msw2mod: dict[str, csr_matrix]
+    mod2msw: dict[str, csr_matrix]
 
     def __init__(
         self,
@@ -141,7 +141,7 @@ class SetMapping:
             )
 
 
-def set_svat_lookup(mod2svat: Path) -> Dict[Any, Any]:
+def set_svat_lookup(mod2svat: Path) -> dict[Any, Any]:
     svat_lookup = {}
     msw_mod2svat_file = mod2svat
     if msw_mod2svat_file.is_file():
