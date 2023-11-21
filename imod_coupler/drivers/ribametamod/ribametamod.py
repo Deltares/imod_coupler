@@ -32,7 +32,7 @@ class RibaMetaMod(Driver):
     timing: bool  # true, when timing is enabled
     mf6: Mf6Wrapper  # the MODFLOW 6 kernel
     ribasim: RibasimApi  # the Ribasim kernel
-    msw: MswWrapper  # the MetaSWAP XMI kernel
+    msw: MswWrapper  # the MetaSWAP kernel
 
     max_iter: NDArray[Any]  # max. nr outer iterations in MODFLOW kernel
     delt: float  # time step from MODFLOW 6 (leading)
