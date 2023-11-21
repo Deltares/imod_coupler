@@ -245,7 +245,7 @@ class RibaMetaMod(Driver):
         self.mf6.finalize_time_step()
         self.msw.finalize_time_step()
 
-    def do_MODFLOW6_MetaSWAP_iter(self, sol_id: int) -> bool:
+    def do_modflow6_metaswap_iter(self, sol_id: int) -> bool:
         """Execute a single iteration"""
         self.msw.prepare_solve(0)
         self.msw.solve(0)
