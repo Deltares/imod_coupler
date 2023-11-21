@@ -26,9 +26,6 @@ class Coupling(BaseModel):
     ) = None  # the path to the sprinkling map file
     output_config_file: FilePath | None = None
 
-    class Config:
-        arbitrary_types_allowed = True  # Needed for `mf6_msw_sprinkling_map`
-
     @validator("mf6_msw_well_pkg")
     def validate_mf6_msw_well_pkg(
         cls, mf6_msw_well_pkg: str | None, values: Any
