@@ -43,7 +43,7 @@ class Mf6Wrapper(XmiWrapper):
             "RECHARGE", mf6_flowmodel_key, mf6_msw_recharge_pkg
         )
         return self.get_value_ptr(mf6_recharge_tag)
-        
+
     def get_recharge_nodes(
         self,
         mf6_flowmodel_key: str,
