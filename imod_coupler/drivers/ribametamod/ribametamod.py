@@ -224,7 +224,7 @@ class RibaMetaMod(Driver):
         # Update Ribasim until current time of MODFLOW 6
         self.ribasim.update_until(self.get_current_time() * days_to_seconds(self.delt))
 
-    def update_MODFLOW6_MetaSWAP(self) -> None:
+    def update_modflow6_metaswap(self) -> None:
         # exchange MODFLOW head to MetaSWAP
         self.exchange_mod2msw()
 
