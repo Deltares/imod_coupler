@@ -1,5 +1,3 @@
-from typing import Tuple
-
 from imod.mf6 import Modflow6Simulation
 from imod.msw import MetaSwapModel
 from imod.msw.fixed_format import VariableMetaData
@@ -131,7 +129,7 @@ def cases_metamod_no_sprinkling(
     prepared_msw_model: MetaSwapModel,
     coupled_mf6_model: Modflow6Simulation,
     coupled_mf6_model_storage_coefficient: Modflow6Simulation,
-) -> Tuple[MetaMod, MetaMod]:
+) -> tuple[MetaMod, MetaMod]:
     """
     Two MetaMod objects, both without sprinkling. One with specific storage, one
     with storage coefficient.
@@ -156,7 +154,7 @@ def cases_metamod_sprinkling(
     prepared_msw_model: MetaSwapModel,
     coupled_mf6_model: Modflow6Simulation,
     coupled_mf6_model_storage_coefficient: Modflow6Simulation,
-) -> Tuple[MetaMod, MetaMod]:
+) -> tuple[MetaMod, MetaMod]:
     """
     Two MetaMod objects, both with sprinkling. One with specific storage, one
     with storage coefficient.

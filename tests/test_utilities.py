@@ -1,5 +1,4 @@
 from pathlib import Path
-from typing import Dict
 
 import numpy as np
 import pandas as pd
@@ -8,8 +7,8 @@ import pandas as pd
 def diff_per_column_dataframe(
     df1: pd.DataFrame,
     df2: pd.DataFrame,
-    tolerance: Dict[str, tuple[float, float]],
-) -> tuple[Dict[str, list[int]], Dict[str, list[int]], Dict[str, tuple[bool, bool]]]:
+    tolerance: dict[str, tuple[float, float]],
+) -> tuple[dict[str, list[int]], dict[str, list[int]], dict[str, tuple[bool, bool]]]:
     failed = {}
     absfailedndx = {}
     relfailedndx = {}
@@ -41,7 +40,7 @@ def numeric_csvfiles_equal(
     file1: Path,
     file2: Path,
     sep: str,
-    tolerance: Dict[str, tuple[float, float]],
+    tolerance: dict[str, tuple[float, float]],
 ) -> bool:
     df1 = pd.read_csv(
         file1,

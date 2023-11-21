@@ -1,7 +1,7 @@
 import operator
 from functools import reduce
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 import pydantic
 import pytest
@@ -13,13 +13,13 @@ from pytest_cases import parametrize_with_cases
 from imod_coupler.__main__ import run_coupler
 
 
-def get_from_container(data_dict: Dict[Any, Any], map_list: List[Any]) -> Any:
+def get_from_container(data_dict: dict[Any, Any], map_list: list[Any]) -> Any:
     """Gets the nested value of a container
     Adapted from https://stackoverflow.com/a/14692747/11038610"""
     return reduce(operator.getitem, map_list, data_dict)
 
 
-def set_container(data_dict: Dict[Any, Any], map_list: List[Any], value: Any) -> None:
+def set_container(data_dict: dict[Any, Any], map_list: list[Any], value: Any) -> None:
     """Sets the nested value of a container
     Adapted from https://stackoverflow.com/a/14692747/11038610
     """
@@ -42,7 +42,7 @@ cases_missing_files = [
 @parametrize_with_cases("metamod_sprinkling")
 def test_missing_files(
     metamod_sprinkling: MetaMod,
-    map_list: List[Any],
+    map_list: list[Any],
     tmp_path: Path,
     modflow_dll_devel: Path,
     metaswap_dll_devel: Path,

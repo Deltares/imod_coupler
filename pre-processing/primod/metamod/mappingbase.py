@@ -1,7 +1,7 @@
 import abc
 from io import TextIOWrapper
 from pathlib import Path
-from typing import Any, Union
+from typing import Any
 
 import pandas as pd
 import xarray as xr
@@ -89,7 +89,7 @@ class MetaModMapping(abc.ABC):
         self.write_dataframe_fixed_width(file, dataframe)
 
     def write(
-        self, directory: Union[str, Path], index: NDArray[Any], svat: xr.DataArray
+        self, directory: str | Path, index: NDArray[Any], svat: xr.DataArray
     ) -> None:
         """
         Write mapping to .dxc file.

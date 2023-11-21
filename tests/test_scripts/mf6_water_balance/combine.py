@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 from pathlib import Path
-from typing import Union
 
 import h5netcdf.legacyapi as nc
 import numpy as np
@@ -12,9 +11,9 @@ from test_scripts.mf6_water_balance.MF6_wbal_listing import listfile_to_datafram
 
 def create_modflow_waterbalance_file(
     mf_listfile: Path,
-    output_file_xlsx: Union[Path, None] = None,
-    output_file_netcdf: Union[Path, None] = None,
-    output_file_csv: Union[Path, None] = None,
+    output_file_xlsx: Path | None = None,
+    output_file_netcdf: Path | None = None,
+    output_file_csv: Path | None = None,
 ) -> None:
     """
     this function creates a csv, excel or netcdf file with the water-balance information found in

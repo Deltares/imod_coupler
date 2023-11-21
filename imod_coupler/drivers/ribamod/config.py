@@ -1,6 +1,6 @@
 import os
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 from pydantic import BaseModel, FilePath, validator
 
@@ -14,10 +14,10 @@ class Kernels(BaseModel):
 
 class Coupling(BaseModel):
     mf6_model: str  # the MODFLOW 6 model that will be coupled
-    mf6_active_river_packages: Dict[str, str]
-    mf6_active_drainage_packages: Dict[str, str]
-    mf6_passive_river_packages: Dict[str, str]
-    mf6_passive_drainage_packages: Dict[str, str]
+    mf6_active_river_packages: dict[str, str]
+    mf6_active_drainage_packages: dict[str, str]
+    mf6_passive_river_packages: dict[str, str]
+    mf6_passive_drainage_packages: dict[str, str]
     output_config_file: FilePath | None = None
 
     @validator("output_config_file")
@@ -27,7 +27,7 @@ class Coupling(BaseModel):
 
 class RibaModConfig(BaseModel):
     kernels: Kernels
-    coupling: List[Coupling]
+    coupling: list[Coupling]
 
     def __init__(self, config_dir: Path, **data: Any) -> None:
         """Model for the Ribamod config validated by pydantic
@@ -42,7 +42,7 @@ class RibaModConfig(BaseModel):
         super().__init__(**data)
 
     @validator("coupling")
-    def restrict_coupling_count(cls, coupling: List[Coupling]) -> List[Coupling]:
+    def restrict_coupling_count(cls, coupling: list[Coupling]) -> list[Coupling]:
         if len(coupling) == 0:
             raise ValueError("At least one coupling has to be defined.")
         if len(coupling) > 1:
