@@ -1,0 +1,11 @@
+begin options
+  save_flows
+end options
+
+begin dimensions
+  maxbound 1
+end dimensions
+
+begin period 1
+  open/close GWF_1/riv-1/riv.dat (binary)
+end period

@@ -1,0 +1,19 @@
+begin options
+  save_flows
+  variablecv
+end options
+
+begin griddata
+  icelltype layered
+    constant 0
+    constant 0
+    constant 0
+  k layered
+    constant 1.0
+    constant 0.01
+    constant 1.0
+  k33 layered
+    constant 0.1
+    constant 0.001
+    constant 0.1
+end griddata
