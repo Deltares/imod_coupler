@@ -6,11 +6,10 @@ from pydantic import BaseModel, FilePath, validator
 
 from imod_coupler.drivers.kernel_config import Metaswap, Modflow6, Ribasim
 
-
 class Kernels(BaseModel):
     modflow6: Modflow6
-    ribasim: Ribasim
-    metaswap: Metaswap
+    ribasim: Optional[Ribasim]
+    metaswap: Optional[Metaswap]
 
 
 class Coupling(BaseModel):
@@ -19,14 +18,15 @@ class Coupling(BaseModel):
     mf6_active_drainage_packages: Dict[str, str]
     mf6_passive_river_packages: Dict[str, str]
     mf6_passive_drainage_packages: Dict[str, str]
+    mf6_msw_mappings:  Optional[Dict[str, str]] = None
 
-    enable_sprinkling: bool  # true whemn sprinkling is active
-    mf6_msw_recharge_pkg: str  # the recharge package that will be used for coupling
+    enable_sprinkling: Optional[bool] = False  # true whemn sprinkling is active
+    mf6_msw_recharge_pkg: Optional[str] = None  # the recharge package that will be used for coupling
     mf6_msw_well_pkg: (
         str | None
     ) = None  # the well package that will be used for coupling when sprinkling is active
-    mf6_msw_node_map: FilePath  # the path to the node map file
-    mf6_msw_recharge_map: FilePath  # the pach to the recharge map file
+    mf6_msw_node_map: Optional[FilePath] = None  # the path to the node map file
+    mf6_msw_recharge_map: Optional[FilePath] = None  # the pach to the recharge map file
     mf6_msw_sprinkling_map: Optional[
         FilePath
     ] = None  # the path to the sprinkling map file

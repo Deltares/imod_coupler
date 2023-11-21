@@ -21,11 +21,15 @@ class SetMapping:
         self,
         coupling: Coupling,
         packages: ChainMap[str, Any],
+        has_metaswap: bool,
+        has_ribasim: bool, 
         mod2svat: Path,
     ):
         self.coupling = coupling
-        self.set_ribasim_modflow_mapping(packages)
-        self.set_metaswap_modflow_mapping(packages, mod2svat)
+        if has_ribasim:
+            self.set_ribasim_modflow_mapping(packages)
+        if has_metaswap:
+            self.set_metaswap_modflow_mapping(packages, mod2svat)
 
     def set_ribasim_modflow_mapping(self, packages: ChainMap[str, Any]) -> None:
         coupling_tables = ChainMap(
