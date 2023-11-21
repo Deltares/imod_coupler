@@ -6,7 +6,7 @@ description:
 from __future__ import annotations
 
 from collections import ChainMap
-from typing import Any, Dict
+from typing import Any
 
 import numpy as np
 from loguru import logger
@@ -47,10 +47,10 @@ class RibaMetaMod(Driver):
     mf6_top: NDArray[Any]  # top of cell (size:nodes)
     mf6_bot: NDArray[Any]  # bottom of cell (size:nodes)
 
-    mf6_active_river_packages: Dict[str, Mf6River]
-    mf6_passive_river_packages: Dict[str, Mf6River]
-    mf6_active_drainage_packages: Dict[str, Mf6Drainage]
-    mf6_passive_drainage_packages: Dict[str, Mf6Drainage]
+    mf6_active_river_packages: dict[str, Mf6River]
+    mf6_passive_river_packages: dict[str, Mf6River]
+    mf6_active_drainage_packages: dict[str, Mf6Drainage]
+    mf6_passive_drainage_packages: dict[str, Mf6Drainage]
     # ChainMaps
     mf6_river_packages: ChainMap[str, Mf6River]
     mf6_drainage_packages: ChainMap[str, Mf6Drainage]
@@ -203,7 +203,7 @@ class RibaMetaMod(Driver):
             )
 
         # MetaSWAP - MODFLOW 6
-        mswmod_packages: Dict[str, Any] = {}
+        mswmod_packages: dict[str, Any] = {}
         if self.has_metaswap:
             mswmod_packages["msw_head"] = self.msw_head
             mswmod_packages["msw_volume"] = self.msw_volume
@@ -225,6 +225,7 @@ class RibaMetaMod(Driver):
             mswmod_packages["mf6_area"] = self.mf6_area
             mswmod_packages["mf6_top"] = self.mf6_top
             mswmod_packages["mf6_bot"] = self.mf6_bot
+
 
         self.mapping = SetMapping(
             self.coupling,

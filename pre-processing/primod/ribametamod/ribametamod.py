@@ -1,6 +1,6 @@
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
-from typing import Any, List, Optional, Type, Union
+from typing import Any
 
 import geopandas as gpd
 import imod
@@ -44,7 +44,7 @@ class RibaMetaMod:
         self,
         ribasim_model: "ribasim.Model",
         mf6_simulation: Modflow6Simulation,
-        coupling_list: List[DriverCoupling],
+        coupling_list: list[DriverCoupling],
         basin_definition: gpd.GeoDataFrame,
     ):
         self.ribasim_model = ribasim_model
@@ -54,7 +54,7 @@ class RibaMetaMod:
             raise ValueError('Basin definition must contain "node_id" column')
         self.basin_definition = basin_definition
 
-    def _get_gwf_modelnames(self) -> List[str]:
+    def _get_gwf_modelnames(self) -> list[str]:
         """
         Get names of gwf models in mf6 simulation
         """
@@ -66,11 +66,11 @@ class RibaMetaMod:
 
     def write(
         self,
-        directory: Union[str, Path],
-        modflow6_dll: Union[str, Path],
-        ribasim_dll: Union[str, Path],
-        ribasim_dll_dependency: Union[str, Path],
-        modflow6_write_kwargs: Optional[dict[str, Any]] = None,
+        directory: str | Path,
+        modflow6_dll: str | Path,
+        ribasim_dll: str | Path,
+        ribasim_dll_dependency: str | Path,
+        modflow6_write_kwargs: dict[str, Any] | None = None,
     ) -> None:
         """
         Write Ribasim and Modflow 6 model with exchange files, as well as a
@@ -112,11 +112,11 @@ class RibaMetaMod:
 
     def write_toml(
         self,
-        directory: Union[str, Path],
+        directory: str | Path,
         coupling_dict: dict[str, Any],
-        modflow6_dll: Union[str, Path],
-        ribasim_dll: Union[str, Path],
-        ribasim_dll_dependency: Union[str, Path],
+        modflow6_dll: str | Path,
+        ribasim_dll: str | Path,
+        ribasim_dll_dependency: str | Path,
     ) -> None:
         """
         Write .toml file which configures the imod coupler run.
@@ -169,7 +169,7 @@ class RibaMetaMod:
         gwf_model: GroundwaterFlowModel,
         active_keys: list[str],
         passive_keys: list[str],
-        expected_type: Union[Type[River], Type[Drainage]],
+        expected_type: River | Drainage,
     ) -> None:
         active_keys_set = set(active_keys)
         passive_keys_set = set(passive_keys)
@@ -209,7 +209,7 @@ class RibaMetaMod:
 
     def write_exchanges(
         self,
-        directory: Union[str, Path],
+        directory: str | Path,
     ) -> dict[str, dict[str, str]]:
         gwf_names = self._get_gwf_modelnames()
         # #FUTURE: multiple couplings

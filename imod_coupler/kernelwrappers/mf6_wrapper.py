@@ -1,6 +1,7 @@
 from abc import ABC
+from collections.abc import Sequence
 from pathlib import Path
-from typing import Any, Dict, Sequence, Union
+from typing import Any
 
 import numpy as np
 from numpy.typing import NDArray
@@ -10,9 +11,9 @@ from xmipy import XmiWrapper
 class Mf6Wrapper(XmiWrapper):
     def __init__(
         self,
-        lib_path: Union[str, Path],
-        lib_dependency: Union[str, Path, None] = None,
-        working_directory: Union[str, Path, None] = None,
+        lib_path: str | Path,
+        lib_dependency: str | Path | None = None,
+        working_directory: str | Path | None = None,
         timing: bool = False,
     ):
         super().__init__(lib_path, lib_dependency, working_directory, timing)
@@ -24,12 +25,12 @@ class Mf6Wrapper(XmiWrapper):
 
     def get_rivers_packages(
         self, mf6_flowmodel_key: str, mf6_river_keys: Sequence[str]
-    ) -> Dict[str, "Mf6River"]:
+    ) -> dict[str, "Mf6River"]:
         return {key: Mf6River(self, mf6_flowmodel_key, key) for key in mf6_river_keys}
 
     def get_drainage_packages(
         self, mf6_flowmodel_key: str, mf6_drainage_keys: Sequence[str]
-    ) -> Dict[str, "Mf6Drainage"]:
+    ) -> dict[str, "Mf6Drainage"]:
         return {
             key: Mf6Drainage(self, mf6_flowmodel_key, key) for key in mf6_drainage_keys
         }

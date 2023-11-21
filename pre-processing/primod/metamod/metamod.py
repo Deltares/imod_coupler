@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Any, Optional, Union
+from typing import Any
 
 import tomli_w
 from imod.mf6 import Modflow6Simulation
@@ -87,11 +87,11 @@ class MetaMod:
 
     def write(
         self,
-        directory: Union[str, Path],
-        modflow6_dll: Union[str, Path],
-        metaswap_dll: Union[str, Path],
-        metaswap_dll_dependency: Union[str, Path],
-        modflow6_write_kwargs: Optional[dict[str, Any]] = None,
+        directory: str | Path,
+        modflow6_dll: str | Path,
+        metaswap_dll: str | Path,
+        metaswap_dll_dependency: str | Path,
+        modflow6_write_kwargs: dict[str, Any] | None = None,
     ) -> None:
         """
         Write MetaSWAP and Modflow 6 model with exchange files, as well as a
@@ -154,10 +154,10 @@ class MetaMod:
 
     def write_toml(
         self,
-        directory: Union[str, Path],
-        modflow6_dll: Union[str, Path],
-        metaswap_dll: Union[str, Path],
-        metaswap_dll_dependency: Union[str, Path],
+        directory: str | Path,
+        modflow6_dll: str | Path,
+        metaswap_dll: str | Path,
+        metaswap_dll_dependency: str | Path,
         coupling_dict: dict[str, Any],
     ) -> None:
         """
@@ -276,7 +276,7 @@ class MetaMod:
 
     def write_exchanges(
         self,
-        directory: Union[str, Path],
+        directory: str | Path,
         mf6_rch_pkgkey: str,
         mf6_wel_pkgkey: str | None,
     ) -> None:

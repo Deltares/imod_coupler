@@ -6,7 +6,7 @@ description:
 from __future__ import annotations
 
 from collections import ChainMap
-from typing import Any, Dict
+from typing import Any
 
 import numpy as np
 from loguru import logger
@@ -43,10 +43,10 @@ class RibaMod(Driver):
     mf6_top: NDArray[Any]  # top of cell (size:nodes)
     mf6_bot: NDArray[Any]  # bottom of cell (size:nodes)
 
-    mf6_active_river_packages: Dict[str, Mf6River]
-    mf6_passive_river_packages: Dict[str, Mf6River]
-    mf6_active_drainage_packages: Dict[str, Mf6Drainage]
-    mf6_passive_drainage_packages: Dict[str, Mf6Drainage]
+    mf6_active_river_packages: dict[str, Mf6River]
+    mf6_passive_river_packages: dict[str, Mf6River]
+    mf6_active_drainage_packages: dict[str, Mf6Drainage]
+    mf6_passive_drainage_packages: dict[str, Mf6Drainage]
     # ChainMaps
     mf6_river_packages: ChainMap[str, Mf6River]
     mf6_drainage_packages: ChainMap[str, Mf6Drainage]
@@ -57,8 +57,8 @@ class RibaMod(Driver):
     ribasim_drainage: NDArray[Any]
 
     # Mapping tables
-    map_mod2rib: Dict[str, csr_matrix]
-    map_rib2mod: Dict[str, csr_matrix]  # TODO: allow more than 1:N
+    map_mod2rib: dict[str, csr_matrix]
+    map_rib2mod: dict[str, csr_matrix]  # TODO: allow more than 1:N
 
     def __init__(self, base_config: BaseConfig, ribamod_config: RibaModConfig):
         """Constructs the `Ribamod` object"""

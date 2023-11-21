@@ -1,6 +1,5 @@
 from ctypes import byref, c_int
 from pathlib import Path
-from typing import Union
 
 import numpy as np
 from numpy.typing import NDArray
@@ -10,9 +9,9 @@ from xmipy import XmiWrapper
 class MswWrapper(XmiWrapper):
     def __init__(
         self,
-        lib_path: Union[str, Path],
-        lib_dependency: Union[str, Path, None] = None,
-        working_directory: Union[str, Path, None] = None,
+        lib_path: str | Path,
+        lib_dependency: str | Path | None = None,
+        working_directory: str | Path | None = None,
         timing: bool = False,
     ):
         super().__init__(lib_path, lib_dependency, working_directory, timing)
