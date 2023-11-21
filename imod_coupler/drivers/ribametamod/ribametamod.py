@@ -138,28 +138,30 @@ class RibaMetaMod(Driver):
 
         self.max_iter = self.mf6.max_iter()
 
-        # Get all MODFLOW 6 pointers, relevant for coupling with Ribasim
         mf6_flowmodel_key = self.coupling.mf6_model
         self.mf6_head = self.mf6.get_head(mf6_flowmodel_key)
-        self.mf6_active_river_packages = self.mf6.get_rivers_packages(
-            mf6_flowmodel_key, list(self.coupling.mf6_active_river_packages.keys())
-        )
-        self.mf6_passive_river_packages = self.mf6.get_rivers_packages(
-            mf6_flowmodel_key, list(self.coupling.mf6_passive_river_packages.keys())
-        )
-        self.mf6_active_drainage_packages = self.mf6.get_drainage_packages(
-            mf6_flowmodel_key, list(self.coupling.mf6_active_drainage_packages.keys())
-        )
-        self.mf6_passive_drainage_packages = self.mf6.get_drainage_packages(
-            mf6_flowmodel_key, list(self.coupling.mf6_passive_drainage_packages.keys())
-        )
-        self.mf6_river_packages = ChainMap(
-            self.mf6_active_river_packages, self.mf6_passive_river_packages
-        )
-        self.mf6_drainage_packages = ChainMap(
-            self.mf6_active_drainage_packages, self.mf6_passive_drainage_packages
-        )
 
+        # Get all MODFLOW 6 pointers, relevant for coupling with Ribasim
+        if self.has_ribasim:
+            self.mf6_active_river_packages = self.mf6.get_rivers_packages(
+                mf6_flowmodel_key, list(self.coupling.mf6_active_river_packages.keys())
+            )
+            self.mf6_passive_river_packages = self.mf6.get_rivers_packages(
+                mf6_flowmodel_key, list(self.coupling.mf6_passive_river_packages.keys())
+            )
+            self.mf6_active_drainage_packages = self.mf6.get_drainage_packages(
+                mf6_flowmodel_key, list(self.coupling.mf6_active_drainage_packages.keys())
+            )
+            self.mf6_passive_drainage_packages = self.mf6.get_drainage_packages(
+                mf6_flowmodel_key, list(self.coupling.mf6_passive_drainage_packages.keys())
+            )
+            self.mf6_river_packages = ChainMap(
+                self.mf6_active_river_packages, self.mf6_passive_river_packages
+            )
+            self.mf6_drainage_packages = ChainMap(
+                self.mf6_active_drainage_packages, self.mf6_passive_drainage_packages
+            )
+    
         # Get all MODFLOW 6 pointers, relevant for optional coupling with MetaSWAP
         if self.coupling.mf6_msw_recharge_pkg is not None:
             self.mf6_recharge, self.mf6_recharge_nodes = self.mf6.get_recharge(
