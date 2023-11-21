@@ -110,3 +110,8 @@ def test_data_folder(request: FixtureRequest) -> Path:
 @pytest.fixture(scope="function")
 def reference_result_folder(request: FixtureRequest) -> Path:
     return request.path.parent / "reference_output"
+
+
+@pytest.fixture(scope="function")
+def bucket_ribametamod_loc(request: FixtureRequest) -> Path:
+    return request.path.parent / "data" / "bucket_model"
