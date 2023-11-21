@@ -90,7 +90,7 @@ def test_ribametamod(
 
     fill_para_sim_template(path_dev / "metaswap", metaswap_lookup_table)
 
-    toml_path = path_dev / "imod_coupler.toml"
+    # toml_path = path_dev / "imod_coupler.toml"
     modflow6_dll = modflow_dll_devel
     modflow6_model_dir = path_dev / "modflow6"
     metaswap_dll = metaswap_dll_devel
