@@ -1,6 +1,6 @@
 import os
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 from pydantic import BaseModel, FilePath, validator
 
@@ -31,9 +31,6 @@ class Coupling(BaseModel):
         FilePath
     ] = None  # the path to the sprinkling map file
     output_config_file: FilePath | None = None
-
-    class Config:
-        arbitrary_types_allowed = True  # Needed for `mf6_msw_sprinkling_map`
 
     @validator("mf6_msw_well_pkg")
     def validate_mf6_msw_well_pkg(

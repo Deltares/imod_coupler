@@ -29,6 +29,7 @@ tests = "pytest --numprocesses=auto --dist=loadgroup --basetemp=tests/temp --jun
 mypy-imodc = "mypy --ignore-missing-imports --strict imod_coupler"
 mypy-primod = "mypy --ignore-missing-imports pre-processing/primod"
 format = "ruff format ."
+format-check = "ruff format --check ."
 ruff = "ruff check ."
 check-package-primod = { cmd = "rm --recursive --force dist && python -m build && twine check --strict dist/*", cwd = "pre-processing" }
 lint = { depends_on = [
