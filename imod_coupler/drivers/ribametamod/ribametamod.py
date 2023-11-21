@@ -32,7 +32,7 @@ class RibaMetaMod(Driver):
     timing: bool  # true, when timing is enabled
     mf6: Mf6Wrapper  # the MODFLOW 6 kernel
     ribasim: RibasimApi  # the Ribasim kernel
-    msw: MswWrapper  # the MetaSWAP kernel
+    msw: MswWrapper # the MetaSWAP kernel
     has_metaswap: bool  # configured with or without metaswap
 
     max_iter: NDArray[Any]  # max. nr outer iterations in MODFLOW kernel
@@ -192,17 +192,18 @@ class RibaMetaMod(Driver):
 
         # set mapping
         # Ribasim - MODFLOW 6
+        ribmod_packages: ChainMap[str, Any] = ChainMap()
         if self.has_ribasim:
-            ribmod_packages: ChainMap[str, Any] = ChainMap(
-                self.mf6_river_packages,
-                self.mf6_drainage_packages,
-                {"ribasim_nbound": len(self.ribasim_level)},
+            ribmod_packages.update(
+                ChainMap[str,Any](
+                    self.mf6_river_packages,
+                    self.mf6_drainage_packages,
+                    {"ribasim_nbound": len(self.ribasim_level)},
+                )
             )
-        else:
-            ribmod_packages: ChainMap[str, Any] = ()
 
         # MetaSWAP - MODFLOW 6
-        mswmod_packages = {}
+        mswmod_packages: Dict[str, Any] = {}
         if self.has_metaswap:
             mswmod_packages["msw_head"] = self.msw_head
             mswmod_packages["msw_volume"] = self.msw_volume
