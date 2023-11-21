@@ -82,21 +82,6 @@ class RibaMetaMod(Driver):
             lib_path=self.ribametamod_config.kernels.modflow6.dll,
             lib_dependency=self.ribametamod_config.kernels.modflow6.dll_dep_dir,
             working_directory=self.ribametamod_config.kernels.modflow6.work_dir,
-<<<<<<< HEAD
-            timing=self.base_config.timing,
-        )
-        self.ribasim = RibasimApi(
-            lib_path=self.ribametamod_config.kernels.ribasim.dll,
-            lib_dependency=self.ribametamod_config.kernels.ribasim.dll_dep_dir,
-            timing=self.base_config.timing,
-        )
-        self.msw = MswWrapper(
-            lib_path=self.ribametamod_config.kernels.metaswap.dll,
-            lib_dependency=self.ribametamod_config.kernels.metaswap.dll_dep_dir,
-            working_directory=self.ribametamod_config.kernels.metaswap.work_dir,
-            timing=self.base_config.timing,
-        )
-=======
             timing=self.base_config.timing,
         )
         if self.ribametamod_config.kernels.ribasim is not None:
@@ -153,14 +138,9 @@ class RibaMetaMod(Driver):
 
         self.max_iter = self.mf6.max_iter()
 
-<<<<<<< HEAD
-        # Get all MODFLOW 6 pointers, relevant for coupling with Ribasim
-=======
->>>>>>> optional_msw2
         mf6_flowmodel_key = self.coupling.mf6_model
         self.mf6_head = self.mf6.get_head(mf6_flowmodel_key)
 
-<<<<<<< HEAD
         # Get all MODFLOW 6 pointers, relevant for optional coupling with MetaSWAP
         if self.coupling.mf6_msw_recharge_pkg is not None:
             self.mf6_recharge = self.mf6.get_recharge(
@@ -213,7 +193,7 @@ class RibaMetaMod(Driver):
         mswmod_packages["mf6_area"] = self.mf6_area
         mswmod_packages["mf6_top"] = self.mf6_top
         mswmod_packages["mf6_bot"] = self.mf6_bot
-=======
+
         # Get all MODFLOW 6 pointers, relevant for coupling with Ribasim
         if self.has_ribasim:
             self.mf6_active_river_packages = self.mf6.get_rivers_packages(
