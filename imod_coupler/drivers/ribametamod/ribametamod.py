@@ -254,9 +254,9 @@ class RibaMetaMod(Driver):
         # Do one MODFLOW 6 - MetaSWAP timestep
 
         if self.has_metaswap:
-            self.update_MODFLOW6_MetaSWAP()
+            self.update_modflow6_metaswap()
         else:
-            self.update_MODFLOW6()
+            self.mf6.update()
 
         if self.has_ribasim:
             # exchange drainage fluxes from MODFLOW 6 to Ribasim
@@ -266,7 +266,7 @@ class RibaMetaMod(Driver):
                 self.get_current_time() * days_to_seconds(self.delt)
             )
 
-    def update_MODFLOW6_MetaSWAP(self) -> None:
+    def update_modflow6_metaswap(self) -> None:
         # exchange MODFLOW head to MetaSWAP
         if self.has_metaswap:
             self.exchange_mod2msw()
@@ -286,9 +286,6 @@ class RibaMetaMod(Driver):
         # finish MODFLOW 6 - MetaSWAP timestep
         self.mf6.finalize_time_step()
         self.msw.finalize_time_step()
-
-    def update_MODFLOW6(self) -> None:
-        self.mf6.update()
 
     def do_modflow6_metaswap_iter(self, sol_id: int) -> bool:
         """Execute a single iteration"""
