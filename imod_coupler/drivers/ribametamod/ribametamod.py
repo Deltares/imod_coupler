@@ -137,62 +137,8 @@ class RibaMetaMod(Driver):
         """Couple Modflow, MetaSWAP and Ribasim"""
 
         self.max_iter = self.mf6.max_iter()
-
         mf6_flowmodel_key = self.coupling.mf6_model
         self.mf6_head = self.mf6.get_head(mf6_flowmodel_key)
-
-        # Get all MODFLOW 6 pointers, relevant for optional coupling with MetaSWAP
-        if self.coupling.mf6_msw_recharge_pkg is not None:
-            self.mf6_recharge = self.mf6.get_recharge(
-                self.coupling.mf6_model, self.coupling.mf6_msw_recharge_pkg
-            )
-            self.mf6_recharge_nodes = self.mf6.get_recharge_nodes(
-                self.coupling.mf6_model, self.coupling.mf6_msw_recharge_pkg
-            )
-
-        self.mf6_storage = self.mf6.get_storage(self.coupling.mf6_model)
-        self.mf6_has_sc1 = self.mf6.has_sc1(self.coupling.mf6_model)
-        self.mf6_area = self.mf6.get_area(self.coupling.mf6_model)
-        self.mf6_top = self.mf6.get_top(self.coupling.mf6_model)
-        self.mf6_bot = self.mf6.get_bot(self.coupling.mf6_model)
-
-        # Get all relevant Ribasim pointers
-        self.ribasim_infiltration = self.ribasim.get_value_ptr("infiltration")
-        self.ribasim_drainage = self.ribasim.get_value_ptr("drainage")
-        self.ribasim_level = self.ribasim.get_value_ptr("level")
-
-        # Get all relevant MetaSWAP pointers
-        self.msw_head = self.msw.get_head_ptr()
-        self.msw_volume = self.msw.get_volume_ptr()
-        self.msw_storage = self.msw.get_storage_ptr()
-
-        # set mapping
-        # Ribasim - MODFLOW 6
-        ribmod_packages: ChainMap[str, Any] = ChainMap(
-            self.mf6_river_packages,
-            self.mf6_drainage_packages,
-            {"ribasim_nbound": len(self.ribasim_level)},
-        )
-        # MetaSWAP - MODFLOW 6
-        mswmod_packages: Dict[str, Any] = {}
-        mswmod_packages["msw_head"] = self.msw_head
-        mswmod_packages["msw_volume"] = self.msw_volume
-        mswmod_packages["msw_storage"] = self.msw_storage
-        mswmod_packages[
-            "mf6_recharge"
-        ] = self.mf6_recharge  # waar komt mf6_recharge vandaan
-        if self.coupling.enable_sprinkling:
-            mf6_sprinkling_tag = self.mf6.get_var_address(
-                "BOUND", self.coupling.mf6_model, self.coupling.mf6_msw_well_pkg
-            )
-            self.mf6_sprinkling_wells = self.mf6.get_value_ptr(mf6_sprinkling_tag)[:, 0]
-            mswmod_packages["mf6_sprinkling_wells"] = self.mf6_sprinkling_wells
-        mswmod_packages["mf6_head"] = self.mf6_head
-        mswmod_packages["mf6_storage"] = self.mf6_storage
-        mswmod_packages["mf6_has_sc1"] = self.mf6_has_sc1
-        mswmod_packages["mf6_area"] = self.mf6_area
-        mswmod_packages["mf6_top"] = self.mf6_top
-        mswmod_packages["mf6_bot"] = self.mf6_bot
 
         # Get all MODFLOW 6 pointers, relevant for coupling with Ribasim
         if self.has_ribasim:
