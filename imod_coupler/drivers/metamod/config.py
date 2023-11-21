@@ -13,7 +13,7 @@ class Kernels(BaseModel):
 
 
 class Coupling(BaseModel):
-    enable_sprinkling: bool # true whemn sprinkling is active
+    enable_sprinkling: bool  # true whemn sprinkling is active
     mf6_model: str  # the MODFLOW 6 model that will be coupled
     mf6_msw_recharge_pkg: str  # the recharge package that will be used for coupling
     mf6_msw_well_pkg: (

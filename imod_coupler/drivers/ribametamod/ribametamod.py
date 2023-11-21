@@ -92,7 +92,6 @@ class RibaMetaMod(Driver):
             )
             self.has_ribasim = True
         else:
-            self.ribasim = None
             self.has_ribasim = False
 
         if self.ribametamod_config.kernels.metaswap is not None:
@@ -104,17 +103,18 @@ class RibaMetaMod(Driver):
             )
             self.has_metaswap = True
         else:
-            self.msw = None
             self.has_metaswap = False
 
         # Print output to stdout
         self.mf6.set_int("ISTDOUTTOFILE", 0)
         self.mf6.initialize()
-        if self.has_ribasim:
-            self.ribasim.init_julia()
-            self.ribasim.initialize(
-                str(self.ribametamod_config.kernels.ribasim.config_file)
+        ribasim_config_file = ""
+        if self.has_ribasim and self.ribametamod_config.kernels.ribasim is not None:
+            ribasim_config_file = str(
+                self.ribametamod_config.kernels.ribasim.config_file
             )
+            self.ribasim.init_julia()
+            self.ribasim.initialize(ribasim_config_file)
         if self.has_metaswap:
             self.msw.initialize()
         self.log_version()
@@ -203,10 +203,12 @@ class RibaMetaMod(Driver):
                 mf6_flowmodel_key, list(self.coupling.mf6_passive_river_packages.keys())
             )
             self.mf6_active_drainage_packages = self.mf6.get_drainage_packages(
-                mf6_flowmodel_key, list(self.coupling.mf6_active_drainage_packages.keys())
+                mf6_flowmodel_key,
+                list(self.coupling.mf6_active_drainage_packages.keys()),
             )
             self.mf6_passive_drainage_packages = self.mf6.get_drainage_packages(
-                mf6_flowmodel_key, list(self.coupling.mf6_passive_drainage_packages.keys())
+                mf6_flowmodel_key,
+                list(self.coupling.mf6_passive_drainage_packages.keys()),
             )
             self.mf6_river_packages = ChainMap(
                 self.mf6_active_river_packages, self.mf6_passive_river_packages
@@ -214,11 +216,14 @@ class RibaMetaMod(Driver):
             self.mf6_drainage_packages = ChainMap(
                 self.mf6_active_drainage_packages, self.mf6_passive_drainage_packages
             )
-    
+
         # Get all MODFLOW 6 pointers, relevant for optional coupling with MetaSWAP
         if self.coupling.mf6_msw_recharge_pkg is not None:
-            self.mf6_recharge, self.mf6_recharge_nodes = self.mf6.get_recharge(
-                self.coupling.mf6_model, self.coupling.mf6_msw_recharge_pkg, True
+            self.mf6_recharge = self.mf6.get_recharge(
+                self.coupling.mf6_model, self.coupling.mf6_msw_recharge_pkg
+            )
+            self.mf6_recharge_nodes = self.mf6.get_recharge_nodes(
+                self.coupling.mf6_model, self.coupling.mf6_msw_recharge_pkg
             )
 
         self.mf6_storage = self.mf6.get_storage(self.coupling.mf6_model)
@@ -248,7 +253,7 @@ class RibaMetaMod(Driver):
                 {"ribasim_nbound": len(self.ribasim_level)},
             )
         else:
-            ribmod_packages = {}
+            ribmod_packages: ChainMap[str, Any] = ()
 
         # MetaSWAP - MODFLOW 6
         mswmod_packages = {}
@@ -282,7 +287,11 @@ class RibaMetaMod(Driver):
             ),
             self.has_metaswap,
             self.has_ribasim,
-            (self.msw.working_directory / "mod2svat.inp" if self.has_metaswap else None),
+            (
+                self.msw.working_directory / "mod2svat.inp"
+                if self.has_metaswap
+                else None
+            ),
         )
 
     def update(self) -> None:
@@ -306,7 +315,9 @@ class RibaMetaMod(Driver):
             # exchange drainage fluxes from MODFLOW 6 to Ribasim
             self.exchange_rib2mod()
             # Update Ribasim until current time of MODFLOW 6
-            self.ribasim.update_until(self.get_current_time() * days_to_seconds(self.delt))
+            self.ribasim.update_until(
+                self.get_current_time() * days_to_seconds(self.delt)
+            )
 
     def update_MODFLOW6_MetaSWAP(self) -> None:
         # exchange MODFLOW head to MetaSWAP

@@ -22,13 +22,13 @@ class SetMapping:
         coupling: Coupling,
         packages: ChainMap[str, Any],
         has_metaswap: bool,
-        has_ribasim: bool, 
-        mod2svat: Path,
+        has_ribasim: bool,
+        mod2svat: Path | None,
     ):
         self.coupling = coupling
         if has_ribasim:
             self.set_ribasim_modflow_mapping(packages)
-        if has_metaswap:
+        if has_metaswap and mod2svat is not None:
             self.set_metaswap_modflow_mapping(packages, mod2svat)
 
     def set_ribasim_modflow_mapping(self, packages: ChainMap[str, Any]) -> None:
@@ -57,6 +57,11 @@ class SetMapping:
     def set_metaswap_modflow_mapping(
         self, packages: ChainMap[str, Any], mod2svat: Path
     ) -> None:
+        if self.coupling.mf6_msw_node_map is None:
+            return
+        if self.coupling.mf6_msw_recharge_map is None:
+            return
+
         svat_lookup = set_svat_lookup(mod2svat)
 
         self.mod2msw = {}

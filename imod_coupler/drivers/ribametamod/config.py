@@ -1,10 +1,11 @@
 import os
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel, FilePath, validator
 
 from imod_coupler.drivers.kernel_config import Metaswap, Modflow6, Ribasim
+
 
 class Kernels(BaseModel):
     modflow6: Modflow6
@@ -18,10 +19,12 @@ class Coupling(BaseModel):
     mf6_active_drainage_packages: Dict[str, str]
     mf6_passive_river_packages: Dict[str, str]
     mf6_passive_drainage_packages: Dict[str, str]
-    mf6_msw_mappings:  Optional[Dict[str, str]] = None
+    mf6_msw_mappings: Optional[Dict[str, str]] = None
 
     enable_sprinkling: Optional[bool] = False  # true whemn sprinkling is active
-    mf6_msw_recharge_pkg: Optional[str] = None  # the recharge package that will be used for coupling
+    mf6_msw_recharge_pkg: Optional[
+        str
+    ] = None  # the recharge package that will be used for coupling
     mf6_msw_well_pkg: (
         str | None
     ) = None  # the well package that will be used for coupling when sprinkling is active
