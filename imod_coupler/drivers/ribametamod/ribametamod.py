@@ -216,7 +216,7 @@ class RibaMetaMod(Driver):
         self.exchange_mod2rib()
 
         # Do one MODFLOW 6 - MetaSWAP timestep
-        self.update_MODFLOW6_MetaSWAP()
+        self.update_modflow6_metaswap()
 
         # exchange drainage fluxes from MODFLOW 6 to Ribasim
         self.exchange_rib2mod()
@@ -235,7 +235,7 @@ class RibaMetaMod(Driver):
 
         self.mf6.prepare_solve(1)
         for kiter in range(1, self.max_iter + 1):
-            has_converged = self.do_MODFLOW6_MetaSWAP_iter(1)
+            has_converged = self.do_modflow6_metaswap_iter(1)
             if has_converged:
                 logger.debug(f"MF6-MSW converged in {kiter} iterations")
                 break
