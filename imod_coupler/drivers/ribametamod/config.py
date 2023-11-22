@@ -1,6 +1,6 @@
 import os
 from pathlib import Path
-from typing import Any
+from typing import Any, Optional
 
 from pydantic import BaseModel, FilePath, validator
 
@@ -19,7 +19,6 @@ class Coupling(BaseModel):
     mf6_active_drainage_packages: dict[str, str]
     mf6_passive_river_packages: dict[str, str]
     mf6_passive_drainage_packages: dict[str, str]
-    mf6_msw_mappings: dict[str, str] | None = None
 
     enable_sprinkling: Optional[bool] = False  # true whemn sprinkling is active
     mf6_msw_recharge_pkg: str | None = (
