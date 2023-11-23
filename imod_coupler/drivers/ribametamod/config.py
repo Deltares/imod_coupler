@@ -20,7 +20,7 @@ class Coupling(BaseModel):
     mf6_passive_river_packages: dict[str, str]
     mf6_passive_drainage_packages: dict[str, str]
 
-    enable_sprinkling: bool | None = False  # true whemn sprinkling is active
+    enable_sprinkling: bool = False  # true when sprinkling is active
     mf6_msw_recharge_pkg: str | None = (
         None  # the recharge package that will be used for coupling
     )
