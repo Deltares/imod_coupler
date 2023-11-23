@@ -9,8 +9,8 @@ from imod_coupler.drivers.kernel_config import Metaswap, Modflow6, Ribasim
 
 class Kernels(BaseModel):
     modflow6: Modflow6
-    ribasim: Ribasim
-    metaswap: Metaswap
+    ribasim: Ribasim | None
+    metaswap: Metaswap | None
 
 
 class Coupling(BaseModel):
@@ -20,13 +20,13 @@ class Coupling(BaseModel):
     mf6_passive_river_packages: dict[str, str]
     mf6_passive_drainage_packages: dict[str, str]
 
-    enable_sprinkling: bool  # true whemn sprinkling is active
-    mf6_msw_recharge_pkg: str  # the recharge package that will be used for coupling
-    mf6_msw_well_pkg: (
-        str | None
-    ) = None  # the well package that will be used for coupling when sprinkling is active
-    mf6_msw_node_map: FilePath  # the path to the node map file
-    mf6_msw_recharge_map: FilePath  # the path to the recharge map file
+    enable_sprinkling: bool = False  # true when sprinkling is active
+    mf6_msw_recharge_pkg: str | None = (
+        None  # the recharge package that will be used for coupling
+    )
+    mf6_msw_well_pkg: str | None = None  # the well package that will be used for coupling when sprinkling is active
+    mf6_msw_node_map: FilePath | None = None  # the path to the node map file
+    mf6_msw_recharge_map: FilePath | None = None  # the pach to the recharge map file
     mf6_msw_sprinkling_map: FilePath | None = (
         None  # the path to the sprinkling map file
     )
