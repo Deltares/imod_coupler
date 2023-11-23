@@ -1,0 +1,16 @@
+begin options
+  print_option summary
+end options
+
+begin nonlinear
+  outer_dvclose 0.0001
+  outer_maximum 500
+end nonlinear
+
+begin linear
+  inner_maximum 100
+  inner_dvclose 0.0001
+  inner_rclose 0.001
+  linear_acceleration cg
+  relaxation_factor 0.97
+end linear

@@ -1,0 +1,15 @@
+begin options
+end options
+
+begin griddata
+  iconvert
+    constant 0
+  ss
+    constant 0.001
+  sy
+    constant 0.1
+end griddata
+
+begin period 1
+  transient
+end period

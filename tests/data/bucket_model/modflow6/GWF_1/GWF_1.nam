@@ -1,0 +1,12 @@
+begin options
+end options
+
+begin packages
+  dis6 GWF_1/dis.dis dis
+  npf6 GWF_1/npf.npf npf
+  ic6 GWF_1/ic.ic ic
+  sto6 GWF_1/sto.sto sto
+  oc6 GWF_1/oc.oc oc
+  riv6 GWF_1/riv-1.riv riv-1
+  rch6 GWF_1/rch.rch  rch_msw
+end packages

@@ -1,0 +1,17 @@
+begin options
+end options
+
+begin timing
+  tdis6 time_discretization.tdis
+end timing
+
+begin models
+  gwf6 GWF_1/GWF_1.nam GWF_1
+end models
+
+begin exchanges
+end exchanges
+
+begin solutiongroup 1
+  ims6 solver.ims GWF_1
+end solutiongroup

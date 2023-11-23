@@ -1,0 +1,25 @@
+begin options
+  xorigin 50.0
+  yorigin 50.0
+end options
+
+begin dimensions
+  nlay 3
+  nrow 3
+  ncol 5
+end dimensions
+
+begin griddata
+  delr
+    constant 100.0
+  delc
+    constant 100.0
+  top
+    constant 0.0
+  botm layered
+    constant -0.2
+    constant -10.2
+    constant -110.2
+  idomain
+    open/close GWF_1/dis/idomain.bin (binary)
+end griddata

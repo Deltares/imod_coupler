@@ -1,0 +1,25 @@
+begin options
+  save_flows
+end options
+
+begin dimensions
+  maxbound 15
+end dimensions
+
+begin period 1
+  1 1  1  0.0   
+  1 2  1  0.0   
+  1 3  1  0.0   
+  1 1  2  0.0   
+  1 2  2  0.0   
+  1 3  2  0.0   
+  1 1  3  0.0   
+  1 2  3  0.0   
+  1 3  3  0.0   
+  1 1  4  0.0   
+  1 2  4  0.0   
+  1 3  4  0.0   
+  1 1  5  0.0   
+  1 2  5  0.0   
+  1 3  5  0.0   
+end period
