@@ -1,9 +1,9 @@
 import shutil
+import subprocess
 from pathlib import Path
 
+import pytest
 import tomli_w
-
-from imod_coupler.__main__ import run_coupler
 
 
 def test_metamod(
@@ -13,6 +13,7 @@ def test_metamod(
     metaswap_dll_dep_dir_devel: Path,
     metaswap_lookup_table: Path,
     bucket_ribametamod_loc: Path,
+    imod_coupler_exec_devel: Path,
 ) -> None:
     """
     Test if coupled ribametamod models run with the iMOD Coupler development version.
@@ -38,7 +39,7 @@ def test_metamod(
         metaswap_dll_dependency,
         metaswap_model_dir,
     )
-    run_coupler(toml_path)
+    subprocess.run([imod_coupler_exec_devel, toml_path], check=True)
 
 
 def test_ribamod(
@@ -47,6 +48,7 @@ def test_ribamod(
     ribasim_dll_devel: Path,
     ribasim_dll_dep_dir_devel: Path,
     bucket_ribametamod_loc: Path,
+    imod_coupler_exec_devel: Path,
 ) -> None:
     """
     Test if coupled ribametamod models run with the iMOD Coupler development version.
@@ -67,9 +69,10 @@ def test_ribamod(
         ribasim_dll_dep_dir_devel,
         path_dev / "ribasim" / "ribasim.toml",
     )
-    run_coupler(toml_path)
+    subprocess.run([imod_coupler_exec_devel, toml_path], check=True)
 
 
+@pytest.mark.skip(reason="we first have to merge the optional branch")
 def test_ribametamod(
     tmp_path_dev: Path,
     modflow_dll_devel: Path,
@@ -79,6 +82,7 @@ def test_ribametamod(
     ribasim_dll_devel: Path,
     ribasim_dll_dep_dir_devel: Path,
     bucket_ribametamod_loc: Path,
+    imod_coupler_exec_devel: Path,
 ) -> None:
     """
     Test if coupled ribametamod models run with the iMOD Coupler development version.
@@ -89,7 +93,7 @@ def test_ribametamod(
 
     fill_para_sim_template(path_dev / "metaswap", metaswap_lookup_table)
 
-    # toml_path = path_dev / "imod_coupler.toml"
+    toml_path = path_dev / "imod_coupler.toml"
     modflow6_dll = modflow_dll_devel
     modflow6_model_dir = path_dev / "modflow6"
     metaswap_dll = metaswap_dll_devel
@@ -107,7 +111,7 @@ def test_ribametamod(
         ribasim_dll_dep_dir_devel,
         path_dev / "ribasim" / "ribasim.toml",
     )
-    # run_coupler(toml_path) # don't run until optional branch is merged
+    subprocess.run([imod_coupler_exec_devel, toml_path], check=True)
 
 
 def write_metamod_toml(
