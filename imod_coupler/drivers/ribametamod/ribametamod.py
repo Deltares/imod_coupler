@@ -226,7 +226,6 @@ class RibaMetaMod(Driver):
             mswmod_packages["mf6_top"] = self.mf6_top
             mswmod_packages["mf6_bot"] = self.mf6_bot
 
-
         self.mapping = SetMapping(
             self.coupling,
             ChainMap(
