@@ -20,7 +20,7 @@ def make_mf6_model(idomain: xr.DataArray) -> mf6.GroundwaterFlowModel:
     )
 
     icelltype = xr.full_like(bottom, 0, dtype=int)
-    k_values = np.ones((nlay))
+    k_values = np.ones(nlay)
     k_values[1, ...] = 0.01
 
     k = xr.DataArray(k_values, {"layer": layer}, ("layer",))

@@ -1,6 +1,6 @@
 from collections import ChainMap
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 import numpy as np
 from numpy.typing import NDArray
@@ -12,20 +12,24 @@ from imod_coupler.utils import create_mapping
 
 class SetMapping:
     # TODO: check who should be leading if no changes are defined
-    mod2rib: Dict[str, csr_matrix]
-    rib2mod: Dict[str, csr_matrix]
-    msw2mod: Dict[str, csr_matrix]
-    mod2msw: Dict[str, csr_matrix]
+    mod2rib: dict[str, csr_matrix]
+    rib2mod: dict[str, csr_matrix]
+    msw2mod: dict[str, csr_matrix]
+    mod2msw: dict[str, csr_matrix]
 
     def __init__(
         self,
         coupling: Coupling,
         packages: ChainMap[str, Any],
-        mod2svat: Path,
+        has_metaswap: bool,
+        has_ribasim: bool,
+        mod2svat: Path | None,
     ):
         self.coupling = coupling
-        self.set_ribasim_modflow_mapping(packages)
-        self.set_metaswap_modflow_mapping(packages, mod2svat)
+        if has_ribasim:
+            self.set_ribasim_modflow_mapping(packages)
+        if has_metaswap and mod2svat is not None:
+            self.set_metaswap_modflow_mapping(packages, mod2svat)
 
     def set_ribasim_modflow_mapping(self, packages: ChainMap[str, Any]) -> None:
         coupling_tables = ChainMap(
@@ -53,6 +57,11 @@ class SetMapping:
     def set_metaswap_modflow_mapping(
         self, packages: ChainMap[str, Any], mod2svat: Path
     ) -> None:
+        if self.coupling.mf6_msw_node_map is None:
+            return
+        if self.coupling.mf6_msw_recharge_map is None:
+            return
+
         svat_lookup = set_svat_lookup(mod2svat)
 
         self.mod2msw = {}
@@ -141,7 +150,7 @@ class SetMapping:
             )
 
 
-def set_svat_lookup(mod2svat: Path) -> Dict[Any, Any]:
+def set_svat_lookup(mod2svat: Path) -> dict[Any, Any]:
     svat_lookup = {}
     msw_mod2svat_file = mod2svat
     if msw_mod2svat_file.is_file():

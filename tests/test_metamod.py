@@ -2,7 +2,6 @@ import os
 import subprocess
 import textwrap
 from pathlib import Path
-from typing import Dict, Tuple
 
 import pytest
 import tomli
@@ -15,7 +14,7 @@ from test_scripts.mf6_water_balance.combine import create_modflow_waterbalance_f
 from test_utilities import numeric_csvfiles_equal
 
 
-def mf6_output_files(path: Path) -> Tuple[Path, Path, Path, Path]:
+def mf6_output_files(path: Path) -> tuple[Path, Path, Path, Path]:
     """return paths to Modflow 6 output files"""
     path_mf6 = path / "Modflow6" / "GWF_1"
 
@@ -272,14 +271,14 @@ def test_metamod_regression_balance_output(
 
     # define tolerance for modflow and metamod csv files, per column.
     eps = 1e-4
-    mf6_tolerance_balance: Dict[str, Tuple[float, float]] = {
+    mf6_tolerance_balance: dict[str, tuple[float, float]] = {
         "default": (2 * eps, 2 * eps),
         "RCH:RCH_MSW_IN": (
             3 * eps,
             3 * eps,
         ),  # this illustrates how to set different tolerances per column
     }
-    msw_tolerance_balance: Dict[str, Tuple[float, float]] = {
+    msw_tolerance_balance: dict[str, tuple[float, float]] = {
         "default": (2 * eps, 2 * eps),
     }
 
