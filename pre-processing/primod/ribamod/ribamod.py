@@ -104,7 +104,7 @@ class RibaMod:
             directory / self._modflow6_model_dir,
             **modflow6_write_kwargs,
         )
-        self.ribasim_model.write(directory / self._ribasim_model_dir)
+        self.ribasim_model.write(directory / self._ribasim_model_dir / "ribasim.toml")
         coupling_dict = self.write_exchanges(directory)
         self.write_toml(
             directory, coupling_dict, modflow6_dll, ribasim_dll, ribasim_dll_dependency
