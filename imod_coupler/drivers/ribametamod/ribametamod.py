@@ -36,7 +36,7 @@ class RibaMetaMod(Driver):
     has_metaswap: bool  # configured with or without metaswap
 
     max_iter: NDArray[Any]  # max. nr outer iterations in MODFLOW kernel
-    delt: float  # time step from MODFLOW 6 (leading)
+    delt: float = None  # time step from MODFLOW 6 (leading)
 
     mf6_head: NDArray[Any]  # the hydraulic head array in the coupled model
     mf6_recharge: NDArray[Any]  # the coupled recharge array from the RCH package
@@ -259,6 +259,9 @@ class RibaMetaMod(Driver):
             self.mf6.update()
 
         if self.has_ribasim:
+            # obtain modflow6 timestep, if not already done so
+            if self.delt is None:
+                self.delt = self.mf6.get_time_step()
             # exchange drainage fluxes from MODFLOW 6 to Ribasim
             self.exchange_rib2mod()
             # Update Ribasim until current time of MODFLOW 6
@@ -267,13 +270,15 @@ class RibaMetaMod(Driver):
             )
 
     def update_modflow6_metaswap(self) -> None:
-        # exchange MODFLOW head to MetaSWAP
-        if self.has_metaswap:
-            self.exchange_mod2msw()
-
         # Do one MODFLOW 6 - MetaSWAP timestep
+        # exchange MODFLOW head to MetaSWAP
+        self.exchange_mod2msw()
+
+        # obtain modflow6 timestep, if not already done so
         self.mf6.prepare_time_step(0.0)
-        self.delt = self.mf6.get_time_step()
+        if self.delt is None:
+            self.delt = self.mf6.get_time_step()
+        self.msw.prepare_time_step(self.delt)
 
         self.mf6.prepare_solve(1)
         for kiter in range(1, self.max_iter + 1):

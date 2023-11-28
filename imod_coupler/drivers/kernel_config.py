@@ -6,7 +6,7 @@ class Modflow6(BaseModel):
     dll_dep_dir: DirectoryPath | None = None
     work_dir: DirectoryPath
 
-    @validator("dll")
+#   @validator("dll")
     def resolve_dll(cls, dll: FilePath) -> FilePath:
         return dll.resolve()
 

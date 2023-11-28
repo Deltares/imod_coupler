@@ -2,6 +2,7 @@ import shutil
 import subprocess
 from pathlib import Path
 from typing import Any
+from imod_coupler.__main__ import run_coupler
 
 import tomli_w
 
@@ -110,7 +111,8 @@ def test_ribametamod(
         ribasim_dll_dep_dir_devel,
         path_dev / "ribasim" / "ribasim.toml",
     )
-    subprocess.run([imod_coupler_exec_devel, toml_path], check=True)
+#    subprocess.run([imod_coupler_exec_devel, toml_path], check=True)
+    run_coupler(toml_path)
 
 
 def write_metamod_toml(
@@ -202,7 +204,8 @@ def test_ribametamod_noRiba(
         metaswap_dll_dependency=metaswap_dll_dep_dir_devel,
         metaswap_model_dir=path_dev / "metaswap",
     )
-    subprocess.run([imod_coupler_exec_devel, toml_path], check=True)
+#   subprocess.run([imod_coupler_exec_devel, toml_path], check=True)
+    run_coupler(toml_path)
 
 
 def test_ribametamod_noMeta(
@@ -230,7 +233,8 @@ def test_ribametamod_noMeta(
         ribasim_dll_dependency=ribasim_dll_dep_dir_devel,
         ribasim_config_file=path_dev / "ribasim" / "ribasim.toml",
     )
-    subprocess.run([imod_coupler_exec_devel, toml_path], check=True)
+#   subprocess.run([imod_coupler_exec_devel, toml_path], check=True)
+    run_coupler(toml_path)
 
 
 def test_ribametamod_noMeta_noRiba(
@@ -253,7 +257,8 @@ def test_ribametamod_noMeta_noRiba(
         modflow6_dll=modflow_dll_devel,
         modflow6_model_dir=path_dev / "modflow6",
     )
-    subprocess.run([imod_coupler_exec_devel, toml_path], check=True)
+#   subprocess.run([imod_coupler_exec_devel, toml_path], check=True)
+    run_coupler(toml_path)
 
 
 def write_ribamod_toml(
@@ -335,8 +340,8 @@ def write_ribametamod_toml(
     """
     coupler_toml: dict[str, Any] = {
         "timing": False,
-        "log_level": "INFO",
-        "driver_type": "metamod",
+        "log_level": "DEBUG",
+        "driver_type": "ribametamod",
         "driver": {
             "kernels": {
                 "modflow6": {
@@ -370,7 +375,7 @@ def write_ribametamod_toml(
         coupler_toml["driver"]["kernels"]["metaswap"] = msw_entry
 
         cpl: dict[str, Any] = coupler_toml["driver"]["coupling"][0]
-        cpl["enable_sprinkling"] = (False,)
+        cpl["enable_sprinkling"] = False
         cpl["mf6_msw_recharge_pkg"] = "rch_msw"
         cpl["mf6_msw_node_map"] = "exchanges/nodenr2svat.dxc"
         cpl["mf6_msw_recharge_map"] = "exchanges/rchindex2svat.dxc"
@@ -378,7 +383,7 @@ def write_ribametamod_toml(
     if ribasim_dll is not None:
         riba_entry = {"dll": str(ribasim_dll)}
         if ribasim_config_file is not None:
-            riba_entry["ribasim_config_file"] = str(ribasim_config_file)
+            riba_entry["config_file"] = str(ribasim_config_file)
         if ribasim_dll_dependency is not None:
             riba_entry["dll_dep_dir"] = str(ribasim_dll_dependency)
         coupler_toml["driver"]["kernels"]["ribasim"] = riba_entry

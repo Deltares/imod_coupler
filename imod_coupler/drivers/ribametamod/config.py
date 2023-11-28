@@ -9,8 +9,8 @@ from imod_coupler.drivers.kernel_config import Metaswap, Modflow6, Ribasim
 
 class Kernels(BaseModel):
     modflow6: Modflow6
-    ribasim: Ribasim | None
-    metaswap: Metaswap | None
+    ribasim: Ribasim | None = None
+    metaswap: Metaswap | None = None
 
 
 class Coupling(BaseModel):
