@@ -1,10 +1,22 @@
 import shutil
+import numpy as np
 import subprocess
 from pathlib import Path
 from typing import Any
 from imod_coupler.__main__ import run_coupler
-
+from imod.mf6 import open_hds
+from os.path import join
 import tomli_w
+
+
+def maxdiff(modelpath, head1, head2, grb):
+    hds1 = open_hds(join(modelpath, head1), join(modelpath, grb))
+    hds2 = open_hds(join(modelpath, head2), join(modelpath, grb))
+    np1 = hds1.values
+    np2 = hds2.values
+    absmaxdiff = np.max(abs(np2-np1))
+    maxdiffloc = np.unravel_index(np.argmax(np2-np1),np.shape(np1))
+    return absmaxdiff, maxdiffloc
 
 
 def test_metamod(
