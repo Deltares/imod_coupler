@@ -36,7 +36,7 @@ class RibaMetaMod(Driver):
     has_metaswap: bool  # configured with or without metaswap
 
     max_iter: NDArray[Any]  # max. nr outer iterations in MODFLOW kernel
-    delt: float = None  # time step from MODFLOW 6 (leading)
+    delt: float = 1.0  # time step from MODFLOW 6 (leading), default 1.0
 
     mf6_head: NDArray[Any]  # the hydraulic head array in the coupled model
     mf6_recharge: NDArray[Any]  # the coupled recharge array from the RCH package
