@@ -1,21 +1,22 @@
 import shutil
-import numpy as np
 import subprocess
-from pathlib import Path
-from typing import Any, Tuple
-from imod_coupler.__main__ import run_coupler
-from imod.mf6 import open_hds
-from imod_coupler.kernelwrappers.mf6_wrapper import  Mf6Wrapper
-from os.path import join
 from os import rename as path_rename
+from os.path import join
+from pathlib import Path
+from typing import Any
+
+import numpy as np
 import tomli_w
+from imod.mf6 import open_hds
+
+from imod_coupler.kernelwrappers.mf6_wrapper import Mf6Wrapper
 
 
 def maxdiff(modelpath: Path,
             head1: str,
             head2: str,
             grb: str,
-    ) -> tuple[float, tuple[np.signedinteger, ...]]:
+    ) -> tuple[float, tuple[np.signedinteger[Any], ...]]:
     hds1 = open_hds(join(modelpath, head1), join(modelpath, grb))
     hds2 = open_hds(join(modelpath, head2), join(modelpath, grb))
     np1 = hds1.to_numpy()
@@ -58,8 +59,7 @@ def test_metamod(
         metaswap_dll_dependency,
         metaswap_model_dir,
     )
-    run_coupler(toml_path)
-#   subprocess.run([imod_coupler_exec_devel, toml_path], check=True)
+    subprocess.run([imod_coupler_exec_devel, toml_path], check=True)
 
 
 def test_ribamod(
@@ -129,8 +129,7 @@ def test_ribametamod(
         ribasim_dll_dep_dir_devel,
         path_dev / "ribasim" / "ribasim.toml",
     )
-#    subprocess.run([imod_coupler_exec_devel, toml_path], check=True)
-    run_coupler(toml_path)
+    subprocess.run([imod_coupler_exec_devel, toml_path], check=True)
 
 
 def write_metamod_toml(
