@@ -101,6 +101,8 @@ class RibaMetaMod(Driver):
                 working_directory=self.ribametamod_config.kernels.metaswap.work_dir,
                 timing=self.base_config.timing,
             )
+            # In case of 2D-coupling, first exchange 2D-stage before initialising component
+            self.msw.initialize_surface_water_component()
             self.has_metaswap = True
         else:
             self.has_metaswap = False
@@ -125,6 +127,15 @@ class RibaMetaMod(Driver):
         else:
             self.exchange_logger = ExchangeCollector()
         self.couple()
+        self.check_msw_mf6_timesteps()
+
+    def check_msw_mf6_timesteps(self) -> None:
+        delt_msw = self.msw.get_sw_time_step()
+        delf_mf6 = self.mf6.get_time_step()
+        if delt_msw != delf_mf6:
+            raise ValueError(
+                "Timestep length for fast proceses in MetaSWAP should be equal to the one for slow proceses"
+            )
 
     def log_version(self) -> None:
         logger.info(f"MODFLOW version: {self.mf6.get_version()}")
@@ -254,6 +265,9 @@ class RibaMetaMod(Driver):
         # Do one MODFLOW 6 - MetaSWAP timestep
 
         if self.has_metaswap:
+            # for now dtsw == dtgw
+            self.msw.perform_surface_water_time_step(1)
+            self.exchange_msw2rib()
             self.update_modflow6_metaswap()
         else:
             self.mf6.update()
@@ -265,6 +279,10 @@ class RibaMetaMod(Driver):
             self.ribasim.update_until(
                 self.get_current_time() * days_to_seconds(self.delt)
             )
+
+        if self.has_metaswap:
+            realised_fractions_ribasim = np.array([0.0])
+            self.exchange_rib2msw(realised_fractions_ribasim)
 
     def update_modflow6_metaswap(self) -> None:
         # exchange MODFLOW head to MetaSWAP
@@ -296,6 +314,16 @@ class RibaMetaMod(Driver):
         self.exchange_mod2msw()
         self.msw.finalize_solve(0)
         return has_converged
+
+    def exchange_msw2rib(self) -> None:
+        # flux from metaswap ponding to Ribasim
+        pass
+        # flux from metaswap sprinkling to Ribasim (allocation)
+        pass
+
+    def exchange_rib2msw(self, realised_fraction: NDArray[np.float64]) -> None:
+        # realised flux from Ribasim to metaswap
+        pass
 
     def exchange_rib2mod(self) -> None:
         # Zero the ribasim arrays
