@@ -7,5 +7,5 @@ begin dimensions
 end dimensions
 
 begin period 1
-  open/close GWF_1/riv-1/riv.dat (binary)
+  open/close GWF_1/riv-1/riv.dat
 end period
