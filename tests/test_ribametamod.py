@@ -12,17 +12,18 @@ from imod.mf6 import open_hds
 from imod_coupler.kernelwrappers.mf6_wrapper import Mf6Wrapper
 
 
-def maxdiff(modelpath: Path,
-            head1: str,
-            head2: str,
-            grb: str,
-    ) -> tuple[float, tuple[np.signedinteger[Any], ...]]:
+def maxdiff(
+    modelpath: Path,
+    head1: str,
+    head2: str,
+    grb: str,
+) -> tuple[float, tuple[np.signedinteger[Any], ...]]:
     hds1 = open_hds(join(modelpath, head1), join(modelpath, grb))
     hds2 = open_hds(join(modelpath, head2), join(modelpath, grb))
     np1 = hds1.to_numpy()
     np2 = hds2.to_numpy()
-    absmaxdiff: float = np.max(abs(np2-np1))
-    maxdiffloc = np.unravel_index(np.argmax(np2-np1),np.shape(np1))
+    absmaxdiff: float = np.max(abs(np2 - np1))
+    maxdiffloc = np.unravel_index(np.argmax(np2 - np1), np.shape(np1))
     return (absmaxdiff, maxdiffloc)
 
 
@@ -90,6 +91,7 @@ def test_ribamod(
         path_dev / "ribasim" / "ribasim.toml",
     )
     subprocess.run([imod_coupler_exec_devel, toml_path], check=True)
+
 
 def test_ribametamod(
     tmp_path_dev: Path,
@@ -217,7 +219,7 @@ def test_ribametamod_noRiba(
         metaswap_dll=metaswap_dll_devel,
         metaswap_dll_dependency=metaswap_dll_dep_dir_devel,
         metaswap_model_dir=path_dev / "metaswap",
-        coupler_toml_file="ribametamod.toml" 
+        coupler_toml_file="ribametamod.toml",
     )
 
     write_metamod_toml(
@@ -228,18 +230,23 @@ def test_ribametamod_noRiba(
         metaswap_dll_dep_dir_devel,
         path_dev / "metaswap",
     )
-    
+
     toml_ribametamod = path_dev / "ribametamod.toml"
     subprocess.run([imod_coupler_exec_devel, toml_ribametamod], check=True)
 
-#   rename the modflow6 output for later comparison
-    path_rename(modflow6_model_dir / "GWF_1" / "GWF_1.hds", modflow6_model_dir / "GWF_1" / "GWF_1_test.hds")
+    #   rename the modflow6 output for later comparison
+    path_rename(
+        modflow6_model_dir / "GWF_1" / "GWF_1.hds",
+        modflow6_model_dir / "GWF_1" / "GWF_1_test.hds",
+    )
 
     toml_metamod = path_dev / "imod_coupler.toml"
     subprocess.run([imod_coupler_exec_devel, toml_metamod], check=True)
 
-    absmaxdiff, maxdiffloc = maxdiff(modflow6_model_dir / "GWF_1",  "GWF_1.hds", "GWF_1_test.hds", "dis.dis.grb")
-    assert(absmaxdiff<1e-10)
+    absmaxdiff, maxdiffloc = maxdiff(
+        modflow6_model_dir / "GWF_1", "GWF_1.hds", "GWF_1_test.hds", "dis.dis.grb"
+    )
+    assert absmaxdiff < 1e-10
     return
 
 
@@ -265,7 +272,7 @@ def test_ribametamod_noMeta(
         ribasim_dll=ribasim_dll_devel,
         ribasim_dll_dependency=ribasim_dll_dep_dir_devel,
         ribasim_config_file=path_dev / "ribasim" / "ribasim.toml",
-        coupler_toml_file="ribametamod.toml" 
+        coupler_toml_file="ribametamod.toml",
     )
 
     write_ribamod_toml(
@@ -280,16 +287,22 @@ def test_ribametamod_noMeta(
     toml_ribametamod = path_dev / "ribametamod.toml"
     subprocess.run([imod_coupler_exec_devel, toml_ribametamod], check=True)
 
-#   rename the modflow6 model dir for later comparison
-    path_rename(modflow6_model_dir / "GWF_1" / "GWF_1.hds", modflow6_model_dir / "GWF_1" / "GWF_1_test.hds")
+    #   rename the modflow6 model dir for later comparison
+    path_rename(
+        modflow6_model_dir / "GWF_1" / "GWF_1.hds",
+        modflow6_model_dir / "GWF_1" / "GWF_1_test.hds",
+    )
     shutil.rmtree(path_dev / "ribasim" / "results")
 
     toml_metamod = path_dev / "imod_coupler.toml"
     subprocess.run([imod_coupler_exec_devel, toml_metamod], check=True)
 
-    absmaxdiff, maxdiffloc = maxdiff(modflow6_model_dir / "GWF_1",  "GWF_1.hds", "GWF_1_test.hds", "dis.dis.grb")
-    assert(absmaxdiff<1e-10)
+    absmaxdiff, maxdiffloc = maxdiff(
+        modflow6_model_dir / "GWF_1", "GWF_1.hds", "GWF_1_test.hds", "dis.dis.grb"
+    )
+    assert absmaxdiff < 1e-10
     return
+
 
 def test_ribametamod_noMeta_noRiba(
     tmp_path_dev: Path,
@@ -306,7 +319,7 @@ def test_ribametamod_noMeta_noRiba(
 
     toml_path = path_dev / "imod_coupler.toml"
 
-    modflow6_model_dir=path_dev / "modflow6"
+    modflow6_model_dir = path_dev / "modflow6"
     write_ribametamod_toml(
         path_dev,
         modflow6_dll=modflow_dll_devel,
@@ -314,10 +327,13 @@ def test_ribametamod_noMeta_noRiba(
     )
     subprocess.run([imod_coupler_exec_devel, toml_path], check=True)
 
-#   rename the modflow6 output for later comparison
-    path_rename(modflow6_model_dir / "GWF_1" / "GWF_1.hds", modflow6_model_dir / "GWF_1" / "GWF_1_test.hds")
+    #   rename the modflow6 output for later comparison
+    path_rename(
+        modflow6_model_dir / "GWF_1" / "GWF_1.hds",
+        modflow6_model_dir / "GWF_1" / "GWF_1_test.hds",
+    )
 
-#   run stand-alone modflow6 calculation to compare
+    #   run stand-alone modflow6 calculation to compare
     mf6 = Mf6Wrapper(
         lib_path=modflow_dll_devel,
         working_directory=path_dev / "modflow6",
@@ -327,10 +343,11 @@ def test_ribametamod_noMeta_noRiba(
         mf6.update()
     mf6.finalize()
 
-    absmaxdiff, maxdiffloc = maxdiff(modflow6_model_dir / "GWF_1",  "GWF_1.hds", "GWF_1_test.hds", "dis.dis.grb")
-    assert(absmaxdiff<1e-10)
+    absmaxdiff, maxdiffloc = maxdiff(
+        modflow6_model_dir / "GWF_1", "GWF_1.hds", "GWF_1_test.hds", "dis.dis.grb"
+    )
+    assert absmaxdiff < 1e-10
     return
-
 
 
 def write_ribamod_toml(
