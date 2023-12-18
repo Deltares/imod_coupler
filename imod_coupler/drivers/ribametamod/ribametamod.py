@@ -277,7 +277,7 @@ class RibaMetaMod(Driver):
             # see: https://github.com/Deltares/Ribasim/issues/893
             # also the location of the exchange should be moved to after the Ribasim solve
             # see: https://github.com/Deltares/Ribasim/issues/894
-            fraction_realised_ribasim = np.array([1.0])
+            fraction_realised_ribasim = np.array([1.0]) # dummy fraction for now
             self.exchange_rib2msw(fraction_realised_ribasim)
             self.update_modflow6_metaswap()
         else:
@@ -290,7 +290,6 @@ class RibaMetaMod(Driver):
             self.ribasim.update_until(
                 self.get_current_time() * days_to_seconds(self.delt)
             )
-
 
     def update_modflow6_metaswap(self) -> None:
         # exchange MODFLOW head to MetaSWAP

@@ -30,6 +30,8 @@ class SetMapping:
             self.set_ribasim_modflow_mapping(packages)
         if has_metaswap and mod2svat is not None:
             self.set_metaswap_modflow_mapping(packages, mod2svat)
+        if has_ribasim and has_metaswap and mod2svat is not None:
+            self.set_metaswap_ribasim_mapping(packages, mod2svat)
 
     def set_ribasim_modflow_mapping(self, packages: ChainMap[str, Any]) -> None:
         coupling_tables = ChainMap(
@@ -149,7 +151,32 @@ class SetMapping:
                 "sum",
             )
 
+    def set_metaswap_ribasim_mapping(
+            self, packages: ChainMap[str, Any], mod2svat: Path
+        ) -> None:
+            if self.coupling.rib_msw_sprinkling_map_surface_water is None:
+                return
+            svat_lookup = set_svat_lookup(mod2svat)
 
+            self.mod2msw = {}
+            self.msw2mod = {}
+
+            table_node2svat: NDArray[np.int32] = np.loadtxt(
+                self.coupling.rib_msw_sprinkling_map_surface_water, dtype=np.int32, ndmin=2
+            )
+            rib_idx = table_node2svat[:, 0] - 1
+            msw_idx = [
+                svat_lookup[table_node2svat[ii, 1], table_node2svat[ii, 2]]
+                for ii in range(len(table_node2svat))
+            ]
+            self.msw2rib['sprinkling'], self.msw2rib['sprinkling_mask'] = create_mapping(
+                msw_idx,
+                rib_idx,
+                packages["msw_volume"].size,
+                packages["ribasim_nbound"],  # should become shape of 'users'-array in Ribasim
+                "sum",
+            )
+    
 def set_svat_lookup(mod2svat: Path) -> dict[Any, Any]:
     svat_lookup = {}
     msw_mod2svat_file = mod2svat
