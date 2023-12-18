@@ -59,12 +59,15 @@ class RibaMetaMod(Driver):
     ribasim_level: NDArray[Any]
     ribasim_infiltration: NDArray[Any]
     ribasim_drainage: NDArray[Any]
+    ribasim_volume: NDArray[Any]
 
     # MetaSWAP variables
     mf6_sprinkling_wells: NDArray[Any]  # the well data for coupled extractions
     msw_head: NDArray[Any]  # internal MetaSWAP groundwater head
     msw_volume: NDArray[Any]  # unsaturated zone flux (as a volume!)
     msw_storage: NDArray[Any]  # MetaSWAP storage coefficients (MODFLOW's sc1)
+    msw_sprinkling_demand_sec: NDArray[Any] # MetaSWAP sprinkling demand mapped to shape of Ribasim array (m3/s)
+
 
     # Mapping tables
     mapping: SetMapping  # TODO: Ribasim: allow more than 1:N
@@ -194,6 +197,7 @@ class RibaMetaMod(Driver):
             self.ribasim_infiltration = self.ribasim.get_value_ptr("infiltration")
             self.ribasim_drainage = self.ribasim.get_value_ptr("drainage")
             self.ribasim_level = self.ribasim.get_value_ptr("level")
+            self.ribasim_volume = self.ribasim.get_value_ptr("volume")
 
         # Get all relevant MetaSWAP pointers
         if self.has_metaswap:
@@ -260,14 +264,21 @@ class RibaMetaMod(Driver):
 
         # exchange stages from Ribasim to MODFLOW
         if self.has_ribasim:
+            self.ribasim_infiltration[:] = 0.0
+            self.ribasim_drainage[:] = 0.0
             self.exchange_mod2rib()
 
         # Do one MODFLOW 6 - MetaSWAP timestep
-
         if self.has_metaswap:
             # for now dtsw == dtgw
             self.msw.perform_surface_water_time_step(1)
             self.exchange_msw2rib()
+            # for now we always realise the demand for sprinkling since we miss functionality in Ribasim
+            # see: https://github.com/Deltares/Ribasim/issues/893
+            # also the location of the exchange should be moved to after the Ribasim solve
+            # see: https://github.com/Deltares/Ribasim/issues/894
+            fraction_realised_ribasim = np.array([1.0])
+            self.exchange_rib2msw(fraction_realised_ribasim)
             self.update_modflow6_metaswap()
         else:
             self.mf6.update()
@@ -280,9 +291,6 @@ class RibaMetaMod(Driver):
                 self.get_current_time() * days_to_seconds(self.delt)
             )
 
-        if self.has_metaswap:
-            realised_fractions_ribasim = np.array([0.0])
-            self.exchange_rib2msw(realised_fractions_ribasim)
 
     def update_modflow6_metaswap(self) -> None:
         # exchange MODFLOW head to MetaSWAP
@@ -318,17 +326,20 @@ class RibaMetaMod(Driver):
     def exchange_msw2rib(self) -> None:
         # flux from metaswap ponding to Ribasim
         pass
-        # flux from metaswap sprinkling to Ribasim (allocation)
-        pass
-
-    def exchange_rib2msw(self, realised_fraction: NDArray[np.float64]) -> None:
+        # flux from metaswap sprinkling to Ribasim (demand)
+        msw_sprinkling_demand_sec = self.msw.get_surfacewater_sprinking_demand_ptr() / days_to_seconds(self.delt)
+        self.ribasim_sprinkling_demand_sec = self.mapping.msw2rib["sw_sprinkling"].dot(msw_sprinkling_demand_sec)[:]
+        self.ribasim_infiltration += np.where(self.ribasim_sprinkling_demand_sec > 0, self.ribasim_sprinkling_demand_sec, 0)
+        self.ribasim_drainage += np.where(self.ribasim_sprinkling_demand_sec < 0, -self.ribasim_sprinkling_demand_sec, 0)
+    
+    def exchange_rib2msw(self, fraction_realised: NDArray[np.float64] ) -> None:
         # realised flux from Ribasim to metaswap
-        pass
+        msw_sprinkling_realised = self.msw.get_surfacewater_sprinking_realised_ptr()
+        ribasim_sprinkling_realised = (self.ribasim_sprinkling_demand_sec * fraction_realised) * days_to_seconds(self.delt)
+        msw_sprinkling_realised[:] = self.mapping.msw2rib["sw_sprinkling"].T.dot(ribasim_sprinkling_realised)
 
+    
     def exchange_rib2mod(self) -> None:
-        # Zero the ribasim arrays
-        self.ribasim_infiltration[:] = 0.0
-        self.ribasim_drainage[:] = 0.0
         # Compute MODFLOW 6 river and drain flux
         for key, river in self.mf6_river_packages.items():
             river_flux = river.get_flux(self.mf6_head)
