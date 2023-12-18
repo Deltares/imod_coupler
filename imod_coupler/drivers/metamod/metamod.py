@@ -244,9 +244,11 @@ class MetaMod(Driver):
         self.msw.finalize_time_step()
 
     def finalize(self) -> None:
-        self.mf6.finalize()
-        self.msw.finalize()
-        self.exchange_logger.finalize()
+        try:
+            self.mf6.finalize()
+        finally:
+            self.msw.finalize()
+            self.exchange_logger.finalize()
 
     def get_current_time(self) -> float:
         return self.mf6.get_current_time()

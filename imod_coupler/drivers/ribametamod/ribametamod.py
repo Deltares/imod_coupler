@@ -359,11 +359,13 @@ class RibaMetaMod(Driver):
         )
 
     def finalize(self) -> None:
-        self.mf6.finalize()
-        if self.has_ribasim:
-            self.ribasim.finalize()
-            self.ribasim.shutdown_julia()
-        self.exchange_logger.finalize()
+        try:
+            self.mf6.finalize()
+        finally:
+            if self.has_ribasim:
+                self.ribasim.finalize()
+                self.ribasim.shutdown_julia()
+            self.exchange_logger.finalize()
 
     def get_current_time(self) -> float:
         return self.mf6.get_current_time()
