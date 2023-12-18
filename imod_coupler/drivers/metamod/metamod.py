@@ -197,10 +197,9 @@ class MetaMod(Driver):
             assert isinstance(self.coupling.mf6_msw_sprinkling_map, Path)
 
             # in this case we have a sprinkling demand from MetaSWAP
-            mf6_sprinkling_tag = self.mf6.get_var_address(
-                "BOUND", self.coupling.mf6_model, self.coupling.mf6_msw_well_pkg
-            )
-            self.mf6_sprinkling_wells = self.mf6.get_value_ptr(mf6_sprinkling_tag)[:, 0]
+            self.mf6_sprinkling_wells = self.mf6.get_sprinkling(
+                self.coupling.mf6_model, self.coupling.mf6_msw_well_pkg)
+
             table_well2svat: NDArray[np.int32] = np.loadtxt(
                 self.coupling.mf6_msw_sprinkling_map, dtype=np.int32, ndmin=2
             )
@@ -245,9 +244,11 @@ class MetaMod(Driver):
         self.msw.finalize_time_step()
 
     def finalize(self) -> None:
-        self.mf6.finalize()
-        self.msw.finalize()
-        self.exchange_logger.finalize()
+        try:
+            self.mf6.finalize()
+        finally:
+            self.msw.finalize()
+            self.exchange_logger.finalize()
 
     def get_current_time(self) -> float:
         return self.mf6.get_current_time()

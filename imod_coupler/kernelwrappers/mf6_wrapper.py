@@ -93,7 +93,7 @@ class Mf6Wrapper(XmiWrapper):
         mf6_sprinkling_tag = self.get_var_address(
             "BOUND", mf6_flowmodel_key, mf6_package_key
         )
-        mf6_sprinkling_wells = self.get_value_ptr(mf6_sprinkling_tag)[:, 0]
+        mf6_sprinkling_wells = self.get_value_ptr(mf6_sprinkling_tag)[:]
         return mf6_sprinkling_wells
 
     def get_drainage_elevation(
