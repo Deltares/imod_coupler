@@ -331,8 +331,6 @@ class RibaMetaMod(Driver):
                 self.msw.get_surfacewater_sprinking_demand_ptr()
                 / days_to_seconds(self.delt)
             )
-            if (self.msw_sprinkling_demand_sec < 0.0).any():
-                pass  # testing for now
             ribasim_sprinkling_demand_sec = self.mapping.msw2rib["sw_sprinkling"].dot(
                 self.msw_sprinkling_demand_sec
             )[:]
