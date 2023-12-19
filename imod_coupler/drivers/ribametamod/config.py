@@ -20,28 +20,29 @@ class Coupling(BaseModel):
     mf6_passive_river_packages: dict[str, str]
     mf6_passive_drainage_packages: dict[str, str]
 
-    enable_sprinkling: bool = False  # true when sprinkling is active
+    enable_sprinkling_groundwater: bool = False  # true when sprinkling is active
     mf6_msw_recharge_pkg: str | None = (
         None  # the recharge package that will be used for coupling
     )
     mf6_msw_well_pkg: str | None = None  # the well package that will be used for coupling when sprinkling is active
     mf6_msw_node_map: FilePath | None = None  # the path to the node map file
     mf6_msw_recharge_map: FilePath | None = None  # the pach to the recharge map file
-    mf6_msw_sprinkling_map: FilePath | None = (
+    mf6_msw_sprinkling_map_groundwater: FilePath | None = (
         None  # the path to the sprinkling map file
     )
     output_config_file: FilePath | None = None
     
-    rib_msw_sprinkling_map_surface_water: str | None = None  
+    enable_sprinkling_surface_water: bool = False  # true when sprinkling is active
+    rib_msw_sprinkling_map_surface_water: FilePath | None = None # the path to the sprinkling map file
 
 
     @validator("mf6_msw_well_pkg")
     def validate_mf6_msw_well_pkg(
         cls, mf6_msw_well_pkg: str | None, values: Any
     ) -> str | None:
-        if values.get("enable_sprinkling") and mf6_msw_well_pkg is None:
+        if values.get("enable_sprinkling_groundwater") and mf6_msw_well_pkg is None:
             raise ValueError(
-                "If `enable_sprinkling` is True, then `mf6_msw_well_pkg` needs to be set."
+                "If `enable_sprinkling_groundwater` is True, then `mf6_msw_well_pkg` needs to be set."
             )
         return mf6_msw_well_pkg
 
@@ -54,17 +55,17 @@ class Coupling(BaseModel):
     def resolve_file_path(cls, file_path: FilePath) -> FilePath:
         return file_path.resolve()
 
-    @validator("mf6_msw_sprinkling_map")
+    @validator("mf6_msw_sprinkling_map_groundwater")
     def validate_mf6_msw_sprinkling_map(
-        cls, mf6_msw_sprinkling_map: FilePath | None, values: Any
+        cls, mf6_msw_sprinkling_map_groundwater: FilePath | None, values: Any
     ) -> FilePath | None:
-        if mf6_msw_sprinkling_map is not None:
-            return mf6_msw_sprinkling_map.resolve()
-        elif values.get("enable_sprinkling"):
+        if mf6_msw_sprinkling_map_groundwater is not None:
+            return mf6_msw_sprinkling_map_groundwater.resolve()
+        elif values.get("enable_sprinkling_groundwater"):
             raise ValueError(
-                "If `enable_sprinkling` is True, then `mf6_msw_sprinkling_map` needs to be set."
+                "If `enable_sprinkling_groundwater` is True, then `mf6_msw_sprinkling_map_groundwater` needs to be set."
             )
-        return mf6_msw_sprinkling_map
+        return mf6_msw_sprinkling_map_groundwater
 
 
 class RibaMetaModConfig(BaseModel):

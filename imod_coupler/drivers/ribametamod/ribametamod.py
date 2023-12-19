@@ -104,8 +104,8 @@ class RibaMetaMod(Driver):
                 working_directory=self.ribametamod_config.kernels.metaswap.work_dir,
                 timing=self.base_config.timing,
             )
-            # In case of 2D-coupling, first exchange 2D-stage before initialising component
-            self.msw.initialize_surface_water_component()
+            if self.coupling.enable_sprinkling_surface_water:
+                self.msw.initialize_surface_water_component()
             self.has_metaswap = True
         else:
             self.has_metaswap = False
@@ -130,12 +130,12 @@ class RibaMetaMod(Driver):
         else:
             self.exchange_logger = ExchangeCollector()
         self.couple()
-        self.check_msw_mf6_timesteps()
+
 
     def check_msw_mf6_timesteps(self) -> None:
         delt_msw = self.msw.get_sw_time_step()
-        delf_mf6 = self.mf6.get_time_step()
-        if delt_msw != delf_mf6:
+        delt_mf6 = self.mf6.get_time_step()
+        if delt_msw != delt_mf6:
             raise ValueError(
                 "Timestep length for fast proceses in MetaSWAP should be equal to the one for slow proceses"
             )
@@ -226,7 +226,7 @@ class RibaMetaMod(Driver):
             mswmod_packages[
                 "mf6_recharge"
             ] = self.mf6_recharge  # waar komt mf6_recharge vandaan
-            if self.coupling.enable_sprinkling:
+            if self.coupling.enable_sprinkling_groundwater:
                 mf6_sprinkling_tag = self.mf6.get_var_address(
                     "BOUND", self.coupling.mf6_model, self.coupling.mf6_msw_well_pkg
                 )
@@ -271,14 +271,15 @@ class RibaMetaMod(Driver):
         # Do one MODFLOW 6 - MetaSWAP timestep
         if self.has_metaswap:
             # for now dtsw == dtgw
-            self.msw.perform_surface_water_time_step(1)
-            self.exchange_msw2rib()
-            # for now we always realise the demand for sprinkling since we miss functionality in Ribasim
-            # see: https://github.com/Deltares/Ribasim/issues/893
-            # also the location of the exchange should be moved to after the Ribasim solve
-            # see: https://github.com/Deltares/Ribasim/issues/894
-            fraction_realised_ribasim = np.array([1.0]) # dummy fraction for now
-            self.exchange_rib2msw(fraction_realised_ribasim)
+            if self.coupling.enable_sprinkling_surface_water:
+                self.msw.perform_surface_water_time_step(1)
+                self.exchange_msw2rib()
+                # for now we always realise the demand for sprinkling since we miss functionality in Ribasim
+                # see: https://github.com/Deltares/Ribasim/issues/893
+                # also the location of the exchange should be moved to after the Ribasim solve
+                # see: https://github.com/Deltares/Ribasim/issues/894
+                fraction_realised_ribasim = np.array([1.0]) # dummy fraction for now
+                self.exchange_rib2msw(fraction_realised_ribasim)
             self.update_modflow6_metaswap()
         else:
             self.mf6.update()
@@ -382,7 +383,7 @@ class RibaMetaMod(Driver):
             + self.mapping.msw2mod["recharge"].dot(self.msw_volume)[:] / self.delt
         ) / self.mf6_area[self.mf6_recharge_nodes]
 
-        if self.coupling.enable_sprinkling:
+        if self.coupling.enable_sprinkling_groundwater:
             self.mf6_sprinkling_wells[:] = (
                 self.mapping.msw2mod["sprinkling_mask"][:]
                 * self.mf6_sprinkling_wells[:]

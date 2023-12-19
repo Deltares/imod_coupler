@@ -126,13 +126,13 @@ class SetMapping:
             "sum",
         )
 
-        if self.coupling.enable_sprinkling:
+        if self.coupling.enable_sprinkling_groundwater:
             assert isinstance(self.coupling.mf6_msw_well_pkg, str)
-            assert isinstance(self.coupling.mf6_msw_sprinkling_map, Path)
+            assert isinstance(self.coupling.mf6_msw_sprinkling_map_groundwater, Path)
 
             # in this case we have a sprinkling demand from MetaSWAP
             table_well2svat: NDArray[np.int32] = np.loadtxt(
-                self.coupling.mf6_msw_sprinkling_map, dtype=np.int32, ndmin=2
+                self.coupling.mf6_msw_sprinkling_map_groundwater, dtype=np.int32, ndmin=2
             )
             well_idx = table_well2svat[:, 0] - 1
             msw_idx = [
