@@ -4,6 +4,7 @@ from pathlib import Path
 
 import pytest
 import tomli_w
+from imod_coupler.__main__ import run_coupler
 
 
 def test_metamod(
@@ -75,7 +76,7 @@ def test_ribamod(
     subprocess.run([imod_coupler_exec_devel, toml_path], check=True)
 
 
-@pytest.mark.skip(reason="we first have to merge the optional branch")
+# @pytest.mark.skip(reason="we first have to merge the optional branch")
 def test_ribametamod(
     tmp_path_dev: Path,
     modflow_dll_devel: Path,
@@ -114,7 +115,7 @@ def test_ribametamod(
         ribasim_dll_dep_dir_devel,
         path_dev / "ribasim" / "ribasim.toml",
     )
-    subprocess.run([imod_coupler_exec_devel, toml_path], check=True)
+    run_coupler(toml_path)
 
 
 def write_metamod_toml(
@@ -275,7 +276,7 @@ def write_ribametamod_toml(
     coupler_toml = {
         "timing": False,
         "log_level": "INFO",
-        "driver_type": "metamod",
+        "driver_type": "ribametamod",
         "driver": {
             "kernels": {
                 "modflow6": {
@@ -295,7 +296,8 @@ def write_ribametamod_toml(
             },
             "coupling": [
                 {
-                    "enable_sprinkling": False,
+                    "enable_sprinkling_groundwater": False,
+                    "enable_sprinkling_surface_water": False,
                     "mf6_model": "GWF_1",
                     "mf6_msw_recharge_pkg": "rch_msw",
                     "mf6_msw_node_map": "exchanges/nodenr2svat.dxc",
