@@ -117,7 +117,7 @@ def test_ribametamod(
         ribasim_dll_dep_dir_devel,
         path_dev / "ribasim" / "ribasim.toml",
     )
-    run_coupler(toml_path)
+    subprocess.run([imod_coupler_exec_devel, toml_path], check=True)
 
 
 def test_ribametamod_sw_sprinkling(
@@ -160,7 +160,7 @@ def test_ribametamod_sw_sprinkling(
         path_dev / "ribasim" / "ribasim.toml",
         True,
     )
-    run_coupler(toml_path)
+    subprocess.run([imod_coupler_exec_devel, toml_path], check=True)
 
     tot_svat_reference = pd.read_csv(bucket_ribametamod_sprinkling_tot_svat_ref)
     tot_svat_test = pd.read_csv(metaswap_model_dir / "msw" / "csv" / "tot_svat_per.csv")
