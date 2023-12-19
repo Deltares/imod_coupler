@@ -6,8 +6,6 @@ import pandas as pd
 import pytest
 import tomli_w
 
-from imod_coupler.__main__ import run_coupler
-
 
 def test_metamod(
     tmp_path_dev: Path,
