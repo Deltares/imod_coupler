@@ -31,10 +31,11 @@ class Coupling(BaseModel):
         None  # the path to the sprinkling map file
     )
     output_config_file: FilePath | None = None
-    
-    enable_sprinkling_surface_water: bool = False  # true when sprinkling is active
-    rib_msw_sprinkling_map_surface_water: FilePath | None = None # the path to the sprinkling map file
 
+    enable_sprinkling_surface_water: bool = False  # true when sprinkling is active
+    rib_msw_sprinkling_map_surface_water: FilePath | None = (
+        None  # the path to the sprinkling map file
+    )
 
     @validator("mf6_msw_well_pkg")
     def validate_mf6_msw_well_pkg(
