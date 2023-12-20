@@ -1,0 +1,21 @@
+# This environment is used for compiling iMOD Coupler with pyinstaller
+name: imod_coupler_minimal
+
+channels:
+  - conda-forge
+  - defaults
+
+dependencies:
+  - h5netcdf
+  - loguru
+  - numpy
+  - pip
+  - pip:
+    - "git+https://github.com/Deltares/Ribasim.git#egg=ribasim_api&subdirectory=python/ribasim_api"
+  - pydantic=2
+  - pyinstaller
+  - python=3.10
+  - scipy
+  - tomli
+  - tomli-w
+  - xmipy
