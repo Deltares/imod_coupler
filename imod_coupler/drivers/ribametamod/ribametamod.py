@@ -226,13 +226,13 @@ class RibaMetaMod(Driver):
             mswmod_packages[
                 "mf6_recharge"
             ] = self.mf6_recharge  # waar komt mf6_recharge vandaan
-            if self.coupling.enable_sprinkling_groundwater:
-                mf6_sprinkling_tag = self.mf6.get_var_address(
-                    "BOUND", self.coupling.mf6_model, self.coupling.mf6_msw_well_pkg
+            if (
+                self.coupling.enable_sprinkling_groundwater
+                and self.coupling.mf6_msw_well_pkg is not None
+            ):
+                self.mf6_sprinkling_wells = self.mf6.get_well(
+                    self.coupling.mf6_model, self.coupling.mf6_msw_well_pkg
                 )
-                self.mf6_sprinkling_wells = self.mf6.get_value_ptr(mf6_sprinkling_tag)[
-                    :, 0
-                ]
                 mswmod_packages["mf6_sprinkling_wells"] = self.mf6_sprinkling_wells
             mswmod_packages["mf6_head"] = self.mf6_head
             mswmod_packages["mf6_storage"] = self.mf6_storage
