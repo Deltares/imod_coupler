@@ -227,7 +227,7 @@ class RibaMetaMod(Driver):
                 "mf6_recharge"
             ] = self.mf6_recharge  # waar komt mf6_recharge vandaan
             if (
-                self.coupling.enable_sprinkling
+                self.coupling.enable_sprinkling_groundwater
                 and self.coupling.mf6_msw_well_pkg is not None
             ):
                 self.mf6_sprinkling_wells = self.mf6.get_well(
