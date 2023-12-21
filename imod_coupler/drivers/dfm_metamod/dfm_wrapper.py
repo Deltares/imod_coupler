@@ -1,14 +1,32 @@
 from ctypes import POINTER, byref, c_char_p, c_double, c_int, c_void_p, pointer
-from typing import Optional
+from typing import Optional, AnyStr
 
 import numpy as np
-from bmi.wrapper import BMIWrapper, create_string_buffer
+from bmi.wrapper import BMIWrapper, MAXSTRLEN, create_string_buffer
 from numpy.ctypeslib import as_array, ndpointer
 from numpy.typing import NDArray
 from scipy.spatial import KDTree
 
 
 class DfmWrapper(BMIWrapper):  # type: ignore
+    def __init__(self, engine, configfile=None):
+        self.valueptrs = {}
+        super().__init__(engine, configfile)
+
+    def get_version(self) -> AnyStr:
+        """
+        Return version string
+        """
+        version = create_string_buffer(MAXSTRLEN)
+        self.library.get_version_string.argtypes = [c_char_p]
+        self.library.get_version_string(version)
+        return version.value.decode("utf-8")
+
+    def get_var(self, name: str) -> NDArray:
+        if name not in self.valueptrs:
+            self.valueptrs[name] = super().get_var(name)
+        return self.valueptrs[name]
+
     def get_number_nodes(self) -> int:
         """
         Returns

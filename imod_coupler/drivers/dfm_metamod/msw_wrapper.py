@@ -15,6 +15,7 @@ class MswWrapper(XmiWrapper):
         working_directory: Union[str, Path, None] = None,
         timing: bool = False,
     ):
+        self.valueptrs = {}
         super().__init__(lib_path, lib_dependency, working_directory, timing)
 
     def initialize_surface_water_component(self) -> None:
@@ -28,6 +29,11 @@ class MswWrapper(XmiWrapper):
         idtsw_c = c_int(idtsw)
         self._execute_function(self.lib.finish_sw_time_step, byref(idtsw_c))
 
+    def get_value_ptr(self, name: str) -> NDArray:
+        if name not in self.valueptrs:
+            self.valueptrs[name] = super().get_value_ptr(name)
+        return self.valueptrs[name]
+        
     def get_sw_time_step(self) -> float:
         """returns the time step length for fast (surfacewater) processes from metaswap
 
@@ -88,6 +94,7 @@ class MswWrapper(XmiWrapper):
             ponding volume allocation of MetaSWAP in m3/dtsw. Array as pointer of the MetaSWAP intenal array.
             Internally MetaSWAP uses a different array for get and set operations.
         """
+        
         return self.get_value_ptr("ts2dfmput")
 
     def get_surfacewater_ponding_realised_ptr(self) -> NDArray[np.float_]:
