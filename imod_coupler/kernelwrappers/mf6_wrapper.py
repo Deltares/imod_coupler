@@ -35,6 +35,14 @@ class Mf6Wrapper(XmiWrapper):
             key: Mf6Drainage(self, mf6_flowmodel_key, key) for key in mf6_drainage_keys
         }
 
+    def get_well(
+        self,
+        mf6_flowmodel_key: str,
+        mf6_msw_recharge_pkg: str,
+    ) -> NDArray[np.float_]:
+        wel_tag = self.get_var_address("Q", mf6_flowmodel_key, mf6_msw_recharge_pkg)
+        return self.get_value_ptr(wel_tag)
+
     def get_recharge(
         self,
         mf6_flowmodel_key: str,
