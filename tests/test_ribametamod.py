@@ -131,7 +131,8 @@ def test_ribametamod_sw_sprinkling(
     imod_coupler_exec_devel: Path,
 ) -> None:
     """
-    Test if coupled ribametamod models run with the iMOD Coupler development version.
+    Test if coupled ribametamod models run with the iMOD Coupler development version 
+    and cehck MetaSWAP waterbalanse for realised sprinkling volume
     """
     path_dev = tmp_path_dev / "bucket_model_driver_ribametamod"
 
