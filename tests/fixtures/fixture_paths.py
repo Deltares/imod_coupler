@@ -115,3 +115,13 @@ def reference_result_folder(request: FixtureRequest) -> Path:
 @pytest.fixture(scope="function")
 def bucket_ribametamod_loc(request: FixtureRequest) -> Path:
     return request.path.parent / "data" / "bucket_model"
+
+
+@pytest.fixture(scope="function")
+def bucket_ribametamod_sprinkling_tot_svat_ref(request: FixtureRequest) -> Path:
+    return (
+        request.path.parent
+        / "reference_output"
+        / "test_ribametamod_sprinkling_surface_water"
+        / "tot_svat_per_reference.csv"
+    )

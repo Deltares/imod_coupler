@@ -2,6 +2,7 @@ import shutil
 import subprocess
 from pathlib import Path
 
+import pandas as pd
 import pytest
 import tomli_w
 
@@ -75,7 +76,7 @@ def test_ribamod(
     subprocess.run([imod_coupler_exec_devel, toml_path], check=True)
 
 
-@pytest.mark.skip(reason="we first have to merge the optional branch")
+# @pytest.mark.skip(reason="we first have to merge the optional branch")
 def test_ribametamod(
     tmp_path_dev: Path,
     modflow_dll_devel: Path,
@@ -115,6 +116,56 @@ def test_ribametamod(
         path_dev / "ribasim" / "ribasim.toml",
     )
     subprocess.run([imod_coupler_exec_devel, toml_path], check=True)
+
+
+def test_ribametamod_sw_sprinkling(
+    tmp_path_dev: Path,
+    modflow_dll_devel: Path,
+    metaswap_dll_devel: Path,
+    metaswap_dll_dep_dir_devel: Path,
+    metaswap_lookup_table: Path,
+    ribasim_dll_devel: Path,
+    ribasim_dll_dep_dir_devel: Path,
+    bucket_ribametamod_loc: Path,
+    bucket_ribametamod_sprinkling_tot_svat_ref: Path,
+    imod_coupler_exec_devel: Path,
+) -> None:
+    """
+    Test if coupled ribametamod models run with the iMOD Coupler development version
+    and cehck MetaSWAP waterbalanse for realised sprinkling volume
+    """
+    path_dev = tmp_path_dev / "bucket_model_driver_ribametamod"
+
+    shutil.copytree(bucket_ribametamod_loc, path_dev)
+
+    fill_para_sim_template(path_dev / "metaswap", metaswap_lookup_table)
+
+    toml_path = path_dev / "imod_coupler.toml"
+    modflow6_dll = modflow_dll_devel
+    modflow6_model_dir = path_dev / "modflow6"
+    metaswap_dll = metaswap_dll_devel
+    metaswap_dll_dependency = metaswap_dll_dep_dir_devel
+    metaswap_model_dir = path_dev / "metaswap"
+
+    write_ribametamod_toml(
+        path_dev,
+        modflow6_dll,
+        modflow6_model_dir,
+        metaswap_dll,
+        metaswap_dll_dependency,
+        metaswap_model_dir,
+        ribasim_dll_devel,
+        ribasim_dll_dep_dir_devel,
+        path_dev / "ribasim" / "ribasim.toml",
+        True,
+    )
+    subprocess.run([imod_coupler_exec_devel, toml_path], check=True)
+
+    tot_svat_reference = pd.read_csv(bucket_ribametamod_sprinkling_tot_svat_ref)
+    tot_svat_test = pd.read_csv(metaswap_model_dir / "msw" / "csv" / "tot_svat_per.csv")
+    assert tot_svat_test["        Pssw(m3)"].equals(
+        tot_svat_reference["        Pssw(m3)"]
+    )
 
 
 def write_metamod_toml(
@@ -249,6 +300,7 @@ def write_ribametamod_toml(
     ribasim_dll: str | Path,
     ribasim_dll_dependency: str | Path,
     ribasim_config_file: str | Path,
+    sprinkling_sw_active: bool = False,
 ) -> None:
     """
     Write .toml file which configures the imod coupler run.
@@ -272,10 +324,11 @@ def write_ribametamod_toml(
     coupling_dict: dict
         Dictionary with names of coupler packages and paths to mappings.
     """
+
     coupler_toml = {
         "timing": False,
         "log_level": "INFO",
-        "driver_type": "metamod",
+        "driver_type": "ribametamod",
         "driver": {
             "kernels": {
                 "modflow6": {
@@ -295,7 +348,8 @@ def write_ribametamod_toml(
             },
             "coupling": [
                 {
-                    "enable_sprinkling": False,
+                    "enable_sprinkling_groundwater": False,
+                    "enable_sprinkling_surface_water": False,
                     "mf6_model": "GWF_1",
                     "mf6_msw_recharge_pkg": "rch_msw",
                     "mf6_msw_node_map": "exchanges/nodenr2svat.dxc",
@@ -308,6 +362,13 @@ def write_ribametamod_toml(
             ],
         },
     }
+
+    if sprinkling_sw_active:
+        coupler_toml["driver"]["coupling"][0]["enable_sprinkling_surface_water"] = True
+        coupler_toml["driver"]["coupling"][0][
+            "rib_msw_sprinkling_map_surface_water"
+        ] = "exchanges/sprinkling_index.dxc"
+
     with open(tmp_path_dev / "imod_coupler.toml", "wb") as f:
         tomli_w.dump(coupler_toml, f)
 
