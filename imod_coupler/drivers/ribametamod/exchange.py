@@ -1,7 +1,6 @@
-from typing import Any, Dict
+from typing import Any
 
 import numpy as np
-from numpy import float_
 from numpy.typing import NDArray
 from ribasim_api import RibasimApi
 
@@ -85,10 +84,11 @@ class exchange_ribasim_1d(exchange_balance_1d):
         )
 
     def to_ribasim(self) -> None:
-        if self.ribasim_drainage is not None and self.ribasim_drainage is not None:
+        if self.ribasim_drainage is not None:
             self.ribasim_drainage[:] = np.where(
                 self.predicted["sum"][:] > 0, self.predicted["sum"][:], 0.0
             )
+        if self.ribasim_infiltration is not None:
             self.ribasim_infiltration[:] = np.where(
                 self.predicted["sum"][:] < 0, self.predicted["sum"][:], 0.0
             )

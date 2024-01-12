@@ -1,9 +1,9 @@
 import shutil
 import subprocess
 from pathlib import Path
-from typing import Dict
+from typing import dict
+
 import pandas as pd
-import pytest
 import tomli_w
 
 
@@ -199,8 +199,8 @@ def write_metamod_toml(
         Dictionary with names of coupler packages and paths to mappings.
     """
 
-    coupler_toml: Dict[
-        str, str | bool | Dict[str, str | Dict[str, bool | str | Dict[str, str]]]
+    coupler_toml: dict[
+        str, str | bool | dict[str, str | dict[str, bool | str | dict[str, str]]]
     ]
     coupler_toml = {
         "timing": False,
