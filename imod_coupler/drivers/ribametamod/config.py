@@ -28,7 +28,10 @@ class Coupling(BaseModel):
     mf6_msw_node_map: FilePath | None = None  # the path to the node map file
     mf6_msw_recharge_map: FilePath | None = None  # the pach to the recharge map file
     mf6_msw_sprinkling_map_groundwater: FilePath | None = (
-        None  # the path to the sprinkling map file
+        None  # the path to the sprinkling map file (optional)
+    )
+    mf6_msw_ponding_map_groundwater: FilePath | None = (
+        None  # the path to the ponding map file (optional)
     )
     output_config_file: FilePath | None = None
 
