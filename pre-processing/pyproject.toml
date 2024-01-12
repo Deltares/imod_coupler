@@ -1,6 +1,6 @@
 [build-system]
-requires = ["setuptools>=61"]
-build-backend = "setuptools.build_meta"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
 [project]
 name = "primod"
@@ -28,17 +28,8 @@ dependencies = [
 ]
 dynamic = ["version"]
 
-[tool.setuptools]
-zip-safe = true
-
-[tool.setuptools.dynamic]
-version.attr = "primod.__version__"
-
-[tool.setuptools.packages.find]
-include = ["primod", "primod.*"]
-
-[tool.setuptools.package-data]
-"primod" = ["py.typed"]
+[tool.hatch.version]
+path = "primod/__init__.py"
 
 [project.urls]
 Source = "https://github.com/Deltares/imod_coupler/pre-processing"
