@@ -43,9 +43,9 @@ def test_metamod(
     subprocess.run([imod_coupler_exec_devel, toml_path], check=True)
 
 
-#@pytest.mark.skip(
+# @pytest.mark.skip(
 #    reason="Fails with SQLite.SQLiteException: no such column: allocation_network_id"
-#)
+# )
 def test_ribamod(
     tmp_path_dev: Path,
     modflow_dll_devel: Path,
@@ -199,7 +199,9 @@ def write_metamod_toml(
         Dictionary with names of coupler packages and paths to mappings.
     """
 
-    coupler_toml: Dict[str, str|bool|Dict[str, str|Dict [str, bool|str|Dict [str, str]]]]
+    coupler_toml: Dict[
+        str, str | bool | Dict[str, str | Dict[str, bool | str | Dict[str, str]]]
+    ]
     coupler_toml = {
         "timing": False,
         "log_level": "INFO",
