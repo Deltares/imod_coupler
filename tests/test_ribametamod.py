@@ -1,7 +1,7 @@
 import shutil
 import subprocess
 from pathlib import Path
-
+from typing import Dict
 import pandas as pd
 import pytest
 import tomli_w
@@ -43,9 +43,9 @@ def test_metamod(
     subprocess.run([imod_coupler_exec_devel, toml_path], check=True)
 
 
-@pytest.mark.skip(
-    reason="Fails with SQLite.SQLiteException: no such column: allocation_network_id"
-)
+#@pytest.mark.skip(
+#    reason="Fails with SQLite.SQLiteException: no such column: allocation_network_id"
+#)
 def test_ribamod(
     tmp_path_dev: Path,
     modflow_dll_devel: Path,
@@ -198,6 +198,8 @@ def write_metamod_toml(
     coupling_dict: dict
         Dictionary with names of coupler packages and paths to mappings.
     """
+
+    coupler_toml: Dict[str, str|bool|Dict[str, str|Dict [str, bool|str|Dict [str, str]]]]
     coupler_toml = {
         "timing": False,
         "log_level": "INFO",
@@ -368,6 +370,9 @@ def write_ribametamod_toml(
         coupler_toml["driver"]["coupling"][0][
             "rib_msw_sprinkling_map_surface_water"
         ] = "exchanges/sprinkling_index.dxc"
+        coupler_toml["driver"]["coupling"][0][
+            "rib_msw_ponding_map_surface_water"
+        ] = "exchanges/ponding_index.dxc"
 
     with open(tmp_path_dev / "imod_coupler.toml", "wb") as f:
         tomli_w.dump(coupler_toml, f)
