@@ -39,6 +39,9 @@ class Coupling(BaseModel):
     rib_msw_sprinkling_map_surface_water: FilePath | None = (
         None  # the path to the sprinkling map file
     )
+    rib_msw_ponding_map_surface_water: FilePath | None = (
+        None  # the path to the ponding map file
+    )
 
     @validator("mf6_msw_well_pkg")
     def validate_mf6_msw_well_pkg(

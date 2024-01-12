@@ -70,14 +70,12 @@ class RibaMetaMod(Driver):
     msw_sprinkling_demand_sec: NDArray[
         Any
     ]  # MetaSWAP sprinkling demand for surface water
-    msw_ponding_flux_sec: NDArray[
-        Any
-    ]  # MetaSWAP ponding flux to surface water 
+    msw_ponding_flux_sec: NDArray[Any]  # MetaSWAP ponding flux to surface water
 
     # Mapping tables
     mapping: SetMapping  # TODO: Ribasim: allow more than 1:N
 
-    # exchange water balances 
+    # exchange water balances
     exchange_balance_1d: exchange_ribasim_1d
 
     def __init__(self, base_config: BaseConfig, ribametamod_config: RibaMetaModConfig):
@@ -133,10 +131,6 @@ class RibaMetaMod(Driver):
             self.msw.initialize()
         self.log_version()
         self.exchange_balance_1d = exchange_ribasim_1d(self.ribasim)
-
-
-
-
 
         if self.coupling.output_config_file is not None:
             self.exchange_logger = ExchangeCollector.from_file(
@@ -372,7 +366,6 @@ class RibaMetaMod(Driver):
             ] = -self.mapping.msw2rib["sw_sprinkling"].dot(
                 self.msw_sprinkling_demand_sec
             )[:]
-
 
     def exchange_rib2msw(self, rib_sprfrac_realised: NDArray[np.float64]) -> None:
         # realised flux from Ribasim to metaswap

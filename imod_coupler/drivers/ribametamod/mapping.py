@@ -170,7 +170,7 @@ class SetMapping:
             rib_idx = table_node2svat[:, 0] - 1
             msw_idx = [
                 svat_lookup[table_node2svat[ii, 1], table_node2svat[ii, 2]]
-               for ii in range(len(table_node2svat))
+                for ii in range(len(table_node2svat))
             ]
             (
                 self.msw2rib["sw_ponding"],
@@ -179,17 +179,16 @@ class SetMapping:
                 msw_idx,
                 rib_idx,
                 packages["msw_volume"].size,
-                packages[
-                    "ribasim_nbound"
-                ],
+                packages["ribasim_nbound"],
                 "sum",
             )
 
         # surface water sprinkling mapping
         if self.coupling.rib_msw_sprinkling_map_surface_water is not None:
-
             table_node2svat = np.loadtxt(
-                self.coupling.rib_msw_sprinkling_map_surface_water, dtype=np.int32, ndmin=2
+                self.coupling.rib_msw_sprinkling_map_surface_water,
+                dtype=np.int32,
+                ndmin=2,
             )
             rib_idx = table_node2svat[:, 0] - 1
             msw_idx = [
