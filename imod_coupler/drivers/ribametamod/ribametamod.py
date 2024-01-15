@@ -16,7 +16,6 @@ from ribasim_api import RibasimApi
 from imod_coupler.config import BaseConfig
 from imod_coupler.drivers.driver import Driver
 from imod_coupler.drivers.ribametamod.config import Coupling, RibaMetaModConfig
-from imod_coupler.drivers.ribametamod.exchange import exchange_ribasim_1d
 from imod_coupler.drivers.ribametamod.mapping import SetMapping
 from imod_coupler.kernelwrappers.mf6_wrapper import Mf6Drainage, Mf6River, Mf6Wrapper
 from imod_coupler.kernelwrappers.msw_wrapper import MswWrapper
@@ -75,9 +74,6 @@ class RibaMetaMod(Driver):
     # Mapping tables
     mapping: SetMapping  # TODO: Ribasim: allow more than 1:N
 
-    # exchange water balances
-    exchange_balance_1d: exchange_ribasim_1d
-
     def __init__(self, base_config: BaseConfig, ribametamod_config: RibaMetaModConfig):
         """Constructs the `RibaMetaMod` object"""
         self.base_config = base_config
@@ -130,7 +126,6 @@ class RibaMetaMod(Driver):
         if self.has_metaswap:
             self.msw.initialize()
         self.log_version()
-        self.exchange_balance_1d = exchange_ribasim_1d(self.ribasim)
 
         if self.coupling.output_config_file is not None:
             self.exchange_logger = ExchangeCollector.from_file(
@@ -270,9 +265,6 @@ class RibaMetaMod(Driver):
         # values. Note that the river bottom and the drainage elevation may be
         # update every stress period.
 
-        # initialise water balance 1d
-        self.exchange_balance_1d.reset()
-
         # exchange stages from Ribasim to MODFLOW 6
         if self.has_ribasim:
             self.ribasim_infiltration[:] = 0.0
@@ -300,10 +292,6 @@ class RibaMetaMod(Driver):
             )  # dummy fraction for now, shape = Ribasim users
 
             self.exchange_rib2msw(rib_sprfrac_realised)
-
-            # exchange water balance total of the predicted 1d to ribasim
-            self.exchange_balance_1d.sum_predicted()
-            self.exchange_balance_1d.to_ribasim()
 
             self.msw.finish_surface_water_time_step(1)
 
@@ -342,30 +330,34 @@ class RibaMetaMod(Driver):
         return has_converged
 
     def exchange_msw2rib(self) -> None:
-        # flux from metaswap ponding to Ribasim
-
-        self.msw_ponding_flux_sec = (
-            self.msw.get_surfacewater_ponding_allocation_ptr()
-            / days_to_seconds(self.delt)
-        )
         if self.mapping.msw2rib is not None:
+            # flux from metaswap ponding to Ribasim
             if "sw_ponding" in self.mapping.msw2rib:
-                self.exchange_balance_1d.predicted["msw_ponding2riba_flux"][
-                    :
-                ] = self.mapping.msw2rib["sw_ponding"].dot(self.msw_ponding_flux_sec)[:]
+                self.msw_ponding_flux_sec = (
+                    self.msw.get_surfacewater_ponding_allocation_ptr()
+                    / days_to_seconds(self.delt)
+                )
+                ribasim_flux_ponding = self.mapping.msw2rib["sw_ponding"].dot(
+                    self.msw_ponding_flux_sec
+                )[:]
+                self.ribasim_drainage[:] += ribasim_flux_ponding[:]
 
-        # flux from metaswap sprinkling to Ribasim (demand)
-        if self.coupling.enable_sprinkling_surface_water:
-            self.msw_sprinkling_demand_sec = (
-                self.msw.get_surfacewater_sprinking_demand_ptr()
-                / days_to_seconds(self.delt)
-            )
+            # flux from metaswap sprinkling to Ribasim (demand)
+            if "sw_sprinkling" in self.mapping.msw2rib and self.coupling.enable_sprinkling_surface_water:
+                self.msw_sprinkling_demand_sec = (
+                    self.msw.get_surfacewater_sprinking_demand_ptr()
+                    / days_to_seconds(self.delt)
+                )
 
-            self.exchange_balance_1d.predicted["msw_sprinkling2riba_flux"][
-                :
-            ] = -self.mapping.msw2rib["sw_sprinkling"].dot(
-                self.msw_sprinkling_demand_sec
-            )[:]
+                ribasim_sprinkling_demand_sec = self.mapping.msw2rib["sw_sprinkling"].dot(
+                    self.msw_sprinkling_demand_sec
+                )[:]
+                self.ribasim_infiltration += np.where(
+                    ribasim_sprinkling_demand_sec > 0, ribasim_sprinkling_demand_sec, 0
+                )
+                self.ribasim_drainage += np.where(
+                    ribasim_sprinkling_demand_sec < 0, -ribasim_sprinkling_demand_sec, 0
+                )
 
     def exchange_rib2msw(self, rib_sprfrac_realised: NDArray[np.float64]) -> None:
         # realised flux from Ribasim to metaswap
