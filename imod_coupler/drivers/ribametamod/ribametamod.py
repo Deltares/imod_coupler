@@ -343,15 +343,18 @@ class RibaMetaMod(Driver):
                 self.ribasim_drainage[:] += ribasim_flux_ponding[:]
 
             # flux from metaswap sprinkling to Ribasim (demand)
-            if "sw_sprinkling" in self.mapping.msw2rib and self.coupling.enable_sprinkling_surface_water:
+            if (
+                "sw_sprinkling" in self.mapping.msw2rib
+                and self.coupling.enable_sprinkling_surface_water
+            ):
                 self.msw_sprinkling_demand_sec = (
                     self.msw.get_surfacewater_sprinking_demand_ptr()
                     / days_to_seconds(self.delt)
                 )
 
-                ribasim_sprinkling_demand_sec = self.mapping.msw2rib["sw_sprinkling"].dot(
-                    self.msw_sprinkling_demand_sec
-                )[:]
+                ribasim_sprinkling_demand_sec = self.mapping.msw2rib[
+                    "sw_sprinkling"
+                ].dot(self.msw_sprinkling_demand_sec)[:]
                 self.ribasim_infiltration += np.where(
                     ribasim_sprinkling_demand_sec > 0, ribasim_sprinkling_demand_sec, 0
                 )
