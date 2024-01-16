@@ -52,7 +52,7 @@ def _find_coupled_cells(
 
 def _derive_boundary_index(
     conductance: xr.DataArray,
-    include: np.ndarray,
+    include: NDArray[Bool],
 ) -> NDArray[Int]:
     """
     Create the numbering for each boundary cell.
