@@ -42,9 +42,6 @@ def test_metamod(
     subprocess.run([imod_coupler_exec_devel, toml_path], check=True)
 
 
-# @pytest.mark.skip(
-#    reason="Fails with SQLite.SQLiteException: no such column: allocation_network_id"
-# )
 def test_ribamod(
     tmp_path_dev: Path,
     modflow_dll_devel: Path,
@@ -75,7 +72,6 @@ def test_ribamod(
     subprocess.run([imod_coupler_exec_devel, toml_path], check=True)
 
 
-# @pytest.mark.skip(reason="we first have to merge the optional branch")
 def test_ribametamod(
     tmp_path_dev: Path,
     modflow_dll_devel: Path,
@@ -164,6 +160,9 @@ def test_ribametamod_sw_sprinkling(
     tot_svat_test = pd.read_csv(metaswap_model_dir / "msw" / "csv" / "tot_svat_per.csv")
     assert tot_svat_test["        Pssw(m3)"].equals(
         tot_svat_reference["        Pssw(m3)"]
+    )
+    assert tot_svat_test["   ts2dfmput(m3)"].equals(
+        tot_svat_reference["   ts2dfmput(m3)"]
     )
 
 

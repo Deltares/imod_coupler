@@ -75,9 +75,6 @@ class RibaMetaMod(Driver):
     # Mapping tables
     mapping: SetMapping  # TODO: Ribasim: allow more than 1:N
 
-    # exchange water balances
-    exchange_balance_1d: exchange_ribasim_1d
-
     def __init__(self, base_config: BaseConfig, ribametamod_config: RibaMetaModConfig):
         """Constructs the `RibaMetaMod` object"""
         self.base_config = base_config
@@ -268,9 +265,6 @@ class RibaMetaMod(Driver):
         # river bottom and drainage elevation should not be fall below these
         # values. Note that the river bottom and the drainage elevation may be
         # update every stress period.
-
-        # initialise water balance 1d
-        self.exchange_balance_1d.reset()
 
         # exchange stages from Ribasim to MODFLOW 6
         if self.has_ribasim:
