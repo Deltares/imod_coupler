@@ -104,7 +104,7 @@ def derive_passive_coupling(
     )
 
 
-def _get_subgrid_xy(subgrid: pd.DataFrame) -> np.ndarray:
+def _get_subgrid_xy(subgrid: pd.DataFrame) -> NDArray[Float]:
     # Check whether columns (optional to Ribasim) are present.
     if "meta_x" not in subgrid or "meta_y" not in subgrid:
         raise ValueError(
@@ -121,7 +121,7 @@ def _get_subgrid_xy(subgrid: pd.DataFrame) -> np.ndarray:
         x_ids = multiple_x.index[multiple_x].to_numpy()
         y_ids = multiple_y.index[multiple_y].to_numpy()
         raise ValueError(
-            "subgrid data contains multiple values for meta_x or meta_y "
+            "Subgrid data contains multiple values for meta_x or meta_y "
             f"for subgrid_id(s):\n   meta_x: {x_ids}\n   meta_y: {y_ids}"
         )
 
@@ -157,9 +157,9 @@ def _find_nearest_subgrid_elements(
 
 
 def derive_active_coupling(
+    conductance: xr.DataArray,
     gridded_basin: xr.DataArray,
     basin_ids: pd.Series,
-    conductance: xr.DataArray,
     subgrid_df: pd.DataFrame,
 ) -> pd.DataFrame:
     basin_index, include = _find_coupled_cells(conductance, gridded_basin, basin_ids)
