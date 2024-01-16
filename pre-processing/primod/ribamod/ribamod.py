@@ -188,7 +188,7 @@ class RibaMod:
                 f"present in the model: {missing}"
             )
 
-    def validate_basin_node_ids(self) -> "pd.Series[int]":
+    def validate_basin_node_ids(self) -> pd.Series:
         assert self.ribasim_model.basin.profile.df is not None
         basin_ids = np.unique(self.ribasim_model.basin.profile.df["node_id"])
         missing = ~np.isin(self.basin_definition["node_id"], basin_ids)

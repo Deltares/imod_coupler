@@ -4,25 +4,30 @@ import xarray as xr
 from numpy.typing import NDArray
 from scipy.spatial import KDTree
 
-Int = np.int_
-Float = np.float_
-Bool = np.bool_
+from primod.typing import Bool, Float, Int
 
 
-def check_conductance(conductance: xr.DataArray) -> xr.DataArray:
-    # FUTURE: check that the conductance location does not change over time.
+def _check_conductance(conductance: xr.DataArray) -> xr.DataArray:
+    # Check that the conductance location does not change over time.
     # The imod_coupler has static weights: changing locations means having
     # to update the coupling weights over time as well.
     if "time" in conductance.dims:
+        n_active = conductance.groupby("time").count(xr.ALL_DIMS)
+        if not (n_active == n_active[0]).all():
+            raise ValueError(
+                "For imod_coupler, the number of active cells (defined by the "
+                "conductance) in a river or drainage package must be constant "
+                f"over time. Found:\n{n_active}"
+            )
         return conductance.isel(time=0, drop=True)
     else:
         return conductance
 
 
-def find_coupled_cells(
+def _find_coupled_cells(
     conductance: xr.DataArray,
     gridded_basin: xr.DataArray,
-    basin_ids: "pd.Series[int]",
+    basin_ids: pd.Series,
 ) -> tuple[NDArray[Int], NDArray[Bool]]:
     """
     Compare the location of conductance with the gridded basin.
@@ -33,10 +38,9 @@ def find_coupled_cells(
     """
     # Conductance is leading parameter to define location, for both river
     # and drainage.
-    # FUTURE: check for time dimension? Also order and inclusion of layer
-    # in conductance.
-    # Use xarray where to force the dimension order of conductance.
-    conductance = check_conductance(conductance)
+    # Use xarray.where() to force the dimension order of conductance, rather than
+    # using gridded_basin.where() (which prioritizes the gridded_basin dims)
+    conductance = _check_conductance(conductance)
     basin_id = xr.where(conductance.notnull(), gridded_basin, np.nan)  # type: ignore
     include = basin_id.notnull().to_numpy()
     basin_id_values = basin_id.to_numpy()[include].astype(int)
@@ -46,7 +50,7 @@ def find_coupled_cells(
     return basin_index, include
 
 
-def derive_boundary_index(
+def _derive_boundary_index(
     conductance: xr.DataArray,
     include: np.ndarray,
 ) -> NDArray[Int]:
@@ -91,16 +95,16 @@ def derive_boundary_index(
 def derive_passive_coupling(
     conductance: xr.DataArray,
     gridded_basin: xr.DataArray,
-    basin_ids: "pd.Series[int]",
+    basin_ids: pd.Series,
 ) -> pd.DataFrame:
-    basin_index, include = find_coupled_cells(conductance, gridded_basin, basin_ids)
-    boundary_index = derive_boundary_index(conductance, include)
+    basin_index, include = _find_coupled_cells(conductance, gridded_basin, basin_ids)
+    boundary_index = _derive_boundary_index(conductance, include)
     return pd.DataFrame(
         data={"basin_index": basin_index, "bound_index": boundary_index}
     )
 
 
-def get_subgrid_xy(subgrid: pd.DataFrame) -> np.ndarray:
+def _get_subgrid_xy(subgrid: pd.DataFrame) -> np.ndarray:
     # Check whether columns (optional to Ribasim) are present.
     if "meta_x" not in subgrid or "meta_y" not in subgrid:
         raise ValueError(
@@ -126,7 +130,7 @@ def get_subgrid_xy(subgrid: pd.DataFrame) -> np.ndarray:
     return np.column_stack((x, y))
 
 
-def get_conductance_xy(
+def _get_conductance_xy(
     conductance: xr.DataArray, include: NDArray[Bool]
 ) -> NDArray[Float]:
     # Include incorporates the layer dimension
@@ -141,8 +145,9 @@ def get_conductance_xy(
     return xy[include2d]
 
 
-def find_nearest_subgrid_elements(
-    subgrid_xy: np.ndarray, conductance_xy: np.ndarray
+def _find_nearest_subgrid_elements(
+    subgrid_xy: NDArray[Float],
+    conductance_xy: NDArray[Float],
 ) -> NDArray[Int]:
     """Find the nearest subgrid element using a KD Tree."""
     kdtree = KDTree(subgrid_xy)
@@ -153,16 +158,16 @@ def find_nearest_subgrid_elements(
 
 def derive_active_coupling(
     gridded_basin: xr.DataArray,
-    basin_ids: "pd.Series[int]",
+    basin_ids: pd.Series,
     conductance: xr.DataArray,
     subgrid_df: pd.DataFrame,
 ) -> pd.DataFrame:
-    basin_index, include = find_coupled_cells(conductance, gridded_basin, basin_ids)
-    boundary_index = derive_boundary_index(conductance, include)
+    basin_index, include = _find_coupled_cells(conductance, gridded_basin, basin_ids)
+    boundary_index = _derive_boundary_index(conductance, include)
     # Match the cells to the subgrid based on xy location.
-    subgrid_xy = get_subgrid_xy(subgrid_df)
-    conductance_xy = get_conductance_xy(conductance, include)
-    subgrid_index = find_nearest_subgrid_elements(subgrid_xy, conductance_xy)
+    subgrid_xy = _get_subgrid_xy(subgrid_df)
+    conductance_xy = _get_conductance_xy(conductance, include)
+    subgrid_index = _find_nearest_subgrid_elements(subgrid_xy, conductance_xy)
     return pd.DataFrame(
         data={
             "basin_index": basin_index,
