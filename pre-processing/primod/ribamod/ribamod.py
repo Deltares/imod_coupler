@@ -202,7 +202,7 @@ class RibaMod:
 
     def validate_subgrid_df(self, coupling: DriverCoupling) -> pd.DataFrame | None:
         if coupling.mf6_active_river_packages or coupling.mf6_active_drainage_packages:
-            if self.ribasim_model.basin.subgrid is None:
+            if self.ribasim_model.basin.subgrid.df is None:
                 raise ValueError(
                     "ribasim.model.basin.subgrid must be defined for actively coupled packages."
                 )
