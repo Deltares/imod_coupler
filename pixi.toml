@@ -32,12 +32,9 @@ format = "ruff format ."
 format-check = "ruff format --check ."
 ruff = "ruff check ."
 check-package-primod = { cmd = "rm --recursive --force dist && python -m build && twine check --strict dist/*", cwd = "pre-processing" }
-lint = { depends_on = [
-    "format",
-    "ruff",
-    "mypy-imodc",
-    "mypy-primod",
-] }
+lint = { depends_on = ["format", "ruff", "mypy-imodc", "mypy-primod"] }
+# Publish primod
+publish-primod = { cmd = "python -m build && twine check dist/* && twine upload dist/*", cwd = "pre-processing" }
 
 [dependencies]
 black = "*"
