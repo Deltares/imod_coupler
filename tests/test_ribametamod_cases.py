@@ -46,7 +46,6 @@ def case_bucket_model(
 ) -> RibaMod:
     mf6_modelname, mf6_model = get_mf6_gwf_modelnames(mf6_bucket_model)[0]
     mf6_active_river_packages = get_mf6_river_packagenames(mf6_model)
-
     basin_definition = create_basin_definition(ribasim_bucket_model, buffersize=10.0)
 
     driver_coupling = DriverCoupling(
@@ -59,4 +58,4 @@ def case_bucket_model(
         mf6_simulation=mf6_bucket_model,
         basin_definition=basin_definition,
         coupling_list=[driver_coupling],
-    )
+    ), msw_bucket_model
