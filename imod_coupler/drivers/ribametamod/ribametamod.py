@@ -16,7 +16,6 @@ from ribasim_api import RibasimApi
 from imod_coupler.config import BaseConfig
 from imod_coupler.drivers.driver import Driver
 from imod_coupler.drivers.ribametamod.config import Coupling, RibaMetaModConfig
-from imod_coupler.drivers.ribametamod.exchange import exchange_ribasim_1d
 from imod_coupler.drivers.ribametamod.mapping import SetMapping
 from imod_coupler.kernelwrappers.mf6_wrapper import Mf6Drainage, Mf6River, Mf6Wrapper
 from imod_coupler.kernelwrappers.msw_wrapper import MswWrapper
