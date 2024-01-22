@@ -7,7 +7,7 @@ from numpy.typing import NDArray
 from primod.metamod.mappingbase import MetaModMapping
 
 
-class RechargeSvatMapping(MetaModMapping):
+class RechargeSvatMapping(RibaMetaModMapping):
     """
     This contains the data to connect MODFLOW 6 recharge cells to MetaSWAP
     svats.

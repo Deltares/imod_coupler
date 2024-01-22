@@ -11,9 +11,9 @@ import tomli_w
 import xarray as xr
 from imod.msw import GridData, MetaSwapModel, Sprinkling
 from imod.mf6 import Drainage, GroundwaterFlowModel, Modflow6Simulation, River
-from primod.metamod.node_svat_mapping import NodeSvatMapping
-from primod.metamod.rch_svat_mapping import RechargeSvatMapping
-from primod.metamod.wel_svat_mapping import WellSvatMapping
+from primod.mapping.node_svat_mapping import NodeSvatMapping
+from primod.mapping.rch_svat_mapping import RechargeSvatMapping
+from primod.mapping.wel_svat_mapping import WellSvatMapping
 
 
 @dataclass
@@ -330,10 +330,19 @@ class RibaMetaMod:
         rch_mapping = RechargeSvatMapping(svat, recharge)
         rch_mapping.write(directory, index, svat)
 
+        # mapping ponding: metaswap - ribasim
+        ponding_mapping = PondingSvatMapping(svat, [...])
+        ponding_mapping.write(directory, index, svat)
+
         if self.is_sprinkling:
+            # sprinkling groundwater
             well = gwf_model[mf6_wel_pkgkey]
             well_mapping = WellSvatMapping(svat, well)
             well_mapping.write(directory, index, svat)
+
+            # sprinkling surface water
+            sw_sprinkling_mapping = SWSprinklingSvatMapping(svat, [...])
+            sw_sprinkling_mapping.write(directory, index, svat)
 
         assert self.ribasim_model.basin.profile.df is not None
         basin_ids = np.unique(self.ribasim_model.basin.profile.df["node_id"])
@@ -344,6 +353,8 @@ class RibaMetaMod:
                 "The node IDs of these basins in the basin definition do not "
                 f"occur in the Ribasim model: {missing_basins}"
             )
+            
+
 
         packages = asdict(coupling)
         coupling_dict: dict[str, Any] = {destination: {} for destination in packages}

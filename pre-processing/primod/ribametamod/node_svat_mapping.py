@@ -3,10 +3,10 @@ import xarray as xr
 from imod import mf6
 from imod.msw.fixed_format import VariableMetaData
 
-from primod.metamod.mappingbase import MetaModMapping
+from primod.ribametamod.mappingbase import RibaMetaModMapping
 
 
-class NodeSvatMapping(MetaModMapping):
+class NodeSvatMapping(RibaMetaModMapping):
     """
     This contains the data to connect MODFLOW 6 cells (user nodes) to MetaSWAP
     svats.
