@@ -9,12 +9,17 @@ import pandas as pd
 import ribasim
 import tomli_w
 import xarray as xr
+from imod.msw import GridData, MetaSwapModel, Sprinkling
 from imod.mf6 import Drainage, GroundwaterFlowModel, Modflow6Simulation, River
+from primod.metamod.node_svat_mapping import NodeSvatMapping
+from primod.metamod.rch_svat_mapping import RechargeSvatMapping
+from primod.metamod.wel_svat_mapping import WellSvatMapping
 
 
 @dataclass
 class DriverCoupling:
     mf6_model: str
+    msw_model: str
     mf6_active_river_packages: list[str] = field(default_factory=list)
     mf6_passive_river_packages: list[str] = field(default_factory=list)
     mf6_active_drainage_packages: list[str] = field(default_factory=list)
@@ -24,7 +29,7 @@ class DriverCoupling:
 class RibaMetaMod:
     """
     The RibaMod class creates the necessary input files for coupling Ribasim to
-    MODFLOW 6.
+    metaSWAP and MODFLOW 6.
 
     Parameters
     ----------
@@ -39,20 +44,67 @@ class RibaMetaMod:
     _toml_name = "imod_coupler.toml"
     _ribasim_model_dir = "ribasim"
     _modflow6_model_dir = "modflow6"
+    _metaswap_model_dir = "metaswap"
 
     def __init__(
         self,
         ribasim_model: "ribasim.Model",
+        msw_model: MetaSwapModel,
         mf6_simulation: Modflow6Simulation,
         coupling_list: list[DriverCoupling],
         basin_definition: gpd.GeoDataFrame,
+        mf6_rch_pkgkey: str,
+        mf6_wel_pkgkey: str | None = None,
     ):
         self.ribasim_model = ribasim_model
         self.mf6_simulation = mf6_simulation
+        self.msw_model = msw_model
         self.coupling_list = coupling_list
+        self.mf6_rch_pkgkey = mf6_rch_pkgkey
+        self.mf6_wel_pkgkey = mf6_wel_pkgkey
+        self.is_sprinkling = self._check_coupler_and_sprinkling()
+
         if "node_id" not in basin_definition.columns:
             raise ValueError('Basin definition must contain "node_id" column')
         self.basin_definition = basin_definition
+
+    def _check_coupler_and_sprinkling(self) -> bool:
+        mf6_rch_pkgkey = self.mf6_rch_pkgkey
+        mf6_wel_pkgkey = self.mf6_wel_pkgkey
+
+        gwf_names = self._get_gwf_modelnames()
+
+        # Assume only one groundwater flow model
+        # FUTURE: Support multiple groundwater flow models.
+        gwf_model = self.mf6_simulation[gwf_names[0]]
+
+        if mf6_rch_pkgkey not in gwf_model.keys():
+            raise ValueError(
+                f"No package named {mf6_rch_pkgkey} detected in Modflow 6 model. "
+                "iMOD_coupler requires a Recharge package."
+            )
+
+        sprinkling_key = self.msw_model._get_pkg_key(Sprinkling, optional_package=True)
+
+        sprinkling_in_msw = sprinkling_key is not None
+        sprinkling_in_mf6 = mf6_wel_pkgkey in gwf_model.keys()
+
+        if sprinkling_in_msw and not sprinkling_in_mf6:
+            raise ValueError(
+                f"No package named {mf6_wel_pkgkey} found in Modflow 6 model, "
+                "but Sprinkling package found in MetaSWAP. "
+                "iMOD Coupler requires a Well Package "
+                "to couple wells."
+            )
+        elif not sprinkling_in_msw and sprinkling_in_mf6:
+            raise ValueError(
+                f"Modflow 6 Well package {mf6_wel_pkgkey} specified for sprinkling, "
+                "but no Sprinkling package found in MetaSWAP model."
+            )
+        elif sprinkling_in_msw and sprinkling_in_mf6:
+            return True
+        else:
+            return False
 
     def _get_gwf_modelnames(self) -> list[str]:
         """
@@ -70,10 +122,12 @@ class RibaMetaMod:
         modflow6_dll: str | Path,
         ribasim_dll: str | Path,
         ribasim_dll_dependency: str | Path,
+        metaswap_dll: str | Path,
+        metaswap_dll_dependency: str | Path,
         modflow6_write_kwargs: dict[str, Any] | None = None,
     ) -> None:
         """
-        Write Ribasim and Modflow 6 model with exchange files, as well as a
+        Write Ribasim, MetaSWAP and Modflow 6 model with exchange files, as well as a
         ``.toml`` file which configures the iMOD Coupler run.
 
         Parameters
@@ -104,7 +158,12 @@ class RibaMetaMod:
             directory / self._modflow6_model_dir,
             **modflow6_write_kwargs,
         )
+        self.msw_model.write(directory / self._metaswap_model_dir)
         self.ribasim_model.write(directory / self._ribasim_model_dir)
+
+        # Write exchange files
+        exchange_dir = directory / "exchanges"
+        exchange_dir.mkdir(mode=755, exist_ok=True)        
         coupling_dict = self.write_exchanges(directory)
         self.write_toml(
             directory, coupling_dict, modflow6_dll, ribasim_dll, ribasim_dll_dependency
@@ -115,6 +174,8 @@ class RibaMetaMod:
         directory: str | Path,
         coupling_dict: dict[str, Any],
         modflow6_dll: str | Path,
+        metaswap_dll: str | Path,
+        metaswap_dll_dependency: str | Path,
         ribasim_dll: str | Path,
         ribasim_dll_dependency: str | Path,
     ) -> None:
@@ -129,6 +190,15 @@ class RibaMetaMod:
             Path to modflow6 .dll. You can obtain this library by downloading
             `the last iMOD5 release
             <https://oss.deltares.nl/web/imod/download-imod5>`_
+        metaswap_dll: str or Path
+            Path to metaswap .dll. You can obtain this library by downloading
+            `the last iMOD5 release
+            <https://oss.deltares.nl/web/imod/download-imod5>`_
+        metaswap_dll_dependency: str or Path
+            Directory with metaswap .dll dependencies. Directory should contain:
+            [fmpich2.dll, mpich2mpi.dll, mpich2nemesis.dll, TRANSOL.dll]. You
+            can obtain these by downloading `the last iMOD5 release
+            <https://oss.deltares.nl/web/imod/download-imod5>`_            
         ribasim_dll: str or Path
             Path to ribasim .dll.
         ribasim_dll_dependency: str or Path
@@ -148,6 +218,11 @@ class RibaMetaMod:
                     "modflow6": {
                         "dll": str(modflow6_dll),
                         "work_dir": self._modflow6_model_dir,
+                    },
+                    "metaswap": {
+                        "dll": str(metaswap_dll),
+                        "dll_dep_dir": str(metaswap_dll_dependency),
+                        "work_dir": self._metaswap_model_dir,
                     },
                     "ribasim": {
                         "dll": str(ribasim_dll),
@@ -210,14 +285,18 @@ class RibaMetaMod:
     def write_exchanges(
         self,
         directory: str | Path,
+        mf6_rch_pkgkey: str,
+        mf6_wel_pkgkey: str | None,
     ) -> dict[str, dict[str, str]]:
         gwf_names = self._get_gwf_modelnames()
-        # #FUTURE: multiple couplings
-        coupling = self.coupling_list[0]
+
+        exchange_dir = Path(directory) / "exchanges"
+        exchange_dir.mkdir(exist_ok=True, parents=True)
 
         # Assume only one groundwater flow model
         # FUTURE: Support multiple groundwater flow models.
         gwf_model = self.mf6_simulation[gwf_names[0]]
+        coupling = self.coupling_list[0]
         self.validate_keys(
             gwf_model,
             coupling.mf6_active_river_packages,
@@ -238,6 +317,24 @@ class RibaMetaMod:
             column="node_id",
         )
 
+        grid_data_key = [
+            pkgname
+            for pkgname, pkg in self.msw_model.items()
+            if isinstance(pkg, GridData)
+        ][0]
+        index, svat = self.msw_model[grid_data_key].generate_index_array()
+        grid_mapping = NodeSvatMapping(svat, dis)
+        grid_mapping.write(directory, index, svat)
+
+        recharge = gwf_model[mf6_rch_pkgkey]
+        rch_mapping = RechargeSvatMapping(svat, recharge)
+        rch_mapping.write(directory, index, svat)
+
+        if self.is_sprinkling:
+            well = gwf_model[mf6_wel_pkgkey]
+            well_mapping = WellSvatMapping(svat, well)
+            well_mapping.write(directory, index, svat)
+
         assert self.ribasim_model.basin.profile.df is not None
         basin_ids = np.unique(self.ribasim_model.basin.profile.df["node_id"])
         missing = ~np.isin(self.basin_definition["node_id"], basin_ids)
@@ -247,9 +344,6 @@ class RibaMetaMod:
                 "The node IDs of these basins in the basin definition do not "
                 f"occur in the Ribasim model: {missing_basins}"
             )
-
-        exchange_dir = Path(directory) / "exchanges"
-        exchange_dir.mkdir(exist_ok=True, parents=True)
 
         packages = asdict(coupling)
         coupling_dict: dict[str, Any] = {destination: {} for destination in packages}
