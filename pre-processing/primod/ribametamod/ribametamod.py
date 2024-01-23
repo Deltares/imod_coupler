@@ -22,9 +22,7 @@ class DriverCoupling:
 
 
 class RibaMetaMod:
-    """
-    The RibaMod class creates the necessary input files for coupling Ribasim to
-    MODFLOW 6.
+    """Couple Ribasim, MetaSWAP and MODFLOW 6.
 
     Parameters
     ----------
