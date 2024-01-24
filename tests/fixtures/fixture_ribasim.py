@@ -44,7 +44,7 @@ def ribasim_two_basin_model() -> ribasim.Model:
             "level": [0.0, 1.0, 0.0, 1.0],
         }
     )
-
+    state = pd.DataFrame(data={"node_id": [2, 3], "level": [0.01, 0.01]})
     static = pd.DataFrame(
         data={
             "node_id": [2, 3],
@@ -55,7 +55,17 @@ def ribasim_two_basin_model() -> ribasim.Model:
             "urban_runoff": [0.0, 0.0],
         }
     )
-    basin = ribasim.Basin(profile=profile, static=static)
+    subgrid = pd.DataFrame(
+        data={
+            "node_id": [2, 2, 3, 3],
+            "subgrid_id": [1, 1, 2, 2],
+            "basin_level": [0.0, 1.0, 0.0, 1.0],
+            "subgrid_level": [0.0, 1.0, 0.0, 1.0],
+            "meta_x": [250.0, 250.0, 750.0, 750.0],
+            "meta_y": [0.0, 0.0, 0.0, 0.0],
+        }
+    )
+    basin = ribasim.Basin(profile=profile, state=state, static=static, subgrid=subgrid)
 
     rating_curve = ribasim.TabulatedRatingCurve(
         static=pd.DataFrame(
