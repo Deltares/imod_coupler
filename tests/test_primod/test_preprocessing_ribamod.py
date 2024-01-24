@@ -4,6 +4,7 @@ import geopandas as gpd
 import imod
 import pandas as pd
 import pytest
+import ribasim
 from imod.mf6 import Drainage, River
 from imod.mf6.model import GroundwaterFlowModel
 from imod.mf6.simulation import Modflow6Simulation
@@ -63,6 +64,11 @@ def test_ribamod_write__error(
     driver_coupling = DriverCoupling(
         mf6_model=mf6_modelname,
         mf6_active_river_packages=mf6_river_packages,
+    )
+
+    ribasim_bucket_model.basin = ribasim.Basin(
+        static=ribasim_bucket_model.basin.static,
+        profile=ribasim_bucket_model.basin.profile,
     )
 
     coupled_models = RibaMod(

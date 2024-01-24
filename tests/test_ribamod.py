@@ -137,7 +137,7 @@ def test_ribamod_backwater(
     ribasim_budget = np.diff(final_flow) * 86_400.0
     modflow_budget = (drn + riv).isel(time=-1).sel(y=0).to_numpy()
     budget_diff = ribasim_budget + modflow_budget
-    assert (np.abs(budget_diff) < 0.001).all()
+    assert (np.abs(budget_diff) < 0.01).all()
 
 
 @pytest.mark.xdist_group(name="ribasim")

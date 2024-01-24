@@ -88,7 +88,7 @@ def _derive_boundary_index(
     """
     # The first value found by cumsum will have a 1, while the coupler is 0-indexed.
     boundary_index_values = np.cumsum(conductance.notnull().to_numpy().ravel()) - 1
-    selection = boundary_index_values[include.ravel()]
+    selection: NDArray[Int] = boundary_index_values[include.ravel()]
     return selection
 
 
@@ -142,7 +142,8 @@ def _get_conductance_xy(
     include2d = np.flatnonzero(include) % n_per_layer
     yy, xx = np.meshgrid(y, x, indexing="ij")
     xy = np.column_stack((xx.ravel(), yy.ravel()))
-    return xy[include2d]
+    conductance_xy: NDArray[Float] = xy[include2d]
+    return conductance_xy
 
 
 def _find_nearest_subgrid_elements(
@@ -152,7 +153,7 @@ def _find_nearest_subgrid_elements(
     """Find the nearest subgrid element using a KD Tree."""
     kdtree = KDTree(subgrid_xy)
     # FUTURE: maybe do something with the distances returned by query?
-    _, indices = kdtree.query(conductance_xy)
+    indices: NDArray[Int] = kdtree.query(conductance_xy)[1]
     return indices
 
 
