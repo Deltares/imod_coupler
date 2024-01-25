@@ -14,6 +14,22 @@ from imod.mf6 import Drainage, GroundwaterFlowModel, Modflow6Simulation, River
 
 @dataclass
 class DriverCoupling:
+    """A dataclass representing one coupling scenario for the RibaMod driver.
+
+    Attributes
+    ----------
+    mf6_model : str
+        The model of the driver.
+    mf6_active_river_packages : list of str
+        A list of active river packages.
+    mf6_passive_river_packages : list of str
+        A list of passive river packages.
+    mf6_active_drainage_packages : list of str
+        A list of active drainage packages.
+    mf6_passive_drainage_packages : list of str
+        A list of passive drainage packages.
+    """
+
     mf6_model: str
     mf6_active_river_packages: list[str] = field(default_factory=list)
     mf6_passive_river_packages: list[str] = field(default_factory=list)
@@ -40,7 +56,7 @@ class RibaMod:
 
     def __init__(
         self,
-        ribasim_model: "ribasim.Model",
+        ribasim_model: ribasim.Model,
         mf6_simulation: Modflow6Simulation,
         coupling_list: list[DriverCoupling],
         basin_definition: gpd.GeoDataFrame,
