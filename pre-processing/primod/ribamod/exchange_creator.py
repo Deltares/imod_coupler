@@ -7,7 +7,7 @@ from scipy.spatial import KDTree
 from primod.typing import Bool, Float, Int
 
 
-def _check_conductance(conductance: xr.DataArray) -> xr.DataArray:
+def _ensure_time_invariant_conductance(conductance: xr.DataArray) -> xr.DataArray:
     # Check that the conductance location does not change over time.
     # The imod_coupler has static weights: changing locations means having
     # to update the coupling weights over time as well.
@@ -39,7 +39,7 @@ def _find_coupled_cells(
     # and drainage.
     # Use xarray.where() to force the dimension order of conductance, rather than
     # using gridded_basin.where() (which prioritizes the gridded_basin dims)
-    conductance = _check_conductance(conductance)
+    conductance = _ensure_time_invariant_conductance(conductance)
     basin_id = xr.where(conductance.notnull(), gridded_basin, np.nan)  # type: ignore
     include = basin_id.notnull().to_numpy()
     basin_id_values = basin_id.to_numpy()[include].astype(int)

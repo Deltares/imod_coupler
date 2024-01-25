@@ -20,16 +20,16 @@ def conductance():
     return xr.DataArray(data=data, coords=coords, dims=dims)
 
 
-def test_check_conductance():
+def test_ensure_time_invariant_conductance():
     da = conductance()
 
     # Test
-    actual = exc._check_conductance(da)
+    actual = exc._ensure_time_invariant_conductance
     assert actual is da
 
     # Now add time
     time_da = xr.DataArray([1.0, 1.0, 1.0], coords={"time": [0, 1, 2]}) * da
-    actual = exc._check_conductance(time_da)
+    actual = exc._ensure_time_invariant_conductance(time_da)
     assert actual.dims == ("layer", "y", "x")
     assert "time" not in actual.coords
 
@@ -37,7 +37,7 @@ def test_check_conductance():
     time_da[1, 1, 1, 1] = np.nan
     time_da[1, 0, 0, 0] = 2.0
     with pytest.raises(ValueError, match="For imod_coupler, the active cells"):
-        exc._check_conductance(time_da)
+        exc._ensure_time_invariant_conductance(time_da)
 
 
 class TestFindCoupledCells:
