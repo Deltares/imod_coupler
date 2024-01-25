@@ -151,7 +151,7 @@ class RibaMod(Driver):
             table = np.loadtxt(path, delimiter="\t", dtype=int, skiprows=1, ndmin=2)
             package = packages[key]
             basin_index, bound_index, subgrid_index = table.T
-            data = np.ones_like(basin_index, dtype=float)
+            data = np.ones_like(basin_index, dtype=np.float64)
             self.map_mod2rib[key] = csr_matrix(
                 (data, (basin_index, bound_index)), shape=(n_basin, package.n_bound)
             )
@@ -167,7 +167,7 @@ class RibaMod(Driver):
             table = np.loadtxt(path, delimiter="\t", dtype=int, skiprows=1, ndmin=2)
             package = packages[key]
             basin_index, bound_index = table.T
-            data = np.ones_like(basin_index, dtype=float)
+            data = np.ones_like(basin_index, dtype=np.float64)
             matrix = csr_matrix(
                 (data, (basin_index, bound_index)), shape=(n_basin, package.n_bound)
             )
@@ -178,6 +178,7 @@ class RibaMod(Driver):
         # Ribasim's time unit is always seconds
         ribamod_time_factor = 86400
 
+        # TODO: call self.ribasim.update_subgrid_level() once landed in ribasim-api.
         # Set the MODFLOW 6 river stage and drainage to value of waterlevel of Ribasim basin
         for key, river in self.mf6_active_river_packages.items():
             # TODO: use specific level after Ribasim can export levels

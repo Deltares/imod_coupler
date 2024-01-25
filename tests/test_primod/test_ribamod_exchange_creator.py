@@ -33,11 +33,10 @@ def test_check_conductance():
     assert actual.dims == ("layer", "y", "x")
     assert "time" not in actual.coords
 
-    # Now remove one entry in the second time.
-    time_da[1, 0, 0, 0] = np.nan
-    with pytest.raises(
-        ValueError, match="For imod_coupler, the number of active cells"
-    ):
+    # Now move one entry in the second time to another place.
+    time_da[1, 1, 1, 1] = np.nan
+    time_da[1, 0, 0, 0] = 2.0
+    with pytest.raises(ValueError, match="For imod_coupler, the active cells"):
         exc._check_conductance(time_da)
 
 

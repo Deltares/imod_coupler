@@ -12,12 +12,11 @@ def _check_conductance(conductance: xr.DataArray) -> xr.DataArray:
     # The imod_coupler has static weights: changing locations means having
     # to update the coupling weights over time as well.
     if "time" in conductance.dims:
-        n_active = conductance.groupby("time").count(xr.ALL_DIMS)
-        if not (n_active == n_active[0]).all():
+        notnull = conductance.notnull()
+        if (notnull.any("time") != notnull.all("time")).any():
             raise ValueError(
-                "For imod_coupler, the number of active cells (defined by the "
-                "conductance) in a river or drainage package must be constant "
-                f"over time. Found:\n{n_active}"
+                "For imod_coupler, the active cells (defined by the conductance)"
+                "in a river or drainage package must be constant over time."
             )
         return conductance.isel(time=0, drop=True)
     else:

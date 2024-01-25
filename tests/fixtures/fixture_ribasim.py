@@ -24,6 +24,9 @@ def add_subgrid(model: ribasim.Model) -> ribasim.Model:
         }
     )
     model.basin.subgrid.df = subgrid_df
+    # TODO: this is currently required because the ribasim-api doesn't have a
+    # update_subgrid_level function yet. Once implemented, this can be removed
+    # and the function should be called in the ribamod update() call.
     model.results.subgrid = True
     model.solver.saveat = 86400.0  # always daily
     return model
