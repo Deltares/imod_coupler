@@ -24,7 +24,7 @@ def test_ensure_time_invariant_conductance():
     da = conductance()
 
     # Test
-    actual = exc._ensure_time_invariant_conductance
+    actual = exc._ensure_time_invariant_conductance(da)
     assert actual is da
 
     # Now add time
