@@ -4,4 +4,4 @@ from primod.ribamod import RibaMod
 
 __all__ = ["MetaMod", "RibaMod", "RibaMetaMod"]
 
-__version__ = "0.5.0"
+__version__ = "0.5.0-dev"
