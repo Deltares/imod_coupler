@@ -24,11 +24,6 @@ def add_subgrid(model: ribasim.Model) -> ribasim.Model:
         }
     )
     model.basin.subgrid.df = subgrid_df
-    # TODO: this is currently required because the ribasim-api doesn't have a
-    # update_subgrid_level function yet. Once implemented, this can be removed
-    # and the function should be called in the ribamod update() call.
-    model.results.subgrid = True
-    model.solver.saveat = 86400.0  # always daily
     return model
 
 
@@ -98,7 +93,7 @@ def ribasim_two_basin_model() -> ribasim.Model:
             data={
                 "node_id": [4, 4],
                 "level": [0.0, 1.0],
-                "discharge": [0.0, 0.01],
+                "flow_rate": [0.0, 0.01],
             }
         )
     )
