@@ -8,8 +8,12 @@ import numpy as np
 import pandas as pd
 import ribasim
 import tomli_w
-import xarray as xr
 from imod.mf6 import Drainage, GroundwaterFlowModel, Modflow6Simulation, River
+
+from primod.ribamod.exchange_creator import (
+    derive_active_coupling,
+    derive_passive_coupling,
+)
 
 
 @dataclass
@@ -198,28 +202,27 @@ class RibaMod:
                 f"present in the model: {missing}"
             )
 
-    @staticmethod
-    def derive_river_drainage_coupling(
-        gridded_basin: xr.DataArray,
-        basin_ids: "pd.Series[int]",
-        conductance: xr.DataArray,
-    ) -> pd.DataFrame:
-        # Conductance is leading parameter to define location, for both river
-        # and drainage.
-        # FUTURE: check for time dimension? Also order and inclusion of layer
-        # in conductance.
-        # Use xarray where to force the dimension order of conductance.
-        basin_id = xr.where(conductance.notnull(), gridded_basin, np.nan)  # type: ignore
-        include = basin_id.notnull().to_numpy()
-        basin_id_values = basin_id.to_numpy()[include].astype(int)
-        # Ribasim internally sorts the basin, which determines the order of the
-        # Ribasim level array.
-        basin_index = np.searchsorted(basin_ids, basin_id_values)
-        boundary_index_values = np.cumsum(conductance.notnull().to_numpy().ravel()) - 1
-        boundary_index_values = boundary_index_values[include.ravel()]
-        return pd.DataFrame(
-            data={"basin_index": basin_index, "bound_index": boundary_index_values}
-        )
+    def validate_basin_node_ids(self) -> pd.Series:
+        assert self.ribasim_model.basin.profile.df is not None
+        basin_ids = np.unique(self.ribasim_model.basin.profile.df["node_id"])
+        missing = ~np.isin(self.basin_definition["node_id"], basin_ids)
+        if missing.any():
+            missing_basins = self.basin_definition["node_id"].to_numpy()[missing]
+            raise ValueError(
+                "The node IDs of these basins in the basin definition do not "
+                f"occur in the Ribasim model: {missing_basins}"
+            )
+        return basin_ids
+
+    def validate_subgrid_df(self, coupling: DriverCoupling) -> pd.DataFrame | None:
+        if coupling.mf6_active_river_packages or coupling.mf6_active_drainage_packages:
+            if self.ribasim_model.basin.subgrid.df is None:
+                raise ValueError(
+                    "ribasim.model.basin.subgrid must be defined for actively coupled packages."
+                )
+            return self.ribasim_model.basin.subgrid.df
+        else:
+            return None
 
     def write_exchanges(
         self,
@@ -244,23 +247,15 @@ class RibaMod:
             coupling.mf6_passive_drainage_packages,
             Drainage,
         )
-
         dis = gwf_model[gwf_model._get_pkgkey("dis")]
+
+        basin_ids = self.validate_basin_node_ids()
+        subgrid_df = self.validate_subgrid_df(coupling)
         gridded_basin = imod.prepare.rasterize(
             self.basin_definition,
             like=dis["idomain"].isel(layer=0, drop=True),
             column="node_id",
         )
-
-        assert self.ribasim_model.basin.profile.df is not None
-        basin_ids = np.unique(self.ribasim_model.basin.profile.df["node_id"])
-        missing = ~np.isin(self.basin_definition["node_id"], basin_ids)
-        if missing.any():
-            missing_basins = self.basin_definition["node_id"].to_numpy()[missing]
-            raise ValueError(
-                "The node IDs of these basins in the basin definition do not "
-                f"occur in the Ribasim model: {missing_basins}"
-            )
 
         exchange_dir = Path(directory) / "exchanges"
         exchange_dir.mkdir(exist_ok=True, parents=True)
@@ -271,9 +266,19 @@ class RibaMod:
         for destination, keys in packages.items():
             for key in keys:
                 package = gwf_model[key]
-                table = self.derive_river_drainage_coupling(
-                    gridded_basin, basin_ids, package["conductance"]
-                )
+                if "active" in destination:
+                    table = derive_active_coupling(
+                        gridded_basin=gridded_basin,
+                        basin_ids=basin_ids,
+                        conductance=package["conductance"],
+                        subgrid_df=subgrid_df,
+                    )
+                else:
+                    table = derive_passive_coupling(
+                        gridded_basin=gridded_basin,
+                        basin_ids=basin_ids,
+                        conductance=package["conductance"],
+                    )
                 table.to_csv(exchange_dir / f"{key}.tsv", sep="\t", index=False)
                 coupling_dict[destination][key] = f"exchanges/{key}.tsv"
 

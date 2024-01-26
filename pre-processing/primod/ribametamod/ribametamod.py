@@ -201,7 +201,7 @@ class RibaMetaMod:
     @staticmethod
     def derive_river_drainage_coupling(
         gridded_basin: xr.DataArray,
-        basin_ids: "pd.Series[int]",
+        basin_ids: pd.Series,
         conductance: xr.DataArray,
     ) -> pd.DataFrame:
         # Conductance is leading parameter to define location, for both river

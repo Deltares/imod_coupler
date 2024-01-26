@@ -6,14 +6,40 @@ import ribasim
 import ribasim_testmodels
 
 
+def add_subgrid(model: ribasim.Model) -> ribasim.Model:
+    """Add 1:1 subgrid levels to model"""
+
+    profile_df = model.basin.profile.df
+    _, basin_id = np.unique(profile_df["node_id"], return_inverse=True)
+    geometry = model.network.node.df.loc[profile_df["node_id"]].geometry
+    subgrid_df = pd.DataFrame(
+        data={
+            "node_id": profile_df["node_id"],
+            "basin_id": basin_id,
+            "subgrid_id": basin_id,
+            "basin_level": profile_df["level"],
+            "subgrid_level": profile_df["level"],
+            "meta_x": geometry.x.to_numpy(),
+            "meta_y": geometry.y.to_numpy(),
+        }
+    )
+    model.basin.subgrid.df = subgrid_df
+    # TODO: this is currently required because the ribasim-api doesn't have a
+    # update_subgrid_level function yet. Once implemented, this can be removed
+    # and the function should be called in the ribamod update() call.
+    model.results.subgrid = True
+    model.solver.saveat = 86400.0  # always daily
+    return model
+
+
 @pytest_cases.fixture(scope="function")
 def ribasim_bucket_model() -> ribasim.Model:
-    return ribasim_testmodels.bucket_model()
+    return add_subgrid(ribasim_testmodels.bucket_model())
 
 
 @pytest_cases.fixture(scope="function")
 def ribasim_backwater_model() -> ribasim.Model:
-    return ribasim_testmodels.backwater_model()
+    return add_subgrid(ribasim_testmodels.backwater_model())
 
 
 @pytest_cases.fixture(scope="function")
@@ -44,7 +70,7 @@ def ribasim_two_basin_model() -> ribasim.Model:
             "level": [0.0, 1.0, 0.0, 1.0],
         }
     )
-
+    state = pd.DataFrame(data={"node_id": [2, 3], "level": [0.01, 0.01]})
     static = pd.DataFrame(
         data={
             "node_id": [2, 3],
@@ -55,7 +81,17 @@ def ribasim_two_basin_model() -> ribasim.Model:
             "urban_runoff": [0.0, 0.0],
         }
     )
-    basin = ribasim.Basin(profile=profile, static=static)
+    subgrid = pd.DataFrame(
+        data={
+            "node_id": [2, 2, 3, 3],
+            "subgrid_id": [1, 1, 2, 2],
+            "basin_level": [0.0, 1.0, 0.0, 1.0],
+            "subgrid_level": [0.0, 1.0, 0.0, 1.0],
+            "meta_x": [250.0, 250.0, 750.0, 750.0],
+            "meta_y": [0.0, 0.0, 0.0, 0.0],
+        }
+    )
+    basin = ribasim.Basin(profile=profile, state=state, static=static, subgrid=subgrid)
 
     rating_curve = ribasim.TabulatedRatingCurve(
         static=pd.DataFrame(
