@@ -178,7 +178,7 @@ class RibaMod(Driver):
         # Ribasim's time unit is always seconds
         ribamod_time_factor = 86400
 
-        # TODO: call self.ribasim.update_subgrid_level() once landed in ribasim-api.
+        self.ribasim.update_subgrid_level()
         # Set the MODFLOW 6 river stage and drainage to value of waterlevel of Ribasim basin
         for key, river in self.mf6_active_river_packages.items():
             # TODO: use specific level after Ribasim can export levels
