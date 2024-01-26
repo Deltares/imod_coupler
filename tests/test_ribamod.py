@@ -131,13 +131,19 @@ def test_ribamod_backwater(
 
     # Get the last flow between the edges
     final_flow = flow_df[flow_df["time"] == "2029-12-01"]
-    # Only the edges exiting the Basins.
-    final_flow = final_flow.loc[final_flow["edge_id"] % 2 == 1]["flow"]
-    # Convert m3/s to m3/d
-    ribasim_budget = np.diff(final_flow) * 86_400.0
+    # Check's what lost and gained in the basins
+    network = ribamod_model.ribasim_model.network
+    basin_ids = network.node.df.index[network.node.df["type"] == "Basin"]
+    ribasim_budget = (
+        final_flow.loc[
+            final_flow["from_node_id"].isin(basin_ids)
+            & final_flow["to_node_id"].isin(basin_ids)
+        ]["flow"]
+        * 86_400.0
+    ).to_numpy()
     modflow_budget = (drn + riv).isel(time=-1).sel(y=0).to_numpy()
     budget_diff = ribasim_budget + modflow_budget
-    assert (np.abs(budget_diff) < 0.01).all()
+    assert (np.abs(budget_diff) < 1.0e-6).all()
 
 
 @pytest.mark.xdist_group(name="ribasim")
