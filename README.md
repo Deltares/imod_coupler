@@ -5,19 +5,19 @@ It currently focuses on groundwater and supports coupling between MetaSWAP and M
 
 It can be installed by running
 
-```
+```sh
 pip install imod_coupler
 ```
 
 Then you can run it as command line app via
 
-```
+```sh
 imodc /path/to/imod_coupler.toml
 ```
 
 In order to receive help for its usage, run
 
-```
+```sh
 imodc --help
 ```
 
@@ -33,7 +33,7 @@ In order to develop on `imod_coupler` locally, please follow the following steps
 
 - Create the environment by executing the following in your terminal:
 
-```
+```sh
 pixi run install
 ```
 
@@ -48,12 +48,13 @@ pixi run install
  - To run the tests it is advisable to have a `.env` file at the root of the project directory instead of modifying global environment variables. 
  The content of `.env` would then look similar to this with the variables `IMOD_COLLECTOR_DEVEL`, `IMOD_COLLECTOR_REGRESSION` and `METASWAP_LOOKUP_TABLE` adjusted to your local machine:
 
-```bash
+```sh
 IMOD_COLLECTOR_DEVEL='D:\checkouts\imod_collector_devel'
 IMOD_COLLECTOR_REGRESSION='D:\checkouts\imod_collector_regression'
 METASWAP_LOOKUP_TABLE='D:\checkouts\DSCtestbench\cases\e150_metaswap\f00_common\c00_common\LHM2016_v01vrz'
 
-IMOD_COUPLER_EXEC_DEVEL='imodc' # Specify an absolute path here to use a packaged version of iMOD Coupler
+# Specify an absolute path here to use a packaged version of iMOD Coupler
+IMOD_COUPLER_EXEC_DEVEL='imodc'
 IMOD_COUPLER_EXEC_REGRESSION='${IMOD_COLLECTOR_REGRESSION}/imod_coupler/imodc.exe'
 METASWAP_DLL_DEP_DIR_DEVEL='${IMOD_COLLECTOR_DEVEL}/metaswap'
 METASWAP_DLL_DEP_DIR_REGRESSION='${IMOD_COLLECTOR_REGRESSION}/metaswap'
@@ -69,12 +70,21 @@ RIBASIM_DLL_REGRESSION='${IMOD_COLLECTOR_REGRESSION}/ribasim/bin/libribasim.dll'
 
 - The tests can then be run with:
 
-```bash
+```sh
 pixi run tests
 ```
 
 - Lint the codebase with:
 
-```bash
+```sh
 pixi run lint
+```
+
+## Troubleshooting
+
+If you encounter errors while running the tests, it might be that your pip dependencies are outdated.
+Try running 
+
+```sh
+pixi run update-git-dependencies
 ```
