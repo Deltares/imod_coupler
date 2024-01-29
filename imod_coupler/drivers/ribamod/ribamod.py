@@ -187,8 +187,8 @@ class RibaMod(Driver):
         ribamod_time_factor = 86400
 
         self.ribasim.update_subgrid_level()
-        # TODO: figure out whether this is required.
-        # Without this, it seems like the stage is all 0.0 (uninitialized, makes sense though).
+        # Ensure MODFLOW has river bottoms.
+        # Variables are otherwise initialized with zeros.
         self.mf6.prepare_time_step(0.0)
         # Set the MODFLOW 6 river stage and drainage to value of waterlevel of Ribasim basin
         for key, river in self.mf6_active_river_packages.items():
@@ -203,8 +203,6 @@ class RibaMod(Driver):
             ] + self.map_rib2mod[key].dot(self.subgrid_level)
             drainage.set_elevation(new_elevation=new_elevation)
 
-        # TODO: cannot call update because we need to call prepare_time_step() above.
-        # update also calls prepare_time_step so we'd advance too much.
         # One time step in MODFLOW 6
         # convergence loop
         self.mf6.prepare_solve(1)
