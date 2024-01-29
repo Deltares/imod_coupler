@@ -83,8 +83,10 @@ pixi run lint
 ## Troubleshooting
 
 If you encounter errors while running the tests, it might be that your pip dependencies are outdated.
-Try running 
+This happens when you have pulled the latest changes from imod_coupler.
+In that case you need to update the pip dependencies as well.
+Try running:
 
 ```sh
-pixi run update-git-dependencies
+pixi run install
 ```
