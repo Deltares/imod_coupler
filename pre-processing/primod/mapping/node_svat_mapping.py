@@ -3,7 +3,7 @@ import xarray as xr
 from imod import mf6
 from imod.msw.fixed_format import VariableMetaData
 
-from primod.metamod.mappingbase import MetaModMapping
+from primod.mapping.mappingbase import MetaModMapping
 
 
 class NodeSvatMapping(MetaModMapping):

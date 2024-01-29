@@ -28,13 +28,15 @@ class DriverCoupling:
 
 class RibaMetaMod:
     """
-    The RibaMod class creates the necessary input files for coupling Ribasim to
+    The RibaMetaMod class creates the necessary input files for coupling Ribasim to
     metaSWAP and MODFLOW 6.
 
     Parameters
     ----------
     ribasim_model : ribasim.model
         The Ribasim model that should be coupled.
+    msw_model : MetaSwapModel
+        The MetaSWAP model that should be coupled.
     mf6_simulation : Modflow6Simulation
         The Modflow6 simulation that should be coupled.
     coupling_list: list of DriverCoupling
@@ -138,6 +140,15 @@ class RibaMetaMod:
             Path to modflow6 .dll. You can obtain this library by downloading
             `the last iMOD5 release
             <https://oss.deltares.nl/web/imod/download-imod5>`_
+        metaswap_dll: str or Path
+            Path to metaswap .dll. You can obtain this library by downloading
+            `the last iMOD5 release
+            <https://oss.deltares.nl/web/imod/download-imod5>`_
+        metaswap_dll_dependency: str or Path
+            Directory with metaswap .dll dependencies. Directory should contain:
+            [fmpich2.dll, mpich2mpi.dll, mpich2nemesis.dll, TRANSOL.dll]. You
+            can obtain these by downloading `the last iMOD5 release
+            <https://oss.deltares.nl/web/imod/download-imod5>`_
         ribasim_dll: str or Path
             Path to ribasim .dll.
         ribasim_dll_dependency: str or Path
@@ -164,10 +175,17 @@ class RibaMetaMod:
         # Write exchange files
         exchange_dir = directory / "exchanges"
         exchange_dir.mkdir(mode=755, exist_ok=True)        
-        coupling_dict = self.write_exchanges(directory)
+        coupling_dict = self.write_exchanges(exchange_dir, self.mf6_rch_pkgkey, self.mf6_wel_pkgkey)
         self.write_toml(
-            directory, coupling_dict, modflow6_dll, ribasim_dll, ribasim_dll_dependency
+            directory,
+            coupling_dict,
+            modflow6_dll,
+            metaswap_dll,
+            metaswap_dll_dependency,
+            ribasim_dll,
+            ribasim_dll_dependency,
         )
+
 
     def write_toml(
         self,
@@ -261,7 +279,7 @@ class RibaMetaMod:
 
     @staticmethod
     def derive_river_drainage_coupling(
-        gridded_basin: xr.DataArray,
+        gridded_basin_mod: xr.DataArray,
         basin_ids: "pd.Series[int]",
         conductance: xr.DataArray,
     ) -> pd.DataFrame:
@@ -270,14 +288,33 @@ class RibaMetaMod:
         # FUTURE: check for time dimension? Also order and inclusion of layer
         # in conductance.
         # Use xarray where to force the dimension order of conductance.
-        basin_id = xr.where(conductance.notnull(), gridded_basin, np.nan)  # type: ignore
+        basin_id = xr.where(conductance.notnull(), gridded_basin_mod, np.nan)  # type: ignore
         include = basin_id.notnull().to_numpy()
         basin_id_values = basin_id.to_numpy()[include].astype(int)
         # Ribasim internally sorts the basin, which determines the order of the
         # Ribasim level array.
         basin_index = np.searchsorted(basin_ids, basin_id_values)
-        boundary_index_values = np.cumsum(conductance.notnull().to_numpy().ravel()) - 1
-        boundary_index_values = boundary_index_values[include.ravel()]
+#       boundary_index_values = np.cumsum(conductance.notnull().to_numpy().ravel()) - 1
+#       boundary_index_values = boundary_index_values[include.ravel()]
+        boundary_index_values = np.arange(np.sum(conductance.notnull().to_numpy()))-1 
+        return pd.DataFrame(
+            data={"basin_index": basin_index, "bound_index": boundary_index_values}
+        )
+
+    @staticmethod
+    def derive_coupling(
+        gridded_basin: xr.DataArray,
+        basin_ids: "pd.Series[int]",
+        condition: xr.DataArray,
+    ) -> pd.DataFrame:
+        # condition not null is leading directive to define location
+        basin_id = xr.where(condition.notnull(), gridded_basin, np.nan)  # type: ignore
+        include = basin_id.notnull().to_numpy()
+        basin_id_values = basin_id.to_numpy()[include].astype(int)
+        basin_index = np.searchsorted(basin_ids, basin_id_values)
+#       boundary_index_values = np.cumsum(condition.notnull().to_numpy().ravel()) - 1
+#       boundary_index_values = boundary_index_values[include.ravel()]
+        boundary_index_values = np.arange(np.sum(condition.notnull().to_numpy()))-1 
         return pd.DataFrame(
             data={"basin_index": basin_index, "bound_index": boundary_index_values}
         )
@@ -311,7 +348,8 @@ class RibaMetaMod:
         )
 
         dis = gwf_model[gwf_model._get_pkgkey("dis")]
-        gridded_basin = imod.prepare.rasterize(
+        # gridded basin riba with respect to the MODFLOW grid
+        gridded_basin_mod = imod.prepare.rasterize(
             self.basin_definition,
             like=dis["idomain"].isel(layer=0, drop=True),
             column="node_id",
@@ -331,18 +369,12 @@ class RibaMetaMod:
         rch_mapping.write(directory, index, svat)
 
         # mapping ponding: metaswap - ribasim
-        ponding_mapping = PondingSvatMapping(svat, [...])
-        ponding_mapping.write(directory, index, svat)
-
-        if self.is_sprinkling:
-            # sprinkling groundwater
-            well = gwf_model[mf6_wel_pkgkey]
-            well_mapping = WellSvatMapping(svat, well)
-            well_mapping.write(directory, index, svat)
-
-            # sprinkling surface water
-            sw_sprinkling_mapping = SWSprinklingSvatMapping(svat, [...])
-            sw_sprinkling_mapping.write(directory, index, svat)
+        # gridded basin riba with respect to the MetaSwap svat grid
+        gridded_basin_msw = imod.prepare.rasterize(
+            self.basin_definition,
+            like=svat,
+            column="svat",
+        )
 
         assert self.ribasim_model.basin.profile.df is not None
         basin_ids = np.unique(self.ribasim_model.basin.profile.df["node_id"])
@@ -353,8 +385,6 @@ class RibaMetaMod:
                 "The node IDs of these basins in the basin definition do not "
                 f"occur in the Ribasim model: {missing_basins}"
             )
-            
-
 
         packages = asdict(coupling)
         coupling_dict: dict[str, Any] = {destination: {} for destination in packages}
@@ -363,9 +393,31 @@ class RibaMetaMod:
             for key in keys:
                 package = gwf_model[key]
                 table = self.derive_river_drainage_coupling(
-                    gridded_basin, basin_ids, package["conductance"]
+                    gridded_basin_mod, basin_ids, package["conductance"]
                 )
                 table.to_csv(exchange_dir / f"{key}.tsv", sep="\t", index=False)
                 coupling_dict[destination][key] = f"exchanges/{key}.tsv"
+
+        # mapping ponding: metaswap - ribasim
+        gridded_basin_msw = imod.prepare.rasterize(
+            self.basin_definition,
+            like=svat,
+            column="svat",
+        )
+
+        table_ponding = self.derive_coupling(gridded_basin_msw, svat, svat)
+        table_ponding.to_csv(exchange_dir / "msw_ponding.tsv", sep="\t", index=False)
+        coupling_dict[destination][key] = Path("exchanges") / Path("msw_ponding.tsv")
+
+        if self.is_sprinkling:
+            # sprinkling groundwater
+            well = gwf_model[mf6_wel_pkgkey]
+            well_mapping = WellSvatMapping(svat, well)
+            well_mapping.write(directory, index, svat)
+
+            # sprinkling surface water
+            table_sw_sprinkling = self.derive_coupling(gridded_basin_msw, svat, svat)
+            table_sw_sprinkling.to_csv(exchange_dir / "msw_sw_sprinkling.tsv", sep="\t", index=False)
+            coupling_dict[destination][key] = Path("exchanges") / Path("msw_ponding.tsv")
 
         return coupling_dict

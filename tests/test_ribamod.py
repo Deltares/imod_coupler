@@ -6,7 +6,8 @@ import numpy as np
 import pandas as pd
 import pytest
 from numpy.testing import assert_allclose
-from primod.ribamod import RibaMod
+import primod.ribamod
+from primod.ribamod.ribamod import RibaMod
 from pytest_cases import parametrize_with_cases
 
 

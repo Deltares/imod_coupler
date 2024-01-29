@@ -9,12 +9,12 @@ from imod.msw.fixed_format import VariableMetaData, format_fixed_width
 from numpy.typing import NDArray
 
 
-class MetaModMapping(abc.ABC):
+class GenericMapping(abc.ABC):
     """
-    MetaModMapping is used to share methods for specific packages with no time
-    component.
+    MappingBase is used to share methods for specific packages with no time
+    component for multiple two-component mappings.
 
-    It is not meant to be used directly, only to inherit from, to implement new
+    It is intended as an abstract base class, only to inherit from, to implement new
     packages.
     """
 
@@ -107,3 +107,21 @@ class MetaModMapping(abc.ABC):
         filename = directory / self._file_name
         with open(filename, "w") as f:
             self._render(f, index, svat)
+
+class MetaModMapping(GenericMapping):
+    """
+    MetaModMapping is used to share methods for specific packages with no time
+    component.
+
+    It is not meant to be used directly, only to inherit from, to implement new
+    packages.
+    """
+
+class RibaMetaMapping(GenericMapping):
+    """
+    MetaRibaMapping is used to share methods for specific packages with no time
+    component.
+
+    It is not meant to be used directly, only to inherit from, to implement new
+    packages.
+    """

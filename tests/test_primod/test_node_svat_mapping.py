@@ -6,7 +6,7 @@ import pytest
 import xarray as xr
 from imod import mf6
 from numpy.testing import assert_equal
-from primod import metamod
+from primod import MetaModMapping
 
 
 def test_simple_model(fixed_format_parser):
