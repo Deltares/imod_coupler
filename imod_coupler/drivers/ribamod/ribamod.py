@@ -96,8 +96,7 @@ class RibaMod(Driver):
 
     def log_version(self) -> None:
         logger.info(f"MODFLOW version: {self.mf6.get_version()}")
-        # Getting the version from ribasim does not work at the moment
-        # https://github.com/Deltares/Ribasim/issues/364
+        logger.info(f"Ribasim version: {self.ribasim.get_version()}")
 
     def couple(self) -> None:
         """Couple Modflow and Ribasim"""
