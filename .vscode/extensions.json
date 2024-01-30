@@ -4,6 +4,7 @@
         "ms-python.mypy-type-checker",
         "charliermarsh.ruff",
         "njpwerner.autodocstring",
-        "tamasfe.even-better-toml"
+        "tamasfe.even-better-toml",
+        "davidanson.vscode-markdownlint"
     ]
 }
