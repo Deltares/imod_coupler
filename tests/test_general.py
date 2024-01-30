@@ -9,6 +9,7 @@ from imod_coupler.utils import setup_logger
 
 
 def test_get_version(imod_coupler_exec_devel: Path) -> None:
+    # TODO: Replace with calling main directly
     output_version = subprocess.run(
         [imod_coupler_exec_devel, "--version"],
         capture_output=True,
