@@ -108,6 +108,7 @@ class GenericMapping(abc.ABC):
         with open(filename, "w") as f:
             self._render(f, index, svat)
 
+
 class MetaModMapping(GenericMapping):
     """
     MetaModMapping is used to share methods for specific packages with no time
@@ -116,6 +117,7 @@ class MetaModMapping(GenericMapping):
     It is not meant to be used directly, only to inherit from, to implement new
     packages.
     """
+
 
 class RibaMetaMapping(GenericMapping):
     """

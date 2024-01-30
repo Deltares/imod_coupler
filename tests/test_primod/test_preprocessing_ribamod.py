@@ -10,7 +10,7 @@ from imod.mf6 import Drainage, River
 from imod.mf6.model import GroundwaterFlowModel
 from imod.mf6.simulation import Modflow6Simulation
 from numpy.testing import assert_equal
-from primod.ribamod.ribamod import RibaMod
+from primod.ribamod import RibaMod
 from primod.ribamod.ribamod import DriverCoupling
 from shapely.geometry import Polygon
 

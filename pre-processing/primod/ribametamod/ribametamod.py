@@ -1,17 +1,18 @@
+import copy
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any
 
 import geopandas as gpd
 import imod
-import copy
 import numpy as np
 import pandas as pd
 import ribasim
 import tomli_w
 import xarray as xr
-from imod.msw import GridData, MetaSwapModel, Sprinkling
 from imod.mf6 import Drainage, GroundwaterFlowModel, Modflow6Simulation, River
+from imod.msw import GridData, MetaSwapModel, Sprinkling
+
 from primod.mapping.node_svat_mapping import NodeSvatMapping
 from primod.mapping.rch_svat_mapping import RechargeSvatMapping
 from primod.mapping.wel_svat_mapping import WellSvatMapping
@@ -174,8 +175,10 @@ class RibaMetaMod:
 
         # Write exchange files
         exchange_dir = directory / "exchanges"
-        exchange_dir.mkdir(mode=755, exist_ok=True)        
-        coupling_dict = self.write_exchanges(exchange_dir, self.mf6_rch_pkgkey, self.mf6_wel_pkgkey)
+        exchange_dir.mkdir(mode=755, exist_ok=True)
+        coupling_dict = self.write_exchanges(
+            exchange_dir, self.mf6_rch_pkgkey, self.mf6_wel_pkgkey
+        )
         self.write_toml(
             directory,
             coupling_dict,
@@ -185,7 +188,6 @@ class RibaMetaMod:
             ribasim_dll,
             ribasim_dll_dependency,
         )
-
 
     def write_toml(
         self,
@@ -216,7 +218,7 @@ class RibaMetaMod:
             Directory with metaswap .dll dependencies. Directory should contain:
             [fmpich2.dll, mpich2mpi.dll, mpich2nemesis.dll, TRANSOL.dll]. You
             can obtain these by downloading `the last iMOD5 release
-            <https://oss.deltares.nl/web/imod/download-imod5>`_            
+            <https://oss.deltares.nl/web/imod/download-imod5>`_
         ribasim_dll: str or Path
             Path to ribasim .dll.
         ribasim_dll_dependency: str or Path
@@ -294,9 +296,9 @@ class RibaMetaMod:
         # Ribasim internally sorts the basin, which determines the order of the
         # Ribasim level array.
         basin_index = np.searchsorted(basin_ids, basin_id_values)
-#       boundary_index_values = np.cumsum(conductance.notnull().to_numpy().ravel()) - 1
-#       boundary_index_values = boundary_index_values[include.ravel()]
-        boundary_index_values = np.arange(np.sum(conductance.notnull().to_numpy()))-1 
+        #       boundary_index_values = np.cumsum(conductance.notnull().to_numpy().ravel()) - 1
+        #       boundary_index_values = boundary_index_values[include.ravel()]
+        boundary_index_values = np.arange(np.sum(conductance.notnull().to_numpy())) - 1
         return pd.DataFrame(
             data={"basin_index": basin_index, "bound_index": boundary_index_values}
         )
@@ -312,7 +314,7 @@ class RibaMetaMod:
         include = basin_id.notnull().to_numpy()
         basin_id_values = basin_id.to_numpy()[include].astype(int)
         basin_index = np.searchsorted(basin_ids, basin_id_values)
-        boundary_index_values = np.arange(np.sum(condition.to_numpy()))+1 
+        boundary_index_values = np.arange(np.sum(condition.to_numpy())) + 1
         return pd.DataFrame(
             data={"basin_index": basin_index, "bound_index": boundary_index_values}
         )
@@ -397,7 +399,7 @@ class RibaMetaMod:
                 coupling_dict[destination][key] = f"exchanges/{key}.tsv"
 
         # ponding for all svats
-        table_ponding = self.derive_coupling(gridded_basin_msw, basin_ids, svat>0)
+        table_ponding = self.derive_coupling(gridded_basin_msw, basin_ids, svat > 0)
         table_ponding.to_csv(exchange_dir / "msw_ponding.tsv", sep="\t", index=False)
         coupling_dict[destination][key] = Path("exchanges") / Path("msw_ponding.tsv")
 
@@ -409,12 +411,20 @@ class RibaMetaMod:
 
             # sprinkling surface water for subsection of svats determined in 'sprinkling'
             swspr_grid_data = copy.deepcopy(self.msw_model[grid_data_key])
-            nsu = swspr_grid_data.dataset['area'].sizes['subunit']
-            swsprmax=self.msw_model['sprinkling']
-            swspr_grid_data.dataset['area'].values=np.tile(swsprmax.values,(nsu,1,1)) 
+            nsu = swspr_grid_data.dataset["area"].sizes["subunit"]
+            swsprmax = self.msw_model["sprinkling"]
+            swspr_grid_data.dataset["area"].values = np.tile(
+                swsprmax.values, (nsu, 1, 1)
+            )
             index_swspr, svat_swspr = swspr_grid_data.generate_index_array()
-            table_sw_sprinkling = self.derive_coupling(gridded_basin_msw, basin_ids, svat_swspr.notnull())
-            table_sw_sprinkling.to_csv(exchange_dir / "msw_sw_sprinkling.tsv", sep="\t", index=False)
-            coupling_dict[destination][key] = Path("exchanges") / Path("msw_swsprinkling.tsv")
+            table_sw_sprinkling = self.derive_coupling(
+                gridded_basin_msw, basin_ids, svat_swspr.notnull()
+            )
+            table_sw_sprinkling.to_csv(
+                exchange_dir / "msw_sw_sprinkling.tsv", sep="\t", index=False
+            )
+            coupling_dict[destination][key] = Path("exchanges") / Path(
+                "msw_swsprinkling.tsv"
+            )
 
         return coupling_dict

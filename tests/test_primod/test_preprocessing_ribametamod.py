@@ -2,23 +2,12 @@ from pathlib import Path
 
 import geopandas as gpd
 import imod
-import numpy as np
 import pandas as pd
-import pytest
-import xarray as xr
-from imod.mf6 import Drainage, River
+from imod.mf6 import River
 from imod.mf6.model import GroundwaterFlowModel
 from imod.mf6.simulation import Modflow6Simulation
-from numpy.testing import assert_equal
-from primod.ribametamod.ribametamod import RibaMetaMod
+from primod.ribametamod import RibaMetaMod
 from primod.ribametamod.ribametamod import DriverCoupling
-from primod.ribametamod import (
-    RibaMetaMod,
-    NodeSvatMapping,
-    RechargeSvatMapping,
-    WellSvatMapping,
-)
-from shapely.geometry import Polygon
 
 # tomllib part of Python 3.11, else use tomli
 try:
@@ -27,7 +16,9 @@ except ModuleNotFoundError:
     import tomli as tomllib
 
 
-def create_basin_definition(coupled_mf6_model, ribasim_two_basin_model, buffersize: float) -> gpd.GeoDataFrame:
+def create_basin_definition(
+    coupled_mf6_model, ribasim_two_basin_model, buffersize: float
+) -> gpd.GeoDataFrame:
     _, mf6_model = get_mf6_gwf_modelnames(coupled_mf6_model)[0]
     _, xmin, xmax, _, ymin, ymax = imod.util.spatial_reference(
         mf6_model["dis"]["idomain"]
@@ -48,9 +39,9 @@ def create_basin_definition(coupled_mf6_model, ribasim_two_basin_model, buffersi
 def test_ribametamod_write(
     ribasim_two_basin_model, prepared_msw_model, coupled_mf6_model, tmp_path
 ):
-    basin_definition = create_basin_definition(coupled_mf6_model, 
-                                               ribasim_two_basin_model, 
-                                               buffersize = 10)
+    basin_definition = create_basin_definition(
+        coupled_mf6_model, ribasim_two_basin_model, buffersize=10
+    )
     mf6_modelname, mf6_model = get_mf6_gwf_modelnames(coupled_mf6_model)[0]
     mf6_river_packages = get_mf6_river_packagenames(mf6_model)
 
@@ -66,11 +57,10 @@ def test_ribametamod_write(
         coupling_list=[driver_coupling],
         basin_definition=basin_definition,
         mf6_rch_pkgkey="rch_msw",
-        mf6_wel_pkgkey="wells_msw",        
+        mf6_wel_pkgkey="wells_msw",
     )
     output_dir = tmp_path / "ribametamod"
     coupling_dict = coupled_models.write_exchanges(output_dir, "rch_msw", "wells_msw")
-
 
     exchange_path = Path("exchanges") / "riv-1.tsv"
     expected_dict = {
@@ -87,15 +77,15 @@ def test_ribametamod_write(
     expected_df = pd.DataFrame(data={"basin_index": [0], "bound_index": [0]})
     assert exchange_df.equals(expected_df)
 
-    ### to be added: asserts on metaswap-ribasim specific tables 
+    ### to be added: asserts on metaswap-ribasim specific tables
 
 
 def test_ribametamod_write_toml(
     ribasim_two_basin_model, prepared_msw_model, coupled_mf6_model, tmp_path
 ):
-    basin_definition = create_basin_definition(coupled_mf6_model, 
-                                               ribasim_two_basin_model, 
-                                               buffersize = 10)
+    basin_definition = create_basin_definition(
+        coupled_mf6_model, ribasim_two_basin_model, buffersize=10
+    )
     mf6_modelname, mf6_model = get_mf6_gwf_modelnames(coupled_mf6_model)[0]
     mf6_river_packages = get_mf6_river_packagenames(mf6_model)
 
@@ -111,7 +101,7 @@ def test_ribametamod_write_toml(
         coupling_list=[driver_coupling],
         basin_definition=basin_definition,
         mf6_rch_pkgkey="rch_msw",
-        mf6_wel_pkgkey="wells_msw",        
+        mf6_wel_pkgkey="wells_msw",
     )
 
     output_dir = tmp_path / "ribamod"

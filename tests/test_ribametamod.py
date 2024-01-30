@@ -3,7 +3,6 @@ import subprocess
 from pathlib import Path
 
 import pandas as pd
-import pytest
 import tomli_w
 
 
@@ -43,9 +42,9 @@ def test_metamod(
     subprocess.run([imod_coupler_exec_devel, toml_path], check=True)
 
 
-#@pytest.mark.skip(
+# @pytest.mark.skip(
 #    reason="Fails with SQLite.SQLiteException: no such column: allocation_network_id"
-#)
+# )
 def test_ribamod(
     tmp_path_dev: Path,
     modflow_dll_devel: Path,
