@@ -7,9 +7,9 @@ platforms = ["win-64", "linux-64"]
 
 [tasks]
 # Install
-install-ribasim-python = "pip install --upgrade git+https://github.com/Deltares/Ribasim.git/#subdirectory=python/ribasim"
-install-ribasim-api = "pip install --upgrade git+https://github.com/Deltares/Ribasim.git/#subdirectory=python/ribasim_api"
-install-ribasim-testmodels = "pip install --upgrade git+https://github.com/Deltares/Ribasim.git/#subdirectory=python/ribasim_testmodels"
+install-ribasim-python = "pip install git+https://github.com/Deltares/Ribasim.git/#subdirectory=python/ribasim"
+install-ribasim-api = "pip install git+https://github.com/Deltares/Ribasim.git/#subdirectory=python/ribasim_api"
+install-ribasim-testmodels = "pip install git+https://github.com/Deltares/Ribasim.git/#subdirectory=python/ribasim_testmodels"
 install-primod = "pip install --no-deps --editable pre-processing"
 install-imodc = "pip install --no-deps --editable ."
 install = { depends_on = [
@@ -19,6 +19,10 @@ install = { depends_on = [
     "install-primod",
     "install-imodc",
 ] }
+update-git-dependencies = """pip install --upgrade --force-reinstall --no-deps
+                             git+https://github.com/Deltares/Ribasim.git/#subdirectory=python/ribasim
+                             git+https://github.com/Deltares/Ribasim.git/#subdirectory=python/ribasim_api
+                             git+https://github.com/Deltares/Ribasim.git/#subdirectory=python/ribasim_testmodels"""
 # Tests
 tests = "pytest --numprocesses=auto --dist=loadgroup --basetemp=tests/temp --junitxml=report.xml"
 # Lint
