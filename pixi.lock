@@ -17984,6 +17984,46 @@ package:
   size: 21896
   timestamp: 1704512704737
 - platform: linux-64
+  name: types-requests
+  version: 2.31.0.20240125
+  category: main
+  manager: conda
+  dependencies:
+  - python >=3.6
+  - urllib3 >=2
+  url: https://conda.anaconda.org/conda-forge/noarch/types-requests-2.31.0.20240125-pyhd8ed1ab_0.conda
+  hash:
+    md5: 0200f9f9bb98c12a172ae49ef7d83d60
+    sha256: d7810ab6cca4a5f6a8f7a10104b04bce455751f0f0b083375da04a4df976ed45
+  build: pyhd8ed1ab_0
+  arch: x86_64
+  subdir: linux-64
+  build_number: 0
+  license: Apache-2.0 AND MIT
+  noarch: python
+  size: 25974
+  timestamp: 1706155106233
+- platform: win-64
+  name: types-requests
+  version: 2.31.0.20240125
+  category: main
+  manager: conda
+  dependencies:
+  - python >=3.6
+  - urllib3 >=2
+  url: https://conda.anaconda.org/conda-forge/noarch/types-requests-2.31.0.20240125-pyhd8ed1ab_0.conda
+  hash:
+    md5: 0200f9f9bb98c12a172ae49ef7d83d60
+    sha256: d7810ab6cca4a5f6a8f7a10104b04bce455751f0f0b083375da04a4df976ed45
+  build: pyhd8ed1ab_0
+  arch: x86_64
+  subdir: win-64
+  build_number: 0
+  license: Apache-2.0 AND MIT
+  noarch: python
+  size: 25974
+  timestamp: 1706155106233
+- platform: linux-64
   name: typing-extensions
   version: 4.8.0
   category: main
