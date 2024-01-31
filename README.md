@@ -86,9 +86,9 @@ pixi run lint
 ### Debugging
 
 When debugging the unit tests in visual studio code with the test explorer, you can encounter some problems.
-MODFLOW is not so keen on multi-threading, and when debugging a test, make sure that you only have one test running at a time.
+Both MODFLOW 6 and MetaSWAP might behave unpredicateble when being initialized and finalized multiple times.
 
-When running the unit tests, this is not the case, since there is a switch statement that determines if we should call subprocess.run(), or stay within the main thread.
+When you only run, not debug, unit tests, this is not the case, since there is a switch statement that determines if we should call `subprocess.run()`, or stay within the main thread.
 See the fixture for `imodc_executable` for more information.
 
 ### Troubleshooting
@@ -99,5 +99,5 @@ In that case you need to update the pip dependencies as well.
 Try running:
 
 ```sh
-pixi run install
+pixi run update-git-dependencies
 ```
