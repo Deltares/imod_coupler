@@ -12,4 +12,7 @@
         }
     },
     "mypy-type-checker.importStrategy": "fromEnvironment",
+    "files.associations": {
+        ".env.jinja": "jinja-properties"
+    }
 }
