@@ -217,7 +217,6 @@ def test_ribamod_partial_two_basin(
 
     subprocess.run(
         [imod_coupler_exec_devel, tmp_path_dev / ribamod_model._toml_name], check=True
-        check=True,
     )
 
     # Read Ribasim output
