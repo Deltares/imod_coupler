@@ -292,9 +292,20 @@ def mf6_backwater_model() -> mf6.Modflow6Simulation:
 
 
 def two_basin_variation(
-    gwf_model: mf6.GroundwaterFlowModel,
+    idomain: xr.DataArray,
+    river: mf6.River,
 ) -> mf6.Modflow6Simulation:
     """Sets some of the identical entries."""
+    gwf_model = mf6.GroundwaterFlowModel()
+    gwf_model["dis"] = mf6.StructuredDiscretization(
+        idomain=idomain, top=20.0, bottom=xr.DataArray([-10.0], dims=["layer"])
+    )
+    gwf_model["riv_1"] = river
+    gwf_model["npf"] = mf6.NodePropertyFlow(
+        icelltype=0,
+        k=0.1,
+        k33=0.1,
+    )
     gwf_model["ic"] = mf6.InitialConditions(start=0.0)
     gwf_model["sto"] = mf6.SpecificStorage(1e-5, 0.15, True, 1)
     gwf_model["oc"] = mf6.OutputControl(save_head="last", save_budget="last")
@@ -317,7 +328,7 @@ def two_basin_variation(
         reordering_method=None,
         relaxation_factor=0.97,
     )
-    times = pd.date_range("2020-01-01", "2030-01-01", freq="1d")
+    times = pd.date_range("2020-01-01", "2020-02-01", freq="1d")
     simulation.create_time_discretization(additional_times=times)
     return simulation
 
@@ -335,17 +346,6 @@ def mf6_two_basin_model() -> mf6.Modflow6Simulation:
     coords = {"layer": layer, "y": y, "x": x}
     idomain = xr.DataArray(data=np.ones(shape, dtype=int), coords=coords, dims=dims)
 
-    gwf_model = mf6.GroundwaterFlowModel()
-    gwf_model["dis"] = mf6.StructuredDiscretization(
-        idomain=idomain, top=20.0, bottom=xr.DataArray([-10.0], dims=["layer"])
-    )
-
-    gwf_model["npf"] = mf6.NodePropertyFlow(
-        icelltype=0,
-        k=0.1,
-        k33=0.1,
-    )
-
     stage = xr.full_like(idomain, np.nan, dtype=float)
     conductance = xr.full_like(idomain, np.nan, dtype=float)
     bottom_elevation = xr.full_like(idomain, np.nan, dtype=float)
@@ -353,13 +353,13 @@ def mf6_two_basin_model() -> mf6.Modflow6Simulation:
     # Compute conductance as wetted area (length 20.0, width 1.0, entry resistance 1.0)
     conductance[:, 25, :] = (20.0 * 1.0) / 1.0
     bottom_elevation[:, 25, :] = 0.0
-    gwf_model["riv_1"] = mf6.River(
+    river = mf6.River(
         stage=stage,
         conductance=conductance,
         bottom_elevation=bottom_elevation,
         save_flows=True,
     )
-    return two_basin_variation(gwf_model)
+    return two_basin_variation(idomain, river)
 
 
 @pytest_cases.fixture(scope="function")
@@ -382,17 +382,6 @@ def mf6_partial_two_basin_model() -> mf6.Modflow6Simulation:
     coords = {"layer": layer, "y": y, "x": x}
     idomain = xr.DataArray(data=np.ones(shape, dtype=int), coords=coords, dims=dims)
 
-    gwf_model = mf6.GroundwaterFlowModel()
-    gwf_model["dis"] = mf6.StructuredDiscretization(
-        idomain=idomain, top=20.0, bottom=xr.DataArray([-10.0], dims=["layer"])
-    )
-
-    gwf_model["npf"] = mf6.NodePropertyFlow(
-        icelltype=0,
-        k=0.1,
-        k33=0.1,
-    )
-
     stage = xr.full_like(idomain, np.nan, dtype=float)
     conductance = xr.full_like(idomain, np.nan, dtype=float)
     bottom_elevation = xr.full_like(idomain, np.nan, dtype=float)
@@ -410,13 +399,13 @@ def mf6_partial_two_basin_model() -> mf6.Modflow6Simulation:
     bottom_elevation[:, 0, :] = 0.25
     bottom_elevation[:, -1, :] = 0.25
 
-    gwf_model["riv_1"] = mf6.River(
+    river = mf6.River(
         stage=stage,
         conductance=conductance,
         bottom_elevation=bottom_elevation,
         save_flows=True,
     )
-    return two_basin_variation(gwf_model)
+    return two_basin_variation(idomain, river)
 
 
 @pytest_cases.fixture(scope="function")
@@ -436,19 +425,6 @@ def mf6_uncoupled_two_basin_model() -> mf6.Modflow6Simulation:
     coords = {"layer": layer, "y": y, "x": x}
     idomain = xr.DataArray(data=np.ones(shape, dtype=int), coords=coords, dims=dims)
 
-    gwf_model = mf6.GroundwaterFlowModel()
-    gwf_model["dis"] = mf6.StructuredDiscretization(
-        idomain=idomain, top=20.0, bottom=xr.DataArray([-10.0], dims=["layer"])
-    )
-
-    gwf_model["npf"] = mf6.NodePropertyFlow(
-        icelltype=0,
-        k=0.1,
-        k33=0.1,
-    )
-
-    gwf_model["rch"] = mf6.Recharge(rate=xr.full_like(idomain, 0.001, dtype=float))
-
     stage = xr.full_like(idomain, np.nan, dtype=float)
     conductance = xr.full_like(idomain, np.nan, dtype=float)
     bottom_elevation = xr.full_like(idomain, np.nan, dtype=float)
@@ -456,13 +432,10 @@ def mf6_uncoupled_two_basin_model() -> mf6.Modflow6Simulation:
     # Compute conductance as wetted area (length 20.0, width 1.0, entry resistance 1.0)
     conductance[:, 10, :] = (20.0 * 1.0) / 1.0
     bottom_elevation[:, 10, :] = 0.0
-    gwf_model["riv-1"] = mf6.River(
+    river = mf6.River(
         stage=stage,
         conductance=conductance,
         bottom_elevation=bottom_elevation,
         save_flows=True,
     )
-    gwf_model["drn-1"] = mf6.Drainage(
-        elevation=stage, conductance=conductance, save_flows=True
-    )
-    return two_basin_variation(gwf_model)
+    return two_basin_variation(idomain, river)

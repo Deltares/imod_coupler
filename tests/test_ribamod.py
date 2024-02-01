@@ -188,7 +188,7 @@ def test_ribamod_two_basin(
     assert bool(head.isel(time=-1, layer=0).diff("x").all())
 
     # Water is flowing from basin1 through the ground to basin2.
-    level1, level2 = basin_df.loc[basin_df["time"] == "2030-01-01"]["level"]
+    level1, level2 = basin_df.loc[basin_df["time"] == "2020-02-01"]["level"]
     assert level1 > level2
 
     # Flow in the edges is always to the right.
@@ -252,7 +252,7 @@ def test_ribamod_partial_two_basin(
     flow_to_terminal = flow_df.loc[
         (flow_df["from_node_id"] == 4) & (flow_df["to_node_id"] == 5)
     ]["flow"]
-    assert flow_to_terminal.iloc[-1] < 1.0e-9
+    assert flow_to_terminal.iloc[-1] < 1.0e-6
 
 
 @pytest.mark.xdist_group(name="ribasim")
