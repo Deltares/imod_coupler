@@ -157,7 +157,7 @@ def test_ribamod_two_basin(
     imod_coupler_exec_devel: Path,
 ) -> None:
     """
-    Test if the backwater model works as expected
+    Test if the two basin model works as expected
     """
     ribamod_model.write(
         tmp_path_dev,
@@ -193,3 +193,91 @@ def test_ribamod_two_basin(
 
     # Flow in the edges is always to the right.
     assert (flow_df["flow"].loc[flow_df["edge_id"].notna()] >= 0).all()
+
+
+@pytest.mark.xdist_group(name="ribasim")
+@parametrize_with_cases("ribamod_model", glob="partial_two_basin_model")
+def test_ribamod_partial_two_basin(
+    tmp_path_dev: Path,
+    ribamod_model: RibaMod,
+    modflow_dll_devel: Path,
+    ribasim_dll_devel: Path,
+    ribasim_dll_dep_dir_devel: Path,
+    imod_coupler_exec_devel: Path,
+) -> None:
+    """
+    Test if the partial two basin model works as expected
+    """
+    ribamod_model.write(
+        tmp_path_dev,
+        modflow6_dll=modflow_dll_devel,
+        ribasim_dll=ribasim_dll_devel,
+        ribasim_dll_dependency=ribasim_dll_dep_dir_devel,
+    )
+
+    subprocess.run(
+        [imod_coupler_exec_devel, tmp_path_dev / ribamod_model._toml_name], check=True
+        check=True,
+    )
+
+    # Read Ribasim output
+    basin_df = pd.read_feather(
+        tmp_path_dev / ribamod_model._ribasim_model_dir / "results" / "basin.arrow"
+    )
+    flow_df = pd.read_feather(
+        tmp_path_dev / ribamod_model._ribasim_model_dir / "results" / "flow.arrow"
+    )
+    # Read MODFLOW 6 output
+    head = imod.mf6.open_hds(
+        tmp_path_dev / ribamod_model._modflow6_model_dir / "GWF_1" / "GWF_1.hds",
+        tmp_path_dev / ribamod_model._modflow6_model_dir / "GWF_1" / "dis.dis.grb",
+    ).compute()
+
+    # The top and bottom rows have non coupled river boundaries with a stage of
+    # 0.5 m and a large conductance.
+    # The resulting head values should be approximately 0.5 m.
+    assert (abs(head.isel(time=-1, y=0) - 0.5) < 0.01).all()
+    assert (abs(head.isel(time=-1, y=-1) - 0.5) < 0.01).all()
+
+    # The center head should be close to the left basin level.
+    # Basin level is quite high due to large inflow: about 273 m...
+    last_level_left = basin_df.loc[basin_df["node_id"] == 2, "level"].iloc[-1]
+    center_head = head.isel(time=-1).sel(y=0, method="nearest")
+    stage_head_diff = last_level_left - center_head
+    assert (stage_head_diff < 2.0).all()
+
+    # The rightmost basin is not coupled, nor connected with the left basin.
+    # It should only empty with tiny flows.
+    # If it is connected, it would have much larger flow due to groundwater
+    # draining.
+    flow_to_terminal = flow_df.loc[
+        (flow_df["from_node_id"] == 4) & (flow_df["to_node_id"] == 5)
+    ]["flow"]
+    assert flow_to_terminal.iloc[-1] < 1.0e-9
+
+
+@pytest.mark.xdist_group(name="ribasim")
+@parametrize_with_cases("ribamod_model", glob="uncoupled_two_basin_model")
+def test_ribamod_uncoupled_two_basin(
+    tmp_path_dev: Path,
+    ribamod_model: RibaMod,
+    modflow_dll_devel: Path,
+    ribasim_dll_devel: Path,
+    ribasim_dll_dep_dir_devel: Path,
+    imod_coupler_exec_devel: Path,
+) -> None:
+    """
+    Test if the partial two basin model works as expected if there's no spatial
+    overlap between the RibaMod and Modflow6 model.
+    """
+    ribamod_model.write(
+        tmp_path_dev,
+        modflow6_dll=modflow_dll_devel,
+        ribasim_dll=ribasim_dll_devel,
+        ribasim_dll_dependency=ribasim_dll_dep_dir_devel,
+    )
+
+    # Should run without exceptions.
+    subprocess.run(
+        [imod_coupler_exec_devel, tmp_path_dev / ribamod_model._toml_name], check=True
+    )

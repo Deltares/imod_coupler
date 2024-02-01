@@ -279,7 +279,8 @@ class RibaMod:
                         basin_ids=basin_ids,
                         conductance=package["conductance"],
                     )
-                table.to_csv(exchange_dir / f"{key}.tsv", sep="\t", index=False)
-                coupling_dict[destination][key] = f"exchanges/{key}.tsv"
+                if not table.empty:
+                    table.to_csv(exchange_dir / f"{key}.tsv", sep="\t", index=False)
+                    coupling_dict[destination][key] = f"exchanges/{key}.tsv"
 
         return coupling_dict
