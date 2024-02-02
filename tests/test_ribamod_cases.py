@@ -8,6 +8,7 @@ def create_basin_definition(
     ribasim_model: ribasim.Model, buffersize: float
 ) -> gpd.GeoDataFrame:
     node = ribasim_model.network.node.df
+    assert ribasim_model.basin.static.df is not None
     basin_nodes = ribasim_model.basin.static.df["node_id"].unique()
     basin_geometry = node.loc[basin_nodes].geometry
     # Call to_numpy() to get rid of the index
@@ -64,10 +65,11 @@ def case_backwater_model(
     )
 
 
-def case_two_basin_model(
+def two_basin_variation(
     mf6_two_basin_model: Modflow6Simulation,
     ribasim_two_basin_model: ribasim.Model,
 ) -> RibaMod:
+    """Utility to setup two_basin models."""
     mf6_modelname, mf6_model = get_mf6_gwf_modelnames(mf6_two_basin_model)[0]
     mf6_active_river_packages = get_mf6_river_packagenames(mf6_model)
 
@@ -86,6 +88,27 @@ def case_two_basin_model(
         basin_definition=basin_definition,
         coupling_list=[driver_coupling],
     )
+
+
+def case_two_basin_model(
+    mf6_two_basin_model: Modflow6Simulation,
+    ribasim_two_basin_model: ribasim.Model,
+) -> RibaMod:
+    return two_basin_variation(mf6_two_basin_model, ribasim_two_basin_model)
+
+
+def case_partial_two_basin_model(
+    mf6_partial_two_basin_model: Modflow6Simulation,
+    ribasim_two_basin_model: ribasim.Model,
+) -> RibaMod:
+    return two_basin_variation(mf6_partial_two_basin_model, ribasim_two_basin_model)
+
+
+def case_uncoupled_two_basin_model(
+    mf6_uncoupled_two_basin_model: Modflow6Simulation,
+    ribasim_two_basin_model: ribasim.Model,
+) -> RibaMod:
+    return two_basin_variation(mf6_uncoupled_two_basin_model, ribasim_two_basin_model)
 
 
 def get_mf6_gwf_modelnames(
