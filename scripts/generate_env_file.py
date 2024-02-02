@@ -1,5 +1,3 @@
-import glob
-import re
 from pathlib import Path
 
 import jinja2
@@ -7,7 +5,8 @@ import jinja2
 
 def generate_env_file() -> None:
     template_generator = jinja2.Environment(
-        loader=jinja2.FileSystemLoader("scripts/templates")
+        loader=jinja2.FileSystemLoader("scripts/templates"),
+        autoescape=True,
     )
     template = template_generator.get_template(".env.jinja")
     with open(".env", "w") as f:
@@ -27,15 +26,11 @@ def __get_imod_collector_path(tag: str) -> Path:
     Find an existing path of imod_collector.
     Extract the numeric suffix from each path and find the path with the highest number
     """
-    search_path = f".pixi/imod_collector/{tag}_*"
-    paths = glob.glob(search_path)
+    search_path = Path(".pixi/imod_collector")
+    paths = search_path.glob(f"{tag}_*")
     if not paths:
-        raise ValueError(f"No paths found for tag {tag}")
-    paths_with_numbers = []
-    for path in paths:
-        match = re.search(r"(\d+)$", path)
-        if match:
-            paths_with_numbers.append((path, int(match.group(1))))
+        raise ValueError(f"No paths found for tag '{tag}'")
+    paths_with_numbers = [(path, int(path.name.split("_")[1])) for path in paths]
     if not paths_with_numbers:
         raise ValueError(f"No numeric suffixes found in paths for tag {tag}")
 
