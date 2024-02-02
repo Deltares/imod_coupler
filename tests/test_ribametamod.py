@@ -38,9 +38,16 @@ def test_ribametamod_develop(
     )
 
 
+<<<<<<< HEAD
 @pytest.mark.xdist_group(name="ribasim")
 @parametrize_with_cases("ribametamod_model", glob="bucket_model")
 def test_ribametamod_bucket(
+=======
+@pytest.mark.skip(
+   reason="Fails with SQLite.SQLiteException: no such column: allocation_network_id"
+)
+def test_ribamod(
+>>>>>>> 17c7777 (test_ribamod should be skipped for the time being)
     tmp_path_dev: Path,
     ribametamod_model: RibaMod | MetaSwapModel,
     modflow_dll_devel: Path,
