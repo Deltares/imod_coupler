@@ -3,6 +3,7 @@ import subprocess
 from pathlib import Path
 
 import pandas as pd
+import pytest
 import tomli_w
 
 
