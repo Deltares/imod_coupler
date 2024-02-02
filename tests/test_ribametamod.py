@@ -61,7 +61,10 @@ def test_ribametamod_bucket(
     )
     # TODO: add checks on output if RibaMetaMod class is implemented
 
-@pytest.mark.xdist_group(name="ribasim")
+
+@pytest.mark.skip(
+    reason="imod-python’s MetaSWAP model does not accept negative coords currently. Skip until issue #812 is merged in imod-python"
+)
 @parametrize_with_cases("ribametamod_model", glob="backwater_model")
 def test_ribametamod_backwater(
     tmp_path_dev: Path,
