@@ -1,10 +1,11 @@
 import argparse
+from collections.abc import Sequence
 from typing import Any
 
 from imod_coupler import __version__
 
 
-def parse_args() -> Any:
+def parse_args(args: Sequence[str] | None = None) -> Any:
     parser = argparse.ArgumentParser()
 
     parser.add_argument(
@@ -21,4 +22,4 @@ def parse_args() -> Any:
 
     parser.add_argument("--version", action="version", version=__version__)
 
-    return parser.parse_args()
+    return parser.parse_args(args)

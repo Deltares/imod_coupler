@@ -1,11 +1,12 @@
 import shutil
-import subprocess
+from collections.abc import Callable
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
 import tomli_w
 from numpy.testing import assert_allclose
+from numpy.typing import NDArray
 
 
 def write_toml(
@@ -13,7 +14,7 @@ def write_toml(
     metaswap_dll_devel: Path,
     metaswap_dll_dep_dir_devel: Path,
     modflow_dll_devel: Path,
-):
+) -> None:
     coupling_dict = {
         "mf6_model": "GWF_1",
         "mf6_msw_node_map": "./NODENR2SVAT.DXC",
@@ -47,7 +48,7 @@ def write_toml(
         tomli_w.dump(coupler_toml, f)
 
 
-def fill_para_sim_template(msw_folder, path_unsat_dbase):
+def fill_para_sim_template(msw_folder: Path, path_unsat_dbase: Path) -> None:
     """
     Fill para_sim.inp template in the folder with the path to the unsaturated
     zone database.
@@ -61,11 +62,11 @@ def fill_para_sim_template(msw_folder, path_unsat_dbase):
         f.write(para_sim_text)
 
 
-def total_flux_error(q_test, q_ref):
+def total_flux_error(q_test: NDArray[np.float_], q_ref: NDArray[np.float_]) -> float:
     """
     Computes total relative flux error compared to a reference flux.
     """
-    return np.abs(q_test - q_ref).sum() / np.abs(q_ref).sum()
+    return float(np.abs(q_test - q_ref).sum() / np.abs(q_ref).sum())
 
 
 def test_modstrip_data_present(modstrip_loc: Path) -> None:
@@ -83,10 +84,10 @@ def test_modstrip_model(
     modstrip_loc: Path,
     tmp_path: Path,
     metaswap_lookup_table: Path,
-    imod_coupler_exec_devel: Path,
     metaswap_dll_devel: Path,
     metaswap_dll_dep_dir_devel: Path,
     modflow_dll_devel: Path,
+    run_coupler_function: Callable[[Path], None],
 ) -> None:
     """
     Run modstrip model and test output, compare with results of previous
@@ -106,7 +107,7 @@ def test_modstrip_model(
         modflow_dll_devel,
     )
 
-    subprocess.run([imod_coupler_exec_devel, toml_path], check=True)
+    run_coupler_function(toml_path)
 
     headfile = tmp_path / "GWF_1" / "MODELOUTPUT" / "HEAD" / "HEAD.HED"
     cbcfile = tmp_path / "GWF_1" / "MODELOUTPUT" / "BUDGET" / "BUDGET.CBC"
