@@ -12,7 +12,7 @@ install-ribasim-api = "pip install git+https://github.com/Deltares/Ribasim.git/#
 install-ribasim-testmodels = "pip install git+https://github.com/Deltares/Ribasim.git/#subdirectory=python/ribasim_testmodels"
 install-primod = "pip install --no-deps --editable pre-processing"
 install-imodc = "pip install --no-deps --editable ."
-install-metaswap-testmodels = "svn checkout https://repos.deltares.nl/repos/DSCTestbench/trunk/cases/e150_metaswap/f00_common/c00_common/LHM2016_v01vrz .pixi/imod_collector/e150_metaswap"
+install-metaswap-testmodels = "svn checkout https://repos.deltares.nl/repos/DSCTestbench/trunk/cases/e150_metaswap/f00_common/c00_common/LHM2016_v01vrz .imod_collector/e150_metaswap"
 install-imod-collector = "python scripts/download_imod_collector.py"
 install-imod-collector-regression = "python scripts/download_imod_collector.py regression"
 generate-env-file = "python scripts/generate_env_file.py"

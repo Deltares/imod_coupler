@@ -11,7 +11,7 @@ from tqdm import tqdm
 def download_imod_collector(tag: str | None) -> None:
     build_id, build_number = __get_build_info(tag)
     folder_name = (tag or "develop") + f"_{build_number}"
-    target_folder = Path(".pixi/imod_collector") / folder_name
+    target_folder = Path(".imod_collector") / folder_name
 
     if target_folder.exists():
         print(

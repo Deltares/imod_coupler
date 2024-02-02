@@ -26,7 +26,7 @@ def __get_imod_collector_path(tag: str) -> Path:
     Find an existing path of imod_collector.
     Extract the numeric suffix from each path and find the path with the highest number
     """
-    search_path = Path(".pixi/imod_collector")
+    search_path = Path(".imod_collector")
     paths = search_path.glob(f"{tag}_*")
     if not paths:
         raise ValueError(f"No paths found for tag '{tag}'")
@@ -39,7 +39,7 @@ def __get_imod_collector_path(tag: str) -> Path:
 
 
 def __get_metaswap_path() -> Path:
-    metaswap_path = Path(".pixi/imod_collector/e150_metaswap")
+    metaswap_path = Path(".imod_collector/e150_metaswap")
     if not metaswap_path.exists():
         raise ValueError(f"Metaswap lookup table not found at {metaswap_path}")
     return metaswap_path

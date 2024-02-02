@@ -30,9 +30,10 @@ Deltares colleagues can find the issue tracker at [Jira](https://issuetracker.de
 In order to develop on `imod_coupler` locally, please follow the following steps:
 
 - Create an access token at the [TeamCity build server](https://dpcbuild.deltares.nl/profile.html?item=accessTokens#).
+  Choose permission scope: `<Same as current user>`.
 - Store the token in your local user environment as `TEAMCITY_TOKEN`.
   This token will be used to download artifacts from Teamcity, make sure to store it well.
-- Download and install [pixi](https://prefix.dev/docs/pixi/overview).
+- Download and install [pixi](https://pixi.sh).
 - Download and install [svn](https://tortoisesvn.net/downloads.html).
   Make sure to install the svn command line tools as well.
 - Download the Git repository of `imod_coupler` and navigate to the root of the project.
