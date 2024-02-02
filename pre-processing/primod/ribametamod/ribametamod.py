@@ -14,6 +14,22 @@ from imod.mf6 import Drainage, GroundwaterFlowModel, Modflow6Simulation, River
 
 @dataclass
 class DriverCoupling:
+    """A dataclass representing one coupling scenario for the RibaMetaMod driver.
+
+    Attributes
+    ----------
+    mf6_model : str
+        The model of the driver.
+    mf6_active_river_packages : list of str
+        A list of active river packages.
+    mf6_passive_river_packages : list of str
+        A list of passive river packages.
+    mf6_active_drainage_packages : list of str
+        A list of active drainage packages.
+    mf6_passive_drainage_packages : list of str
+        A list of passive drainage packages.
+    """
+
     mf6_model: str
     mf6_active_river_packages: list[str] = field(default_factory=list)
     mf6_passive_river_packages: list[str] = field(default_factory=list)
@@ -22,9 +38,7 @@ class DriverCoupling:
 
 
 class RibaMetaMod:
-    """
-    The RibaMod class creates the necessary input files for coupling Ribasim to
-    MODFLOW 6.
+    """Couple Ribasim, MetaSWAP and MODFLOW 6.
 
     Parameters
     ----------
@@ -42,7 +56,7 @@ class RibaMetaMod:
 
     def __init__(
         self,
-        ribasim_model: "ribasim.Model",
+        ribasim_model: ribasim.Model,
         mf6_simulation: Modflow6Simulation,
         coupling_list: list[DriverCoupling],
         basin_definition: gpd.GeoDataFrame,
@@ -187,7 +201,7 @@ class RibaMetaMod:
     @staticmethod
     def derive_river_drainage_coupling(
         gridded_basin: xr.DataArray,
-        basin_ids: "pd.Series[int]",
+        basin_ids: pd.Series,
         conductance: xr.DataArray,
     ) -> pd.DataFrame:
         # Conductance is leading parameter to define location, for both river

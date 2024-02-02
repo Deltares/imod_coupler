@@ -12,9 +12,7 @@ from primod.metamod.wel_svat_mapping import WellSvatMapping
 
 
 class MetaMod:
-    """
-    The MetaMod class creates the necessary input files for coupling MetaSWAP to
-    MODFLOW 6.
+    """Couple MetaSWAP and MODFLOW 6.
 
     Parameters
     ----------
