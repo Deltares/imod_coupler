@@ -1,9 +1,8 @@
-import shutil
 import subprocess
 from pathlib import Path
-from imod.msw import MetaSwapModel
+
 import pytest
-import tomli_w
+from imod.msw import MetaSwapModel
 from primod.ribamod import RibaMod
 from pytest_cases import parametrize_with_cases
 
@@ -28,8 +27,10 @@ def test_ribametamod_develop(
         ribasim_dll=ribasim_dll_devel,
         ribasim_dll_dependency=ribasim_dll_dep_dir_devel,
     )
-    msw_model.write(tmp_path_dev / 'metaswap')  # the RibaMetaMod should do this eventually
-    
+    msw_model.write(
+        tmp_path_dev / "metaswap"
+    )  # the RibaMetaMod should do this eventually
+
     subprocess.run(
         [imod_coupler_exec_devel, tmp_path_dev / ribamod_model._toml_name], check=True
     )
@@ -55,7 +56,9 @@ def test_ribametamod_bucket(
         ribasim_dll=ribasim_dll_devel,
         ribasim_dll_dependency=ribasim_dll_dep_dir_devel,
     )
-    msw_model.write(tmp_path_dev / 'metaswap')  # the RibaMetaMod should do this eventually
+    msw_model.write(
+        tmp_path_dev / "metaswap"
+    )  # the RibaMetaMod should do this eventually
     subprocess.run(
         [imod_coupler_exec_devel, tmp_path_dev / ribamod_model._toml_name], check=True
     )
@@ -84,13 +87,15 @@ def test_ribametamod_backwater(
         ribasim_dll=ribasim_dll_devel,
         ribasim_dll_dependency=ribasim_dll_dep_dir_devel,
     )
-    msw_model.write(tmp_path_dev / 'metaswap')  # the RibaMetaMod should do this eventually
+    msw_model.write(
+        tmp_path_dev / "metaswap"
+    )  # the RibaMetaMod should do this eventually
     subprocess.run(
         [imod_coupler_exec_devel, tmp_path_dev / ribamod_model._toml_name], check=True
     )
     # TODO: add checks on output if RibaMetaMod class is implemented
-    
-    
+
+
 @pytest.mark.xdist_group(name="ribasim")
 @parametrize_with_cases("ribametamod_model", glob="two_basin_model")
 def test_ribametamod_two_basin(
@@ -111,7 +116,9 @@ def test_ribametamod_two_basin(
         ribasim_dll=ribasim_dll_devel,
         ribasim_dll_dependency=ribasim_dll_dep_dir_devel,
     )
-    msw_model.write(tmp_path_dev / 'metaswap')  # the RibaMetaMod should do this eventually
+    msw_model.write(
+        tmp_path_dev / "metaswap"
+    )  # the RibaMetaMod should do this eventually
     subprocess.run(
         [imod_coupler_exec_devel, tmp_path_dev / ribamod_model._toml_name], check=True
     )
