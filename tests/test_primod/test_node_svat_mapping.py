@@ -51,7 +51,9 @@ def test_simple_model(fixed_format_parser):
         grid_data.write(output_dir, index, svat)
 
         results = fixed_format_parser(
-            output_dir / NodeSvatMapping._file_name, NodeSvatMapping._metadata_dict,)
+            output_dir / NodeSvatMapping._file_name,
+            NodeSvatMapping._metadata_dict,
+        )
 
     assert_equal(results["mod_id"], np.array([2, 8, 2, 5]))
     assert_equal(results["svat"], np.array([1, 2, 3, 4]))
@@ -96,7 +98,8 @@ def test_simple_model_1_subunit(fixed_format_parser):
         grid_data.write(output_dir, index, svat)
 
         results = fixed_format_parser(
-            output_dir / NodeSvatMapping._file_name, NodeSvatMapping._metadata_dict,
+            output_dir / NodeSvatMapping._file_name,
+            NodeSvatMapping._metadata_dict,
         )
 
     assert_equal(results["mod_id"], np.array([2, 8]))
