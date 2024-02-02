@@ -87,7 +87,7 @@ def test_modstrip_model(
     metaswap_dll_devel: Path,
     metaswap_dll_dep_dir_devel: Path,
     modflow_dll_devel: Path,
-    imodc_executable: Callable[[Path], None],
+    run_coupler_function: Callable[[Path], None],
 ) -> None:
     """
     Run modstrip model and test output, compare with results of previous
@@ -107,7 +107,7 @@ def test_modstrip_model(
         modflow_dll_devel,
     )
 
-    imodc_executable(toml_path)
+    run_coupler_function(toml_path)
 
     headfile = tmp_path / "GWF_1" / "MODELOUTPUT" / "HEAD" / "HEAD.HED"
     cbcfile = tmp_path / "GWF_1" / "MODELOUTPUT" / "BUDGET" / "BUDGET.CBC"

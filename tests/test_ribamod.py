@@ -18,7 +18,7 @@ def test_ribamod_develop(
     modflow_dll_devel: Path,
     ribasim_dll_devel: Path,
     ribasim_dll_dep_dir_devel: Path,
-    imodc_executable: Callable[[Path], None],
+    run_coupler_function: Callable[[Path], None],
 ) -> None:
     """
     Test if coupled ribamod models run with the iMOD Coupler development version.
@@ -30,7 +30,7 @@ def test_ribamod_develop(
         ribasim_dll_dependency=ribasim_dll_dep_dir_devel,
     )
 
-    imodc_executable(tmp_path_dev / ribamod_model._toml_name)
+    run_coupler_function(tmp_path_dev / ribamod_model._toml_name)
 
 
 @pytest.mark.xdist_group(name="ribasim")
@@ -41,7 +41,7 @@ def test_ribamod_bucket(
     modflow_dll_devel: Path,
     ribasim_dll_devel: Path,
     ribasim_dll_dep_dir_devel: Path,
-    imodc_executable: Callable[[Path], None],
+    run_coupler_function: Callable[[Path], None],
 ) -> None:
     """
     Test if the bucket model works as expected
@@ -53,7 +53,7 @@ def test_ribamod_bucket(
         ribasim_dll_dependency=ribasim_dll_dep_dir_devel,
     )
 
-    imodc_executable(tmp_path_dev / ribamod_model._toml_name)
+    run_coupler_function(tmp_path_dev / ribamod_model._toml_name)
 
     basin_df = pd.read_feather(
         tmp_path_dev / ribamod_model._ribasim_model_dir / "results" / "basin.arrow"
@@ -76,7 +76,7 @@ def test_ribamod_backwater(
     modflow_dll_devel: Path,
     ribasim_dll_devel: Path,
     ribasim_dll_dep_dir_devel: Path,
-    imodc_executable: Callable[[Path], None],
+    run_coupler_function: Callable[[Path], None],
 ) -> None:
     """
     Test if the backwater model works as expected
@@ -88,7 +88,7 @@ def test_ribamod_backwater(
         ribasim_dll_dependency=ribasim_dll_dep_dir_devel,
     )
 
-    imodc_executable(tmp_path_dev / ribamod_model._toml_name)
+    run_coupler_function(tmp_path_dev / ribamod_model._toml_name)
 
     # Read Ribasim output
     basin_df = pd.read_feather(
@@ -147,7 +147,7 @@ def test_ribamod_two_basin(
     modflow_dll_devel: Path,
     ribasim_dll_devel: Path,
     ribasim_dll_dep_dir_devel: Path,
-    imodc_executable: Callable[[Path], None],
+    run_coupler_function: Callable[[Path], None],
 ) -> None:
     """
     Test if the backwater model works as expected
@@ -159,7 +159,7 @@ def test_ribamod_two_basin(
         ribasim_dll_dependency=ribasim_dll_dep_dir_devel,
     )
 
-    imodc_executable(tmp_path_dev / ribamod_model._toml_name)
+    run_coupler_function(tmp_path_dev / ribamod_model._toml_name)
 
     # Read Ribasim output
     basin_df = pd.read_feather(

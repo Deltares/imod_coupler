@@ -9,11 +9,12 @@ from imod_coupler.__main__ import run_coupler
 
 
 @pytest.fixture(scope="session")
-def imodc_executable(imod_coupler_exec_devel: Path) -> Callable[[Path], None]:
+def run_coupler_function(imod_coupler_exec_devel: Path) -> Callable[[Path], None]:
     """
     Replacement for subprocess.run.
     If pydevd is loaded, don't use subprocess.run but call run_coupler directly.
     Otherwise it would not be possible to attach the debugger.
+    pydevd is loaded when starting the debugger via Visual Studio Code (PyCharm is untested).
     """
     if "pydevd" in sys.modules:
 

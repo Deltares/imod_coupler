@@ -111,7 +111,7 @@ def test_metamod_run_failure(
     metaswap_dll_devel: Path,
     metaswap_dll_dep_dir_devel: Path,
     modflow_dll_devel: Path,
-    imodc_executable: Callable[[Path], None],
+    run_coupler_function: Callable[[Path], None],
 ) -> None:
     """
     Test if coupled models run failed with the iMOD Coupler development version.
@@ -126,7 +126,7 @@ def test_metamod_run_failure(
     )
 
     with pytest.raises(subprocess.CalledProcessError):
-        imodc_executable(tmp_path_dev / metamod_model._toml_name)
+        run_coupler_function(tmp_path_dev / metamod_model._toml_name)
 
 
 @parametrize_with_cases("metamod_model")
@@ -136,7 +136,7 @@ def test_metamod_develop(
     metaswap_dll_devel: Path,
     metaswap_dll_dep_dir_devel: Path,
     modflow_dll_devel: Path,
-    imodc_executable: Callable[[Path], None],
+    run_coupler_function: Callable[[Path], None],
 ) -> None:
     """
     Test if coupled models run with the iMOD Coupler development version.
@@ -148,7 +148,7 @@ def test_metamod_develop(
         metaswap_dll_dependency=metaswap_dll_dep_dir_devel,
     )
 
-    imodc_executable(tmp_path_dev / metamod_model._toml_name)
+    run_coupler_function(tmp_path_dev / metamod_model._toml_name)
 
     # Test if MetaSWAP output written
     assert len(list((tmp_path_dev / "MetaSWAP").glob("*/*.idf"))) == 1704
@@ -175,7 +175,7 @@ def test_metamod_regression(
     metaswap_dll_regression: Path,
     metaswap_dll_dep_dir_regression: Path,
     modflow_dll_regression: Path,
-    imodc_executable: Callable[[Path], None],
+    run_coupler_function: Callable[[Path], None],
     imod_coupler_exec_regression: Path,
 ) -> None:
     """
@@ -190,7 +190,7 @@ def test_metamod_regression(
         metaswap_dll_dependency=metaswap_dll_dep_dir_devel,
     )
 
-    imodc_executable(tmp_path_dev / metamod_model._toml_name)
+    run_coupler_function(tmp_path_dev / metamod_model._toml_name)
 
     # Read Modflow 6 output
     headfile_dev, cbcfile_dev, grbfile_dev, _ = mf6_output_files(tmp_path_dev)
@@ -234,7 +234,7 @@ def test_metamod_regression_balance_output(
     metaswap_dll_devel: Path,
     metaswap_dll_dep_dir_devel: Path,
     modflow_dll_devel: Path,
-    imodc_executable: Callable[[Path], None],
+    run_coupler_function: Callable[[Path], None],
     reference_result_folder: Path,
 ) -> None:
     """
@@ -248,7 +248,7 @@ def test_metamod_regression_balance_output(
         metaswap_dll_dependency=metaswap_dll_dep_dir_devel,
     )
 
-    imodc_executable(tmp_path_dev / metamod_model._toml_name)
+    run_coupler_function(tmp_path_dev / metamod_model._toml_name)
 
     _, _, _, mf6_lst_file = mf6_output_files(tmp_path_dev)
     msw_balance_results = msw_output_files(tmp_path_dev)
@@ -300,7 +300,7 @@ def test_metamodel_storage_options(
     metaswap_dll_devel: Path,
     metaswap_dll_dep_dir_devel: Path,
     modflow_dll_devel: Path,
-    imodc_executable: Callable[[Path], None],
+    run_coupler_function: Callable[[Path], None],
 ) -> None:
     """
     Test and compare two coupled models with the Modflow 6 storage specified as
@@ -317,7 +317,7 @@ def test_metamodel_storage_options(
         metaswap_dll_dependency=metaswap_dll_dep_dir_devel,
     )
 
-    imodc_executable(tmp_path_ss / metamod_ss._toml_name)
+    run_coupler_function(tmp_path_ss / metamod_ss._toml_name)
 
     # Read Modflow 6 output
     headfile_ss, cbcfile_ss, grbfile_ss, _ = mf6_output_files(tmp_path_ss)
@@ -332,7 +332,7 @@ def test_metamodel_storage_options(
         metaswap_dll_dependency=metaswap_dll_dep_dir_devel,
     )
 
-    imodc_executable(tmp_path_sc / metamod_sc._toml_name)
+    run_coupler_function(tmp_path_sc / metamod_sc._toml_name)
 
     # Read Modflow 6 output
     headfile_sc, cbcfile_sc, grbfile_sc, _ = mf6_output_files(tmp_path_sc)
@@ -357,7 +357,7 @@ def test_metamod_exchange_logging(
     metaswap_dll_devel: Path,
     metaswap_dll_dep_dir_devel: Path,
     modflow_dll_devel: Path,
-    imodc_executable: Callable[[Path], None],
+    run_coupler_function: Callable[[Path], None],
 ) -> None:
     """
     Test if logging works as intended
@@ -370,7 +370,7 @@ def test_metamod_exchange_logging(
     )
     add_logging_request_to_toml_file(tmp_path_dev, metamod_model._toml_name)
 
-    imodc_executable(tmp_path_dev / metamod_model._toml_name)
+    run_coupler_function(tmp_path_dev / metamod_model._toml_name)
 
     # Test if logging netcdf's  were written
     assert len(list((tmp_path_dev).glob("*.nc"))) == 2

@@ -15,7 +15,7 @@ def test_metamod(
     metaswap_dll_dep_dir_devel: Path,
     metaswap_lookup_table: Path,
     bucket_ribametamod_loc: Path,
-    imodc_executable: Callable[[Path], None],
+    run_coupler_function: Callable[[Path], None],
 ) -> None:
     """
     Test if coupled ribametamod models run with the iMOD Coupler development version.
@@ -41,7 +41,7 @@ def test_metamod(
         metaswap_dll_dependency,
         metaswap_model_dir,
     )
-    imodc_executable(toml_path)
+    run_coupler_function(toml_path)
 
 
 @pytest.mark.skip(
@@ -53,7 +53,7 @@ def test_ribamod(
     ribasim_dll_devel: Path,
     ribasim_dll_dep_dir_devel: Path,
     bucket_ribametamod_loc: Path,
-    imodc_executable: Callable[[Path], None],
+    run_coupler_function: Callable[[Path], None],
 ) -> None:
     """
     Test if coupled ribametamod models run with the iMOD Coupler development version.
@@ -74,7 +74,7 @@ def test_ribamod(
         ribasim_dll_dep_dir_devel,
         path_dev / "ribasim" / "ribasim.toml",
     )
-    imodc_executable(toml_path)
+    run_coupler_function(toml_path)
 
 
 # @pytest.mark.skip(reason="we first have to merge the optional branch")
@@ -87,7 +87,7 @@ def test_ribametamod(
     ribasim_dll_devel: Path,
     ribasim_dll_dep_dir_devel: Path,
     bucket_ribametamod_loc: Path,
-    imodc_executable: Callable[[Path], None],
+    run_coupler_function: Callable[[Path], None],
 ) -> None:
     """
     Test if coupled ribametamod models run with the iMOD Coupler development version.
@@ -116,7 +116,7 @@ def test_ribametamod(
         ribasim_dll_dep_dir_devel,
         path_dev / "ribasim" / "ribasim.toml",
     )
-    imodc_executable(toml_path)
+    run_coupler_function(toml_path)
 
 
 def test_ribametamod_sw_sprinkling(
@@ -129,7 +129,7 @@ def test_ribametamod_sw_sprinkling(
     ribasim_dll_dep_dir_devel: Path,
     bucket_ribametamod_loc: Path,
     bucket_ribametamod_sprinkling_tot_svat_ref: Path,
-    imodc_executable: Callable[[Path], None],
+    run_coupler_function: Callable[[Path], None],
 ) -> None:
     """
     Test if coupled ribametamod models run with the iMOD Coupler development version
@@ -160,7 +160,7 @@ def test_ribametamod_sw_sprinkling(
         path_dev / "ribasim" / "ribasim.toml",
         True,
     )
-    imodc_executable(toml_path)
+    run_coupler_function(toml_path)
 
     tot_svat_reference = pd.read_csv(bucket_ribametamod_sprinkling_tot_svat_ref)
     tot_svat_test = pd.read_csv(metaswap_model_dir / "msw" / "csv" / "tot_svat_per.csv")
