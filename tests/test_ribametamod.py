@@ -77,7 +77,6 @@ def test_ribamod(
     run_coupler_function(toml_path)
 
 
-# @pytest.mark.skip(reason="we first have to merge the optional branch")
 def test_ribametamod(
     tmp_path_dev: Path,
     modflow_dll_devel: Path,
@@ -167,6 +166,9 @@ def test_ribametamod_sw_sprinkling(
     assert tot_svat_test["        Pssw(m3)"].equals(
         tot_svat_reference["        Pssw(m3)"]
     )
+    assert tot_svat_test["   ts2dfmput(m3)"].equals(
+        tot_svat_reference["   ts2dfmput(m3)"]
+    )
 
 
 def write_metamod_toml(
@@ -199,6 +201,10 @@ def write_metamod_toml(
     coupling_dict: dict
         Dictionary with names of coupler packages and paths to mappings.
     """
+
+    coupler_toml: dict[
+        str, str | bool | dict[str, str | dict[str, bool | str | dict[str, str]]]
+    ]
     coupler_toml = {
         "timing": False,
         "log_level": "INFO",
@@ -369,6 +375,9 @@ def write_ribametamod_toml(
         coupler_toml["driver"]["coupling"][0][
             "rib_msw_sprinkling_map_surface_water"
         ] = "exchanges/sprinkling_index.dxc"
+        coupler_toml["driver"]["coupling"][0][
+            "rib_msw_ponding_map_surface_water"
+        ] = "exchanges/ponding_index.dxc"
 
     with open(Path(tmp_path_dev) / "imod_coupler.toml", "wb") as f:
         tomli_w.dump(coupler_toml, f)
