@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import Any
 
 import pandas as pd
+import pytest
 import tomli_w
 
 
@@ -44,7 +45,7 @@ def test_metamod(
 
 
 @pytest.mark.skip(
-   reason="Fails with SQLite.SQLiteException: no such column: allocation_network_id"
+    reason="Fails with SQLite.SQLiteException: no such column: allocation_network_id"
 )
 def test_ribamod(
     tmp_path_dev: Path,
