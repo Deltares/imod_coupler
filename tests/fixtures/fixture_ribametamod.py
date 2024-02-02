@@ -4,12 +4,11 @@ import numpy as np
 import pytest_cases
 import xarray as xr
 from imod import mf6, msw
-from numpy import nan
 
-from .common import create_wells
+from .common import create_wells_max_layer
 
 
-def add_msw_model(
+def create_msw_model(
     gwf: mf6.GroundwaterFlowModel, nsubunits: xr.DataArray(np.int32) | None = None
 ) -> msw.MetaSwapModel:
     times = gwf["time_discretization"]["time"]
@@ -39,8 +38,8 @@ def add_msw_model(
     # fmt: on
     msw_grid = xr.ones_like(active, dtype=float)
 
-    precipitation = msw_grid.expand_dims(time=times[:-1])
-    evapotranspiration = msw_grid.expand_dims(time=times[:-1]) * 10.0
+    precipitation = msw_grid.expand_dims(time=times[:-1]).drop_vars('layer')
+    evapotranspiration = msw_grid.expand_dims(time=times[:-1]).drop_vars('layer') * 10.0
 
     # Vegetation
     day_of_year = np.arange(1, 367)
@@ -78,7 +77,7 @@ def add_msw_model(
     # Well
     ncol = idomain.x.size
     nrow = idomain.y.size
-    well = create_wells(nrow, ncol, idomain)
+    well = create_wells_max_layer(nrow, ncol, idomain)
 
     # Modflow 6
     dis = gwf["GWF_1"]["dis"]
@@ -178,35 +177,54 @@ def add_msw_model(
 
     return msw_model
 
+def ad_msw_model(
+    mf6_model: mf6.GroundwaterFlowModel,
+    metaswap_lookup_table: Path,
+) -> msw.MetaSwapModel:
+    # for now only 1-1 svat-mf6node coupling
+    nsubunits = xr.ones_like(
+        mf6_model["GWF_1"]["dis"]["idomain"].sel(layer=1, drop=True),
+        dtype=np.int32,
+    )
+    # No svats in nodes with river definitions
+    # TODO check how to deal with area-wide drn-packages for olf, 
+    # packages that represent tube-draiange and olf should be skipped here.
+    for package in mf6_model["GWF_1"]:
+        if isinstance(package, mf6.River):
+            stage = mf6_model["GWF_1"][package]["stage"]
+            if "layer" in stage.dims:
+                stage = stage.sel(layer=1, drop=True)
+            nsubunits = nsubunits.where(stage.isnull())
+        elif isinstance(package, mf6.Drainage):
+            elevation = mf6_model["GWF_1"][package]["elevation"]
+            if "layer" in elevation.dims:
+                elevation = elevation.sel(layer=1, drop=True)
+            nsubunits = nsubunits.where(elevation.isnull())
+    msw_model = create_msw_model(mf6_model, nsubunits)
+    # Override unsat_svat_path with path from environment
+    msw_model.simulation_settings[
+        "unsa_svat_path"
+    ] = msw_model._render_unsaturated_database_path(metaswap_lookup_table)
+    return msw_model
+
 
 @pytest_cases.fixture(scope="function")
 def msw_bucket_model(
     mf6_bucket_model: mf6.GroundwaterFlowModel,
     metaswap_lookup_table: Path,
 ) -> msw.MetaSwapModel:
-    # for now only 1-1 svat-mfnode coupling
-    nsubunits = xr.ones_like(
-        mf6_bucket_model["GWF_1"]["dis"]["idomain"].sel(layer=1, drop=True),
-        dtype=np.int32,
-    )
-    # No svats in nodes with river definitions
-    # TODO check how to deal with area-wide drn-packages for olf?
-    for package in mf6_bucket_model["GWF_1"]:
-        if isinstance(package, mf6.River):
-            stage = mf6_bucket_model["GWF_1"][package]["stage"]
-            if "layer" in stage.dims:
-                stage = stage.sel(layer=1, drop=True)
-            nsubunits = nsubunits.where(stage.isnull())
-        elif isinstance(package, mf6.Drainage):
-            elevation = mf6_bucket_model["GWF_1"][package]["elevation"]
-            if "layer" in elevation.dims:
-                elevation = elevation.sel(layer=1, drop=True)
-            nsubunits = nsubunits.where(elevation.isnull())
+    return ad_msw_model(mf6_bucket_model, metaswap_lookup_table)
 
-    msw_model = add_msw_model(mf6_bucket_model, nsubunits)
-    # Override unsat_svat_path with path from environment
-    msw_model.simulation_settings[
-        "unsa_svat_path"
-    ] = msw_model._render_unsaturated_database_path(metaswap_lookup_table)
+@pytest_cases.fixture(scope="function")
+def msw_backwater_model(
+    mf6_backwater_model: mf6.GroundwaterFlowModel,
+    metaswap_lookup_table: Path,
+) -> msw.MetaSwapModel:
+    return ad_msw_model(mf6_backwater_model, metaswap_lookup_table)
 
-    return msw_model
+@pytest_cases.fixture(scope="function")
+def msw_two_basin_model(
+    mf6_two_basin_model: mf6.GroundwaterFlowModel,
+    metaswap_lookup_table: Path,
+) -> msw.MetaSwapModel:
+    return ad_msw_model(mf6_two_basin_model, metaswap_lookup_table)
