@@ -12,16 +12,16 @@ def generate_env_file() -> None:
     with open(".env", "w") as f:
         f.write(
             template.render(
-                imod_collector_dev_path=__get_imod_collector_path("develop").resolve(),
-                imod_collector_regression_path=__get_imod_collector_path(
+                imod_collector_dev_path=_get_imod_collector_path("develop").resolve(),
+                imod_collector_regression_path=_get_imod_collector_path(
                     "regression"
                 ).resolve(),
-                metaswap_lookup_table_path=__get_metaswap_path().resolve(),
+                metaswap_lookup_table_path=_get_metaswap_path().resolve(),
             )
         )
 
 
-def __get_imod_collector_path(tag: str) -> Path:
+def _get_imod_collector_path(tag: str) -> Path:
     """
     Find an existing path of imod_collector.
     Extract the numeric suffix from each path and find the path with the highest number
@@ -38,7 +38,7 @@ def __get_imod_collector_path(tag: str) -> Path:
     return Path(path_with_highest_number)
 
 
-def __get_metaswap_path() -> Path:
+def _get_metaswap_path() -> Path:
     metaswap_path = Path(".imod_collector/e150_metaswap")
     if not metaswap_path.exists():
         raise ValueError(f"Metaswap lookup table not found at {metaswap_path}")

@@ -9,7 +9,7 @@ from tqdm import tqdm
 
 
 def download_imod_collector(tag: str | None) -> None:
-    build_id, build_number = __get_build_info(tag)
+    build_id, build_number = _get_build_info(tag)
     folder_name = (tag or "develop") + f"_{build_number}"
     target_folder = Path(".imod_collector") / folder_name
 
@@ -28,13 +28,13 @@ def download_imod_collector(tag: str | None) -> None:
     response.raise_for_status()
 
     zip_path = Path(".pixi/imod_coupler_windows.zip")
-    __download_to_file(response, zip_path)
-    __unzip_to_target(target_folder, zip_path)
+    _download_to_file(response, zip_path)
+    _unzip_to_target(target_folder, zip_path)
 
     os.remove(zip_path)
 
 
-def __get_build_info(tag: str | None) -> tuple[str, str]:
+def _get_build_info(tag: str | None) -> tuple[str, str]:
     token = os.environ["TEAMCITY_TOKEN"]
     tag_string = f",tag:{tag}" if tag else ""
     info_url = f"https://dpcbuild.deltares.nl/app/rest/builds/buildType:iMOD6_IMOD6collectorDaily_ReleaseX64,count:1,branch:main,status:SUCCESS{tag_string}"
@@ -48,7 +48,7 @@ def __get_build_info(tag: str | None) -> tuple[str, str]:
     return info_xml.attrib["id"], info_xml.attrib["number"]
 
 
-def __download_to_file(response: requests.Response, target_path: Path) -> None:
+def _download_to_file(response: requests.Response, target_path: Path) -> None:
     with open(target_path, "wb") as f:
         progress_bar = tqdm(
             total=int(response.headers["Content-Length"]),
@@ -63,7 +63,7 @@ def __download_to_file(response: requests.Response, target_path: Path) -> None:
                 progress_bar.update(len(chunk))
 
 
-def __unzip_to_target(target_folder: Path, source_path: Path) -> None:
+def _unzip_to_target(target_folder: Path, source_path: Path) -> None:
     with zipfile.ZipFile(source_path) as z:
         for file in tqdm(z.namelist(), desc="Extracting iMOD collector", unit="files"):
             z.extract(file, target_folder)
