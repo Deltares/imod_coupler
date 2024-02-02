@@ -5,27 +5,27 @@ It currently focuses on groundwater and supports coupling between MetaSWAP and M
 
 It can be installed by running
 
-```
+```sh
 pip install imod_coupler
 ```
 
 Then you can run it as command line app via
 
-```
+```sh
 imodc /path/to/imod_coupler.toml
 ```
 
 In order to receive help for its usage, run
 
-```
+```sh
 imodc --help
 ```
 
-# Issues
+## Issues
 
 Deltares colleagues can find the issue tracker at [Jira](https://issuetracker.deltares.nl/secure/RapidBoard.jspa?rapidView=469&projectKey=IMOD6&view=planning&selectedIssue=IMOD6-840)
 
-# Contributing
+## Contributing
 
 In order to develop on `imod_coupler` locally, please follow the following steps:
 
@@ -33,27 +33,28 @@ In order to develop on `imod_coupler` locally, please follow the following steps
 
 - Create the environment by executing the following in your terminal:
 
-```
+```sh
 pixi run install
 ```
 
 - With your Deltares credentials download
-    - the [latest imod_collector](https://dpcbuild.deltares.nl/buildConfiguration/iMOD6_IMOD6collectorDaily_ReleaseX64?branch=%3Cdefault%3E&mode=builds), and 
-    - the [regression imod_collector](https://dpcbuild.deltares.nl/buildConfiguration/iMOD6_IMOD6collectorDaily_ReleaseX64?branch=%3Cdefault%3E&mode=builds&tag=regression).
+  - the [latest imod_collector](https://dpcbuild.deltares.nl/buildConfiguration/iMOD6_IMOD6collectorDaily_ReleaseX64?branch=%3Cdefault%3E&mode=builds), and
+  - the [regression imod_collector](https://dpcbuild.deltares.nl/buildConfiguration/iMOD6_IMOD6collectorDaily_ReleaseX64?branch=%3Cdefault%3E&mode=builds&tag=regression).
 
 - Unpack the two zip files in a path of your choice and name the latest `imod_collector_devel` and the regression `imod_collector_regression`.
 
 - Check out the MetaSWAP lookup table with your Deltares credentials which resides at `https://repos.deltares.nl/repos/DSCTestbench/trunk/cases/e150_metaswap/f00_common/c00_common/LHM2016_v01vrz`
 
- - To run the tests it is advisable to have a `.env` file at the root of the project directory instead of modifying global environment variables. 
+- To run the tests it is advisable to have a `.env` file at the root of the project directory instead of modifying global environment variables.
  The content of `.env` would then look similar to this with the variables `IMOD_COLLECTOR_DEVEL`, `IMOD_COLLECTOR_REGRESSION` and `METASWAP_LOOKUP_TABLE` adjusted to your local machine:
 
-```bash
+```sh
 IMOD_COLLECTOR_DEVEL='D:\checkouts\imod_collector_devel'
 IMOD_COLLECTOR_REGRESSION='D:\checkouts\imod_collector_regression'
 METASWAP_LOOKUP_TABLE='D:\checkouts\DSCtestbench\cases\e150_metaswap\f00_common\c00_common\LHM2016_v01vrz'
 
-IMOD_COUPLER_EXEC_DEVEL='imodc' # Specify an absolute path here to use a packaged version of iMOD Coupler
+# Specify an absolute path here to use a packaged version of iMOD Coupler
+IMOD_COUPLER_EXEC_DEVEL='imodc'
 IMOD_COUPLER_EXEC_REGRESSION='${IMOD_COLLECTOR_REGRESSION}/imod_coupler/imodc.exe'
 METASWAP_DLL_DEP_DIR_DEVEL='${IMOD_COLLECTOR_DEVEL}/metaswap'
 METASWAP_DLL_DEP_DIR_REGRESSION='${IMOD_COLLECTOR_REGRESSION}/metaswap'
@@ -69,12 +70,34 @@ RIBASIM_DLL_REGRESSION='${IMOD_COLLECTOR_REGRESSION}/ribasim/bin/libribasim.dll'
 
 - The tests can then be run with:
 
-```bash
+```sh
 pixi run tests
 ```
 
 - Lint the codebase with:
 
-```bash
+```sh
 pixi run lint
+```
+
+- When developing with visual studio code, it is recommended to open the application via `open-vscode.bat`.
+  This will open the application in a new vscode window with the correct environment variables set.
+
+### Debugging
+
+When debugging the unit tests in visual studio code with the test explorer, you can encounter some problems.
+Both MODFLOW 6 and MetaSWAP might behave unpredicateble when being initialized and finalized multiple times.
+
+When you only run, not debug, unit tests, this is not the case, since there is a switch statement that determines if we should call `subprocess.run()`, or stay within the main thread.
+See the fixture for `run_coupler_function` for more information.
+
+### Troubleshooting
+
+If you encounter errors while running the tests, it might be that your pip dependencies are outdated.
+This happens when you have pulled the latest changes from imod_coupler.
+In that case you need to update the pip dependencies as well.
+Try running:
+
+```sh
+pixi run update-git-dependencies
 ```

@@ -1,4 +1,4 @@
-import subprocess
+from collections.abc import Callable
 from pathlib import Path
 from typing import NamedTuple
 
@@ -25,7 +25,7 @@ def write_run_read(
     modflow_dll: Path,
     ribasim_dll: Path,
     ribasim_dll_dep_dir: Path,
-    imod_coupler_exec: Path,
+    run_coupler_function: Callable[[Path], None],
 ) -> Results:
     """
     Write the model, run it, read and return the results.
@@ -37,10 +37,7 @@ def write_run_read(
         ribasim_dll_dependency=ribasim_dll_dep_dir,
     )
 
-    subprocess.run(
-        [imod_coupler_exec, tmp_path / ribamod_model._toml_name],
-        check=True,
-    )
+    run_coupler_function(tmp_path / ribamod_model._toml_name)
 
     # Read Ribasim output
     basin_df = pd.read_feather(
@@ -70,7 +67,7 @@ def test_ribamod_develop(
     modflow_dll_devel: Path,
     ribasim_dll_devel: Path,
     ribasim_dll_dep_dir_devel: Path,
-    imod_coupler_exec_devel: Path,
+    run_coupler_function: Callable[[Path], None],
 ) -> None:
     """
     Test if coupled ribamod models run with the iMOD Coupler development version.
@@ -82,9 +79,7 @@ def test_ribamod_develop(
         ribasim_dll_dependency=ribasim_dll_dep_dir_devel,
     )
 
-    subprocess.run(
-        [imod_coupler_exec_devel, tmp_path_dev / ribamod_model._toml_name], check=True
-    )
+    run_coupler_function(tmp_path_dev / ribamod_model._toml_name)
 
 
 @pytest.mark.xdist_group(name="ribasim")
@@ -95,7 +90,7 @@ def test_ribamod_bucket(
     modflow_dll_devel: Path,
     ribasim_dll_devel: Path,
     ribasim_dll_dep_dir_devel: Path,
-    imod_coupler_exec_devel: Path,
+    run_coupler_function: Callable[[Path], None],
 ) -> None:
     """
     Test if the bucket model works as expected
@@ -106,7 +101,7 @@ def test_ribamod_bucket(
         modflow_dll=modflow_dll_devel,
         ribasim_dll=ribasim_dll_devel,
         ribasim_dll_dep_dir=ribasim_dll_dep_dir_devel,
-        imod_coupler_exec=imod_coupler_exec_devel,
+        run_coupler_function=run_coupler_function,
     )
     # There should be only a single node in the model
     assert (results.basin_df["node_id"] == 1).all()
@@ -127,7 +122,7 @@ def test_ribamod_backwater(
     modflow_dll_devel: Path,
     ribasim_dll_devel: Path,
     ribasim_dll_dep_dir_devel: Path,
-    imod_coupler_exec_devel: Path,
+    run_coupler_function: Callable[[Path], None],
 ) -> None:
     """
     Test if the backwater model works as expected
@@ -138,7 +133,7 @@ def test_ribamod_backwater(
         modflow_dll=modflow_dll_devel,
         ribasim_dll=ribasim_dll_devel,
         ribasim_dll_dep_dir=ribasim_dll_dep_dir_devel,
-        imod_coupler_exec=imod_coupler_exec_devel,
+        run_coupler_function=run_coupler_function,
     )
 
     final_level = results.basin_df[results.basin_df["time"] == "2029-12-01"]["level"]
@@ -180,7 +175,7 @@ def test_ribamod_two_basin(
     modflow_dll_devel: Path,
     ribasim_dll_devel: Path,
     ribasim_dll_dep_dir_devel: Path,
-    imod_coupler_exec_devel: Path,
+    run_coupler_function: Callable[[Path], None],
 ) -> None:
     """
     Test if the two basin model works as expected
@@ -191,7 +186,7 @@ def test_ribamod_two_basin(
         modflow_dll=modflow_dll_devel,
         ribasim_dll=ribasim_dll_devel,
         ribasim_dll_dep_dir=ribasim_dll_dep_dir_devel,
-        imod_coupler_exec=imod_coupler_exec_devel,
+        run_coupler_function=run_coupler_function,
     )
 
     # FUTURE: think of better tests?
@@ -216,7 +211,7 @@ def test_ribamod_partial_two_basin(
     modflow_dll_devel: Path,
     ribasim_dll_devel: Path,
     ribasim_dll_dep_dir_devel: Path,
-    imod_coupler_exec_devel: Path,
+    run_coupler_function: Callable[[Path], None],
 ) -> None:
     """
     Test if the partial two basin model works as expected
@@ -227,7 +222,7 @@ def test_ribamod_partial_two_basin(
         modflow_dll=modflow_dll_devel,
         ribasim_dll=ribasim_dll_devel,
         ribasim_dll_dep_dir=ribasim_dll_dep_dir_devel,
-        imod_coupler_exec=imod_coupler_exec_devel,
+        run_coupler_function=run_coupler_function,
     )
 
     # The top and bottom rows have non coupled river boundaries with a stage of
@@ -263,7 +258,7 @@ def test_ribamod_uncoupled_two_basin(
     modflow_dll_devel: Path,
     ribasim_dll_devel: Path,
     ribasim_dll_dep_dir_devel: Path,
-    imod_coupler_exec_devel: Path,
+    run_coupler_function: Callable[[Path], None],
 ) -> None:
     """
     Test if the partial two basin model works as expected if there's no spatial
@@ -276,5 +271,5 @@ def test_ribamod_uncoupled_two_basin(
         modflow_dll=modflow_dll_devel,
         ribasim_dll=ribasim_dll_devel,
         ribasim_dll_dep_dir=ribasim_dll_dep_dir_devel,
-        imod_coupler_exec=imod_coupler_exec_devel,
+        run_coupler_function=run_coupler_function,
     )
