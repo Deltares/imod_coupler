@@ -8,6 +8,7 @@ import numpy as np
 import pandas as pd
 import ribasim
 import tomli_w
+import xarray as xr
 from imod.mf6 import Drainage, GroundwaterFlowModel, Modflow6Simulation, River
 from numpy.typing import NDArray
 
@@ -67,6 +68,10 @@ class RibaMod:
         coupling_list: list[DriverCoupling],
         basin_definition: gpd.GeoDataFrame,
     ):
+        self.validate_time_window(
+            ribasim_model=ribasim_model,
+            mf6_simulation=mf6_simulation,
+        )
         self.ribasim_model = ribasim_model
         self.mf6_simulation = mf6_simulation
         self.coupling_list = coupling_list
@@ -207,7 +212,34 @@ class RibaMod:
                 f"present in the model: {missing}"
             )
 
-    def validate_basin_node_ids(self) -> NDArray[Int]:
+    @staticmethod
+    def validate_time_window(
+        ribasim_model: ribasim.Model,
+        mf6_simulation: Modflow6Simulation,
+    ) -> None:
+        def to_timestamp(xr_time: xr.DataArray) -> pd.Timestamp:
+            return pd.Timestamp(xr_time.to_numpy().item())
+
+        mf6_timedis = mf6_simulation["time_discretization"].dataset
+        mf6_start = to_timestamp(mf6_timedis["time"].isel(time=0)).to_pydatetime()
+        time_delta = pd.to_timedelta(
+            mf6_timedis["timestep_duration"].isel(time=-1).item(), unit="days"
+        )
+        mf6_end = (
+            to_timestamp(mf6_timedis["time"].isel(time=-1)) + time_delta
+        ).to_pydatetime()
+
+        ribasim_start = ribasim_model.starttime
+        ribasim_end = ribasim_model.endtime
+        if ribasim_start != mf6_start or ribasim_end != mf6_end:
+            raise ValueError(
+                "Ribasim simulation time window does not match MODFLOW6.\n"
+                f"Ribasim: {ribasim_start} to {ribasim_end}\n"
+                f"MODFLOW6: {mf6_start} to {mf6_end}\n"
+            )
+        return
+
+    def validate_basin_node_ids(self) -> pd.Series:
         assert self.ribasim_model.basin.profile.df is not None
         basin_ids: NDArray[Int] = np.unique(
             self.ribasim_model.basin.profile.df["node_id"]
@@ -263,6 +295,7 @@ class RibaMod:
 
         # Assume only one groundwater flow model
         # FUTURE: Support multiple groundwater flow models.
+        # FUTURE: move validations to the init?
         gwf_model = self.mf6_simulation[gwf_names[0]]
         self.validate_keys(
             gwf_model,

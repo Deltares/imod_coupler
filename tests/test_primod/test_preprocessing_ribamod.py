@@ -38,6 +38,16 @@ def basin_definition(mf6_bucket_model, ribasim_bucket_model) -> gpd.GeoDataFrame
     return gpd.GeoDataFrame(data={"node_id": node_id}, geometry=[polygon])
 
 
+def test_validate_time_window(mf6_bucket_model, ribasim_bucket_model):
+    times = pd.date_range("1970-01-01", "1971-01-01", freq="D")
+    # override time discretization
+    mf6_bucket_model.create_time_discretization(additional_times=times)
+    with pytest.raises(
+        ValueError, match="Ribasim simulation time window does not match MODFLOW6"
+    ):
+        RibaMod.validate_time_window(ribasim_bucket_model, mf6_bucket_model)
+
+
 def test_validate_keys(mf6_bucket_model):
     with pytest.raises(ValueError, match="active and passive keys share members"):
         RibaMod.validate_keys(
