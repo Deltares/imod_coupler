@@ -16,6 +16,7 @@ class SetMapping:
     rib2mod: dict[str, csr_matrix]
     msw2mod: dict[str, csr_matrix]
     mod2msw: dict[str, csr_matrix]
+    msw2rib: dict[str, csr_matrix]
 
     def __init__(
         self,
@@ -156,32 +157,56 @@ class SetMapping:
     def set_metaswap_ribasim_mapping(
         self, packages: ChainMap[str, Any], mod2svat: Path
     ) -> None:
-        if self.coupling.rib_msw_sprinkling_map_surface_water is None:
-            return
+        table_node2svat: NDArray[np.int32]
         svat_lookup = set_svat_lookup(mod2svat)
 
         self.msw2rib = {}
 
-        table_node2svat: NDArray[np.int32] = np.loadtxt(
-            self.coupling.rib_msw_sprinkling_map_surface_water, dtype=np.int32, ndmin=2
-        )
-        rib_idx = table_node2svat[:, 0] - 1
-        msw_idx = [
-            svat_lookup[table_node2svat[ii, 1], table_node2svat[ii, 2]]
-            for ii in range(len(table_node2svat))
-        ]
-        (
-            self.msw2rib["sw_sprinkling"],
-            self.msw2rib["sw_sprinkling_mask"],
-        ) = create_mapping(
-            msw_idx,
-            rib_idx,
-            packages["msw_volume"].size,
-            packages[
-                "ribasim_nbound"
-            ],  # should become shape of 'users'-array in Ribasim
-            "sum",
-        )
+        # surface water ponding mapping
+        if self.coupling.rib_msw_ponding_map_surface_water is not None:
+            table_node2svat = np.loadtxt(
+                self.coupling.rib_msw_ponding_map_surface_water, dtype=np.int32, ndmin=2
+            )
+            rib_idx = table_node2svat[:, 0] - 1
+            msw_idx = [
+                svat_lookup[table_node2svat[ii, 1], table_node2svat[ii, 2]]
+                for ii in range(len(table_node2svat))
+            ]
+            (
+                self.msw2rib["sw_ponding"],
+                self.msw2rib["sw_ponding_mask"],
+            ) = create_mapping(
+                msw_idx,
+                rib_idx,
+                packages["msw_volume"].size,
+                packages["ribasim_nbound"],
+                "sum",
+            )
+
+        # surface water sprinkling mapping
+        if self.coupling.rib_msw_sprinkling_map_surface_water is not None:
+            table_node2svat = np.loadtxt(
+                self.coupling.rib_msw_sprinkling_map_surface_water,
+                dtype=np.int32,
+                ndmin=2,
+            )
+            rib_idx = table_node2svat[:, 0] - 1
+            msw_idx = [
+                svat_lookup[table_node2svat[ii, 1], table_node2svat[ii, 2]]
+                for ii in range(len(table_node2svat))
+            ]
+            (
+                self.msw2rib["sw_sprinkling"],
+                self.msw2rib["sw_sprinkling_mask"],
+            ) = create_mapping(
+                msw_idx,
+                rib_idx,
+                packages["msw_volume"].size,
+                packages[
+                    "ribasim_nbound"
+                ],  # should become shape of 'users'-array in Ribasim
+                "sum",
+            )
 
 
 def set_svat_lookup(mod2svat: Path) -> dict[Any, Any]:
