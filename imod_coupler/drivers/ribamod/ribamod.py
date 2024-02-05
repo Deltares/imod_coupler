@@ -55,10 +55,14 @@ class RibaMod(Driver):
     ribasim_level: NDArray[Any]
     ribasim_infiltration: NDArray[Any]
     ribasim_drainage: NDArray[Any]
+    work_infiltration: NDArray[Any]
+    work_drainage: NDArray[Any]
 
     # Mapping tables
     map_mod2rib: dict[str, csr_matrix]
-    map_rib2mod: dict[str, csr_matrix]  # TODO: allow more than 1:N
+    coupled_mod2rib: NDArray[np.bool_]
+    map_rib2mod: dict[str, csr_matrix]
+    mask_rib2mod: dict[str, NDArray[Any]]
 
     def __init__(self, base_config: BaseConfig, ribamod_config: RibaModConfig):
         """Constructs the `Ribamod` object"""
@@ -130,6 +134,9 @@ class RibaMod(Driver):
         self.ribasim_drainage = self.ribasim.get_value_ptr("drainage")
         self.ribasim_level = self.ribasim.get_value_ptr("level")
         self.subgrid_level = self.ribasim.get_value_ptr("subgrid_level")
+        # Setup some accumulator work arrays
+        self.work_infiltration = self.ribasim_infiltration.copy()
+        self.work_drainage = self.ribasim_drainage.copy()
 
         # Create mappings
         packages: ChainMap[str, Any] = ChainMap(
@@ -139,8 +146,10 @@ class RibaMod(Driver):
         n_subgrid = len(self.subgrid_level)
         self.map_mod2rib = {}
         self.map_rib2mod = {}
-        self.mask_mod2rib = {}
         self.mask_rib2mod = {}
+        self.coupled_mod2rib = np.full(n_basin, False)
+        # This coupled_mod2rib will be sequentially updated during this initialization,
+        # accumulating all coupled basins.
 
         # Ribasim levels are used to set the boundaries of the "actively" coupled packages.
         # For "passive" packages, Ribasim only collects the net drainage and infiltration.
@@ -162,9 +171,10 @@ class RibaMod(Driver):
             )
 
             self.map_mod2rib[key] = mod2rib
-            self.mask_mod2rib[key] = (mod2rib.getnnz(axis=1) == 0).astype(int)
             self.map_rib2mod[key] = rib2mod
             self.mask_rib2mod[key] = (rib2mod.getnnz(axis=1) == 0).astype(int)
+            # In-place bitwise or
+            self.coupled_mod2rib |= mod2rib.getnnz(axis=1) > 0
 
         passive_tables = ChainMap(
             self.coupling.mf6_passive_river_packages,
@@ -179,7 +189,10 @@ class RibaMod(Driver):
                 (data, (basin_index, bound_index)), shape=(n_basin, package.n_bound)
             )
             self.map_mod2rib[key] = mod2rib
-            self.mask_mod2rib[key] = (mod2rib.getnnz(axis=1) == 0).astype(int)
+            # In-place bitwise or
+            self.coupled_mod2rib |= mod2rib.getnnz(axis=1) > 0
+
+        return
 
     def update(self) -> None:
         # iMOD Python sets MODFLOW 6' time unit to days
@@ -192,7 +205,6 @@ class RibaMod(Driver):
         self.mf6.prepare_time_step(0.0)
         # Set the MODFLOW 6 river stage and drainage to value of waterlevel of Ribasim basin
         for key, river in self.mf6_active_river_packages.items():
-            # TODO: use specific level after Ribasim can export levels
             new_stage = self.mask_rib2mod[key][:] * river.stage[:] + self.map_rib2mod[
                 key
             ].dot(self.subgrid_level)
@@ -214,25 +226,28 @@ class RibaMod(Driver):
         self.mf6.finalize_solve(1)
         self.mf6.finalize_time_step()
 
-        # Zero the ribasim arrays
-        self.ribasim_infiltration[:] = 0.0
-        self.ribasim_drainage[:] = 0.0
+        # Zero the accumulator arrays
+        self.work_infiltration[:] = 0.0
+        self.work_drainage[:] = 0.0
         # Compute MODFLOW 6 river and drain flux
         for key, river in self.mf6_river_packages.items():
-            # TODO: figure out what do about non-coupled basins.
-            # In the current setup, their infiltration/drainage will be set to 0.0
-            # Unlike MODFLOW6, where can keep its own value, that doesn't work here.
-            # Pragmatically, we could just introduce NaN or Inf and filter in Ribasim.
             river_flux = river.get_flux(self.mf6_head)
             ribasim_flux = self.map_mod2rib[key].dot(river_flux) / ribamod_time_factor
-            self.ribasim_infiltration += np.where(ribasim_flux > 0, ribasim_flux, 0)
-            self.ribasim_drainage += np.where(ribasim_flux < 0, -ribasim_flux, 0)
+            self.work_infiltration += np.where(ribasim_flux > 0, ribasim_flux, 0)
+            self.work_drainage += np.where(ribasim_flux < 0, -ribasim_flux, 0)
 
         for key, drainage in self.mf6_drainage_packages.items():
-            # TODO: mask non-coupled basins.
             drain_flux = drainage.get_flux(self.mf6_head)
             ribasim_flux = self.map_mod2rib[key].dot(drain_flux) / ribamod_time_factor
-            self.ribasim_drainage -= ribasim_flux
+            self.work_drainage -= ribasim_flux
+
+        # Set the infiltration and drainage to the actively coupled basins.
+        self.ribasim_drainage[self.coupled_mod2rib] = self.work_drainage[
+            self.coupled_mod2rib
+        ]
+        self.ribasim_infiltration[self.coupled_mod2rib] = self.work_infiltration[
+            self.coupled_mod2rib
+        ]
 
         # Update Ribasim until current time of MODFLOW 6
         self.ribasim.update_until(self.mf6.get_current_time() * ribamod_time_factor)

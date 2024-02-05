@@ -128,10 +128,9 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-# Vscode
-.vscode
-
 # Tests
 tests/temp
 report.xml
+
 .pixi
+.imod_collector

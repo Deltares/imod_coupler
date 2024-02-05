@@ -1,6 +1,7 @@
 import shutil
-import subprocess
+from collections.abc import Callable
 from pathlib import Path
+from typing import Any
 
 import pandas as pd
 import pytest
@@ -14,7 +15,7 @@ def test_metamod(
     metaswap_dll_dep_dir_devel: Path,
     metaswap_lookup_table: Path,
     bucket_ribametamod_loc: Path,
-    imod_coupler_exec_devel: Path,
+    run_coupler_function: Callable[[Path], None],
 ) -> None:
     """
     Test if coupled ribametamod models run with the iMOD Coupler development version.
@@ -40,7 +41,7 @@ def test_metamod(
         metaswap_dll_dependency,
         metaswap_model_dir,
     )
-    subprocess.run([imod_coupler_exec_devel, toml_path], check=True)
+    run_coupler_function(toml_path)
 
 
 @pytest.mark.skip(
@@ -52,7 +53,7 @@ def test_ribamod(
     ribasim_dll_devel: Path,
     ribasim_dll_dep_dir_devel: Path,
     bucket_ribametamod_loc: Path,
-    imod_coupler_exec_devel: Path,
+    run_coupler_function: Callable[[Path], None],
 ) -> None:
     """
     Test if coupled ribametamod models run with the iMOD Coupler development version.
@@ -73,10 +74,9 @@ def test_ribamod(
         ribasim_dll_dep_dir_devel,
         path_dev / "ribasim" / "ribasim.toml",
     )
-    subprocess.run([imod_coupler_exec_devel, toml_path], check=True)
+    run_coupler_function(toml_path)
 
 
-# @pytest.mark.skip(reason="we first have to merge the optional branch")
 def test_ribametamod(
     tmp_path_dev: Path,
     modflow_dll_devel: Path,
@@ -86,7 +86,7 @@ def test_ribametamod(
     ribasim_dll_devel: Path,
     ribasim_dll_dep_dir_devel: Path,
     bucket_ribametamod_loc: Path,
-    imod_coupler_exec_devel: Path,
+    run_coupler_function: Callable[[Path], None],
 ) -> None:
     """
     Test if coupled ribametamod models run with the iMOD Coupler development version.
@@ -115,7 +115,7 @@ def test_ribametamod(
         ribasim_dll_dep_dir_devel,
         path_dev / "ribasim" / "ribasim.toml",
     )
-    subprocess.run([imod_coupler_exec_devel, toml_path], check=True)
+    run_coupler_function(toml_path)
 
 
 def test_ribametamod_sw_sprinkling(
@@ -128,7 +128,7 @@ def test_ribametamod_sw_sprinkling(
     ribasim_dll_dep_dir_devel: Path,
     bucket_ribametamod_loc: Path,
     bucket_ribametamod_sprinkling_tot_svat_ref: Path,
-    imod_coupler_exec_devel: Path,
+    run_coupler_function: Callable[[Path], None],
 ) -> None:
     """
     Test if coupled ribametamod models run with the iMOD Coupler development version
@@ -159,12 +159,15 @@ def test_ribametamod_sw_sprinkling(
         path_dev / "ribasim" / "ribasim.toml",
         True,
     )
-    subprocess.run([imod_coupler_exec_devel, toml_path], check=True)
+    run_coupler_function(toml_path)
 
     tot_svat_reference = pd.read_csv(bucket_ribametamod_sprinkling_tot_svat_ref)
     tot_svat_test = pd.read_csv(metaswap_model_dir / "msw" / "csv" / "tot_svat_per.csv")
     assert tot_svat_test["        Pssw(m3)"].equals(
         tot_svat_reference["        Pssw(m3)"]
+    )
+    assert tot_svat_test["   ts2dfmput(m3)"].equals(
+        tot_svat_reference["   ts2dfmput(m3)"]
     )
 
 
@@ -198,6 +201,10 @@ def write_metamod_toml(
     coupling_dict: dict
         Dictionary with names of coupler packages and paths to mappings.
     """
+
+    coupler_toml: dict[
+        str, str | bool | dict[str, str | dict[str, bool | str | dict[str, str]]]
+    ]
     coupler_toml = {
         "timing": False,
         "log_level": "INFO",
@@ -225,7 +232,7 @@ def write_metamod_toml(
             ],
         },
     }
-    with open(tmp_path_dev / "imod_coupler.toml", "wb") as f:
+    with open(Path(tmp_path_dev) / "imod_coupler.toml", "wb") as f:
         tomli_w.dump(coupler_toml, f)
 
 
@@ -286,7 +293,7 @@ def write_ribamod_toml(
             ],
         },
     }
-    with open(tmp_path_dev / "imod_coupler.toml", "wb") as f:
+    with open(Path(tmp_path_dev) / "imod_coupler.toml", "wb") as f:
         tomli_w.dump(coupler_toml, f)
 
 
@@ -325,7 +332,7 @@ def write_ribametamod_toml(
         Dictionary with names of coupler packages and paths to mappings.
     """
 
-    coupler_toml = {
+    coupler_toml: dict[str, Any] = {
         "timing": False,
         "log_level": "INFO",
         "driver_type": "ribametamod",
@@ -368,8 +375,11 @@ def write_ribametamod_toml(
         coupler_toml["driver"]["coupling"][0][
             "rib_msw_sprinkling_map_surface_water"
         ] = "exchanges/sprinkling_index.dxc"
+        coupler_toml["driver"]["coupling"][0][
+            "rib_msw_ponding_map_surface_water"
+        ] = "exchanges/ponding_index.dxc"
 
-    with open(tmp_path_dev / "imod_coupler.toml", "wb") as f:
+    with open(Path(tmp_path_dev) / "imod_coupler.toml", "wb") as f:
         tomli_w.dump(coupler_toml, f)
 
 

@@ -291,44 +291,21 @@ def mf6_backwater_model() -> mf6.Modflow6Simulation:
     return simulation
 
 
-@pytest_cases.fixture(scope="function")
-def mf6_two_basin_model() -> mf6.Modflow6Simulation:
-    """
-    This model is created to match the Ribasim two basin test model.
-    """
-    x = np.arange(10.0, 1000.0, 20.0)
-    y = np.arange(500.0, -520.0, -20.0)
-    layer = np.array([1])
-    shape = (layer.size, y.size, x.size)
-    dims = ["layer", "y", "x"]
-    coords = {"layer": layer, "y": y, "x": x}
-    idomain = xr.DataArray(data=np.ones(shape, dtype=int), coords=coords, dims=dims)
-
+def two_basin_variation(
+    idomain: xr.DataArray,
+    river: mf6.River,
+) -> mf6.Modflow6Simulation:
+    """Sets some of the identical entries."""
     gwf_model = mf6.GroundwaterFlowModel()
     gwf_model["dis"] = mf6.StructuredDiscretization(
         idomain=idomain, top=20.0, bottom=xr.DataArray([-10.0], dims=["layer"])
     )
-
+    gwf_model["riv_1"] = river
     gwf_model["npf"] = mf6.NodePropertyFlow(
         icelltype=0,
         k=0.1,
         k33=0.1,
     )
-
-    stage = xr.full_like(idomain, np.nan, dtype=float)
-    conductance = xr.full_like(idomain, np.nan, dtype=float)
-    bottom_elevation = xr.full_like(idomain, np.nan, dtype=float)
-    stage[:, 25, :] = 0.5
-    # Compute conductance as wetted area (length 20.0, width 1.0, entry resistance 1.0)
-    conductance[:, 25, :] = (20.0 * 1.0) / 1.0
-    bottom_elevation[:, 25, :] = 0.0
-    gwf_model["riv_1"] = mf6.River(
-        stage=stage,
-        conductance=conductance,
-        bottom_elevation=bottom_elevation,
-        save_flows=True,
-    )
-
     gwf_model["ic"] = mf6.InitialConditions(start=0.0)
     gwf_model["sto"] = mf6.SpecificStorage(1e-5, 0.15, True, 1)
     gwf_model["oc"] = mf6.OutputControl(save_head="last", save_budget="last")
@@ -351,6 +328,114 @@ def mf6_two_basin_model() -> mf6.Modflow6Simulation:
         reordering_method=None,
         relaxation_factor=0.97,
     )
-    times = pd.date_range("2020-01-01", "2030-01-01", freq="1d")
+    times = pd.date_range("2020-01-01", "2020-02-01", freq="1d")
     simulation.create_time_discretization(additional_times=times)
     return simulation
+
+
+@pytest_cases.fixture(scope="function")
+def mf6_two_basin_model() -> mf6.Modflow6Simulation:
+    """
+    This model is created to match the Ribasim two basin test model.
+    """
+    x = np.arange(10.0, 1000.0, 20.0)
+    y = np.arange(500.0, -520.0, -20.0)
+    layer = np.array([1])
+    shape = (layer.size, y.size, x.size)
+    dims = ["layer", "y", "x"]
+    coords = {"layer": layer, "y": y, "x": x}
+    idomain = xr.DataArray(data=np.ones(shape, dtype=int), coords=coords, dims=dims)
+
+    stage = xr.full_like(idomain, np.nan, dtype=float)
+    conductance = xr.full_like(idomain, np.nan, dtype=float)
+    bottom_elevation = xr.full_like(idomain, np.nan, dtype=float)
+    stage[:, 25, :] = 0.5
+    # Compute conductance as wetted area (length 20.0, width 1.0, entry resistance 1.0)
+    conductance[:, 25, :] = (20.0 * 1.0) / 1.0
+    bottom_elevation[:, 25, :] = 0.0
+    river = mf6.River(
+        stage=stage,
+        conductance=conductance,
+        bottom_elevation=bottom_elevation,
+        save_flows=True,
+    )
+    return two_basin_variation(idomain, river)
+
+
+@pytest_cases.fixture(scope="function")
+def mf6_partial_two_basin_model() -> mf6.Modflow6Simulation:
+    """
+    This model is created to match the Ribasim two basin test model.
+
+    Unlike the regular two basin model, it is only located below the first
+    basin, but not the second. Additionally, river boundaries are located at
+    the top and bottom row, outside of the basins, and uncoupled.
+
+    This means the coupling is partial in terms of MODFLOW to Ribasim and vice
+    versa.
+    """
+    x = np.arange(10.0, 500.0, 20.0)
+    y = np.arange(1000.0, -1020.0, -20.0)
+    layer = np.array([1])
+    shape = (layer.size, y.size, x.size)
+    dims = ["layer", "y", "x"]
+    coords = {"layer": layer, "y": y, "x": x}
+    idomain = xr.DataArray(data=np.ones(shape, dtype=int), coords=coords, dims=dims)
+
+    stage = xr.full_like(idomain, np.nan, dtype=float)
+    conductance = xr.full_like(idomain, np.nan, dtype=float)
+    bottom_elevation = xr.full_like(idomain, np.nan, dtype=float)
+    # Set the center river part
+    stage[:, 50, :] = 0.5
+    # Compute conductance as wetted area (length 20.0, width 1.0, entry resistance 1.0)
+    conductance[:, 50, :] = (20.0 * 1.0) / 1.0
+    bottom_elevation[:, 50, :] = 0.0
+
+    # North- and southmost rows
+    stage[:, 0, :] = 0.5
+    stage[:, -1, :] = 0.5
+    conductance[:, 0, :] = 10_000.0
+    conductance[:, -1, :] = 10_000.0
+    bottom_elevation[:, 0, :] = 0.25
+    bottom_elevation[:, -1, :] = 0.25
+
+    river = mf6.River(
+        stage=stage,
+        conductance=conductance,
+        bottom_elevation=bottom_elevation,
+        save_flows=True,
+    )
+    return two_basin_variation(idomain, river)
+
+
+@pytest_cases.fixture(scope="function")
+def mf6_uncoupled_two_basin_model() -> mf6.Modflow6Simulation:
+    """
+    This model has no spatial overlap with the Ribasim model.
+    It's simply shifted 1000 units to the left.
+
+    primod + imod_coupler should still be able to pre-process and run the
+    models.
+    """
+    x = np.arange(-1000.0, 0.0, 20.0)
+    y = np.arange(200.0, -220.0, -20.0)
+    layer = np.array([1])
+    shape = (layer.size, y.size, x.size)
+    dims = ["layer", "y", "x"]
+    coords = {"layer": layer, "y": y, "x": x}
+    idomain = xr.DataArray(data=np.ones(shape, dtype=int), coords=coords, dims=dims)
+
+    stage = xr.full_like(idomain, np.nan, dtype=float)
+    conductance = xr.full_like(idomain, np.nan, dtype=float)
+    bottom_elevation = xr.full_like(idomain, np.nan, dtype=float)
+    stage[:, 10, :] = 0.5
+    # Compute conductance as wetted area (length 20.0, width 1.0, entry resistance 1.0)
+    conductance[:, 10, :] = (20.0 * 1.0) / 1.0
+    bottom_elevation[:, 10, :] = 0.0
+    river = mf6.River(
+        stage=stage,
+        conductance=conductance,
+        bottom_elevation=bottom_elevation,
+        save_flows=True,
+    )
+    return two_basin_variation(idomain, river)
