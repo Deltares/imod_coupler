@@ -196,7 +196,7 @@ def test_nullify_ribasim_exchange_input(
 
     # Should be not-NA before method call.
     df = coupled_models.ribasim_model.basin.static.df
-    df[:, ["drainage", "infiltration"]] = 0.0
+    df.loc[:, ["drainage", "infiltration"]] = 0.0
     assert df.loc[:, ["drainage", "infiltration"]].notna().all(axis=None)
 
     coupled_basin_node_ids = np.array([1])
