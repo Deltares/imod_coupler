@@ -333,7 +333,7 @@ def two_basin_variation(
         reordering_method=None,
         relaxation_factor=0.97,
     )
-    times = pd.date_range("2020-01-01", "2020-02-01", freq="1d")
+    times = pd.date_range("2020-01-01", "2021-01-01", freq="1d")
     simulation.create_time_discretization(additional_times=times)
     return simulation
 
