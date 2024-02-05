@@ -2,6 +2,7 @@ from pathlib import Path
 
 import geopandas as gpd
 import imod
+import numpy as np
 import pandas as pd
 import pytest
 import ribasim
@@ -104,7 +105,7 @@ def test_ribamod_write(
         basin_definition=basin_definition,
     )
     output_dir = tmp_path / "ribamod"
-    coupling_dict = coupled_models.write_exchanges(output_dir)
+    coupling_dict, coupled_basin_node_ids = coupled_models.write_exchanges(output_dir)
 
     exchange_path = Path("exchanges") / "riv-1.tsv"
     expected_dict = {
@@ -115,6 +116,7 @@ def test_ribamod_write(
         "mf6_passive_drainage_packages": {},
     }
     assert coupling_dict == expected_dict
+    assert np.array_equal(coupled_basin_node_ids, [1])
 
     assert (output_dir / exchange_path).exists()
     exchange_df = pd.read_csv(output_dir / exchange_path, sep="\t")
@@ -141,7 +143,7 @@ def test_ribamod_write_toml(
     )
 
     output_dir = tmp_path / "ribamod"
-    coupling_dict = coupled_models.write_exchanges(output_dir)
+    coupling_dict, coupled_basin_node_ids = coupled_models.write_exchanges(output_dir)
 
     coupled_models.write_toml(
         output_dir, coupling_dict, "./modflow6.dll", "./ribasim.dll", "./ribasim-bin"
@@ -171,6 +173,80 @@ def test_ribamod_write_toml(
         },
     }
     assert toml_dict == dict_expected
+    assert np.array_equal(coupled_basin_node_ids, [1])
+
+
+def test_nullify_ribasim_exchange_input(
+    ribasim_bucket_model, mf6_bucket_model, basin_definition
+):
+    mf6_modelname, mf6_model = get_mf6_gwf_modelnames(mf6_bucket_model)[0]
+    mf6_river_packages = get_mf6_river_packagenames(mf6_model)
+
+    driver_coupling = DriverCoupling(
+        mf6_model=mf6_modelname,
+        mf6_passive_river_packages=mf6_river_packages,
+    )
+
+    coupled_models = RibaMod(
+        ribasim_bucket_model,
+        mf6_bucket_model,
+        coupling_list=[driver_coupling],
+        basin_definition=basin_definition,
+    )
+
+    # Should be not-NA before method call.
+    df = coupled_models.ribasim_model.basin.static.df
+    assert df.loc[:, ["drainage", "infiltration"]].notna().all(axis=None)
+
+    coupled_basin_node_ids = np.array([1])
+    coupled_models._nullify_ribasim_exchange_input(coupled_basin_node_ids)
+    # Should now be NA after call.
+    df = coupled_models.ribasim_model.basin.static.df
+    assert df.loc[:, ["drainage", "infiltration"]].isna().all(axis=None)
+
+
+def test_nullify_on_write(
+    tmp_path: Path,
+    ribasim_two_basin_model: ribasim.Model,
+    mf6_partial_two_basin_model: imod.mf6.Modflow6Simulation,
+):
+    mf6_modelname, mf6_model = get_mf6_gwf_modelnames(mf6_partial_two_basin_model)[0]
+    mf6_river_packages = get_mf6_river_packagenames(mf6_model)
+
+    driver_coupling = DriverCoupling(
+        mf6_model=mf6_modelname,
+        mf6_passive_river_packages=mf6_river_packages,
+    )
+
+    # This basin definition is still a point geometry.
+    # This mean it will be rasterized to just two pixels.
+    gdf = ribasim_two_basin_model.network.node.df
+    gdf = gdf.loc[gdf["type"] == "Basin"].copy()
+    gdf["node_id"] = gdf.index
+    coupled_models = RibaMod(
+        ribasim_two_basin_model,
+        mf6_partial_two_basin_model,
+        coupling_list=[driver_coupling],
+        basin_definition=gdf,
+    )
+    _, coupled_basin_node_ids = coupled_models.write_exchanges(tmp_path)
+    assert np.array_equal(coupled_basin_node_ids, [2])
+
+    coupled_models.write(
+        directory=tmp_path,
+        modflow6_dll="a",
+        ribasim_dll="b",
+        ribasim_dll_dependency="c",
+    )
+    df = coupled_models.ribasim_model.basin.static.df
+    # Basin 2 is coupled, so drainage & infiltration should be NaN.
+    assert (
+        df.loc[df["node_id"] == 2, ["drainage", "infiltration"]].isna().all(axis=None)
+    )
+    # Basin 3 is uncoupled, terms should be preserved.
+    assert (
+        df.loc[df["node_id"] == 3, ["drainage", "infiltration"]].notna().all(axis=None)
+    )
 
 
 def get_mf6_gwf_modelnames(

@@ -9,11 +9,13 @@ import pandas as pd
 import ribasim
 import tomli_w
 from imod.mf6 import Drainage, GroundwaterFlowModel, Modflow6Simulation, River
+from numpy.typing import NDArray
 
 from primod.ribamod.exchange_creator import (
     derive_active_coupling,
     derive_passive_coupling,
 )
+from primod.typing import Int
 
 
 @dataclass
@@ -118,12 +120,15 @@ class RibaMod:
 
         # force to Path
         directory = Path(directory)
+        coupling_dict, coupled_basins = self.write_exchanges(directory)
+
+        self._nullify_ribasim_exchange_input(coupled_basins)
+
         self.mf6_simulation.write(
             directory / self._modflow6_model_dir,
             **modflow6_write_kwargs,
         )
         self.ribasim_model.write(directory / self._ribasim_model_dir / "ribasim.toml")
-        coupling_dict = self.write_exchanges(directory)
         self.write_toml(
             directory, coupling_dict, modflow6_dll, ribasim_dll, ribasim_dll_dependency
         )
@@ -202,9 +207,11 @@ class RibaMod:
                 f"present in the model: {missing}"
             )
 
-    def validate_basin_node_ids(self) -> pd.Series:
+    def validate_basin_node_ids(self) -> NDArray[Int]:
         assert self.ribasim_model.basin.profile.df is not None
-        basin_ids = np.unique(self.ribasim_model.basin.profile.df["node_id"])
+        basin_ids: NDArray[Int] = np.unique(
+            self.ribasim_model.basin.profile.df["node_id"]
+        )
         missing = ~np.isin(self.basin_definition["node_id"], basin_ids)
         if missing.any():
             missing_basins = self.basin_definition["node_id"].to_numpy()[missing]
@@ -224,10 +231,32 @@ class RibaMod:
         else:
             return None
 
+    def _nullify_ribasim_exchange_input(
+        self, coupled_basin_node_ids: NDArray[Int]
+    ) -> None:
+        """
+        Set the input forcing to NoData for drainage and infiltration.
+
+        Ribasim will otherwise overwrite the values set by the coupler.
+        """
+        # FUTURE: in coupling to MetaSWAP, the runoff should be set nodata as well.
+        basin = self.ribasim_model.basin
+        if basin.static.df is not None:
+            df = basin.static.df
+            df.loc[
+                df["node_id"].isin(coupled_basin_node_ids), ["drainage", "infiltration"]
+            ] = np.nan
+        if basin.time.df is not None:
+            df = basin.time.df
+            df.loc[
+                df["node_id"].isin(coupled_basin_node_ids), ["drainage", "infiltration"]
+            ] = np.nan
+        return
+
     def write_exchanges(
         self,
         directory: str | Path,
-    ) -> dict[str, dict[str, str]]:
+    ) -> tuple[dict[str, dict[str, str]], NDArray[Int]]:
         gwf_names = self._get_gwf_modelnames()
         # #FUTURE: multiple couplings
         coupling = self.coupling_list[0]
@@ -263,6 +292,7 @@ class RibaMod:
         packages = asdict(coupling)
         coupling_dict: dict[str, Any] = {destination: {} for destination in packages}
         coupling_dict["mf6_model"] = packages.pop("mf6_model")
+        coupled_basin_indices = []
         for destination, keys in packages.items():
             for key in keys:
                 package = gwf_model[key]
@@ -282,5 +312,8 @@ class RibaMod:
                 if not table.empty:
                     table.to_csv(exchange_dir / f"{key}.tsv", sep="\t", index=False)
                     coupling_dict[destination][key] = f"exchanges/{key}.tsv"
+                    coupled_basin_indices.append(table["basin_index"])
 
-        return coupling_dict
+        coupled_basin_indices = np.unique(np.concatenate(coupled_basin_indices))
+        coupled_basin_node_ids = basin_ids[coupled_basin_indices]
+        return coupling_dict, coupled_basin_node_ids
