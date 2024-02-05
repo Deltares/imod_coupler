@@ -12,12 +12,22 @@ install-ribasim-api = "pip install git+https://github.com/Deltares/Ribasim.git/#
 install-ribasim-testmodels = "pip install git+https://github.com/Deltares/Ribasim.git/#subdirectory=python/ribasim_testmodels"
 install-primod = "pip install --no-deps --editable pre-processing"
 install-imodc = "pip install --no-deps --editable ."
+install-metaswap-testmodels = "svn checkout https://repos.deltares.nl/repos/DSCTestbench/trunk/cases/e150_metaswap/f00_common/c00_common/LHM2016_v01vrz .imod_collector/e150_metaswap"
+install-imod-collector = "python scripts/download_imod_collector.py"
+install-imod-collector-regression = "python scripts/download_imod_collector.py regression"
+generate-env-file = "python scripts/generate_env_file.py"
 install = { depends_on = [
     "install-ribasim-python",
     "install-ribasim-api",
     "install-ribasim-testmodels",
     "install-primod",
     "install-imodc",
+] }
+install-test-dependencies = { depends_on = [
+    "install-metaswap-testmodels",
+    "install-imod-collector",
+    "install-imod-collector-regression",
+    "generate-env-file",
 ] }
 update-git-dependencies = """pip install --upgrade --force-reinstall --no-deps
                              git+https://github.com/Deltares/Ribasim.git/#subdirectory=python/ribasim
@@ -58,5 +68,7 @@ rasterio = ">=1.0"
 ruff = "*"
 scipy = "*"
 tomli-w = "*"
+tqdm = "*"
 twine = "*"
+types-requests = "*"
 xmipy = "*"

@@ -29,56 +29,42 @@ Deltares colleagues can find the issue tracker at [Jira](https://issuetracker.de
 
 In order to develop on `imod_coupler` locally, please follow the following steps:
 
-- Download and install [pixi](https://prefix.dev/docs/pixi/overview).
-
+- Create an access token at the [TeamCity build server](https://dpcbuild.deltares.nl/profile.html?item=accessTokens#).
+  Choose permission scope: `<Same as current user>`.
+- Store the token in your local user environment as `TEAMCITY_TOKEN`.
+  This token will be used to download artifacts from Teamcity, make sure to store it well.
+- Download and install [pixi](https://pixi.sh).
+- Download and install [svn](https://tortoisesvn.net/downloads.html).
+  Make sure to install the svn command line tools as well.
+- Download the Git repository of `imod_coupler` and navigate to the root of the project.
 - Create the environment by executing the following in your terminal:
 
-```sh
-pixi run install
-```
+  ```sh
+  pixi run install
+  ```
 
-- With your Deltares credentials download
-  - the [latest imod_collector](https://dpcbuild.deltares.nl/buildConfiguration/iMOD6_IMOD6collectorDaily_ReleaseX64?branch=%3Cdefault%3E&mode=builds), and
-  - the [regression imod_collector](https://dpcbuild.deltares.nl/buildConfiguration/iMOD6_IMOD6collectorDaily_ReleaseX64?branch=%3Cdefault%3E&mode=builds&tag=regression).
+- Install the test dependencies by executing the following in your terminal.
+  It automatically downloads the [latest imod_collector](https://dpcbuild.deltares.nl/buildConfiguration/iMOD6_IMOD6collectorDaily_ReleaseX64?branch=%3Cdefault%3E&mode=builds) and [regression imod_collector](https://dpcbuild.deltares.nl/buildConfiguration/iMOD6_IMOD6collectorDaily_ReleaseX64?branch=%3Cdefault%3E&mode=builds&tag=regression) from the build server.
+  It downloads the [MetaSWAP lookup table](https://repos.deltares.nl/repos/DSCTestbench/trunk/cases/e150_metaswap/f00_common/c00_common/LHM2016_v01vrz).
+  It also generates a `.env` that contains the paths to the downloaded imod_collectors.
 
-- Unpack the two zip files in a path of your choice and name the latest `imod_collector_devel` and the regression `imod_collector_regression`.
+  ```sh
+  pixi run install-test-dependencies
+  ```
 
-- Check out the MetaSWAP lookup table with your Deltares credentials which resides at `https://repos.deltares.nl/repos/DSCTestbench/trunk/cases/e150_metaswap/f00_common/c00_common/LHM2016_v01vrz`
-
-- To run the tests it is advisable to have a `.env` file at the root of the project directory instead of modifying global environment variables.
- The content of `.env` would then look similar to this with the variables `IMOD_COLLECTOR_DEVEL`, `IMOD_COLLECTOR_REGRESSION` and `METASWAP_LOOKUP_TABLE` adjusted to your local machine:
-
-```sh
-IMOD_COLLECTOR_DEVEL='D:\checkouts\imod_collector_devel'
-IMOD_COLLECTOR_REGRESSION='D:\checkouts\imod_collector_regression'
-METASWAP_LOOKUP_TABLE='D:\checkouts\DSCtestbench\cases\e150_metaswap\f00_common\c00_common\LHM2016_v01vrz'
-
-# Specify an absolute path here to use a packaged version of iMOD Coupler
-IMOD_COUPLER_EXEC_DEVEL='imodc'
-IMOD_COUPLER_EXEC_REGRESSION='${IMOD_COLLECTOR_REGRESSION}/imod_coupler/imodc.exe'
-METASWAP_DLL_DEP_DIR_DEVEL='${IMOD_COLLECTOR_DEVEL}/metaswap'
-METASWAP_DLL_DEP_DIR_REGRESSION='${IMOD_COLLECTOR_REGRESSION}/metaswap'
-METASWAP_DLL_DEVEL='${IMOD_COLLECTOR_DEVEL}/metaswap/MetaSWAP.dll'
-METASWAP_DLL_REGRESSION='${IMOD_COLLECTOR_REGRESSION}/metaswap/MetaSWAP.dll'
-MODFLOW_DLL_DEVEL='${IMOD_COLLECTOR_DEVEL}/modflow6/libmf6.dll'
-MODFLOW_DLL_REGRESSION='${IMOD_COLLECTOR_REGRESSION}/modflow6/libmf6.dll'
-RIBASIM_DLL_DEP_DIR_DEVEL='${IMOD_COLLECTOR_DEVEL}/ribasim/bin'
-RIBASIM_DLL_DEP_DIR_REGRESSION='${IMOD_COLLECTOR_REGRESSION}/ribasim/bin'
-RIBASIM_DLL_DEVEL='${IMOD_COLLECTOR_DEVEL}/ribasim/bin/libribasim.dll'
-RIBASIM_DLL_REGRESSION='${IMOD_COLLECTOR_REGRESSION}/ribasim/bin/libribasim.dll'
-```
+  `install-test-dependencies` creates a `.env` file in the root of the project with the required environment variables pointing to the paths of imod_collector that can be found in the `.pixi` folder.
 
 - The tests can then be run with:
 
-```sh
-pixi run tests
-```
+  ```sh
+  pixi run tests
+  ```
 
 - Lint the codebase with:
 
-```sh
-pixi run lint
-```
+  ```sh
+  pixi run lint
+  ```
 
 - When developing with visual studio code, it is recommended to open the application via `open-vscode.bat`.
   This will open the application in a new vscode window with the correct environment variables set.

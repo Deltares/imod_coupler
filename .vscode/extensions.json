@@ -5,6 +5,7 @@
         "charliermarsh.ruff",
         "njpwerner.autodocstring",
         "tamasfe.even-better-toml",
-        "davidanson.vscode-markdownlint"
+        "davidanson.vscode-markdownlint",
+        "samuelcolvin.jinjahtml"
     ]
 }
