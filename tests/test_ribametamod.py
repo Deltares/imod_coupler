@@ -8,7 +8,7 @@ from pytest_cases import parametrize_with_cases
 
 
 @pytest.mark.xdist_group(name="ribasim")
-@parametrize_with_cases("ribametamod_model")
+@parametrize_with_cases("ribametamod_model", glob="bucket_model")
 def test_ribametamod_develop(
     tmp_path_dev: Path,
     ribametamod_model: RibaMod | MetaSwapModel,
