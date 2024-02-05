@@ -8,7 +8,7 @@ import pandas as pd
 import pytest
 import xarray as xr
 from numpy.testing import assert_allclose
-from primod.ribamod import RibaMod
+from primod.ribamod.ribamod import RibaMod
 from pytest_cases import parametrize_with_cases
 
 
