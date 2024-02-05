@@ -314,6 +314,10 @@ class RibaMod:
                     coupling_dict[destination][key] = f"exchanges/{key}.tsv"
                     coupled_basin_indices.append(table["basin_index"])
 
-        coupled_basin_indices = np.unique(np.concatenate(coupled_basin_indices))
-        coupled_basin_node_ids = basin_ids[coupled_basin_indices]
+        if coupled_basin_indices:
+            coupled_basin_indices = np.unique(np.concatenate(coupled_basin_indices))
+            coupled_basin_node_ids = basin_ids[coupled_basin_indices]
+        else:
+            coupled_basin_node_ids = np.array([], dtype=int)
+
         return coupling_dict, coupled_basin_node_ids
