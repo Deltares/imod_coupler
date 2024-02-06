@@ -32,13 +32,16 @@ def get_times() -> pd.DatetimeIndex:
     return pd.date_range(start="1/1/1971", end="8/1/1971", freq=freq)
 
 
-def create_wells(nrow: int, ncol: int, idomain: xr.DataArray) -> mf6.WellDisStructured:
+def create_wells(
+    nrow: int, ncol: int, idomain: xr.DataArray, wel_layer: int | None = None
+) -> mf6.WellDisStructured:
     """
     Create wells, deactivate inactive cells. This function wouldn't be necessary
     if iMOD Python had a package to specify wells based on grids.
     """
 
-    wel_layer = 3
+    if wel_layer is None:
+        wel_layer = 3
 
     is_inactive = ~idomain.sel(layer=wel_layer).astype(bool)
     id_inactive = np.argwhere(is_inactive.values) + 1
@@ -60,3 +63,14 @@ def create_wells(nrow: int, ncol: int, idomain: xr.DataArray) -> mf6.WellDisStru
     return mf6.WellDisStructured(
         layer=layer, row=iy_active, column=ix_active, rate=rate
     )
+
+
+def create_wells_max_layer(
+    nrow: int, ncol: int, idomain: xr.DataArray
+) -> mf6.WellDisStructured:
+    """
+    Create wells in deepest layer of MODFLOW 6 model
+    """
+
+    wel_layer = idomain.layer.max().item()
+    return create_wells(nrow, ncol, idomain, wel_layer)
