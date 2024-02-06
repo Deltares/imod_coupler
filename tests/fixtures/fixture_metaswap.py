@@ -5,57 +5,11 @@ import pytest_cases
 import xarray as xr
 from imod import mf6, msw
 from numpy import nan
+import pandas as pd
 
 from .common import create_wells, get_times, grid_sizes
-
-
-def make_msw_model(idomain: xr.DataArray) -> msw.MetaSwapModel:
-    times = get_times()
-    unsaturated_database = "./unsat_database"
-
-    x, y, layer, dx, dy, dz = grid_sizes()
-    subunit = [0, 1]
-
-    nrow = len(y)
-    ncol = len(x)
-
-    top = 0.0
-    bottom = top - xr.DataArray(np.cumsum(dz), coords={"layer": layer}, dims="layer")
-
-    # fmt: off
-    relative_area = xr.DataArray(
-        np.array(
-            [
-                [[0.5, 0.5, 0.5, 0.5, 0.5],
-                 [nan, nan, nan, nan, nan],
-                 [1.0, 1.0, 1.0, 1.0, 1.0]],
-
-                [[0.5, 0.5, 0.5, 0.5, 0.5],
-                 [1.0, 1.0, 1.0, 1.0, 1.0],
-                 [nan, nan, nan, nan, nan]],
-            ]
-        ),
-        dims=("subunit", "y", "x"),
-        coords={"subunit": subunit, "y": y, "x": x, "dx": dx, "dy": dy}
-    )
-
-    area = relative_area * dx * -dy
-
-    active = xr.DataArray(
-        np.array(
-            [[False, True, True, True, True],
-             [False, True, True, True, True],
-             [False, True, True, True, True]]),
-        dims=("y", "x"),
-        coords={"y": y, "x": x}
-    )
-
-    # Clip off 
-    modflow_active = idomain.sel(layer=1, drop=True).astype(bool)
-
-    area = area.where(modflow_active)
-    active = active & modflow_active
-
+    
+def metaswap_model(times: list[pd.date_range],area:xr.DataArray,active:xr.DataArray, well: mf6.WellDisStructured, dis:mf6.StructuredDiscretization,unsaturated_database:str) -> msw.MetaSwapModel:
     # fmt: on
     msw_grid = xr.ones_like(active, dtype=float)
 
@@ -95,14 +49,6 @@ def make_msw_model(idomain: xr.DataArray) -> msw.MetaSwapModel:
         data=vegetation_index, coords=coords, dims=("landuse_index",)
     )
     lu = xr.ones_like(vegetation_index_da, dtype=float)
-
-    # Well
-    well = create_wells(nrow, ncol, idomain)
-
-    # Modflow 6
-    idomain = xr.full_like(msw_grid, 1, dtype=int).expand_dims(layer=layer)
-
-    dis = mf6.StructuredDiscretization(idomain=idomain, top=top, bottom=bottom)
 
     # Initiate model
     msw_model = msw.MetaSwapModel(unsaturated_database=unsaturated_database)
@@ -198,6 +144,60 @@ def make_msw_model(idomain: xr.DataArray) -> msw.MetaSwapModel:
     msw_model["oc_time"] = msw.TimeOutputControl(time=times)
 
     return msw_model
+
+def make_msw_model(idomain: xr.DataArray) -> msw.MetaSwapModel:
+    times = get_times()
+    unsaturated_database = "./unsat_database"
+
+    x, y, layer, dx, dy, dz = grid_sizes()
+    subunit = [0, 1]
+
+    nrow = len(y)
+    ncol = len(x)
+
+    top = 0.0
+    bottom = top - xr.DataArray(np.cumsum(dz), coords={"layer": layer}, dims="layer")
+
+    # fmt: off
+    relative_area = xr.DataArray(
+        np.array(
+            [
+                [[0.5, 0.5, 0.5, 0.5, 0.5],
+                 [nan, nan, nan, nan, nan],
+                 [1.0, 1.0, 1.0, 1.0, 1.0]],
+
+                [[0.5, 0.5, 0.5, 0.5, 0.5],
+                 [1.0, 1.0, 1.0, 1.0, 1.0],
+                 [nan, nan, nan, nan, nan]],
+            ]
+        ),
+        dims=("subunit", "y", "x"),
+        coords={"subunit": subunit, "y": y, "x": x, "dx": dx, "dy": dy}
+    )
+
+    area = relative_area * dx * -dy
+
+    active = xr.DataArray(
+        np.array(
+            [[False, True, True, True, True],
+             [False, True, True, True, True],
+             [False, True, True, True, True]]),
+        dims=("y", "x"),
+        coords={"y": y, "x": x}
+    )
+
+    # Clip off 
+    modflow_active = idomain.sel(layer=1, drop=True).astype(bool)
+
+    area = area.where(modflow_active)
+    active = active & modflow_active
+    
+    # Well
+    well = create_wells(nrow, ncol, idomain)
+
+    dis = mf6.StructuredDiscretization(idomain=idomain, top=top, bottom=bottom)
+    
+    return metaswap_model(times,area,active, well, dis,unsaturated_database)
 
 
 @pytest_cases.fixture(scope="function")
