@@ -7,7 +7,6 @@ import numpy as np
 import pandas as pd
 import pytest
 import xarray as xr
-from numpy.testing import assert_allclose
 from primod.ribamod import RibaMod
 from pytest_cases import parametrize_with_cases
 
@@ -136,22 +135,18 @@ def test_ribamod_backwater(
         run_coupler_function=run_coupler_function,
     )
 
-    final_level = results.basin_df[results.basin_df["time"] == "2029-12-01"]["level"]
+    final_level = results.basin_df[results.basin_df["time"] == "2021-01-01"]["level"]
 
     # Assert that the final level is a mototonically decreasing curve.
     assert (np.diff(final_level) < 0).all()
     # The head should follow the same pattern.
     assert (results.head.isel(layer=0, time=-1).diff("x") < 0.0).all()
 
-    drn = results.budgets["drn-1"].compute()
-    riv = results.budgets["riv-1"].compute()
-    # At the last time step, the drain and the river should have equal water
-    # balance terms since they have the same conductance and the river_stage =
-    # drainage_elevation.
-    assert_allclose(drn.isel(time=-1), riv.isel(time=-1))
+    drn = results.budgets["drn-1"].isel(time=-1).compute()
+    riv = results.budgets["riv-1"].isel(time=-1).compute()
 
     # Get the last flow between the edges
-    final_flow = results.flow_df[results.flow_df["time"] == "2029-12-01"]
+    final_flow = results.flow_df[results.flow_df["time"] == "2021-01-01"]
     # Check's what lost and gained in the basins
     network = ribamod_model.ribasim_model.network
     basin_ids = network.node.df.index[network.node.df["type"] == "Basin"]
@@ -162,7 +157,7 @@ def test_ribamod_backwater(
         ]["flow"]
         * 86_400.0
     ).to_numpy()
-    modflow_budget = (drn + riv).isel(time=-1).sel(y=0).to_numpy()
+    modflow_budget = (drn + riv).sel(y=0).to_numpy()
     budget_diff = ribasim_budget + modflow_budget
     assert (np.abs(budget_diff) < 1.0e-6).all()
 

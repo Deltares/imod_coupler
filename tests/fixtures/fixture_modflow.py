@@ -176,6 +176,11 @@ def mf6_bucket_model(active_idomain: xr.DataArray) -> mf6.Modflow6Simulation:
     )
 
     simulation = make_mf6_simulation(gwf_model)
+    # Override time discretization:
+    # Make model returns dates in 1970
+    # Ribasim bucket models is 2020-2021.
+    times = pd.date_range("2020-01-01", "2021-01-01", freq="D")
+    simulation.create_time_discretization(additional_times=times)
     return simulation
 
 
@@ -286,7 +291,7 @@ def mf6_backwater_model() -> mf6.Modflow6Simulation:
         reordering_method=None,
         relaxation_factor=0.97,
     )
-    times = pd.date_range("2020-01-01", "2030-01-01", freq="M")
+    times = pd.date_range("2020-01-01", "2021-01-01", freq="D")
     simulation.create_time_discretization(additional_times=times)
     return simulation
 
@@ -328,7 +333,7 @@ def two_basin_variation(
         reordering_method=None,
         relaxation_factor=0.97,
     )
-    times = pd.date_range("2020-01-01", "2020-02-01", freq="1d")
+    times = pd.date_range("2020-01-01", "2021-01-01", freq="1d")
     simulation.create_time_discretization(additional_times=times)
     return simulation
 
