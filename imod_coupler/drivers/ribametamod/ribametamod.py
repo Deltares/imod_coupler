@@ -298,21 +298,11 @@ class RibaMetaMod(Driver):
                 self.msw.finish_surface_water_time_step(isubtimestep + 1)
                 
             # compute realised fractions
-
             self.solve_modflow6_metaswap()
-
             self.mf6.finalize_time_step()
             self.msw.finalize_time_step()
         else:
             self.mf6.update()
-
-        if self.has_ribasim:
-            # exchange drainage fluxes from MODFLOW 6 to Ribasim
-            self.exchange_mod2rib()
-            # Update Ribasim until current time of MODFLOW 6
-            self.ribasim.update_until(
-                self.get_current_time() * days_to_seconds(self.delt_gw)
-            )
 
     def solve_modflow6_metaswap(self) -> None:
         self.mf6.prepare_solve(1)
