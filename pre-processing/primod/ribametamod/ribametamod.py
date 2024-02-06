@@ -67,8 +67,8 @@ class RibaMetaMod:
         ribasim_model: ribasim.Model,
         msw_model: MetaSwapModel,
         mf6_simulation: Modflow6Simulation,
-        coupling_list: list[DriverCoupling],
         basin_definition: gpd.GeoDataFrame,
+        coupling_list: list[DriverCoupling],
         mf6_rch_pkgkey: str,
         mf6_wel_pkgkey: str | None = None,
     ):

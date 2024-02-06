@@ -5,7 +5,7 @@ import pandas as pd
 import pytest
 import tomli_w
 from imod.msw import MetaSwapModel
-from primod.ribamod import RibaMod
+from primod.ribametamod import RibaMetaMod
 from pytest_cases import parametrize_with_cases
 
 
@@ -13,7 +13,8 @@ from pytest_cases import parametrize_with_cases
 @parametrize_with_cases("ribametamod_model", glob="bucket_model")
 def test_ribametamod_develop(
     tmp_path_dev: Path,
-    ribametamod_model: RibaMod | MetaSwapModel,
+    #   ribametamod_model: RibaMod | MetaSwapModel,
+    ribametamod_model: RibaMetaMod,
     modflow_dll_devel: Path,
     ribasim_dll_devel: Path,
     ribasim_dll_dep_dir_devel: Path,
@@ -22,19 +23,18 @@ def test_ribametamod_develop(
     """
     Test if coupled ribametamod models run with the iMOD Coupler development version.
     """
-    ribamod_model, msw_model = ribametamod_model
-    ribamod_model.write(
+    ribametamod_model, msw_model = ribametamod_model
+    ribametamod_model.write(
         tmp_path_dev,
         modflow6_dll=modflow_dll_devel,
         ribasim_dll=ribasim_dll_devel,
         ribasim_dll_dependency=ribasim_dll_dep_dir_devel,
     )
-    msw_model.write(
-        tmp_path_dev / "metaswap"
-    )  # the RibaMetaMod should do this eventually
+    msw_model.write(tmp_path_dev / "metaswap")
 
     subprocess.run(
-        [imod_coupler_exec_devel, tmp_path_dev / ribamod_model._toml_name], check=True
+        [imod_coupler_exec_devel, tmp_path_dev / ribametamod_model._toml_name],
+        check=True,
     )
 
 
@@ -45,7 +45,8 @@ def test_ribametamod_develop(
 )
 def test_ribametamod_bucket(
     tmp_path_dev: Path,
-    ribametamod_model: RibaMod | MetaSwapModel,
+    #   ribametamod_model: RibaMod | MetaSwapModel,
+    ribametamod_model: RibaMetaMod,
     modflow_dll_devel: Path,
     ribasim_dll_devel: Path,
     ribasim_dll_dep_dir_devel: Path,
@@ -54,8 +55,8 @@ def test_ribametamod_bucket(
     """
     Test if the bucket model works as expected
     """
-    ribamod_model, msw_model = ribametamod_model
-    ribamod_model.write(
+    ribametamod_model, msw_model = ribametamod_model
+    ribametamod_model.write(
         tmp_path_dev,
         modflow6_dll=modflow_dll_devel,
         ribasim_dll=ribasim_dll_devel,
@@ -65,7 +66,8 @@ def test_ribametamod_bucket(
         tmp_path_dev / "metaswap"
     )  # the RibaMetaMod should do this eventually
     subprocess.run(
-        [imod_coupler_exec_devel, tmp_path_dev / ribamod_model._toml_name], check=True
+        [imod_coupler_exec_devel, tmp_path_dev / ribametamod_model._toml_name],
+        check=True,
     )
     # TODO: add checks on output if RibaMetaMod class is implemented
 
@@ -76,7 +78,8 @@ def test_ribametamod_bucket(
 @parametrize_with_cases("ribametamod_model", glob="backwater_model")
 def test_ribametamod_backwater(
     tmp_path_dev: Path,
-    ribametamod_model: RibaMod | MetaSwapModel,
+    #   ribametamod_model: RibaMod | MetaSwapModel,
+    ribametamod_model: RibaMetaMod,
     modflow_dll_devel: Path,
     ribasim_dll_devel: Path,
     ribasim_dll_dep_dir_devel: Path,
@@ -85,8 +88,8 @@ def test_ribametamod_backwater(
     """
     Test if the backwater model works as expected
     """
-    ribamod_model, msw_model = ribametamod_model
-    ribamod_model.write(
+    ribametamod_model, msw_model = ribametamod_model
+    ribametamod_model.write(
         tmp_path_dev,
         modflow6_dll=modflow_dll_devel,
         ribasim_dll=ribasim_dll_devel,
@@ -96,18 +99,20 @@ def test_ribametamod_backwater(
         tmp_path_dev / "metaswap"
     )  # the RibaMetaMod should do this eventually
     subprocess.run(
-        [imod_coupler_exec_devel, tmp_path_dev / ribamod_model._toml_name], check=True
+        [imod_coupler_exec_devel, tmp_path_dev / ribametamod_model._toml_name],
+        check=True,
     )
     # TODO: add checks on output if RibaMetaMod class is implemented
 
 
-@pytest.mark.skip(
-    reason="imod-python’s MetaSWAP model does not accept negative coords currently. Skip until issue #812 is merged in imod-python"
-)
+# @pytest.mark.skip(
+#    reason="imod-python’s MetaSWAP model does not accept negative coords currently. Skip until issue #812 is merged in imod-python"
+# )
 @parametrize_with_cases("ribametamod_model", glob="two_basin_model")
 def test_ribametamod_two_basin(
     tmp_path_dev: Path,
-    ribametamod_model: RibaMod | MetaSwapModel,
+    #   ribametamod_model: RibaMod | MetaSwapModel,
+    ribametamod_model: RibaMetaMod,
     modflow_dll_devel: Path,
     ribasim_dll_devel: Path,
     ribasim_dll_dep_dir_devel: Path,
@@ -116,8 +121,8 @@ def test_ribametamod_two_basin(
     """
     Test if the two-basin model model works as expected
     """
-    ribamod_model, msw_model = ribametamod_model
-    ribamod_model.write(
+    ribametamod_model, msw_model = ribametamod_model
+    ribametamod_model.write(
         tmp_path_dev,
         modflow6_dll=modflow_dll_devel,
         ribasim_dll=ribasim_dll_devel,
@@ -127,7 +132,8 @@ def test_ribametamod_two_basin(
         tmp_path_dev / "metaswap"
     )  # the RibaMetaMod should do this eventually
     subprocess.run(
-        [imod_coupler_exec_devel, tmp_path_dev / ribamod_model._toml_name], check=True
+        [imod_coupler_exec_devel, tmp_path_dev / ribmetaamod_model._toml_name],
+        check=True,
     )
     run_coupler_function(toml_path)
 
