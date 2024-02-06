@@ -9,9 +9,9 @@ from .common import create_wells_max_layer
 from .fixture_metaswap import metaswap_model
 
 
-def make_msw_model(gwf: mf6.GroundwaterFlowModel, nsubunits: xr.DataArray(np.int32) | None = None
+def make_msw_model(
+    gwf: mf6.GroundwaterFlowModel, nsubunits: xr.DataArray(np.int32) | None = None
 ) -> msw.MetaSwapModel:
-
     times = gwf["time_discretization"]["time"]
     unsaturated_database = "./unsat_database"
 
@@ -40,10 +40,11 @@ def make_msw_model(gwf: mf6.GroundwaterFlowModel, nsubunits: xr.DataArray(np.int
     ncol = idomain.x.size
     nrow = idomain.y.size
     well = create_wells_max_layer(nrow, ncol, idomain)
-    
+
     dis = gwf["GWF_1"]["dis"]
-    
-    return metaswap_model(times,area,active, well, dis,unsaturated_database)
+
+    return metaswap_model(times, area, active, well, dis, unsaturated_database)
+
 
 def ad_msw_model(
     mf6_model: mf6.GroundwaterFlowModel,

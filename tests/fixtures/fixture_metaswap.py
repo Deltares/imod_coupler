@@ -1,15 +1,23 @@
 from pathlib import Path
 
 import numpy as np
+import pandas as pd
 import pytest_cases
 import xarray as xr
 from imod import mf6, msw
 from numpy import nan
-import pandas as pd
 
 from .common import create_wells, get_times, grid_sizes
-    
-def metaswap_model(times: list[pd.date_range],area:xr.DataArray,active:xr.DataArray, well: mf6.WellDisStructured, dis:mf6.StructuredDiscretization,unsaturated_database:str) -> msw.MetaSwapModel:
+
+
+def metaswap_model(
+    times: list[pd.date_range],
+    area: xr.DataArray,
+    active: xr.DataArray,
+    well: mf6.WellDisStructured,
+    dis: mf6.StructuredDiscretization,
+    unsaturated_database: str,
+) -> msw.MetaSwapModel:
     # fmt: on
     msw_grid = xr.ones_like(active, dtype=float)
 
@@ -145,6 +153,7 @@ def metaswap_model(times: list[pd.date_range],area:xr.DataArray,active:xr.DataAr
 
     return msw_model
 
+
 def make_msw_model(idomain: xr.DataArray) -> msw.MetaSwapModel:
     times = get_times()
     unsaturated_database = "./unsat_database"
@@ -191,12 +200,12 @@ def make_msw_model(idomain: xr.DataArray) -> msw.MetaSwapModel:
 
     area = area.where(modflow_active)
     active = active & modflow_active
-    
+
     # Well
     well = create_wells(nrow, ncol, idomain)
 
     dis = mf6.StructuredDiscretization(idomain=idomain, top=top, bottom=bottom)
-    
+
     return metaswap_model(times,area,active, well, dis,unsaturated_database)
 
 
