@@ -270,6 +270,10 @@ class RibaMetaMod(Driver):
             self.ribasim_infiltration[:] = 0.0
             self.ribasim_drainage[:] = 0.0
             self.exchange_rib2mod()
+            
+        # compute MODFLOW 6 flux estimation 
+        self.get_river_flux_estimate()
+        
 
         # Do one MODFLOW 6 - MetaSWAP timestep
         if self.has_metaswap:
@@ -328,6 +332,9 @@ class RibaMetaMod(Driver):
         self.exchange_mod2msw()
         self.msw.finalize_solve(0)
         return has_converged
+    
+    def get_river_flux_estimate(self) -> NDArray[np.float64]:
+        
 
     def exchange_msw2rib(self) -> None:
         if self.mapping.msw2rib is not None:
