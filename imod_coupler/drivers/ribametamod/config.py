@@ -2,7 +2,7 @@ import os
 from pathlib import Path
 from typing import Any
 
-from pydantic import BaseModel, FilePath, validator
+from pydantic import BaseModel, FilePath, ValidationInfo, field_validator
 
 from imod_coupler.drivers.kernel_config import Metaswap, Modflow6, Ribasim
 
@@ -43,32 +43,40 @@ class Coupling(BaseModel):
         None  # the path to the ponding map file
     )
 
-    @validator("mf6_msw_well_pkg")
+    @field_validator("mf6_msw_well_pkg")
+    @classmethod
     def validate_mf6_msw_well_pkg(
-        cls, mf6_msw_well_pkg: str | None, values: Any
+        cls, mf6_msw_well_pkg: str | None, info: ValidationInfo
     ) -> str | None:
-        if values.get("enable_sprinkling_groundwater") and mf6_msw_well_pkg is None:
+        assert info.config is not None
+        if (
+            info.config.get("enable_sprinkling_groundwater")
+            and mf6_msw_well_pkg is None
+        ):
             raise ValueError(
                 "If `enable_sprinkling_groundwater` is True, then `mf6_msw_well_pkg` needs to be set."
             )
         return mf6_msw_well_pkg
 
-    @validator(
+    @field_validator(
         "output_config_file",
         "mf6_msw_node_map",
         "mf6_msw_recharge_map",
         "output_config_file",
     )
+    @classmethod
     def resolve_file_path(cls, file_path: FilePath) -> FilePath:
         return file_path.resolve()
 
-    @validator("mf6_msw_sprinkling_map_groundwater")
+    @field_validator("mf6_msw_sprinkling_map_groundwater")
+    @classmethod
     def validate_mf6_msw_sprinkling_map(
-        cls, mf6_msw_sprinkling_map_groundwater: FilePath | None, values: Any
+        cls, mf6_msw_sprinkling_map_groundwater: FilePath | None, info: ValidationInfo
     ) -> FilePath | None:
+        assert info.config is not None
         if mf6_msw_sprinkling_map_groundwater is not None:
             return mf6_msw_sprinkling_map_groundwater.resolve()
-        elif values.get("enable_sprinkling_groundwater"):
+        elif info.config.get("enable_sprinkling_groundwater"):
             raise ValueError(
                 "If `enable_sprinkling_groundwater` is True, then `mf6_msw_sprinkling_map_groundwater` needs to be set."
             )
@@ -91,7 +99,8 @@ class RibaMetaModConfig(BaseModel):
         os.chdir(config_dir)
         super().__init__(**data)
 
-    @validator("coupling")
+    @field_validator("coupling")
+    @classmethod
     def restrict_coupling_count(cls, coupling: list[Coupling]) -> list[Coupling]:
         if len(coupling) == 0:
             raise ValueError("At least one coupling has to be defined.")
