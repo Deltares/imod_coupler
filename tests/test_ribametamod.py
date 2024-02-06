@@ -1,5 +1,4 @@
 from collections.abc import Callable
-import subprocess
 from pathlib import Path
 
 import pytest
