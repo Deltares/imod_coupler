@@ -1,3 +1,4 @@
+from collections.abc import Callable
 import subprocess
 from pathlib import Path
 
@@ -15,7 +16,7 @@ def test_ribametamod_develop(
     modflow_dll_devel: Path,
     ribasim_dll_devel: Path,
     ribasim_dll_dep_dir_devel: Path,
-    imod_coupler_exec_devel: Path,
+    run_coupler_function: Callable[[Path], None],
 ) -> None:
     """
     Test if coupled ribametamod models run with the iMOD Coupler development version.
@@ -30,10 +31,7 @@ def test_ribametamod_develop(
     msw_model.write(
         tmp_path_dev / "metaswap"
     )  # the RibaMetaMod should do this eventually
-
-    subprocess.run(
-        [imod_coupler_exec_devel, tmp_path_dev / ribamod_model._toml_name], check=True
-    )
+    run_coupler_function(tmp_path_dev / ribamod_model._toml_name)
 
 
 @pytest.mark.xdist_group(name="ribasim")
@@ -44,7 +42,7 @@ def test_ribametamod_bucket(
     modflow_dll_devel: Path,
     ribasim_dll_devel: Path,
     ribasim_dll_dep_dir_devel: Path,
-    imod_coupler_exec_devel: Path,
+    run_coupler_function: Callable[[Path], None],
 ) -> None:
     """
     Test if the bucket model works as expected
@@ -59,9 +57,7 @@ def test_ribametamod_bucket(
     msw_model.write(
         tmp_path_dev / "metaswap"
     )  # the RibaMetaMod should do this eventually
-    subprocess.run(
-        [imod_coupler_exec_devel, tmp_path_dev / ribamod_model._toml_name], check=True
-    )
+    run_coupler_function(tmp_path_dev / ribamod_model._toml_name)
     # TODO: add checks on output if RibaMetaMod class is implemented
 
 
@@ -75,7 +71,7 @@ def test_ribametamod_backwater(
     modflow_dll_devel: Path,
     ribasim_dll_devel: Path,
     ribasim_dll_dep_dir_devel: Path,
-    imod_coupler_exec_devel: Path,
+    run_coupler_function: Callable[[Path], None],
 ) -> None:
     """
     Test if the backwater model works as expected
@@ -90,9 +86,7 @@ def test_ribametamod_backwater(
     msw_model.write(
         tmp_path_dev / "metaswap"
     )  # the RibaMetaMod should do this eventually
-    subprocess.run(
-        [imod_coupler_exec_devel, tmp_path_dev / ribamod_model._toml_name], check=True
-    )
+    run_coupler_function(tmp_path_dev / ribamod_model._toml_name)
     # TODO: add checks on output if RibaMetaMod class is implemented
 
 
@@ -106,7 +100,7 @@ def test_ribametamod_two_basin(
     modflow_dll_devel: Path,
     ribasim_dll_devel: Path,
     ribasim_dll_dep_dir_devel: Path,
-    imod_coupler_exec_devel: Path,
+    run_coupler_function: Callable[[Path], None],
 ) -> None:
     """
     Test if the two-basin model model works as expected
@@ -121,7 +115,5 @@ def test_ribametamod_two_basin(
     msw_model.write(
         tmp_path_dev / "metaswap"
     )  # the RibaMetaMod should do this eventually
-    subprocess.run(
-        [imod_coupler_exec_devel, tmp_path_dev / ribamod_model._toml_name], check=True
-    )
+    run_coupler_function(tmp_path_dev / ribamod_model._toml_name)
     # TODO: add checks on output if RibaMetaMod class is implemented

@@ -69,8 +69,7 @@ def create_wells_max_layer(
     nrow: int, ncol: int, idomain: xr.DataArray
 ) -> mf6.WellDisStructured:
     """
-    Create wells, deactivate inactive cells. This function wouldn't be necessary
-    if iMOD Python had a package to specify wells based on grids.
+    Create wells in deepest layer of MODFLOW 6 model
     """
 
     wel_layer = idomain.layer.max().item()

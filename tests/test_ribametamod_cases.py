@@ -38,7 +38,7 @@ def case_bucket_model(
         mf6_model=mf6_modelname,
         mf6_active_river_packages=mf6_active_river_packages,
     )
-    # should becomde RibaMetaMod-class, including the MetaSWAP model
+    # TODO: should becomde RibaMetaMod-class, including the MetaSWAP model
     return RibaMod(
         ribasim_model=ribasim_bucket_model,
         mf6_simulation=mf6_bucket_model,
@@ -63,7 +63,7 @@ def case_backwater_model(
         mf6_active_river_packages=mf6_active_river_packages,
         mf6_active_drainage_packages=mf6_active_drainage_packages,
     )
-    # should becomde RibaMetaMod-class, including the MetaSWAP model
+    # TODO: should becomde RibaMetaMod-class, including the MetaSWAP model
     return RibaMod(
         ribasim_model=ribasim_backwater_model,
         mf6_simulation=mf6_backwater_model,
@@ -87,7 +87,7 @@ def case_two_basin_model(
         mf6_model=mf6_modelname,
         mf6_active_river_packages=mf6_active_river_packages,
     )
-    # should becomde RibaMetaMod-class, including the MetaSWAP model
+    # TODO: should becomde RibaMetaMod-class, including the MetaSWAP model
     return RibaMod(
         ribasim_model=ribasim_two_basin_model,
         mf6_simulation=mf6_two_basin_model,
