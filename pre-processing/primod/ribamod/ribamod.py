@@ -89,7 +89,7 @@ class RibaMod:
         ]
 
     @staticmethod
-    def _new_coupling_dict() -> dict[str, Any]:
+    def _empty_coupling_dict() -> dict[str, Any]:
         return {
             "mf6_active_river_packages": {},
             "mf6_passive_river_packages": {},
@@ -338,7 +338,7 @@ class RibaMod:
 
         # Collect which Ribasim basins are coupled, so that we can set their
         # drainage and infiltration to NoData later on.
-        tables_dict = self._new_coupling_dict()
+        tables_dict = self._empty_coupling_dict()
         coupled_basin_indices = []
         for destination, keys in packages.items():
             for key in keys:
@@ -397,7 +397,7 @@ class RibaMod:
 
         # FUTURE: if we support multiple MF6 models, group them by name before
         # merging, and return a list of coupling_dicts.
-        merged_coupling_dict = self._new_coupling_dict()
+        merged_coupling_dict = self._empty_coupling_dict()
         merged_coupling_dict["mf6_model"] = mf6_models[0]
         for coupling_dict in list_of_tables_dicts:
             for destination, tables in coupling_dict.items():
