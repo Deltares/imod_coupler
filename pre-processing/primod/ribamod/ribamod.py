@@ -360,7 +360,7 @@ class RibaMod:
 
                 if table.empty:
                     raise ValueError(
-                        f"No coupling can be derived for MODFLOW 6 package: {key}."
+                        f"No coupling can be derived for MODFLOW 6 package: {key}. "
                         "No spatial overlap exists between the basin_definition and this package."
                     )
 
