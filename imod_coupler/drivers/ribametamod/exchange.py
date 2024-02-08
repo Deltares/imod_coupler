@@ -37,7 +37,7 @@ class exchange_balance_1d:
         for val in self.realised.values():
             val[:] = np.zeros(shape=self.dim, dtype=np.float_)
 
-    def sum_predicted(self) -> None:
+    def sum_demands(self) -> None:
         """
         function calculates the sum of all arrays in self.predicted dict.
         The calculated flux is stored under the key "sum". This flux is used to send to ribasim
@@ -93,9 +93,9 @@ class exchange_ribasim_1d(exchange_balance_1d):
                 self.predicted["sum"][:] < 0, self.predicted["sum"][:], 0.0
             )
 
-    def sum_predicted(self) -> None:
+    def sum_demands(self) -> None:
         self.sum_keys = [
             "msw_ponding2riba_flux",
             "msw_sprinkling2riba_flux",
         ]
-        super().sum_predicted()
+        super().sum_demands()
