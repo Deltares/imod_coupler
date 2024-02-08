@@ -1,4 +1,4 @@
-from abc import ABC
+from abc import ABC, abstractmethod, abstractproperty
 from collections.abc import Sequence
 from pathlib import Path
 from typing import Any
@@ -507,6 +507,15 @@ class Mf6HeadBoundary(ABC):
         self.q -= self.rhs
         return self.q
 
+    @abstractproperty
+    def water_level(self) -> NDArray[np.float64]:
+        pass
+
+    @water_level.setter
+    @abstractmethod
+    def water_level(self, new_water_level: NDArray[np.float64]) -> None:
+        pass
+
 
 class Mf6River(Mf6HeadBoundary):
     nodelist: NDArray[np.int32]
@@ -540,8 +549,13 @@ class Mf6River(Mf6HeadBoundary):
     def update_bottom_minimum(self) -> None:
         self.bottom_minimum[:] = self.bottom_elevation[:]
 
-    def set_stage(self, new_stage: NDArray[np.float64]) -> None:
-        np.maximum(self.bottom_minimum, new_stage, out=self.stage)
+    @property
+    def water_level(self) -> NDArray[np.float64]:
+        return self.stage
+
+    @water_level.setter
+    def water_level(self, new_water_level: NDArray[np.float64]) -> None:
+        np.maximum(self.bottom_minimum, new_water_level, out=self.stage)
 
 
 class Mf6Drainage(Mf6HeadBoundary):
@@ -568,7 +582,12 @@ class Mf6Drainage(Mf6HeadBoundary):
         self.elevation_minimum = self.elevation.copy()
 
     def update_bottom_minimum(self) -> None:
-        self.elevation_minimum[:] = self.elevation
+        self.elevation_minimum[:] = self.elevation[:]
 
-    def set_elevation(self, new_elevation: NDArray[np.float64]) -> None:
-        np.maximum(self.elevation_minimum, new_elevation, out=self.elevation)
+    @property
+    def water_level(self) -> NDArray[np.float64]:
+        return self.elevation
+
+    @water_level.setter
+    def water_level(self, new_water_level: NDArray[np.float64]) -> None:
+        np.maximum(self.elevation_minimum, new_water_level, out=self.elevation)

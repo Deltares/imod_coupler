@@ -20,6 +20,10 @@ from imod_coupler.drivers.ribamod.config import Coupling, RibaModConfig
 from imod_coupler.kernelwrappers.mf6_wrapper import Mf6Drainage, Mf6River, Mf6Wrapper
 from imod_coupler.logging.exchange_collector import ExchangeCollector
 
+# iMOD Python sets MODFLOW 6's time unit to days
+# Ribasim's time unit is always seconds
+RIBAMOD_TIME_FACTOR = 86400
+
 
 class RibaMod(Driver):
     """The driver coupling Ribasim and MODFLOW 6"""
@@ -50,6 +54,7 @@ class RibaMod(Driver):
     # ChainMaps
     mf6_river_packages: ChainMap[str, Mf6River]
     mf6_drainage_packages: ChainMap[str, Mf6Drainage]
+    mf6_active_packages = ChainMap[str, Mf6River | Mf6Drainage]
 
     # Ribasim variables
     ribasim_level: NDArray[Any]
@@ -128,6 +133,9 @@ class RibaMod(Driver):
         self.mf6_drainage_packages = ChainMap(
             self.mf6_active_drainage_packages, self.mf6_passive_drainage_packages
         )
+        self.mf6_active_packages = ChainMap(
+            self.mf6_active_river_packages, self.mf6_active_drainage_packages
+        )
 
         # Get the level, drainage, infiltration from Ribasim
         self.ribasim_infiltration = self.ribasim.get_value_ptr("infiltration")
@@ -194,26 +202,46 @@ class RibaMod(Driver):
 
         return
 
-    def update(self) -> None:
-        # iMOD Python sets MODFLOW 6' time unit to days
-        # Ribasim's time unit is always seconds
-        ribamod_time_factor = 86400
+    def exchange_rib2mod(self) -> None:
+        for key, package in self.mf6_active_packages.items():
+            package.update_bottom_minimum()
+            package.water_level = self.mask_rib2mod[
+                key
+            ] * package.water_level + self.map_rib2mod[key].dot(self.subgrid_level)
+        return
 
+    def exchange_mod2rib(self) -> None:
+        # Zero the accumulator arrays
+        self.work_infiltration[:] = 0.0
+        self.work_drainage[:] = 0.0
+
+        # Compute MODFLOW 6 river and drain flux
+        for key, river in self.mf6_river_packages.items():
+            river_flux = river.get_flux(self.mf6_head)
+            ribasim_flux = self.map_mod2rib[key].dot(river_flux) / RIBAMOD_TIME_FACTOR
+            self.work_infiltration += np.where(ribasim_flux > 0, ribasim_flux, 0)
+            self.work_drainage += np.where(ribasim_flux < 0, -ribasim_flux, 0)
+
+        for key, drainage in self.mf6_drainage_packages.items():
+            drain_flux = drainage.get_flux(self.mf6_head)
+            ribasim_flux = self.map_mod2rib[key].dot(drain_flux) / RIBAMOD_TIME_FACTOR
+            self.work_drainage -= ribasim_flux
+
+        self.ribasim_drainage[self.coupled_mod2rib] = self.work_drainage[
+            self.coupled_mod2rib
+        ]
+        self.ribasim_infiltration[self.coupled_mod2rib] = self.work_infiltration[
+            self.coupled_mod2rib
+        ]
+        return
+
+    def update(self) -> None:
         self.ribasim.update_subgrid_level()
         # Ensure MODFLOW has river bottoms.
         # Variables are otherwise initialized with zeros.
         self.mf6.prepare_time_step(0.0)
         # Set the MODFLOW 6 river stage and drainage to value of waterlevel of Ribasim basin
-        for key, river in self.mf6_active_river_packages.items():
-            new_stage = self.mask_rib2mod[key][:] * river.stage[:] + self.map_rib2mod[
-                key
-            ].dot(self.subgrid_level)
-            river.set_stage(new_stage=new_stage)
-        for key, drainage in self.mf6_active_drainage_packages.items():
-            new_elevation = self.mask_rib2mod[key][:] * drainage.elevation[
-                :
-            ] + self.map_rib2mod[key].dot(self.subgrid_level)
-            drainage.set_elevation(new_elevation=new_elevation)
+        self.exchange_rib2mod()
 
         # One time step in MODFLOW 6
         # convergence loop
@@ -226,31 +254,11 @@ class RibaMod(Driver):
         self.mf6.finalize_solve(1)
         self.mf6.finalize_time_step()
 
-        # Zero the accumulator arrays
-        self.work_infiltration[:] = 0.0
-        self.work_drainage[:] = 0.0
-        # Compute MODFLOW 6 river and drain flux
-        for key, river in self.mf6_river_packages.items():
-            river_flux = river.get_flux(self.mf6_head)
-            ribasim_flux = self.map_mod2rib[key].dot(river_flux) / ribamod_time_factor
-            self.work_infiltration += np.where(ribasim_flux > 0, ribasim_flux, 0)
-            self.work_drainage += np.where(ribasim_flux < 0, -ribasim_flux, 0)
-
-        for key, drainage in self.mf6_drainage_packages.items():
-            drain_flux = drainage.get_flux(self.mf6_head)
-            ribasim_flux = self.map_mod2rib[key].dot(drain_flux) / ribamod_time_factor
-            self.work_drainage -= ribasim_flux
-
-        # Set the infiltration and drainage to the actively coupled basins.
-        self.ribasim_drainage[self.coupled_mod2rib] = self.work_drainage[
-            self.coupled_mod2rib
-        ]
-        self.ribasim_infiltration[self.coupled_mod2rib] = self.work_infiltration[
-            self.coupled_mod2rib
-        ]
+        # Set the infiltration and drainage to the coupled basins.
+        self.exchange_mod2rib()
 
         # Update Ribasim until current time of MODFLOW 6
-        self.ribasim.update_until(self.mf6.get_current_time() * ribamod_time_factor)
+        self.ribasim.update_until(self.mf6.get_current_time() * RIBAMOD_TIME_FACTOR)
 
     def do_iter(self, sol_id: int) -> bool:
         """Execute a single iteration"""
