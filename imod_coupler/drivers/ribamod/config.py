@@ -2,7 +2,7 @@ import os
 from pathlib import Path
 from typing import Any
 
-from pydantic import BaseModel, FilePath, validator
+from pydantic import BaseModel, FilePath, field_validator
 
 from imod_coupler.drivers.kernel_config import Modflow6, Ribasim
 
@@ -20,7 +20,8 @@ class Coupling(BaseModel):
     mf6_passive_drainage_packages: dict[str, str]
     output_config_file: FilePath | None = None
 
-    @validator("output_config_file")
+    @field_validator("output_config_file")
+    @classmethod
     def resolve_file_path(cls, file_path: FilePath) -> FilePath:
         return file_path.resolve()
 
@@ -41,7 +42,8 @@ class RibaModConfig(BaseModel):
         os.chdir(config_dir)
         super().__init__(**data)
 
-    @validator("coupling")
+    @field_validator("coupling")
+    @classmethod
     def restrict_coupling_count(cls, coupling: list[Coupling]) -> list[Coupling]:
         if len(coupling) == 0:
             raise ValueError("At least one coupling has to be defined.")
