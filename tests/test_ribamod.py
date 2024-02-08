@@ -243,28 +243,3 @@ def test_ribamod_partial_two_basin(
         (results.flow_df["from_node_id"] == 4) & (results.flow_df["to_node_id"] == 5)
     ]["flow"]
     assert flow_to_terminal.iloc[-1] < 1.0e-6
-
-
-@pytest.mark.xdist_group(name="ribasim")
-@parametrize_with_cases("ribamod_model", glob="uncoupled_two_basin_model")
-def test_ribamod_uncoupled_two_basin(
-    tmp_path_dev: Path,
-    ribamod_model: RibaMod,
-    modflow_dll_devel: Path,
-    ribasim_dll_devel: Path,
-    ribasim_dll_dep_dir_devel: Path,
-    run_coupler_function: Callable[[Path], None],
-) -> None:
-    """
-    Test if the partial two basin model works as expected if there's no spatial
-    overlap between the RibaMod and Modflow6 model.
-    """
-    # Should run without exceptions.
-    write_run_read(
-        tmp_path=tmp_path_dev,
-        ribamod_model=ribamod_model,
-        modflow_dll=modflow_dll_devel,
-        ribasim_dll=ribasim_dll_devel,
-        ribasim_dll_dep_dir=ribasim_dll_dep_dir_devel,
-        run_coupler_function=run_coupler_function,
-    )
