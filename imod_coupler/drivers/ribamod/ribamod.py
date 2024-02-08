@@ -209,9 +209,10 @@ class RibaMod(Driver):
         # ChainMaps work fine in other places...
         for key, package in self.mf6_active_packages.items():
             package.update_bottom_minimum()
-            package.water_level = self.mask_rib2mod[
-                key
-            ] * package.water_level + self.map_rib2mod[key].dot(self.subgrid_level)
+            package.set_water_level(
+                self.mask_rib2mod[key] * package.water_level
+                + self.map_rib2mod[key].dot(self.subgrid_level)
+            )
         return
 
     def exchange_mod2rib(self) -> None:

@@ -511,9 +511,11 @@ class Mf6HeadBoundary(ABC):
     def water_level(self) -> NDArray[np.float64]:
         pass
 
-    @water_level.setter
     @abstractmethod
-    def water_level(self, new_water_level: NDArray[np.float64]) -> None:
+    def set_water_level(self, new_water_level: NDArray[np.float64]) -> None:
+        # Do not use @water_level.setter!
+        # Since instance.water_level[:] = ...
+        # Will NOT call the setter, only the accessor!
         pass
 
 
@@ -553,8 +555,7 @@ class Mf6River(Mf6HeadBoundary):
     def water_level(self) -> NDArray[np.float64]:
         return self.stage
 
-    @water_level.setter
-    def water_level(self, new_water_level: NDArray[np.float64]) -> None:
+    def set_water_level(self, new_water_level: NDArray[np.float64]) -> None:
         np.maximum(self.bottom_minimum, new_water_level, out=self.stage)
 
 
@@ -588,6 +589,5 @@ class Mf6Drainage(Mf6HeadBoundary):
     def water_level(self) -> NDArray[np.float64]:
         return self.elevation
 
-    @water_level.setter
-    def water_level(self, new_water_level: NDArray[np.float64]) -> None:
+    def set_water_level(self, new_water_level: NDArray[np.float64]) -> None:
         np.maximum(self.elevation_minimum, new_water_level, out=self.elevation)
