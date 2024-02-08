@@ -5,6 +5,7 @@ description:
 """
 from __future__ import annotations
 
+import typing
 from collections import ChainMap
 from typing import Any
 
@@ -135,7 +136,7 @@ class RibaMod(Driver):
         )
         self.mf6_active_packages = ChainMap(
             self.mf6_active_river_packages, self.mf6_active_drainage_packages
-        )
+        )  # type: ignore
 
         # Get the level, drainage, infiltration from Ribasim
         self.ribasim_infiltration = self.ribasim.get_value_ptr("infiltration")
@@ -202,7 +203,10 @@ class RibaMod(Driver):
 
         return
 
+    @typing.no_type_check
     def exchange_rib2mod(self) -> None:
+        # Mypy refuses to understand this ChainMap for some reason.
+        # ChainMaps work fine in other places...
         for key, package in self.mf6_active_packages.items():
             package.update_bottom_minimum()
             package.water_level = self.mask_rib2mod[
