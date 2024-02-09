@@ -1,4 +1,4 @@
-from pydantic import BaseModel, DirectoryPath, FilePath, validator
+from pydantic import BaseModel, DirectoryPath, FilePath, field_validator
 
 
 class Modflow6(BaseModel):
@@ -6,11 +6,13 @@ class Modflow6(BaseModel):
     dll_dep_dir: DirectoryPath | None = None
     work_dir: DirectoryPath
 
-    @validator("dll")
+    @field_validator("dll")
+    @classmethod
     def resolve_dll(cls, dll: FilePath) -> FilePath:
         return dll.resolve()
 
-    @validator("dll_dep_dir")
+    @field_validator("dll_dep_dir")
+    @classmethod
     def resolve_dll_dep_dir(
         cls, dll_dep_dir: DirectoryPath | None
     ) -> DirectoryPath | None:
@@ -24,11 +26,13 @@ class Metaswap(BaseModel):
     dll_dep_dir: DirectoryPath
     work_dir: DirectoryPath
 
-    @validator("dll")
+    @field_validator("dll")
+    @classmethod
     def resolve_dll(cls, dll: FilePath) -> FilePath:
         return dll.resolve()
 
-    @validator("dll_dep_dir")
+    @field_validator("dll_dep_dir")
+    @classmethod
     def resolve_dll_dep_dir(
         cls, dll_dep_dir: DirectoryPath | None
     ) -> DirectoryPath | None:
@@ -42,11 +46,13 @@ class Ribasim(BaseModel):
     dll_dep_dir: DirectoryPath
     config_file: FilePath
 
-    @validator("dll")
+    @field_validator("dll")
+    @classmethod
     def resolve_dll(cls, dll: FilePath) -> FilePath:
         return dll.resolve()
 
-    @validator("dll_dep_dir")
+    @field_validator("dll_dep_dir")
+    @classmethod
     def resolve_dll_dep_dir(
         cls, dll_dep_dir: DirectoryPath | None
     ) -> DirectoryPath | None:

@@ -5,5 +5,6 @@ pytest_plugins = [
     "fixtures.fixture_modflow",
     "fixtures.fixture_paths",
     "fixtures.fixture_inputfile",
+    "fixtures.fixture_ribametamod",
     "fixtures.fixture_run_coupler_function",
 ]
