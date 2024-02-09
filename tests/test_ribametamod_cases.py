@@ -36,13 +36,13 @@ def case_bucket_model(
 
     driver_coupling = DriverCoupling(
         mf6_model=mf6_modelname,
+        basin_definition=basin_definition,
         mf6_active_river_packages=mf6_active_river_packages,
     )
     # TODO: should becomde RibaMetaMod-class, including the MetaSWAP model
     return RibaMod(
         ribasim_model=ribasim_bucket_model,
         mf6_simulation=mf6_bucket_model,
-        basin_definition=basin_definition,
         coupling_list=[driver_coupling],
     ), msw_bucket_model
 
