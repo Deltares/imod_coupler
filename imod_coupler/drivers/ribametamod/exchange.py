@@ -77,37 +77,3 @@ class exchange_balance:
         sum_array = np.stack(list(self.demands.values()))
         return sum_array.sum(axis=0)
         
-
-class exchange_ribasim_1d(exchange_balance):
-    ribasim_infiltration: NDArray[Any]
-    ribasim_drainage: NDArray[Any]
-
-    def __init__(self, ribasim: RibasimApi) -> None:
-        self.riba = ribasim
-        self.ribasim_drainage = self.riba.get_value_ptr("drainage")
-        self.ribasim_infiltration = self.riba.get_value_ptr("infiltration")
-        self.ribasim_level = self.riba.get_value_ptr("level")
-        exchange_balance.__init__(self, np.size(self.ribasim_drainage))
-        self.demand["msw_ponding2riba_flux"] = np.zeros(
-            shape=self.shape, dtype=np.float_
-        )
-        self.realised["msw_ponding2riba_flux"] = np.zeros(
-            shape=self.shape, dtype=np.float_
-        )
-
-    def to_ribasim(self) -> None:
-        if self.ribasim_drainage is not None:
-            self.ribasim_drainage[:] = np.where(
-                self.demand["sum"][:] > 0, self.demand["sum"][:], 0.0
-            )
-        if self.ribasim_infiltration is not None:
-            self.ribasim_infiltration[:] = np.where(
-                self.demand["sum"][:] < 0, self.demand["sum"][:], 0.0
-            )
-
-    def sum_demands(self) -> None:
-        self.sum_keys = [
-            "msw_ponding2riba_flux",
-            "msw_sprinkling2riba_flux",
-        ]
-        super().sum_demands()
