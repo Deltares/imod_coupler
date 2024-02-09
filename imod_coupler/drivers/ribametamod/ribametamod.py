@@ -17,6 +17,7 @@ from imod_coupler.config import BaseConfig
 from imod_coupler.drivers.driver import Driver
 from imod_coupler.drivers.ribametamod.config import Coupling, RibaMetaModConfig
 from imod_coupler.drivers.ribametamod.mapping import SetMapping
+from imod_coupler.drivers.ribametamod.exchange import ExchangeBalance
 from imod_coupler.kernelwrappers.mf6_wrapper import Mf6Drainage, Mf6River, Mf6Wrapper
 from imod_coupler.kernelwrappers.msw_wrapper import MswWrapper
 from imod_coupler.logging.exchange_collector import ExchangeCollector
@@ -34,6 +35,7 @@ class RibaMetaMod(Driver):
     ribasim: RibasimApi  # the Ribasim kernel
     msw: MswWrapper  # the MetaSWAP kernel
     has_metaswap: bool  # configured with or without metaswap
+    exchange: ExchangeBalance # deals with exchanges to Ribasim
 
     max_iter: NDArray[Any]  # max. nr outer iterations in MODFLOW kernel
     delt_gw: float  # time step from MODFLOW 6 (leading)
@@ -208,6 +210,18 @@ class RibaMetaMod(Driver):
             self.msw_head = self.msw.get_head_ptr()
             self.msw_volume = self.msw.get_volume_ptr()
             self.msw_storage = self.msw.get_storage_ptr()
+            
+        # set flux exchange-class
+        labels = []
+        if self.has_metaswap:
+            labels.append('ponding_msw2rib')
+        if self.has_ribasim:
+            labels.extend(self.mf6_active_river_packages)
+            labels.extend(self.mf6_passive_river_packages)
+            labels.extend(self.mf6_active_drainage_packages)
+            labels.extend(self.mf6_passive_drainage_packages)
+                       
+        self.exchange = ExchangeBalance(shape = self.ribasim_infiltration.size, labels = labels)
 
         # set mapping
         # Ribasim - MODFLOW 6

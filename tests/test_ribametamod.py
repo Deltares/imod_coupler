@@ -5,7 +5,7 @@ import pytest
 from imod.msw import MetaSwapModel
 from primod.ribamod import RibaMod
 from pytest_cases import parametrize_with_cases
-from imod_coupler.drivers.ribametamod.exchange import exchange_balance
+from imod_coupler.drivers.ribametamod.exchange import ExchangeBalance
 import numpy as np
 
 @pytest.mark.xdist_group(name="ribasim")
@@ -121,7 +121,7 @@ def test_ribametamod_two_basin(
 def test_exchange_balance() -> None:
     shape = 4
     labels = ['flux-1','flux-2']
-    exchange = exchange_balance(shape=shape, labels = labels)
+    exchange = ExchangeBalance(shape=shape, labels = labels)
     
     # exchange demands to class
     array_negative = np.zeros(shape=shape, dtype=np.float_)
@@ -178,7 +178,7 @@ def test_exchange_balance() -> None:
     # shortage larger than negative demands 
     shape = 1
     labels = ['flux-1']
-    exchange = exchange_balance(shape=shape, labels = labels)
+    exchange = ExchangeBalance(shape=shape, labels = labels)
     exchange.demands['flux-1'] = np.ones(shape=shape, dtype=np.float_) * -4
     exchange.demands_negative['flux-1'] = np.ones(shape=shape, dtype=np.float_) * -4
     realised = np.ones(shape=shape, dtype=np.float_) * 2
@@ -188,7 +188,7 @@ def test_exchange_balance() -> None:
     # shortage for positive demand
     shape = 1
     labels = ['flux-1']
-    exchange = exchange_balance(shape=shape, labels = labels)
+    exchange = ExchangeBalance(shape=shape, labels = labels)
     exchange.demands['flux-1'] = np.ones(shape=shape, dtype=np.float_) * 10
     exchange.demands_negative['flux-1'] = np.ones(shape=shape, dtype=np.float_) * -4
     realised = np.ones(shape=shape, dtype=np.float_) * 8

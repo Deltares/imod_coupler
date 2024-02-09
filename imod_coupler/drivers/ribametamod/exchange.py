@@ -2,10 +2,9 @@ from typing import Any
 
 import numpy as np
 from numpy.typing import NDArray
-from ribasim_api import RibasimApi
 
 
-class exchange_balance:
+class ExchangeBalance:
     demands: dict[str, NDArray[np.float_]]
     demands_negative: dict[str, NDArray[np.float_]]
     realised_negative: dict[str, NDArray[np.float_]]
