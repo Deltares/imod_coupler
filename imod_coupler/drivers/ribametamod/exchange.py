@@ -9,14 +9,12 @@ class exchange_balance:
     demands: dict[str, NDArray[np.float_]]
     demands_negative: dict[str, NDArray[np.float_]]
     realised_negative: dict[str, NDArray[np.float_]]
-    dim: int
+    shape: int
     sum_keys: list[str]
 
-    def __init__(self, dim: int, labels: list[str], shortage_label = str) -> None:
-        self.dim = dim
+    def __init__(self, shape: int, labels: list[str]) -> None:
+        self.shape = shape
         self.flux_labels = labels
-        self.shortage_label = shortage_label
-        self.demand = self._zeros_array()
         self._init_arrays()
 
     def set_realised(
@@ -28,18 +26,12 @@ class exchange_balance:
         shortage = np.absolute(self.demand - realised)
         demand_negative = self.demand_negative
         self._check_valid_shortage(shortage, demand_negative)
+        realised_fraction = self._zeros_array
+        zero_devision_mask = demand_negative != 0.0
         realised_fraction = 1 - (- shortage / demand_negative)
         for flux_label in self.flux_labels:
-            self.realised_negative[flux_label] =  self.demands_negative[flux_label] * realised_fraction 
-                 
-    def _check_valid_shortage(
-        self, shortage: NDArray[np.float_], demand_negative: NDArray[np.float_]
-    ) -> ValueError | None:
-        if not np.any(np.logical_and(self.demand > 0.0, shortage > 0.0)):
-            raise ValueError("Invalid realised values: found shortage for positive demand")
-        if np.any(shortage > np.absolute(demand_negative)):
-            raise ValueError("Invalid realised values: found shortage larger than negative demand contributions")
-
+            self.realised_negative[flux_label][zero_devision_mask] = (self.demands_negative[flux_label] * realised_fraction)[zero_devision_mask]
+    
     def reset(self) -> None:
         """
         function sets all arrays to zero
@@ -47,10 +39,18 @@ class exchange_balance:
         for flux_label in self.flux_labels:
             self.demands[flux_label][:] = 0.0
             self.demands_negative[flux_label][:] = 0.0
-            self.realised_negative[flux_label][:] = 0.0
-
+            self.realised_negative[flux_label][:] = 0.0       
+    
+    def _check_valid_shortage(
+        self, shortage: NDArray[np.float_], demand_negative: NDArray[np.float_]
+    ) -> ValueError | None:
+        if np.any(np.logical_and(self.demand > 0.0, shortage > 0.0)):
+            raise ValueError("Invalid realised values: found shortage for positive demand")
+        if np.any(shortage > np.absolute(demand_negative)):
+            raise ValueError("Invalid realised values: found shortage larger than negative demand contributions")
+        
     def _zeros_array(self) -> NDArray[np.float_]:
-        return np.zeros(shape=self.dim, dtype=np.float_)
+        return np.zeros(shape=self.shape, dtype=np.float_)
     
     def _init_arrays(self) -> None:
         self.demands = {}
@@ -60,7 +60,7 @@ class exchange_balance:
             self.demands[flux_label] = self._zeros_array()
             self.demands_negative[flux_label] = self._zeros_array()
             self.realised_negative[flux_label] = self._zeros_array()
-            
+              
     @property
     def demand_negative(self) -> NDArray[np.float_]:
         """
@@ -89,10 +89,10 @@ class exchange_ribasim_1d(exchange_balance):
         self.ribasim_level = self.riba.get_value_ptr("level")
         exchange_balance.__init__(self, np.size(self.ribasim_drainage))
         self.demand["msw_ponding2riba_flux"] = np.zeros(
-            shape=self.dim, dtype=np.float_
+            shape=self.shape, dtype=np.float_
         )
         self.realised["msw_ponding2riba_flux"] = np.zeros(
-            shape=self.dim, dtype=np.float_
+            shape=self.shape, dtype=np.float_
         )
 
     def to_ribasim(self) -> None:
