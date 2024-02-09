@@ -61,7 +61,7 @@ def test_mf6_river(
     assert (mf6_river.nodelist != -1).any()
 
     # This guards against setting below elevation.
-    mf6_river.set_stage(-123.0)
+    mf6_river.set_water_level(np.full_like(mf6_river.water_level, -123.0))
     stage_address = mf6wrapper.get_var_address("STAGE", "GWF_1", "Oosterschelde")
     stage = mf6wrapper.get_value_ptr(stage_address)
     assert (stage > -10.0).all()
@@ -99,7 +99,7 @@ def test_mf6_drainage(
     assert (mf6_drainage.nodelist != -1).any()
 
     # This guards against setting below elevation.
-    mf6_drainage.set_elevation(-123.0)
+    mf6_drainage.set_water_level(np.full_like(mf6_drainage.water_level, -123.0))
     elev_address = mf6wrapper.get_var_address("ELEV", "GWF_1", "Drainage")
     elev = mf6wrapper.get_value_ptr(elev_address)
     assert (elev > -10.0).all()
