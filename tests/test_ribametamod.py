@@ -149,7 +149,7 @@ def test_exchange_balance() -> None:
     realised[0] = -5.0
     realised[1] = -5.0
     # compute
-    exchange.set_realised(realised)
+    exchange.compute_realised(realised)
     # compare: realised_factor = 1 - (-shortage - sum_negative_demands)
     realised_factor = np.zeros(shape=shape, dtype=np.float_)
     realised_factor[0] = 1 - (-10/-15)
@@ -183,7 +183,7 @@ def test_exchange_balance() -> None:
     exchange.demands_negative['flux-1'] = np.ones(shape=shape, dtype=np.float_) * -4
     realised = np.ones(shape=shape, dtype=np.float_) * 2
     with pytest.raises(ValueError, match = "Invalid realised values: found shortage larger than negative demand contributions"):
-        exchange.set_realised(realised)
+        exchange.compute_realised(realised)
     
     # shortage for positive demand
     shape = 1
@@ -193,6 +193,6 @@ def test_exchange_balance() -> None:
     exchange.demands_negative['flux-1'] = np.ones(shape=shape, dtype=np.float_) * -4
     realised = np.ones(shape=shape, dtype=np.float_) * 8
     with pytest.raises(ValueError, match = "Invalid realised values: found shortage for positive demand"):
-        exchange.set_realised(realised)
+        exchange.compute_realised(realised)
 
     
