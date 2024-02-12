@@ -214,13 +214,12 @@ class RibaMetaMod(Driver):
         # set flux exchange-class
         labels = []
         if self.has_metaswap:
-            labels.append('ponding_msw2rib')
+            labels.append('ponding')
         if self.has_ribasim:
             labels.extend(self.mf6_active_river_packages)
             labels.extend(self.mf6_passive_river_packages)
             labels.extend(self.mf6_active_drainage_packages)
-            labels.extend(self.mf6_passive_drainage_packages)
-                       
+            labels.extend(self.mf6_passive_drainage_packages)  
         self.exchange = ExchangeBalance(shape = self.ribasim_infiltration.size, labels = labels)
 
         # set mapping
@@ -279,19 +278,19 @@ class RibaMetaMod(Driver):
         # river bottom and drainage elevation should not be fall below these
         # values. Note that the river bottom and the drainage elevation may be
         # update every stress period.
-
         # exchange stages from Ribasim to MODFLOW 6
-        if self.has_ribasim:
-            self.ribasim_infiltration[:] = 0.0
-            self.ribasim_drainage[:] = 0.0
-            self.exchange_stage_rib2mod()
-            self.exchange_flux_estimate_mod2rib()
+        
+        # TODO move to after update
 
         # Do one MODFLOW 6 - MetaSWAP timestep
         if self.has_metaswap:
             self.exchange_head_mod2msw()
             self.mf6.prepare_time_step(0.0)
-            self.delt_gw = self.mf6.get_time_step()
+            if self.has_ribasim:
+                self.ribasim_infiltration[:] = 0.0
+                self.ribasim_drainage[:] = 0.0
+                self.exchange_stage_rib2mod()
+                self.exchange_flux_estimate_mod2rib()
             self.delt_sw = self.msw.get_sw_time_step()
             self.msw.prepare_time_step(self.delt_sw)
             nsubtimesteps = self.delt_gw / self.delt_sw
@@ -312,6 +311,10 @@ class RibaMetaMod(Driver):
                 self.msw.finish_surface_water_time_step(isubtimestep + 1)
                 
             # compute realised fractions
+            realised_ribasim = self.exchange.demand
+            self.exchange.set_realised(realised_ribasim)
+            # set correction-flux per package
+            
             self.solve_modflow6_metaswap()
             self.mf6.finalize_time_step()
             self.msw.finalize_time_step()
@@ -341,18 +344,25 @@ class RibaMetaMod(Driver):
         # Compute MODFLOW 6 river and drain flux extimates
         for key, river in self.mf6_river_packages.items():
             river_flux = river.get_flux_estimate(self.mf6_head)
-            ribasim_flux = self.mapping.mod2rib[key].dot(river_flux) / days_to_seconds(
+            river_flux_negative = np.where(river_flux < 0, river_flux, 0)
+            self.exchange.demands[key] = self.mapping.mod2rib[key].dot(river_flux) / days_to_seconds(
                 self.delt_gw
             )
-            self.ribasim_infiltration += np.where(ribasim_flux > 0, ribasim_flux, 0)
-            self.ribasim_drainage += np.where(ribasim_flux < 0, -ribasim_flux, 0)
-
+            self.exchange.demands_negative[key] = self.mapping.mod2rib[key].dot(river_flux_negative) / days_to_seconds(
+                self.delt_gw
+            )
+            # self.ribasim_infiltration += np.where(ribasim_flux > 0, ribasim_flux, 0)
+            # self.ribasim_drainage += np.where(ribasim_flux < 0, -ribasim_flux, 0)
         for key, drainage in self.mf6_drainage_packages.items():
             drain_flux = drainage.get_flux_estimate(self.mf6_head)
-            ribasim_flux = self.mapping.mod2rib[key].dot(drain_flux) / days_to_seconds(
+            drain_flux_negative = drainage.get_flux_estimate(self.mf6_head)
+            self.exchange.demands[key] = self.mapping.mod2rib[key].dot(drain_flux) / days_to_seconds(
                 self.delt_gw
             )
-            self.ribasim_drainage -= ribasim_flux
+            self.exchange.demands[key] = self.mapping.mod2rib[key].dot(drain_flux_negative) / days_to_seconds(
+                self.delt_gw
+            )
+            # self.ribasim_drainage -= ribasim_flux
         
 
     def exchange_mod2rib(self) -> None:
@@ -380,10 +390,9 @@ class RibaMetaMod(Driver):
                     self.msw.get_surfacewater_ponding_allocation_ptr()
                     / days_to_seconds(self.delt_gw)
                 )
-                ribasim_flux_ponding = self.mapping.msw2rib["sw_ponding"].dot(
+                self.exchange.demands["ponding"] = self.mapping.msw2rib["sw_ponding"].dot(
                     self.msw_ponding_flux_sec
                 )[:]
-                self.ribasim_drainage[:] += ribasim_flux_ponding[:]
 
     def exchange_sprinkling_flux_demand_msw2rib(self) -> None:
             # flux demand from metaswap sprinkling to Ribasim (demand)

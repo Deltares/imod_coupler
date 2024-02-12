@@ -435,19 +435,11 @@ class Mf6HeadBoundary(ABC):
         stage_address = mf6_wrapper.get_var_address(
             "STAGE", mf6_flowmodel_key, mf6_pkg_key
         )
-        conductance_address = self.get_var_address(
-            "COND", mf6_flowmodel_key, mf6_pkg_key
-        )
-        bottom_address = self.get_var_address(
-            "RBOT", mf6_flowmodel_key, mf6_pkg_key
-        )
-        
+
         # Fortran 1-based versus Python 0-based indexing
         self.rhs = mf6_wrapper.get_value_ptr(rhs_address)
         self.hcof = mf6_wrapper.get_value_ptr(hcof_address)
         self.stage = mf6_wrapper.get_value_ptr(stage_address)
-        self.conductance = mf6_wrapper.get_value_ptr(conductance_address)
-        self.bottom = mf6_wrapper.get_value_ptr(bottom_address)
         self.head = np.empty_like(self.hcof)
         self.q = np.empty_like(self.hcof)
         self.q_estimate = np.empty_like(self.hcof)
@@ -519,38 +511,6 @@ class Mf6HeadBoundary(ABC):
         np.multiply(self.hcof, self.head, out=self.q)
         self.q -= self.rhs
         return self.q
-    
-    def get_flux_estimate(
-        self,
-        head: NDArray[np.float64],
-    ) -> NDArray[np.float64]:
-        """
-        Returns the river fluxes consistent with current head, river stage and conductance.
-        a simple linear model is used: flux = conductance * (stage - max(head, bottom))
-        Bottom is the level of the river bottom.
-
-        This function does not use the HCOF and RHS for calculating the flux, bacause it is used
-        at the beginning of the timestep. At that time
-        the package HCOF and RHS are not updated yet by MF6. Therefore we use the bottom level,
-        conductance and head of the previous timestep, and the stage of the new timestep.
-
-        Parameters
-        ----------
-        head: NDArray[np.float64]
-            The MODFLOW6 head for every cell.
-
-        Returns
-        -------
-        NDArray[np.float_]
-            flux (array size = nr of river nodes)
-            sign is positive for infiltration
-        """
-        
-        self.head[:] = head[self.nodelist]
-        max_head = np.maximum(self.head, self.bottom)
-        np.subtract(self.stage, max_head,out=self.q_estimate)
-        np.multiply(self.conductance, self.q_estimate, out = self.q_estimate)
-        return self.q_estimate
 
 
 class Mf6River(Mf6HeadBoundary):
@@ -587,6 +547,38 @@ class Mf6River(Mf6HeadBoundary):
 
     def set_stage(self, new_stage: NDArray[np.float64]) -> None:
         np.maximum(self.bottom_minimum, new_stage, out=self.stage)
+        
+    def get_flux_estimate(
+        self,
+        head: NDArray[np.float64],
+    ) -> NDArray[np.float64]:
+        """
+        Returns the river fluxes consistent with current head, river stage and conductance.
+        a simple linear model is used: flux = conductance * (stage - max(head, bottom))
+        Bottom is the level of the river bottom.
+
+        This function does not use the HCOF and RHS for calculating the flux, bacause it is used
+        at the beginning of the timestep. At that time
+        the package HCOF and RHS are not updated yet by MF6. Therefore we use the bottom level,
+        conductance and head of the previous timestep, and the stage of the new timestep.
+
+        Parameters
+        ----------
+        head: NDArray[np.float64]
+            The MODFLOW6 head for every cell.
+
+        Returns
+        -------
+        NDArray[np.float_]
+            flux (array size = nr of river nodes)
+            sign is positive for infiltration
+        """
+        self.get_nodelist()
+        self.head[:] = head[self.nodelist]
+        max_head = np.maximum(self.head, self.bottom_elevation)
+        np.subtract(self.stage, max_head,out=self.q_estimate)
+        np.multiply(self.conductance, self.q_estimate, out = self.q_estimate)
+        return self.q_estimate
 
 
 class Mf6Drainage(Mf6HeadBoundary):
@@ -617,3 +609,34 @@ class Mf6Drainage(Mf6HeadBoundary):
 
     def set_elevation(self, new_elevation: NDArray[np.float64]) -> None:
         np.maximum(self.elevation_minimum, new_elevation, out=self.elevation)
+        
+    def get_flux_estimate(
+        self,
+        head: NDArray[np.float64],
+    ) -> NDArray[np.float64]:
+        """
+        Returns the drn fluxes consistent with current head, stage and conductance.
+        a simple linear model is used: flux = conductance * (stage - head)
+
+        This function does not use the HCOF and RHS for calculating the flux, bacause it is used
+        at the beginning of the timestep. At that time
+        the package HCOF and RHS are not updated yet by MF6. Therefore we use conductance and head 
+        of the previous timestep, and the stage of the new timestep.
+
+        Parameters
+        ----------
+        head: NDArray[np.float64]
+            The MODFLOW6 head for every cell.
+
+        Returns
+        -------
+        NDArray[np.float_]
+            flux (array size = nr of river nodes)
+            sign is positive for infiltration
+        """
+        self.get_nodelist()
+        self.head[:] = head[self.nodelist]
+        max_head = np.maximum(self.head, self.stage)
+        np.subtract(self.stage, max_head,out=self.q_estimate)
+        np.multiply(self.conductance, self.q_estimate, out = self.q_estimate)
+        return self.q_estimate
