@@ -30,13 +30,13 @@ def case_bucket_model(
 
     driver_coupling = DriverCoupling(
         mf6_model=mf6_modelname,
+        basin_definition=basin_definition,
         mf6_active_river_packages=mf6_active_river_packages,
     )
 
     return RibaMod(
         ribasim_model=ribasim_bucket_model,
         mf6_simulation=mf6_bucket_model,
-        basin_definition=basin_definition,
         coupling_list=[driver_coupling],
     )
 
@@ -53,6 +53,7 @@ def case_backwater_model(
 
     driver_coupling = DriverCoupling(
         mf6_model=mf6_modelname,
+        basin_definition=basin_definition,
         mf6_active_river_packages=mf6_active_river_packages,
         mf6_active_drainage_packages=mf6_active_drainage_packages,
     )
@@ -60,7 +61,6 @@ def case_backwater_model(
     return RibaMod(
         ribasim_model=ribasim_backwater_model,
         mf6_simulation=mf6_backwater_model,
-        basin_definition=basin_definition,
         coupling_list=[driver_coupling],
     )
 
@@ -79,13 +79,13 @@ def two_basin_variation(
 
     driver_coupling = DriverCoupling(
         mf6_model=mf6_modelname,
+        basin_definition=basin_definition,
         mf6_active_river_packages=mf6_active_river_packages,
     )
 
     return RibaMod(
         ribasim_model=ribasim_two_basin_model,
         mf6_simulation=mf6_two_basin_model,
-        basin_definition=basin_definition,
         coupling_list=[driver_coupling],
     )
 
@@ -102,13 +102,6 @@ def case_partial_two_basin_model(
     ribasim_two_basin_model: ribasim.Model,
 ) -> RibaMod:
     return two_basin_variation(mf6_partial_two_basin_model, ribasim_two_basin_model)
-
-
-def case_uncoupled_two_basin_model(
-    mf6_uncoupled_two_basin_model: Modflow6Simulation,
-    ribasim_two_basin_model: ribasim.Model,
-) -> RibaMod:
-    return two_basin_variation(mf6_uncoupled_two_basin_model, ribasim_two_basin_model)
 
 
 def get_mf6_gwf_modelnames(

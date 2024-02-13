@@ -1,4 +1,4 @@
-from abc import ABC
+from abc import ABC, abstractmethod, abstractproperty
 from collections.abc import Sequence
 from pathlib import Path
 from typing import Any
@@ -538,6 +538,17 @@ class Mf6HeadBoundary(Mf6Boundary):
         self.q -= self.rhs
         return self.q
 
+    @abstractproperty
+    def water_level(self) -> NDArray[np.float64]:
+        pass
+
+    @abstractmethod
+    def set_water_level(self, new_water_level: NDArray[np.float64]) -> None:
+        # Do not use @water_level.setter!
+        # Since instance.water_level[:] = ...
+        # Will NOT call the setter, only the accessor!
+        pass
+
 
 class Mf6River(Mf6HeadBoundary):
     private_nodelist: NDArray[np.int32]
@@ -568,8 +579,12 @@ class Mf6River(Mf6HeadBoundary):
     def update_bottom_minimum(self) -> None:
         self.bottom_minimum[:] = self.bottom_elevation[:]
 
-    def set_stage(self, new_stage: NDArray[np.float64]) -> None:
-        np.maximum(self.bottom_minimum, new_stage, out=self.stage)
+    @property
+    def water_level(self) -> NDArray[np.float64]:
+        return self.stage
+
+    def set_water_level(self, new_water_level: NDArray[np.float64]) -> None:
+        np.maximum(self.bottom_minimum, new_water_level, out=self.stage)
 
     def get_flux_estimate(
         self,
@@ -624,14 +639,14 @@ class Mf6Drainage(Mf6HeadBoundary):
         self.elevation_minimum = self.elevation.copy()
 
     def update_bottom_minimum(self) -> None:
-        self.elevation_minimum[:] = self.elevation
+        self.elevation_minimum[:] = self.elevation[:]
 
-    def set_elevation(self, new_elevation: NDArray[np.float64]) -> None:
-        np.maximum(self.elevation_minimum, new_elevation, out=self.elevation)
+    @property
+    def water_level(self) -> NDArray[np.float64]:
+        return self.elevation
 
-    def get_flux_estimate(
-        self,
-        head: NDArray[np.float64],
+    def set_water_level(self, new_water_level: NDArray[np.float64]) -> None:
+        np.maximum(self.elevation_minimum, new_water_level, out=self.elevation)
     ) -> NDArray[np.float64]:
         """
         Returns the drn fluxes consistent with current head, stage and conductance.
