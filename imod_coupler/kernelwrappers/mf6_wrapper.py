@@ -23,6 +23,11 @@ class Mf6Wrapper(XmiWrapper):
         mf6_head = self.get_value_ptr(mf6_head_tag)
         return mf6_head
 
+    def get_api_packages(
+        self, mf6_flowmodel_key: str, mf6_api_keys: Sequence[str]
+    ) -> dict[str, "Mf6Api"]:
+        return {key: Mf6Api(self, mf6_flowmodel_key, key) for key in mf6_api_keys}
+
     def get_rivers_packages(
         self, mf6_flowmodel_key: str, mf6_river_keys: Sequence[str]
     ) -> dict[str, "Mf6River"]:
@@ -409,17 +414,18 @@ class Mf6Wrapper(XmiWrapper):
         return q
 
 
-class Mf6HeadBoundary(ABC):
+class Mf6Boundary(ABC):
     nodelist: NDArray[np.int32]
     hcof: NDArray[np.float64]
     rhs: NDArray[np.float64]
-    head: NDArray[np.float64]
+    maxbound: NDArray[np.int32]
+    nbound: NDArray[np.int32]
 
     def __init__(
         self, mf6_wrapper: Mf6Wrapper, mf6_flowmodel_key: str, mf6_pkg_key: str
     ):
         self.mf6_wrapper = mf6_wrapper
-        self.nodelist_address = mf6_wrapper.get_var_address(
+        nodelist_address = mf6_wrapper.get_var_address(
             "NODELIST",
             mf6_flowmodel_key,
             mf6_pkg_key,
@@ -432,31 +438,52 @@ class Mf6HeadBoundary(ABC):
         hcof_address = mf6_wrapper.get_var_address(
             "HCOF", mf6_flowmodel_key, mf6_pkg_key
         )
+        maxbound_address = mf6_wrapper.get_var_address(
+            "MAXBOUND", mf6_flowmodel_key, mf6_pkg_key
+        )
+        nbound_address = mf6_wrapper.get_var_address(
+            "NBOUND", mf6_flowmodel_key, mf6_pkg_key
+        )
+        # Fortran 1-based versus Python 0-based indexing
+        self.nodelist = mf6_wrapper.get_value_ptr(nodelist_address)
+        self.rhs = mf6_wrapper.get_value_ptr(rhs_address)
+        self.hcof = mf6_wrapper.get_value_ptr(hcof_address)
+        self.maxbound = mf6_wrapper.get_value_ptr(maxbound_address)
+        self.nbound = mf6_wrapper.get_value_ptr(nbound_address)
+
+
+class Mf6Api(Mf6Boundary):
+    def __init__(
+        self, mf6_wrapper: Mf6Wrapper, mf6_flowmodel_key: str, mf6_pkg_key: str
+    ):
+        super().__init__(mf6_wrapper, mf6_flowmodel_key, mf6_pkg_key)
+
+
+class Mf6HeadBoundary(Mf6Boundary):
+    head: NDArray[np.float64]
+    private_nodelist: NDArray[np.int32]
+
+    def __init__(
+        self, mf6_wrapper: Mf6Wrapper, mf6_flowmodel_key: str, mf6_pkg_key: str
+    ):
+        super().__init__(mf6_wrapper, mf6_flowmodel_key, mf6_pkg_key)
+
         stage_address = mf6_wrapper.get_var_address(
             "STAGE", mf6_flowmodel_key, mf6_pkg_key
         )
 
         # Fortran 1-based versus Python 0-based indexing
-        self.rhs = mf6_wrapper.get_value_ptr(rhs_address)
-        self.hcof = mf6_wrapper.get_value_ptr(hcof_address)
         self.stage = mf6_wrapper.get_value_ptr(stage_address)
         self.head = np.empty_like(self.hcof)
         self.q = np.empty_like(self.hcof)
         self.q_estimate = np.empty_like(self.hcof)
+        self.private_nodelist = (
+            self.nodelist - 1
+        )  # internal to this class, therefore 0-based
 
     @property
     def n_bound(self) -> int:
         return len(self.rhs)
-
-    def get_nodelist(self) -> None:
-        """
-        The nodelist behaves differently than HCOF and RHS.
-
-        While the nodelist can be fetched from MODFLOW 6, this will result in a
-        dummy array of only -1 values. Apparently, it is not allocated yet (?)
-        and the allocation only occurs after the first prepare_time_step.
-        """
-        self.nodelist = self.mf6_wrapper.get_value_ptr(self.nodelist_address) - 1
 
     def get_flux(
         self,
@@ -506,18 +533,14 @@ class Mf6HeadBoundary(ABC):
             sign is positive for infiltration
         """
         # Avoid allocating large arrays
-        self.get_nodelist()
-        self.head[:] = head[self.nodelist]
+        self.head[:] = head[self.private_nodelist]
         np.multiply(self.hcof, self.head, out=self.q)
         self.q -= self.rhs
         return self.q
 
 
 class Mf6River(Mf6HeadBoundary):
-    nodelist: NDArray[np.int32]
-    hcof: NDArray[np.float64]
-    rhs: NDArray[np.float64]
-    stage: NDArray[np.float64]
+    private_nodelist: NDArray[np.int32]
     conductance: NDArray[np.float64]
     bottom_elevation: NDArray[np.float64]
     head: NDArray[np.float64]
@@ -547,7 +570,7 @@ class Mf6River(Mf6HeadBoundary):
 
     def set_stage(self, new_stage: NDArray[np.float64]) -> None:
         np.maximum(self.bottom_minimum, new_stage, out=self.stage)
-        
+
     def get_flux_estimate(
         self,
         head: NDArray[np.float64],
@@ -573,21 +596,17 @@ class Mf6River(Mf6HeadBoundary):
             flux (array size = nr of river nodes)
             sign is positive for infiltration
         """
-        self.get_nodelist()
-        self.head[:] = head[self.nodelist]
+
+        self.head[:] = head[self.private_nodelist]
         max_head = np.maximum(self.head, self.bottom_elevation)
-        np.subtract(self.stage, max_head,out=self.q_estimate)
-        np.multiply(self.conductance, self.q_estimate, out = self.q_estimate)
+        np.subtract(self.stage, max_head, out=self.q_estimate)
+        np.multiply(self.conductance, self.q_estimate, out=self.q_estimate)
         return self.q_estimate
 
 
 class Mf6Drainage(Mf6HeadBoundary):
-    nodelist: NDArray[np.int32]
-    hcof: NDArray[np.float64]
-    rhs: NDArray[np.float64]
     conductance: NDArray[np.float64]
     elevation: NDArray[np.float64]
-    head: NDArray[np.float64]
     elevation_minimum: NDArray[np.float64]
 
     def __init__(
@@ -609,7 +628,7 @@ class Mf6Drainage(Mf6HeadBoundary):
 
     def set_elevation(self, new_elevation: NDArray[np.float64]) -> None:
         np.maximum(self.elevation_minimum, new_elevation, out=self.elevation)
-        
+
     def get_flux_estimate(
         self,
         head: NDArray[np.float64],
@@ -620,7 +639,7 @@ class Mf6Drainage(Mf6HeadBoundary):
 
         This function does not use the HCOF and RHS for calculating the flux, bacause it is used
         at the beginning of the timestep. At that time
-        the package HCOF and RHS are not updated yet by MF6. Therefore we use conductance and head 
+        the package HCOF and RHS are not updated yet by MF6. Therefore we use conductance and head
         of the previous timestep, and the stage of the new timestep.
 
         Parameters
@@ -634,9 +653,8 @@ class Mf6Drainage(Mf6HeadBoundary):
             flux (array size = nr of river nodes)
             sign is positive for infiltration
         """
-        self.get_nodelist()
-        self.head[:] = head[self.nodelist]
+        self.head[:] = head[self.private_nodelist]
         max_head = np.maximum(self.head, self.stage)
-        np.subtract(self.stage, max_head,out=self.q_estimate)
-        np.multiply(self.conductance, self.q_estimate, out = self.q_estimate)
+        np.subtract(self.stage, max_head, out=self.q_estimate)
+        np.multiply(self.conductance, self.q_estimate, out=self.q_estimate)
         return self.q_estimate
