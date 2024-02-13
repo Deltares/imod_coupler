@@ -32,6 +32,7 @@ class ExchangeBalance:
         demand_negative = self.demand_negative
         self._check_valid_shortage(shortage, demand_negative)
         # deal with zero division
+        np.isposinf
         realised_fraction = np.where(
             demand_negative < 0.0, 1.0 - (-shortage / demand_negative), 1.0
         )
