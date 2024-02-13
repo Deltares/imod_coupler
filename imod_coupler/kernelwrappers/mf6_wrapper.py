@@ -481,6 +481,15 @@ class Mf6HeadBoundary(Mf6Boundary):
             self.nodelist - 1
         )  # internal to this class, therefore 0-based
 
+    def set_private_nodelist(self) -> None:
+        """
+        The nodelist behaves differently than HCOF and RHS.
+        While the nodelist can be fetched from MODFLOW 6, this will result in a
+        dummy array of only -1 values. Apparently, it is not allocated yet (?)
+        and the allocation only occurs after the first prepare_time_step.
+        """
+        self.private_nodelist = self.nodelist - 1
+
     @property
     def n_bound(self) -> int:
         return len(self.rhs)
@@ -533,6 +542,7 @@ class Mf6HeadBoundary(Mf6Boundary):
             sign is positive for infiltration
         """
         # Avoid allocating large arrays
+        self.set_private_nodelist()
         self.head[:] = head[self.private_nodelist]
         np.multiply(self.hcof, self.head, out=self.q)
         self.q -= self.rhs
@@ -601,6 +611,7 @@ class Mf6River(Mf6HeadBoundary):
             sign is positive for infiltration
         """
 
+        self.set_private_nodelist()
         self.head[:] = head[self.private_nodelist]
         max_head = np.maximum(self.head, self.bottom_elevation)
         np.subtract(self.stage, max_head, out=self.q_estimate)
@@ -661,6 +672,7 @@ class Mf6Drainage(Mf6HeadBoundary):
             flux (array size = nr of river nodes)
             sign is positive for infiltration
         """
+        self.set_private_nodelist()
         self.head[:] = head[self.private_nodelist]
         max_head = np.maximum(self.head, self.stage)
         np.subtract(self.stage, max_head, out=self.q_estimate)
