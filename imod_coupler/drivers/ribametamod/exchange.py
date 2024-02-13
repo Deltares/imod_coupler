@@ -33,7 +33,7 @@ class ExchangeBalance:
         self._check_valid_shortage(shortage, demand_negative)
         # deal with zero division
         realised_fraction = np.where(
-            demand_negative != 0.0, 1.0 - (-shortage / demand_negative), 1.0
+            demand_negative < 0.0, 1.0 - (-shortage / demand_negative), 1.0
         )
         for flux_label in self.flux_labels:
             self.realised_negative[flux_label] = (
