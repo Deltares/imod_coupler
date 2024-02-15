@@ -7,6 +7,9 @@ from imod.msw import MetaSwapModel
 from primod.ribametamod import RibaMetaMod
 from pytest_cases import parametrize_with_cases
 
+msw_outputlabel_ponding: str = "        Pssw(m3)"
+msw_outputlabel_swsprinkling: str = "   ts2dfmput(m3)"
+
 
 @pytest.mark.xdist_group(name="ribasim")
 @parametrize_with_cases("ribametamod_model", glob="bucket_model")
@@ -35,11 +38,11 @@ def test_ribametamod_bucket(
     run_coupler_function(tmp_path_dev / ribametamod_model._toml_name)
     tot_svat_reference = pd.read_csv(bucket_ribametamod_sprinkling_tot_svat_ref)
     tot_svat_test = pd.read_csv("metaswap/msw/csv/tot_svat_per.csv")
-    assert tot_svat_test["        Pssw(m3)"].equals(
-        tot_svat_reference["        Pssw(m3)"]
+    assert tot_svat_test[msw_outputlabel_swsprinkling].equals(
+        tot_svat_reference[msw_outputlabel_swsprinkling]
     )
-    assert tot_svat_test["   ts2dfmput(m3)"].equals(
-        tot_svat_reference["   ts2dfmput(m3)"]
+    assert tot_svat_test[msw_outputlabel_ponding].equals(
+        tot_svat_reference[msw_outputlabel_ponding]
     )
 
 
@@ -71,9 +74,9 @@ def test_ribametamod_two_basin(
     run_coupler_function(tmp_path_dev / ribametamod_model._toml_name)
     tot_svat_reference = pd.read_csv(two_basin_ribametamod_tot_svat_ref)
     tot_svat_test = pd.read_csv("metaswap/msw/csv/tot_svat_per.csv")
-    assert tot_svat_test["        Pssw(m3)"].equals(
-        tot_svat_reference["        Pssw(m3)"]
+    assert tot_svat_test[msw_outputlabel_swsprinkling].equals(
+        tot_svat_reference[msw_outputlabel_swsprinkling]
     )
-    assert tot_svat_test["   ts2dfmput(m3)"].equals(
-        tot_svat_reference["   ts2dfmput(m3)"]
+    assert tot_svat_test[msw_outputlabel_ponding].equals(
+        tot_svat_reference[msw_outputlabel_ponding]
     )

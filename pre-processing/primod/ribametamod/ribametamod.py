@@ -489,7 +489,7 @@ class RibaMetaMod:
                 swsprmax["max_abstraction_surfacewater_m3_d"].values,
                 (nsu, 1, 1),
             )
-            index_swspr, svat_swspr = swspr_grid_data.generate_index_array()
+            _, svat_swspr = swspr_grid_data.generate_index_array()
             table_sw_sprinkling = self.derive_coupling(
                 gridded_basin_msw, basin_ids, svat_swspr.notnull()
             )
@@ -499,5 +499,3 @@ class RibaMetaMod:
             coupling_dict[
                 "rib_msw_sprinkling_map_surface_water"
             ] = "exchanges/msw_sw_sprinkling.tsv"
-
-        return
