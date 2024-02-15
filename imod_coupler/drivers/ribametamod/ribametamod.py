@@ -244,11 +244,20 @@ class RibaMetaMod(Driver):
             mswmod_packages["mf6_top"] = self.mf6_top
             mswmod_packages["mf6_bot"] = self.mf6_bot
 
+        # MetaSWAP - Ribasim
+        if self.has_ribasim and self.has_metaswap:
+            ribmsw_packages: dict[str, Any] = {}
+            ribmsw_packages["mf6_bot"] = self.mf6_bot
+            ribmsw_packages["ribmsw_nbound"] = np.size(
+                self.msw.get_surfacewater_ponding_allocation_ptr()
+            )
+
         self.mapping = SetMapping(
             self.coupling,
             ChainMap(
                 ribmod_packages,
                 mswmod_packages,
+                ribmsw_packages,
             ),
             self.has_metaswap,
             self.has_ribasim,
@@ -418,7 +427,7 @@ class RibaMetaMod(Driver):
         self.mf6_recharge[:] = (
             self.mapping.msw2mod["recharge_mask"][:] * self.mf6_recharge[:]
             + self.mapping.msw2mod["recharge"].dot(self.msw_volume)[:] / self.delt
-        ) / self.mf6_area[self.mf6_recharge_nodes]
+        ) / self.mf6_area[self.mf6_recharge_nodes - 1]
 
         if self.coupling.enable_sprinkling_groundwater:
             self.mf6_sprinkling_wells[:] = (

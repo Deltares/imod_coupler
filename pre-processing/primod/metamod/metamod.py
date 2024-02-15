@@ -6,9 +6,9 @@ from imod.mf6 import Modflow6Simulation
 from imod.mf6.model import Modflow6Model
 from imod.msw import GridData, MetaSwapModel, Sprinkling
 
-from primod.metamod.node_svat_mapping import NodeSvatMapping
-from primod.metamod.rch_svat_mapping import RechargeSvatMapping
-from primod.metamod.wel_svat_mapping import WellSvatMapping
+from primod.mapping.node_svat_mapping import NodeSvatMapping
+from primod.mapping.rch_svat_mapping import RechargeSvatMapping
+from primod.mapping.wel_svat_mapping import WellSvatMapping
 
 
 class MetaMod:

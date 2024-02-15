@@ -158,27 +158,25 @@ class SetMapping:
         self, packages: ChainMap[str, Any], mod2svat: Path
     ) -> None:
         table_node2svat: NDArray[np.int32]
-        svat_lookup = set_svat_lookup(mod2svat)
-
         self.msw2rib = {}
 
         # surface water ponding mapping
         if self.coupling.rib_msw_ponding_map_surface_water is not None:
             table_node2svat = np.loadtxt(
-                self.coupling.rib_msw_ponding_map_surface_water, dtype=np.int32, ndmin=2
+                self.coupling.rib_msw_ponding_map_surface_water,
+                dtype=np.int32,
+                skiprows=1,
+                ndmin=2,
             )
-            rib_idx = table_node2svat[:, 0] - 1
-            msw_idx = [
-                svat_lookup[table_node2svat[ii, 1], table_node2svat[ii, 2]]
-                for ii in range(len(table_node2svat))
-            ]
+            rib_idx = table_node2svat[:, 0]
+            msw_idx = table_node2svat[:, 1]
             (
                 self.msw2rib["sw_ponding"],
                 self.msw2rib["sw_ponding_mask"],
             ) = create_mapping(
                 msw_idx,
                 rib_idx,
-                packages["msw_volume"].size,
+                packages["ribmsw_nbound"],
                 packages["ribasim_nbound"],
                 "sum",
             )
@@ -188,25 +186,22 @@ class SetMapping:
             table_node2svat = np.loadtxt(
                 self.coupling.rib_msw_sprinkling_map_surface_water,
                 dtype=np.int32,
+                skiprows=1,
                 ndmin=2,
             )
-            rib_idx = table_node2svat[:, 0] - 1
-            msw_idx = [
-                svat_lookup[table_node2svat[ii, 1], table_node2svat[ii, 2]]
-                for ii in range(len(table_node2svat))
-            ]
+            rib_idx = table_node2svat[:, 0]
+            msw_idx = table_node2svat[:, 1]
             (
                 self.msw2rib["sw_sprinkling"],
                 self.msw2rib["sw_sprinkling_mask"],
             ) = create_mapping(
                 msw_idx,
                 rib_idx,
-                packages["msw_volume"].size,
-                packages[
-                    "ribasim_nbound"
-                ],  # should become shape of 'users'-array in Ribasim
+                packages["ribmsw_nbound"],
+                packages["ribasim_nbound"],
                 "sum",
             )
+            # should become shape of 'users'-array in Ribasim
 
 
 def set_svat_lookup(mod2svat: Path) -> dict[Any, Any]:

@@ -21,8 +21,8 @@ def metaswap_model(
     # fmt: on
     msw_grid = xr.ones_like(active, dtype=float)
 
-    precipitation = msw_grid.expand_dims(time=times[:-1])
-    evapotranspiration = msw_grid.expand_dims(time=times[:-1]) * 10.0
+    precipitation = msw_grid.expand_dims(time=times[:-1]).drop_vars("layer")
+    evapotranspiration = msw_grid.expand_dims(time=times[:-1]).drop_vars("layer") * 10.0
 
     # Vegetation
     day_of_year = np.arange(1, 367)

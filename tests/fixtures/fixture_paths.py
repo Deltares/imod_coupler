@@ -125,3 +125,13 @@ def bucket_ribametamod_sprinkling_tot_svat_ref(request: FixtureRequest) -> Path:
         / "test_ribametamod_sprinkling_surface_water"
         / "tot_svat_per_reference.csv"
     )
+
+
+@pytest.fixture(scope="function")
+def two_basin_ribametamod_tot_svat_ref(request: FixtureRequest) -> Path:
+    return (
+        request.path.parent
+        / "reference_output"
+        / "test_ribametamod_two_basin"
+        / "tot_svat_per_reference.csv"
+    )
