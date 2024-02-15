@@ -468,12 +468,7 @@ class Mf6HeadBoundary(Mf6Boundary):
     ):
         super().__init__(mf6_wrapper, mf6_flowmodel_key, mf6_pkg_key)
 
-        stage_address = mf6_wrapper.get_var_address(
-            "STAGE", mf6_flowmodel_key, mf6_pkg_key
-        )
-
         # Fortran 1-based versus Python 0-based indexing
-        self.stage = mf6_wrapper.get_value_ptr(stage_address)
         self.head = np.empty_like(self.hcof)
         self.q = np.empty_like(self.hcof)
         self.q_estimate = np.empty_like(self.hcof)
