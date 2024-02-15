@@ -25,8 +25,6 @@ class WellSvatMapping(MetaModMapping):
         Modflow 6 Well package to connect to.
     """
 
-    # TODO: Do we always want to couple to identical grids?
-
     _file_name = "wellindex2svat.dxc"
     _metadata_dict = {
         "wel_id": VariableMetaData(10, 1, 9999999, int),
