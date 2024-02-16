@@ -669,7 +669,7 @@ class Mf6Drainage(Mf6HeadBoundary):
         """
         self.set_private_nodelist()
         self.head[:] = head[self.private_nodelist]
-        max_head = np.maximum(self.head, self.stage)
-        np.subtract(self.stage, max_head, out=self.q_estimate)
+        max_head = np.maximum(self.head, self.elevation)
+        np.subtract(self.elevation, max_head, out=self.q_estimate)
         np.multiply(self.conductance, self.q_estimate, out=self.q_estimate)
         return self.q_estimate
