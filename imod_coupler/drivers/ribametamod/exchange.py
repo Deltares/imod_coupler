@@ -26,7 +26,7 @@ class ExchangeBalance:
 
     def compute_realised(self, realised: NDArray[np.float_]) -> None:
         """
-        This function computes the realised volumes
+        This function computes the realised (negative) volumes
         """
         shortage = np.absolute(self.demand - realised)
         demand_negative = self.demand_negative
