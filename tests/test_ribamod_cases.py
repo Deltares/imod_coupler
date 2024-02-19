@@ -8,8 +8,13 @@ def create_basin_definition(
     ribasim_model: ribasim.Model, buffersize: float
 ) -> gpd.GeoDataFrame:
     node = ribasim_model.network.node.df
-    assert ribasim_model.basin.static.df is not None
-    basin_nodes = ribasim_model.basin.static.df["node_id"].unique()
+    # assert ribasim_model.basin.static.df is not None
+    if ribasim_model.basin.static.df is not None:
+        basin_nodes = ribasim_model.basin.static.df["node_id"].unique()
+    elif ribasim_model.basin.subgrid.df is not None:
+        basin_nodes = ribasim_model.basin.subgrid.df["node_id"].unique()
+    else:
+        raise ValueError("Can't derive node_id from basin definition")
     basin_geometry = node.loc[basin_nodes].geometry
     # Call to_numpy() to get rid of the index
     basin_definition = gpd.GeoDataFrame(

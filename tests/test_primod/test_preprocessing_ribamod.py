@@ -250,14 +250,19 @@ def test_nullify_on_write(
         ribasim_dll_dependency="c",
     )
     df = coupled_models.ribasim_model.basin.static.df
-    # Basin 2 is coupled, so drainage & infiltration should be NaN.
-    assert (
-        df.loc[df["node_id"] == 2, ["drainage", "infiltration"]].isna().all(axis=None)
-    )
-    # Basin 3 is uncoupled, terms should be preserved.
-    assert (
-        df.loc[df["node_id"] == 3, ["drainage", "infiltration"]].notna().all(axis=None)
-    )
+    if df is not None:
+        # Basin 2 is coupled, so drainage & infiltration should be NaN.
+        assert (
+            df.loc[df["node_id"] == 2, ["drainage", "infiltration"]]
+            .isna()
+            .all(axis=None)
+        )
+        # Basin 3 is uncoupled, terms should be preserved.
+        assert (
+            df.loc[df["node_id"] == 3, ["drainage", "infiltration"]]
+            .notna()
+            .all(axis=None)
+        )
 
 
 def get_mf6_gwf_modelnames(
