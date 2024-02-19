@@ -32,7 +32,6 @@ class ExchangeBalance:
         demand_negative = self.demand_negative
         self._check_valid_shortage(shortage, demand_negative)
         # deal with zero division
-        np.isposinf
         realised_fraction = np.where(
             demand_negative < 0.0, 1.0 - (-shortage / demand_negative), 1.0
         )
@@ -148,7 +147,8 @@ class CoupledExchangeBalance(ExchangeBalance):
     def add_flux_estimate_mod(self, delt: float, mf6_head: NDArray[np.float_]) -> None:
         # Compute MODFLOW 6 river and drain flux extimates
         for key, river in self.mf6_river_packages.items():
-            river_flux = river.get_flux_estimate(mf6_head)
+            # Swap sign since a negative RIV flux means a positive contribution to Ribasim
+            river_flux = -river.get_flux_estimate(mf6_head)
             river_flux_negative = np.where(river_flux < 0, river_flux, 0)
             self.demands[key] = self.mapping.mod2rib[key].dot(
                 river_flux
@@ -157,7 +157,8 @@ class CoupledExchangeBalance(ExchangeBalance):
                 river_flux_negative
             ) / days_to_seconds(delt)
         for key, drainage in self.mf6_drainage_packages.items():
-            drain_flux = drainage.get_flux_estimate(mf6_head)
+            # Swap sign since a negative RIV flux means a positive contribution to Ribasim
+            drain_flux = -drainage.get_flux_estimate(mf6_head)
             self.demands[key] = self.mapping.mod2rib[key].dot(
                 drain_flux
             ) / days_to_seconds(delt)
@@ -175,8 +176,9 @@ class CoupledExchangeBalance(ExchangeBalance):
 
     def to_ribasim(self) -> None:
         demand = self.demand
-        self.ribasim_infiltration += np.where(demand > 0, demand, 0)
-        self.ribasim_drainage += np.where(demand < 0, -demand, 0)
+        # negative demand in exchange class means infiltration from Ribasim
+        self.ribasim_infiltration += np.where(demand < 0, demand, 0)
+        self.ribasim_drainage += np.where(demand > 0, -demand, 0)
 
     def to_modflow(self, realised: NDArray[np.float_]) -> None:
         super().compute_realised(realised)
