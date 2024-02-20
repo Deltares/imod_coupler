@@ -220,7 +220,7 @@ def test_nullify_on_write(
     tmp_path: Path,
     ribasim_two_basin_model: ribasim.Model,
     mf6_partial_two_basin_model: imod.mf6.Modflow6Simulation,
-):
+) -> None:
     mf6_modelname, mf6_model = get_mf6_gwf_modelnames(mf6_partial_two_basin_model)[0]
     mf6_river_packages = get_mf6_river_packagenames(mf6_model)
 
@@ -249,20 +249,32 @@ def test_nullify_on_write(
         ribasim_dll="b",
         ribasim_dll_dependency="c",
     )
+    # check if columns will be nullified correctly
+    node = coupled_models.ribasim_model.network.node.df
+    node_id = node.loc[node["type"].str.contains("Basin")].index.to_numpy()
+    df = pd.DataFrame.from_dict(
+        {
+            "node_id": node_id,
+            "drainage": np.ones_like(node_id),
+            "infiltration": np.ones_like(node_id),
+        }
+    )
+    coupled_models.ribasim_model.basin.static.df = df
+    coupled_models.write(
+        directory=tmp_path,
+        modflow6_dll="a",
+        ribasim_dll="b",
+        ribasim_dll_dependency="c",
+    )
     df = coupled_models.ribasim_model.basin.static.df
-    if df is not None:
-        # Basin 2 is coupled, so drainage & infiltration should be NaN.
-        assert (
-            df.loc[df["node_id"] == 2, ["drainage", "infiltration"]]
-            .isna()
-            .all(axis=None)
-        )
-        # Basin 3 is uncoupled, terms should be preserved.
-        assert (
-            df.loc[df["node_id"] == 3, ["drainage", "infiltration"]]
-            .notna()
-            .all(axis=None)
-        )
+    # Basin 2 is coupled, so drainage & infiltration should be NaN.
+    assert (
+        df.loc[df["node_id"] == 2, ["drainage", "infiltration"]].isna().all(axis=None)
+    )
+    # Basin 3 is uncoupled, terms should be preserved.
+    assert (
+        df.loc[df["node_id"] == 3, ["drainage", "infiltration"]].notna().all(axis=None)
+    )
 
 
 def get_mf6_gwf_modelnames(
