@@ -283,18 +283,23 @@ class RibaMod:
 
         Ribasim will otherwise overwrite the values set by the coupler.
         """
+
         # FUTURE: in coupling to MetaSWAP, the runoff should be set nodata as well.
+        def _nullify(df: pd.DataFrame) -> None:
+            """Set drainage and infiltration columns to nodata if present in df"""
+            if df is not None:
+                columns_present = list(
+                    {"drainage", "infiltration"}.intersection(df.columns)
+                )
+                if len(columns_present) > 0:
+                    df.loc[
+                        df["node_id"].isin(coupled_basin_node_ids), columns_present
+                    ] = np.nan
+            return
+
         basin = self.ribasim_model.basin
-        if basin.static.df is not None:
-            df = basin.static.df
-            df.loc[
-                df["node_id"].isin(coupled_basin_node_ids), ["drainage", "infiltration"]
-            ] = np.nan
-        if basin.time.df is not None:
-            df = basin.time.df
-            df.loc[
-                df["node_id"].isin(coupled_basin_node_ids), ["drainage", "infiltration"]
-            ] = np.nan
+        _nullify(basin.static.df)
+        _nullify(basin.time.df)
         return
 
     def _process_driver_coupling(
