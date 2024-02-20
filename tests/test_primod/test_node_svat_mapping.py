@@ -6,7 +6,7 @@ import pytest
 import xarray as xr
 from imod import mf6
 from numpy.testing import assert_equal
-from primod import metamod
+from primod import mapping
 
 
 def test_simple_model(fixed_format_parser):
@@ -44,15 +44,15 @@ def test_simple_model(fixed_format_parser):
         idomain=xr.full_like(like, 1, dtype=int),
     )
 
-    grid_data = metamod.node_svat_mapping.NodeSvatMapping(svat, dis)
+    grid_data = mapping.node_svat_mapping.NodeSvatMapping(svat, dis)
 
     with tempfile.TemporaryDirectory() as output_dir:
         output_dir = Path(output_dir)
         grid_data.write(output_dir, index, svat)
 
         results = fixed_format_parser(
-            output_dir / metamod.node_svat_mapping.NodeSvatMapping._file_name,
-            metamod.node_svat_mapping.NodeSvatMapping._metadata_dict,
+            output_dir / mapping.node_svat_mapping.NodeSvatMapping._file_name,
+            mapping.node_svat_mapping.NodeSvatMapping._metadata_dict,
         )
 
     assert_equal(results["mod_id"], np.array([2, 8, 2, 5]))
@@ -91,15 +91,15 @@ def test_simple_model_1_subunit(fixed_format_parser):
         idomain=xr.full_like(like, 1, dtype=int),
     )
 
-    grid_data = metamod.node_svat_mapping.NodeSvatMapping(svat, dis)
+    grid_data = mapping.node_svat_mapping.NodeSvatMapping(svat, dis)
 
     with tempfile.TemporaryDirectory() as output_dir:
         output_dir = Path(output_dir)
         grid_data.write(output_dir, index, svat)
 
         results = fixed_format_parser(
-            output_dir / metamod.node_svat_mapping.NodeSvatMapping._file_name,
-            metamod.node_svat_mapping.NodeSvatMapping._metadata_dict,
+            output_dir / mapping.node_svat_mapping.NodeSvatMapping._file_name,
+            mapping.node_svat_mapping.NodeSvatMapping._metadata_dict,
         )
 
     assert_equal(results["mod_id"], np.array([2, 8]))
@@ -145,4 +145,4 @@ def test_inactive_idomain_in_svat():
     )
 
     with pytest.raises(ValueError):
-        metamod.node_svat_mapping.NodeSvatMapping(svat, dis)
+        mapping.node_svat_mapping.NodeSvatMapping(svat, dis)

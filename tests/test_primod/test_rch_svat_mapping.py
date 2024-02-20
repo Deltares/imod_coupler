@@ -7,7 +7,7 @@ import xarray as xr
 from imod import mf6
 from numpy import nan
 from numpy.testing import assert_equal
-from primod.metamod.rch_svat_mapping import RechargeSvatMapping
+from primod.mapping.rch_svat_mapping import RechargeSvatMapping
 
 
 def test_simple_model(fixed_format_parser):
