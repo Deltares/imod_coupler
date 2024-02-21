@@ -77,16 +77,15 @@ def case_backwater_model(
         mf6_active_river_packages=mf6_active_river_packages,
         mf6_active_drainage_packages=mf6_active_drainage_packages,
     )
-    # TODO: should becomde RibaMetaMod-class, including the MetaSWAP model
     return RibaMetaMod(
         ribasim_model=ribasim_backwater_model,
-        msw_model=MetaSwapModel,
+        msw_model=msw_backwater_model,
         mf6_simulation=mf6_backwater_model,
         basin_definition=basin_definition,
         coupling_list=[driver_coupling],
         mf6_rch_pkgkey="rch_msw",
         mf6_wel_pkgkey="well_msw",
-    ), msw_backwater_model
+    )
 
 
 def case_two_basin_model(

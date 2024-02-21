@@ -118,20 +118,30 @@ def bucket_ribametamod_loc(request: FixtureRequest) -> Path:
 
 
 @pytest.fixture(scope="function")
-def bucket_ribametamod_sprinkling_tot_svat_ref(request: FixtureRequest) -> Path:
+def ribametamod_backwater_tot_svat_ref(request: FixtureRequest) -> Path:
     return (
         request.path.parent
         / "reference_output"
-        / "test_ribametamod_sprinkling_surface_water"
-        / "tot_svat_per_reference.csv"
+        / "test_ribametamod_backwater"
+        / "tot_svat_per.csv"
     )
 
 
 @pytest.fixture(scope="function")
-def two_basin_ribametamod_tot_svat_ref(request: FixtureRequest) -> Path:
+def ribametamod_bucket_tot_svat_ref(request: FixtureRequest) -> Path:
+    return (
+        request.path.parent
+        / "reference_output"
+        / "test_ribametamod_bucket"
+        / "tot_svat_per.csv"
+    )
+
+
+@pytest.fixture(scope="function")
+def ribametamod_two_basin_tot_svat_ref(request: FixtureRequest) -> Path:
     return (
         request.path.parent
         / "reference_output"
         / "test_ribametamod_two_basin"
-        / "tot_svat_per_reference.csv"
+        / "tot_svat_per.csv"
     )
