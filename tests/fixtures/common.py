@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 from imod import mf6
-from numpy import float_, int_
+from numpy import float64, int_
 from numpy.typing import NDArray
 
 
@@ -13,7 +13,7 @@ def grid_sizes() -> (
         NDArray[int_],
         float,
         float,
-        NDArray[float_],
+        NDArray[float64],
     ]
 ):
     x = [100.0, 200.0, 300.0, 400.0, 500.0]
