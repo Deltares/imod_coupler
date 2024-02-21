@@ -20,7 +20,7 @@ def test_mf6_set_river_stage(
     )
     mf6wrapper.initialize()
     mf6wrapper.prepare_time_step(0.0)
-    new_river_stage = NDArray[np.float_](15)
+    new_river_stage = NDArray[np.float64](15)
     new_river_stage[:] = range(15)
     mf6wrapper.set_river_stages(
         "GWF_1",
@@ -125,7 +125,7 @@ def test_mf6_get_river_flux_estimate(
     mf6wrapper.initialize()
     mf6wrapper.prepare_time_step(0.0)
 
-    new_river_stage = NDArray[np.float_](15)
+    new_river_stage = NDArray[np.float64](15)
     new_river_stage[:] = range(15)
     mf6wrapper.set_river_stages(
         "GWF_1",
