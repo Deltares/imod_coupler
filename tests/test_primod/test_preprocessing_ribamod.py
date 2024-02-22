@@ -7,7 +7,7 @@ import pandas as pd
 import pytest
 import ribasim
 from imod.mf6 import Drainage, River
-from imod.mf6.model import GroundwaterFlowModel
+from imod.mf6.model_gwf import GroundwaterFlowModel
 from imod.mf6.simulation import Modflow6Simulation
 from primod.ribamod import RibaMod
 from primod.ribamod.ribamod import DriverCoupling
