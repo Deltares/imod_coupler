@@ -62,7 +62,7 @@ def fill_para_sim_template(msw_folder: Path, path_unsat_dbase: Path) -> None:
         f.write(para_sim_text)
 
 
-def total_flux_error(q_test: NDArray[np.float_], q_ref: NDArray[np.float_]) -> float:
+def total_flux_error(q_test: NDArray[np.float64], q_ref: NDArray[np.float64]) -> float:
     """
     Computes total relative flux error compared to a reference flux.
     """

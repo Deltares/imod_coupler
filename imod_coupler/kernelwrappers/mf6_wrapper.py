@@ -18,7 +18,7 @@ class Mf6Wrapper(XmiWrapper):
     ):
         super().__init__(lib_path, lib_dependency, working_directory, timing)
 
-    def get_head(self, mf6_flowmodel_key: str) -> NDArray[np.float_]:
+    def get_head(self, mf6_flowmodel_key: str) -> NDArray[np.float64]:
         mf6_head_tag = self.get_var_address("X", mf6_flowmodel_key)
         mf6_head = self.get_value_ptr(mf6_head_tag)
         return mf6_head
@@ -39,7 +39,7 @@ class Mf6Wrapper(XmiWrapper):
         self,
         mf6_flowmodel_key: str,
         mf6_msw_recharge_pkg: str,
-    ) -> NDArray[np.float_]:
+    ) -> NDArray[np.float64]:
         wel_tag = self.get_var_address("Q", mf6_flowmodel_key, mf6_msw_recharge_pkg)
         return self.get_value_ptr(wel_tag)
 
@@ -47,7 +47,7 @@ class Mf6Wrapper(XmiWrapper):
         self,
         mf6_flowmodel_key: str,
         mf6_msw_recharge_pkg: str,
-    ) -> NDArray[np.float_]:
+    ) -> NDArray[np.float64]:
         mf6_recharge_tag = self.get_var_address(
             "RECHARGE", mf6_flowmodel_key, mf6_msw_recharge_pkg
         )
@@ -63,7 +63,7 @@ class Mf6Wrapper(XmiWrapper):
         )
         return self.get_value_ptr(mf6_recharge_nodes_tag)
 
-    def get_storage(self, mf6_flowmodel_key: str) -> NDArray[np.float_]:
+    def get_storage(self, mf6_flowmodel_key: str) -> NDArray[np.float64]:
         mf6_storage_tag = self.get_var_address("SS", mf6_flowmodel_key, "STO")
         mf6_storage = self.get_value_ptr(mf6_storage_tag)
         return mf6_storage
@@ -73,17 +73,17 @@ class Mf6Wrapper(XmiWrapper):
         mf6_has_sc1 = bool(self.get_value_ptr(mf6_is_sc1_tag)[0] != 0)
         return mf6_has_sc1
 
-    def get_area(self, mf6_flowmodel_key: str) -> NDArray[np.float_]:
+    def get_area(self, mf6_flowmodel_key: str) -> NDArray[np.float64]:
         mf6_area_tag = self.get_var_address("AREA", mf6_flowmodel_key, "DIS")
         mf6_area = self.get_value_ptr(mf6_area_tag)
         return mf6_area
 
-    def get_top(self, mf6_flowmodel_key: str) -> NDArray[np.float_]:
+    def get_top(self, mf6_flowmodel_key: str) -> NDArray[np.float64]:
         mf6_top_tag = self.get_var_address("TOP", mf6_flowmodel_key, "DIS")
         mf6_top = self.get_value_ptr(mf6_top_tag)
         return mf6_top
 
-    def get_bot(self, mf6_flowmodel_key: str) -> NDArray[np.float_]:
+    def get_bot(self, mf6_flowmodel_key: str) -> NDArray[np.float64]:
         mf6_bot_tag = self.get_var_address("BOT", mf6_flowmodel_key, "DIS")
         mf6_bot = self.get_value_ptr(mf6_bot_tag)
         return mf6_bot
@@ -97,7 +97,7 @@ class Mf6Wrapper(XmiWrapper):
         self,
         mf6_flowmodel_key: str,
         mf6_package_key: str,
-    ) -> NDArray[np.float_]:
+    ) -> NDArray[np.float64]:
         mf6_sprinkling_tag = self.get_var_address(
             "BOUND", mf6_flowmodel_key, mf6_package_key
         )
@@ -121,7 +121,7 @@ class Mf6Wrapper(XmiWrapper):
 
         Returns
         -------
-         NDArray[np.float_]:
+         NDArray[np.float64]:
             Drainage elevation in modflow
         """
         bound_address = self.get_var_address(
@@ -135,7 +135,7 @@ class Mf6Wrapper(XmiWrapper):
         self,
         mf6_flowmodel_key: str,
         mf6_package_key: str,
-        new_drainage_elevation: NDArray[np.float_],
+        new_drainage_elevation: NDArray[np.float64],
     ) -> None:
         """
         Sets the river stages in a modflow simulation to the provided values.
@@ -146,7 +146,7 @@ class Mf6Wrapper(XmiWrapper):
             The user-assigned component name of the flow model
         mf6_package_key: str
             The user-assigned component name of the drainage package
-        new_drainage_elevation : NDArray[np.float_]
+        new_drainage_elevation : NDArray[np.float64]
             Drainage elevation to be set to modflow
 
 
@@ -168,7 +168,7 @@ class Mf6Wrapper(XmiWrapper):
         self,
         mf6_flowmodel_key: str,
         mf6_package_key: str,
-        new_river_stages: NDArray[np.float_],
+        new_river_stages: NDArray[np.float64],
     ) -> None:
         """
         Sets the river stages in a modflow simulation to the provided values.
@@ -179,7 +179,7 @@ class Mf6Wrapper(XmiWrapper):
             The user-assigned component name of the flow model
         mf6_package_key: str
             The user-assigned component name of the river package
-        new_river_stages : NDArray[np.float_]
+        new_river_stages : NDArray[np.float64]
             river stages to be set to modflow
 
 
@@ -214,7 +214,7 @@ class Mf6Wrapper(XmiWrapper):
 
         Returns
         -------
-         NDArray[np.float_]:
+         NDArray[np.float64]:
             stages of the rivers in modflow
         """
         stage_address = self.get_var_address(
@@ -240,7 +240,7 @@ class Mf6Wrapper(XmiWrapper):
 
         Returns
         -------
-         NDArray[np.float_]:
+         NDArray[np.float64]:
             bots of the rivers in modflow
         """
         rbot_address = self.get_var_address("RBOT", mf6_flowmodel_key, mf6_package_key)
@@ -251,7 +251,7 @@ class Mf6Wrapper(XmiWrapper):
         self,
         mf6_flowmodel_key: str,
         mf6_wel_pkg_key: str,
-        assigned_flux: NDArray[np.float_],
+        assigned_flux: NDArray[np.float64],
     ) -> None:
         """
         Assigns a flux to the wells in a well package. The number of wells and their order in the mf6 flux array
@@ -263,7 +263,7 @@ class Mf6Wrapper(XmiWrapper):
             The user-assigned component name of the flow model
         mf6_wel_pkg_key : str
             The user-assigned component name of the well package
-        assigned_flux : NDArray[np.float_]
+        assigned_flux : NDArray[np.float64]
             flux to be set to modflow
 
 
@@ -288,7 +288,7 @@ class Mf6Wrapper(XmiWrapper):
         self,
         mf6_flowmodel_key: str,
         mf6_river_pkg_key: str,
-    ) -> NDArray[np.float_]:
+    ) -> NDArray[np.float64]:
         """
         Returns the river1 fluxes consistent with current head, river stage and conductance.
         a simple linear model is used: flux = conductance * (stage - max(head, bot))
@@ -308,7 +308,7 @@ class Mf6Wrapper(XmiWrapper):
 
         Returns
         -------
-        NDArray[np.float_]
+        NDArray[np.float64]
             flux (array size = nr of river nodes)
             sign is positive for infiltration
         """
@@ -334,7 +334,7 @@ class Mf6Wrapper(XmiWrapper):
 
         subset_head = head[nodelist - 1]
         river_head = np.maximum(subset_head, rbot)
-        q = NDArray[np.float_](len(nodelist))
+        q = NDArray[np.float64](len(nodelist))
         q[:] = cond * (stage - river_head)
 
         return q
@@ -343,7 +343,7 @@ class Mf6Wrapper(XmiWrapper):
         self,
         mf6_flowmodel_key: str,
         mf6_river_drain_pkg_key: str,
-    ) -> NDArray[np.float_]:
+    ) -> NDArray[np.float64]:
         """
         Returns the calculated river or DRN fluxes of MF6. In MF6 the RIV boundary condition is added to the solution in the following matter:
 
@@ -382,7 +382,7 @@ class Mf6Wrapper(XmiWrapper):
 
         Returns
         -------
-        NDArray[np.float_]
+        NDArray[np.float64]
             flux (array size = nr of river nodes)
             sign is positive for infiltration
         """
@@ -403,7 +403,7 @@ class Mf6Wrapper(XmiWrapper):
         package_nodelist = self.get_value_ptr(package_nodelist_address)
         subset_head = head[package_nodelist - 1]
 
-        q = NDArray[np.float_](len(package_nodelist))
+        q = NDArray[np.float64](len(package_nodelist))
         q = package_hcof * subset_head - package_rhs
 
         return q
@@ -496,7 +496,7 @@ class Mf6HeadBoundary(ABC):
 
         Returns
         -------
-        NDArray[np.float_]
+        NDArray[np.float64]
             flux (array size = nr of river nodes)
             sign is positive for infiltration
         """

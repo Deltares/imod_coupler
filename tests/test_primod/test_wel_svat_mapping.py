@@ -5,7 +5,7 @@ import numpy as np
 import xarray as xr
 from imod import mf6
 from numpy.testing import assert_equal
-from primod.metamod.wel_svat_mapping import WellSvatMapping
+from primod.mapping.wel_svat_mapping import WellSvatMapping
 
 
 def test_simple_model(fixed_format_parser):
