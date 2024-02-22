@@ -55,7 +55,7 @@ def test_mf6_river(
         mf6_pkg_key="Oosterschelde",
     )
     # The nodelist should be set properly after prepare_time_step.
-    mf6_river.get_nodelist()
+    mf6_river.set_private_nodelist()
 
     # The nodelist should be set after
     assert (mf6_river.nodelist != -1).any()
@@ -93,10 +93,10 @@ def test_mf6_drainage(
         mf6_flowmodel_key="GWF_1",
         mf6_pkg_key="Drainage",
     )
-    mf6_drainage.get_nodelist()
+    mf6_drainage.set_private_nodelist()
 
     # The nodelist should be set properly after prepare_time_step.
-    assert (mf6_drainage.nodelist != -1).any()
+    assert (mf6_drainage.private_nodelist != -1).any()
 
     # This guards against setting below elevation.
     mf6_drainage.set_water_level(np.full_like(mf6_drainage.water_level, -123.0))
