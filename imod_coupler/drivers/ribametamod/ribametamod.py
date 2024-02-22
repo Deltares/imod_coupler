@@ -255,11 +255,20 @@ class RibaMetaMod(Driver):
             mswmod_packages["mf6_top"] = self.mf6_top
             mswmod_packages["mf6_bot"] = self.mf6_bot
 
+        # MetaSWAP - Ribasim
+        if self.has_ribasim and self.has_metaswap:
+            ribmsw_packages: dict[str, Any] = {}
+            ribmsw_packages["mf6_bot"] = self.mf6_bot
+            ribmsw_packages["ribmsw_nbound"] = np.size(
+                self.msw.get_surfacewater_ponding_allocation_ptr()
+            )
+
         self.mapping = SetMapping(
             self.coupling,
             ChainMap(
                 ribmod_packages,
                 mswmod_packages,
+                ribmsw_packages,
             ),
             self.has_metaswap,
             self.has_ribasim,

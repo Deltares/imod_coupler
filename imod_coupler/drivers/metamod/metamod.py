@@ -39,7 +39,7 @@ class MetaMod(Driver):
     delt: float  # time step from MODFLOW 6 (leading)
 
     mf6_head: NDArray[Any]  # the hydraulic head array in the coupled model
-    mf6_recharge: NDArray[np.float_]  # the coupled recharge array from the RCH package
+    mf6_recharge: NDArray[np.float64]  # the coupled recharge array from the RCH package
     mf6_storage: NDArray[Any]  # the specific storage array (ss)
     mf6_has_sc1: (
         bool

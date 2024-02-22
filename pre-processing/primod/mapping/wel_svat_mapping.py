@@ -7,8 +7,7 @@ import xarray as xr
 from imod import mf6
 from imod.msw.fixed_format import VariableMetaData
 from numpy.typing import NDArray
-
-from primod.metamod.mappingbase import MetaModMapping
+from primod.mapping.mappingbase import MetaModMapping
 
 
 class WellSvatMapping(MetaModMapping):
@@ -25,8 +24,6 @@ class WellSvatMapping(MetaModMapping):
     well: mf6.Well
         Modflow 6 Well package to connect to.
     """
-
-    # TODO: Do we always want to couple to identical grids?
 
     _file_name = "wellindex2svat.dxc"
     _metadata_dict = {
