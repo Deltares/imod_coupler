@@ -130,8 +130,8 @@ def test_exchange_balance() -> None:
     exchange = ExchangeBalance(shape=shape, labels=labels)
 
     # exchange demands to class
-    array_negative = np.zeros(shape=shape, dtype=np.float_)
-    array_positive = np.zeros(shape=shape, dtype=np.float_)
+    array_negative = np.zeros(shape=shape, dtype=np.float64)
+    array_positive = np.zeros(shape=shape, dtype=np.float64)
 
     # seperate negative contributions for n:1 exchange
     array_negative[0] = -10
@@ -151,18 +151,18 @@ def test_exchange_balance() -> None:
     assert np.all(exchange.demand_negative == array_negative + (array_negative * 0.5))
 
     # evaluate realised method
-    realised = np.zeros(shape=shape, dtype=np.float_)
+    realised = np.zeros(shape=shape, dtype=np.float64)
     realised[0] = -5.0
     realised[1] = -5.0
     # compute
     exchange.compute_realised(realised)
     # compare: realised_factor = 1 - (-shortage - sum_negative_demands)
-    realised_factor = np.zeros(shape=shape, dtype=np.float_)
+    realised_factor = np.zeros(shape=shape, dtype=np.float64)
     realised_factor[0] = 1 - (-10 / -15)
     realised_factor[1] = 1 - (-2.5 / -15)
 
-    expected_flux1 = np.zeros(shape=shape, dtype=np.float_)
-    expected_flux2 = np.zeros(shape=shape, dtype=np.float_)
+    expected_flux1 = np.zeros(shape=shape, dtype=np.float64)
+    expected_flux2 = np.zeros(shape=shape, dtype=np.float64)
     expected_flux1[0] = realised_factor[0] * array_negative[0]
     expected_flux2[0] = realised_factor[0] * array_negative[0] * 0.5
     expected_flux1[1] = realised_factor[1] * array_negative[1]
@@ -170,7 +170,7 @@ def test_exchange_balance() -> None:
     assert np.all(expected_flux1 == exchange.realised_negative["flux-1"])
     assert np.all(expected_flux2 == exchange.realised_negative["flux-2"])
 
-    compute_realised = np.zeros(shape=shape, dtype=np.float_)
+    compute_realised = np.zeros(shape=shape, dtype=np.float64)
     compute_realised[0] = (
         exchange.realised_negative["flux-1"][0]
         + exchange.realised_negative["flux-2"][0]
@@ -187,17 +187,17 @@ def test_exchange_balance() -> None:
 
     # check if reset zeros arrays
     exchange.reset()
-    assert np.all(exchange.demand == np.zeros(shape=shape, dtype=np.float_))
-    assert np.all(exchange.demand_negative == np.zeros(shape=shape, dtype=np.float_))
+    assert np.all(exchange.demand == np.zeros(shape=shape, dtype=np.float64))
+    assert np.all(exchange.demand_negative == np.zeros(shape=shape, dtype=np.float64))
 
     # check if errors are thrown
     # shortage larger than negative demands
     shape = 1
     labels = ["flux-1"]
     exchange = ExchangeBalance(shape=shape, labels=labels)
-    exchange.demands["flux-1"] = np.ones(shape=shape, dtype=np.float_) * -4
-    exchange.demands_negative["flux-1"] = np.ones(shape=shape, dtype=np.float_) * -4
-    realised = np.ones(shape=shape, dtype=np.float_) * 2
+    exchange.demands["flux-1"] = np.ones(shape=shape, dtype=np.float64) * -4
+    exchange.demands_negative["flux-1"] = np.ones(shape=shape, dtype=np.float64) * -4
+    realised = np.ones(shape=shape, dtype=np.float64) * 2
     with pytest.raises(
         ValueError,
         match="Invalid realised values: found shortage larger than negative demand contributions",
@@ -208,9 +208,9 @@ def test_exchange_balance() -> None:
     shape = 1
     labels = ["flux-1"]
     exchange = ExchangeBalance(shape=shape, labels=labels)
-    exchange.demands["flux-1"] = np.ones(shape=shape, dtype=np.float_) * 10
-    exchange.demands_negative["flux-1"] = np.ones(shape=shape, dtype=np.float_) * -4
-    realised = np.ones(shape=shape, dtype=np.float_) * 8
+    exchange.demands["flux-1"] = np.ones(shape=shape, dtype=np.float64) * 10
+    exchange.demands_negative["flux-1"] = np.ones(shape=shape, dtype=np.float64) * -4
+    realised = np.ones(shape=shape, dtype=np.float64) * 8
     with pytest.raises(
         ValueError, match="Invalid realised values: found shortage for positive demand"
     ):

@@ -13,9 +13,9 @@ from imod_coupler.kernelwrappers.mf6_wrapper import (
 
 
 class ExchangeBalance:
-    demands: dict[str, NDArray[np.float_]]
-    demands_negative: dict[str, NDArray[np.float_]]
-    realised_negative: dict[str, NDArray[np.float_]]
+    demands: dict[str, NDArray[np.float64]]
+    demands_negative: dict[str, NDArray[np.float64]]
+    realised_negative: dict[str, NDArray[np.float64]]
     shape: int
     sum_keys: list[str]
 
@@ -24,7 +24,7 @@ class ExchangeBalance:
         self.flux_labels = labels
         self._init_arrays()
 
-    def compute_realised(self, realised: NDArray[np.float_]) -> None:
+    def compute_realised(self, realised: NDArray[np.float64]) -> None:
         """
         This function computes the realised (negative) volumes
         """
@@ -50,7 +50,7 @@ class ExchangeBalance:
             self.realised_negative[flux_label][:] = 0.0
 
     def _check_valid_shortage(
-        self, shortage: NDArray[np.float_], demand_negative: NDArray[np.float_]
+        self, shortage: NDArray[np.float64], demand_negative: NDArray[np.float64]
     ) -> None:
         if np.any(np.logical_and(self.demand > 0.0, shortage > 0.0)):
             raise ValueError(
@@ -61,8 +61,8 @@ class ExchangeBalance:
                 "Invalid realised values: found shortage larger than negative demand contributions"
             )
 
-    def _zeros_array(self) -> NDArray[np.float_]:
-        return np.zeros(shape=self.shape, dtype=np.float_)
+    def _zeros_array(self) -> NDArray[np.float64]:
+        return np.zeros(shape=self.shape, dtype=np.float64)
 
     def _init_arrays(self) -> None:
         self.demands = {}
@@ -91,9 +91,9 @@ class ExchangeBalance:
 
 
 class CoupledExchangeBalance(ExchangeBalance):
-    demands: dict[str, NDArray[np.float_]]
-    demands_negative: dict[str, NDArray[np.float_]]
-    realised_negative: dict[str, NDArray[np.float_]]
+    demands: dict[str, NDArray[np.float64]]
+    demands_negative: dict[str, NDArray[np.float64]]
+    realised_negative: dict[str, NDArray[np.float64]]
     shape: int
     sum_keys: list[str]
 
@@ -144,7 +144,7 @@ class CoupledExchangeBalance(ExchangeBalance):
         super().reset()
         self.update_api_packages()
 
-    def add_flux_estimate_mod(self, delt: float, mf6_head: NDArray[np.float_]) -> None:
+    def add_flux_estimate_mod(self, delt: float, mf6_head: NDArray[np.float64]) -> None:
         # Compute MODFLOW 6 river and drain flux extimates
         for key, river in self.mf6_river_packages.items():
             # Swap sign since a negative RIV flux means a positive contribution to Ribasim
@@ -164,7 +164,7 @@ class CoupledExchangeBalance(ExchangeBalance):
             ) / days_to_seconds(delt)
 
     def add_ponding_msw(
-        self, delt: float, allocated_volume: NDArray[np.float_]
+        self, delt: float, allocated_volume: NDArray[np.float64]
     ) -> None:
         if self.mapping.msw2rib is not None:
             # flux from metaswap ponding to Ribasim
@@ -180,7 +180,7 @@ class CoupledExchangeBalance(ExchangeBalance):
         self.ribasim_infiltration += np.where(demand < 0, demand, 0)
         self.ribasim_drainage += np.where(demand > 0, -demand, 0)
 
-    def to_modflow(self, realised: NDArray[np.float_]) -> None:
+    def to_modflow(self, realised: NDArray[np.float64]) -> None:
         super().compute_realised(realised)
         for key in self.mf6_active_river_api_packages.keys():
             realised_fraction = np.where(

@@ -601,7 +601,7 @@ class Mf6River(Mf6HeadBoundary):
 
         Returns
         -------
-        NDArray[np.float_]
+        NDArray[np.float64]
             flux (array size = nr of river nodes)
             sign is positive for infiltration
         """
@@ -663,7 +663,7 @@ class Mf6Drainage(Mf6HeadBoundary):
 
         Returns
         -------
-        NDArray[np.float_]
+        NDArray[np.float64]
             flux (array size = nr of river nodes)
             sign is positive for infiltration
         """
