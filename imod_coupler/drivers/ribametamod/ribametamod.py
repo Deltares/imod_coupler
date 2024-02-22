@@ -165,8 +165,8 @@ class RibaMetaMod(Driver):
             self.mf6_active_river_packages = self.mf6.get_rivers_packages(
                 mf6_flowmodel_key, list(self.coupling.mf6_active_river_packages.keys())
             )
-            self.mf6_active_river_api_packages = self.get_api_packages(
-                mf6_flowmodel_key, list(self.coupling.mf6_active_river_packages.keys())
+#           self.mf6_active_river_api_packages = self.get_api_packages(
+#               mf6_flowmodel_key, list(self.coupling.mf6_active_river_packages.keys())
             )
             self.mf6_passive_river_packages = self.mf6.get_rivers_packages(
                 mf6_flowmodel_key, list(self.coupling.mf6_passive_river_packages.keys())
