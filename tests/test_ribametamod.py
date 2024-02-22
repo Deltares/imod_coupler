@@ -9,6 +9,7 @@ from primod.ribametamod import RibaMetaMod
 from pytest_cases import parametrize_with_cases
 
 from imod_coupler.drivers.ribametamod.exchange import ExchangeBalance
+
 msw_outputlabel_ponding: str = "        Pssw(m3)"
 msw_outputlabel_swsprinkling: str = "   ts2dfmput(m3)"
 
@@ -117,11 +118,6 @@ def test_ribametamod_two_basin(
     assert tot_svat_test[msw_outputlabel_ponding].equals(
         tot_svat_reference[msw_outputlabel_ponding]
     )
-    msw_model.write(
-        tmp_path_dev / "metaswap"
-    )  # the RibaMetaMod should do this eventually
-    run_coupler_function(tmp_path_dev / ribamod_model._toml_name)
-    # TODO: add checks on output if RibaMetaMod class is implemented
 
 
 def test_exchange_balance() -> None:
