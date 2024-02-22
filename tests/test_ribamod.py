@@ -149,7 +149,7 @@ def test_ribamod_backwater(
     final_flow = results.flow_df[results.flow_df["time"] == "2021-01-01"]
     # Check's what lost and gained in the basins
     network = ribamod_model.ribasim_model.network
-    basin_ids = network.node.df.index[network.node.df["type"] == "Basin"]
+    basin_ids = network.node.df.index[network.node.df["node_type"] == "Basin"]
     ribasim_budget = (
         final_flow.loc[
             final_flow["from_node_id"].isin(basin_ids)
