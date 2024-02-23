@@ -215,6 +215,7 @@ class RibaMetaMod(Driver):
             self.msw_storage = self.msw.get_storage_ptr()
             self.msw_ponding = self.msw.get_surfacewater_ponding_allocation_ptr()
             self.delt_sw = self.msw.get_sw_time_step()
+            self.delt_gw = self.mf6.get_time_step()
             self.subtimesteps_sw = range(
                 1, int(self.delt_gw / self.delt_sw) + 1
             )  # 1-based for MetaSWAP
