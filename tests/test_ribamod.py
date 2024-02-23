@@ -149,12 +149,12 @@ def test_ribamod_backwater(
     final_flow = results.flow_df[results.flow_df["time"] == "2021-01-01"]
     # Check's what lost and gained in the basins
     network = ribamod_model.ribasim_model.network
-    basin_ids = network.node.df.index[network.node.df["type"] == "Basin"]
+    basin_ids = network.node.df.index[network.node.df["node_type"] == "Basin"]
     ribasim_budget = (
         final_flow.loc[
             final_flow["from_node_id"].isin(basin_ids)
             & final_flow["to_node_id"].isin(basin_ids)
-        ]["flow"]
+        ]["flow_rate"]
         * 86_400.0
     ).to_numpy()
     modflow_budget = (drn + riv).sel(y=0).to_numpy()
@@ -195,7 +195,9 @@ def test_ribamod_two_basin(
     assert level1 > level2
 
     # Flow in the edges is always to the right.
-    assert (results.flow_df["flow"].loc[results.flow_df["edge_id"].notna()] >= 0).all()
+    assert (
+        results.flow_df["flow_rate"].loc[results.flow_df["edge_id"].notna()] >= 0
+    ).all()
 
 
 @pytest.mark.xdist_group(name="ribasim")
@@ -241,5 +243,5 @@ def test_ribamod_partial_two_basin(
     # draining.
     flow_to_terminal = results.flow_df.loc[
         (results.flow_df["from_node_id"] == 4) & (results.flow_df["to_node_id"] == 5)
-    ]["flow"]
+    ]["flow_rate"]
     assert flow_to_terminal.iloc[-1] < 1.0e-6

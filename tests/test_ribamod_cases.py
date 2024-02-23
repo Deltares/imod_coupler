@@ -8,7 +8,7 @@ def create_basin_definition(
     ribasim_model: ribasim.Model, buffersize: float
 ) -> gpd.GeoDataFrame:
     node = ribasim_model.network.node.df
-    basin_geometry = node.loc[node["type"].str.contains("Basin")].geometry
+    basin_geometry = node.loc[node["node_type"].str.contains("Basin")].geometry
     # Call to_numpy() to get rid of the index
     basin_definition = gpd.GeoDataFrame(
         data={"node_id": basin_geometry.index.to_numpy()},
