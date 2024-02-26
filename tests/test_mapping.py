@@ -1,13 +1,11 @@
 import numpy as np
-from numpy.testing import assert_almost_equal, assert_array_equal
 import pytest
+from imod import mf6, msw
+from numpy.testing import assert_almost_equal, assert_array_equal
+from primod.mapping.rch_svat_mapping import RechargeSvatMapping
 from pytest_cases import parametrize_with_cases
 
 from imod_coupler.utils import create_mapping
-from imod import mf6
-from imod import msw
-
-from primod.mapping.rch_svat_mapping import RechargeSvatMapping
 
 
 @parametrize_with_cases(
