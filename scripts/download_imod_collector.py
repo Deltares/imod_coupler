@@ -4,7 +4,7 @@ import xml.etree.ElementTree as ET
 import zipfile
 from pathlib import Path
 
-import requests
+import httpx
 from tqdm import tqdm
 
 
@@ -20,18 +20,18 @@ def download_imod_collector(tag: str | None) -> None:
         return
 
     token = os.environ["TEAMCITY_TOKEN"]
-    response = requests.get(
+    with httpx.stream(
+        "GET",
         f"https://dpcbuild.deltares.nl/app/rest/builds/{build_id}/artifacts/content/imod_coupler_windows.zip",
         headers={"Authorization": f"Bearer {token}"},
-        stream=True,
-    )
-    response.raise_for_status()
+    ) as response:
+        response.raise_for_status()
 
-    zip_path = Path(".pixi/imod_coupler_windows.zip")
-    _download_to_file(response, zip_path)
-    _unzip_to_target(target_folder, zip_path)
+        zip_path = Path(".pixi/imod_coupler_windows.zip")
+        _download_to_file(response, zip_path)
+        _unzip_to_target(target_folder, zip_path)
 
-    os.remove(zip_path)
+        os.remove(zip_path)
 
 
 def _get_build_info(tag: str | None) -> tuple[str, str]:
@@ -39,7 +39,7 @@ def _get_build_info(tag: str | None) -> tuple[str, str]:
     tag_string = f",tag:{tag}" if tag else ""
     info_url = f"https://dpcbuild.deltares.nl/app/rest/builds/buildType:iMOD6_IMOD6collectorDaily_ReleaseX64,count:1,branch:main,status:SUCCESS{tag_string}"
 
-    info_response = requests.get(
+    info_response = httpx.get(
         info_url,
         headers={"Authorization": f"Bearer {token}"},
     )
@@ -48,7 +48,7 @@ def _get_build_info(tag: str | None) -> tuple[str, str]:
     return info_xml.attrib["id"], info_xml.attrib["number"]
 
 
-def _download_to_file(response: requests.Response, target_path: Path) -> None:
+def _download_to_file(response: httpx.Response, target_path: Path) -> None:
     with open(target_path, "wb") as f:
         progress_bar = tqdm(
             total=int(response.headers["Content-Length"]),
@@ -57,7 +57,7 @@ def _download_to_file(response: requests.Response, target_path: Path) -> None:
             unit_divisor=1024,
             desc="Downloading iMOD collector",
         )
-        for chunk in response.iter_content(chunk_size=1024):
+        for chunk in response.iter_bytes(chunk_size=1024):
             if chunk:
                 f.write(chunk)
                 progress_bar.update(len(chunk))
