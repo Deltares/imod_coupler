@@ -9,8 +9,11 @@ from imod import msw
 
 from primod.mapping.rch_svat_mapping import RechargeSvatMapping
 
+
 @parametrize_with_cases(
-    "src_idx,tgt_idx,nsrc,ntgt,operator,expected_map_dense,expected_mask", prefix="util_")
+    "src_idx,tgt_idx,nsrc,ntgt,operator,expected_map_dense,expected_mask",
+    prefix="util_",
+)
 def test_create_mapping(
     src_idx, tgt_idx, nsrc, ntgt, operator, expected_map_dense, expected_mask
 ):
@@ -32,8 +35,7 @@ def test_create_mapping(
     assert_array_equal(mask, expected_mask)
 
 
-@parametrize_with_cases(
-    "recharge", prefix="rch", has_tag="succeed")
+@parametrize_with_cases("recharge", prefix="rch", has_tag="succeed")
 def test_recharge_mapping(
     recharge: mf6.Recharge, prepared_msw_model: msw.MetaSwapModel
 ):
@@ -43,14 +45,14 @@ def test_recharge_mapping(
     _, svat = prepared_msw_model["grid"].generate_index_array()
 
     rch_svat_mapping = RechargeSvatMapping(svat, recharge)
-    
+
     assert np.all(rch_svat_mapping.dataset["layer"] == 1)
     assert np.all(rch_svat_mapping.dataset["svat"] == svat)
     assert rch_svat_mapping.dataset["rch_id"].max() == 12
     assert rch_svat_mapping.dataset["rch_active"].sum() == 12
 
-@parametrize_with_cases(
-    "recharge", prefix="rch", has_tag="fail")
+
+@parametrize_with_cases("recharge", prefix="rch", has_tag="fail")
 def test_recharge_mapping_fail(
     recharge: mf6.Recharge, prepared_msw_model: msw.MetaSwapModel
 ):

@@ -2,6 +2,7 @@ import numpy as np
 import xarray as xr
 from pytest_cases import case
 
+
 def util_1_1_symmetric_sum():
     src_idx = np.array([0, 1, 2], dtype=int)
     tgt_idx = np.array([0, 1, 2], dtype=int)
@@ -165,14 +166,16 @@ def util_n_1_asymmetric_avg():
     )
     return src_idx, tgt_idx, nsrc, ntgt, operator, expected_map_dense, expected_mask
 
-@case(tags='succeed')
+
+@case(tags="succeed")
 def rch_2D(recharge):
     """
     Case where recharge is a 2D grid (y,x) and has a "layer" coord.
     """
     return recharge
 
-@case(tags='succeed')
+
+@case(tags="succeed")
 def rch_3D_layer_size_1(recharge):
     """
     Case where recharge has a third dimension "layer" with size one.
@@ -181,7 +184,8 @@ def rch_3D_layer_size_1(recharge):
     recharge.dataset = ds
     return recharge
 
-@case(tags='fail')
+
+@case(tags="fail")
 def rch_3D(recharge):
     """
     Case where recharge assigned to multiple layers.
@@ -192,7 +196,8 @@ def rch_3D(recharge):
     recharge.dataset = ds
     return recharge
 
-@case(tags='fail')
+
+@case(tags="fail")
 def rch_transient(recharge):
     """
     Case where rate has time dimension, should fail because mapping cannot
