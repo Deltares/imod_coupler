@@ -486,7 +486,6 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/traitlets-5.14.1-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/twine-5.0.0-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/types-python-dateutil-2.8.19.20240106-pyhd8ed1ab_0.conda
-      - conda: https://conda.anaconda.org/conda-forge/noarch/types-requests-2.31.0.20240218-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/typing-extensions-4.9.0-hd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/typing_extensions-4.9.0-pyha770c72_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/typing_utils-0.1.0-pyhd8ed1ab_0.tar.bz2
@@ -676,7 +675,6 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/traitlets-5.14.1-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/twine-5.0.0-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/types-python-dateutil-2.8.19.20240106-pyhd8ed1ab_0.conda
-      - conda: https://conda.anaconda.org/conda-forge/noarch/types-requests-2.31.0.20240218-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/typing-extensions-4.9.0-hd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/typing_extensions-4.9.0-pyha770c72_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/typing_utils-0.1.0-pyhd8ed1ab_0.tar.bz2
@@ -12971,21 +12969,6 @@ packages:
   license: Apache-2.0 AND MIT
   size: 21896
   timestamp: 1704512704737
-- kind: conda
-  name: types-requests
-  version: 2.31.0.20240218
-  build: pyhd8ed1ab_0
-  subdir: noarch
-  noarch: python
-  url: https://conda.anaconda.org/conda-forge/noarch/types-requests-2.31.0.20240218-pyhd8ed1ab_0.conda
-  sha256: 3dfd65dbde856a24085a329e562c67f8db8d2738c5bde825618c2153670da147
-  md5: ee6d81ac5ac8a9933c5d7e5a896f66ca
-  depends:
-  - python >=3.6
-  - urllib3 >=2
-  license: Apache-2.0 AND MIT
-  size: 25918
-  timestamp: 1708231138766
 - kind: conda
   name: typing-extensions
   version: 4.9.0
