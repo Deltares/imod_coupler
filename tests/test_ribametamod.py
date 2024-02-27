@@ -14,7 +14,7 @@ msw_outputlabel_ponding: str = "        Pssw(m3)"
 msw_outputlabel_swsprinkling: str = "   ts2dfmput(m3)"
 
 
-@pytest.mark.skip(reason="api-package yet to be made available in this model")
+@pytest.mark.xdist_group(name="ribasim")
 @parametrize_with_cases("ribametamod_model", glob="backwater_model")
 def test_ribametamod_backwater(
     tmp_path_dev: Path,
@@ -49,7 +49,7 @@ def test_ribametamod_backwater(
     )
 
 
-@pytest.mark.skip(reason="api-package yet to be made available in this model")
+@pytest.mark.xdist_group(name="ribasim")
 @parametrize_with_cases("ribametamod_model", glob="bucket_model")
 def test_ribametamod_bucket(
     tmp_path_dev: Path,
@@ -84,7 +84,7 @@ def test_ribametamod_bucket(
     )
 
 
-@pytest.mark.skip(reason="api-package yet to be made available in this model")
+@pytest.mark.xdist_group(name="ribasim")
 @parametrize_with_cases("ribametamod_model", glob="two_basin_model")
 def test_ribametamod_two_basin(
     tmp_path_dev: Path,

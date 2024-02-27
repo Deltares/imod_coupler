@@ -377,7 +377,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/httpx-0.26.0-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/hyperframe-6.0.1-pyhd8ed1ab_0.tar.bz2
       - conda: https://conda.anaconda.org/conda-forge/noarch/idna-3.6-pyhd8ed1ab_0.conda
-      - conda: https://conda.anaconda.org/conda-forge/noarch/imod-0.15.2-pyhd8ed1ab_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/imod-0.15.3-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/importlib-metadata-7.0.1-pyha770c72_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/importlib_metadata-7.0.1-hd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/importlib_resources-6.1.1-pyhd8ed1ab_0.conda
@@ -569,7 +569,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/httpx-0.26.0-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/hyperframe-6.0.1-pyhd8ed1ab_0.tar.bz2
       - conda: https://conda.anaconda.org/conda-forge/noarch/idna-3.6-pyhd8ed1ab_0.conda
-      - conda: https://conda.anaconda.org/conda-forge/noarch/imod-0.15.2-pyhd8ed1ab_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/imod-0.15.3-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/importlib-metadata-7.0.1-pyha770c72_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/importlib_metadata-7.0.1-hd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/importlib_resources-6.1.1-pyhd8ed1ab_0.conda
@@ -4809,13 +4809,13 @@ packages:
   timestamp: 1701027126206
 - kind: conda
   name: imod
-  version: 0.15.2
+  version: 0.15.3
   build: pyhd8ed1ab_0
   subdir: noarch
   noarch: python
-  url: https://conda.anaconda.org/conda-forge/noarch/imod-0.15.2-pyhd8ed1ab_0.conda
-  sha256: f4c3411c3a8184ac4f9746d3396913b6c2e33d68f29046dda29bf69996251d79
-  md5: 42cbee04e6360ab0118242d3acedf20f
+  url: https://conda.anaconda.org/conda-forge/noarch/imod-0.15.3-pyhd8ed1ab_0.conda
+  sha256: 2775a2301cea8aef7810de5061642b791b47a7a5f9d1446130330e260ae2be21
+  md5: 5c55512851eca783efa20eb956ad8ce1
   depends:
   - affine
   - bottleneck
@@ -4827,6 +4827,7 @@ packages:
   - geopandas
   - graphviz
   - jinja2
+  - loguru
   - matplotlib-base
   - netcdf4
   - numba >=0.50
@@ -4852,8 +4853,8 @@ packages:
   - zarr
   license: MIT
   license_family: MIT
-  size: 427244
-  timestamp: 1708336528290
+  size: 429459
+  timestamp: 1708707272523
 - kind: conda
   name: importlib-metadata
   version: 7.0.1
