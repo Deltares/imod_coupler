@@ -65,6 +65,16 @@ def make_mf6_simulation(gwf_model: mf6.GroundwaterFlowModel) -> mf6.Modflow6Simu
     return simulation
 
 
+def make_recharge_pkg(idomain: xr.DataArray) -> mf6.Recharge:
+    idomain_l1 = idomain.sel(layer=1)
+    recharge = xr.zeros_like(idomain_l1, dtype=float)
+    # Deactivate cells where coupled MetaSWAP model is inactive as well.
+    recharge[:, 0] = np.nan
+    recharge = recharge.where(idomain_l1)
+
+    return mf6.Recharge(recharge)
+
+
 def make_coupled_mf6_model(idomain: xr.DataArray) -> mf6.Modflow6Simulation:
     _, nrow, ncol = idomain.shape
     gwf_model = make_mf6_model(idomain)
@@ -75,12 +85,7 @@ def make_coupled_mf6_model(idomain: xr.DataArray) -> mf6.Modflow6Simulation:
     gwf_model["chd"] = mf6.ConstantHead(
         head, print_input=True, print_flows=True, save_flows=True
     )
-
-    recharge = xr.zeros_like(idomain.sel(layer=1), dtype=float)
-    recharge[:, 0] = np.nan
-    recharge = recharge.where(idomain.sel(layer=1))
-
-    gwf_model["rch_msw"] = mf6.Recharge(recharge)
+    gwf_model["rch_msw"] = make_recharge_pkg(idomain)
     gwf_model["wells_msw"] = create_wells(nrow, ncol, idomain)
 
     simulation = make_mf6_simulation(gwf_model)
@@ -144,6 +149,11 @@ def inactive_idomain() -> xr.DataArray:
     idomain[:, 1, 2] = 0
 
     return idomain
+
+
+@pytest_cases.fixture(scope="function")
+def recharge(active_idomain: xr.DataArray) -> mf6.Recharge:
+    return make_recharge_pkg(active_idomain)
 
 
 @pytest_cases.fixture(scope="function")
