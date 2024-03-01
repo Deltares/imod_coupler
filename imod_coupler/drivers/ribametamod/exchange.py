@@ -15,6 +15,7 @@ from imod_coupler.kernelwrappers.mf6_wrapper import (
 class ExchangeBalance:
     demands: dict[str, NDArray[np.float64]]
     demands_negative: dict[str, NDArray[np.float64]]
+    demands_mf6: dict[str, NDArray[np.float64]]
     realised_negative: dict[str, NDArray[np.float64]]
     shape: int
     sum_keys: list[str]
@@ -66,6 +67,7 @@ class ExchangeBalance:
 
     def _init_arrays(self) -> None:
         self.demands = {}
+        self.demands_mf6 = {}
         self.demands_negative = {}
         self.realised_negative = {}
         for flux_label in self.flux_labels:
@@ -92,6 +94,7 @@ class ExchangeBalance:
 
 class CoupledExchangeBalance(ExchangeBalance):
     demands: dict[str, NDArray[np.float64]]
+    demands_mf6: dict[str, NDArray[np.float64]]
     demands_negative: dict[str, NDArray[np.float64]]
     realised_negative: dict[str, NDArray[np.float64]]
     shape: int
@@ -150,9 +153,8 @@ class CoupledExchangeBalance(ExchangeBalance):
             # Swap sign since a negative RIV flux means a positive contribution to Ribasim
             river_flux = -river.get_flux_estimate(mf6_head)
             river_flux_negative = np.where(river_flux < 0, river_flux, 0)
-            self.demands[key] = self.mapping.mod2rib[key].dot(
-                river_flux
-            ) / days_to_seconds(delt)
+            self.demands_mf6[key] = river_flux[:] / days_to_seconds(delt)
+            self.demands[key] = self.mapping.mod2rib[key].dot(self.demands_mf6[key])
             self.demands_negative[key] = self.mapping.mod2rib[key].dot(
                 river_flux_negative
             ) / days_to_seconds(delt)
@@ -170,7 +172,7 @@ class CoupledExchangeBalance(ExchangeBalance):
             # flux from metaswap ponding to Ribasim
             if "sw_ponding" in self.mapping.msw2rib:
                 allocated_flux_sec = allocated_volume / days_to_seconds(delt)
-                self.demands["ponding_msw"] += self.mapping.msw2rib["sw_ponding"].dot(
+                self.demands["sw_ponding"] += self.mapping.msw2rib["sw_ponding"].dot(
                     allocated_flux_sec
                 )[:]
 
@@ -184,14 +186,14 @@ class CoupledExchangeBalance(ExchangeBalance):
         super().compute_realised(realised)
         for key in self.mf6_active_river_api_packages.keys():
             realised_fraction = np.where(
-                np.nonzero(self.demands_negative[key]),
-                self.realised_negative[key] / self.demands_negative[key],
+                np.isclose(self.demands_negative[key], 0.0),
                 1.0,
+                self.realised_negative[key] / self.demands_negative[key],
             )
             # correction only applies to Modflow cells which negatively contribute to the Ribasim volumes
             # in which case the Modflow demand was POSITIVE, otherwise the correction is 0
             self.mf6_active_river_api_packages[key].rhs[:] = -(
-                np.maximum(self.demands[key], 0.0)
+                np.maximum(self.demands_mf6[key], 0.0)
                 * (1 - self.mapping.mod2rib[key].transpose().dot(realised_fraction))
             )
 

@@ -215,10 +215,6 @@ class RibaMetaMod(Driver):
             self.msw_storage = self.msw.get_storage_ptr()
             self.msw_ponding = self.msw.get_surfacewater_ponding_allocation_ptr()
             self.delt_sw = self.msw.get_sw_time_step()
-            self.delt_gw = self.mf6.get_time_step()
-            self.subtimesteps_sw = range(
-                1, int(self.delt_gw / self.delt_sw) + 1
-            )  # 1-based for MetaSWAP
 
         # set mapping
         # Ribasim - MODFLOW 6
@@ -283,7 +279,7 @@ class RibaMetaMod(Driver):
         # Set CoupledExchangeClass to handle all exchanges to Ribasim Basins
         labels = []
         if self.has_metaswap:
-            labels.append("ponding")
+            labels.append("sw_ponding")
         if self.has_ribasim:
             labels.extend(list(self.mf6_active_river_packages.keys()))
             labels.extend(list(self.mf6_passive_river_packages.keys()))
@@ -295,6 +291,7 @@ class RibaMetaMod(Driver):
                 mf6_river_packages=self.mf6_river_packages,
                 mf6_drainage_packages=self.mf6_drainage_packages,
                 mf6_active_river_api_packages=self.mf6_active_river_api_packages,
+                # RL666
                 mapping=self.mapping,
                 ribasim_infiltration=self.ribasim_infiltration,
                 ribasim_drainage=self.ribasim_drainage,
@@ -305,6 +302,8 @@ class RibaMetaMod(Driver):
             self.exchange_head_mod2msw()
 
         self.mf6.prepare_time_step(0.0)
+        self.delt_gw = self.mf6.get_time_step()
+        self.subtimesteps_sw = range(1, int(self.delt_gw / self.delt_sw) + 1)
 
         if self.has_ribasim:
             # zeros exchange-arrays, Ribasim pointers and API-packages
@@ -434,7 +433,7 @@ class RibaMetaMod(Driver):
         self.mf6_recharge[:] = (
             self.mapping.msw2mod["recharge_mask"][:] * self.mf6_recharge[:]
             + self.mapping.msw2mod["recharge"].dot(self.msw_volume)[:] / self.delt_gw
-        ) / self.mf6_area[self.mf6_recharge_nodes]
+        ) / self.mf6_area[self.mf6_recharge_nodes - 1]
 
         if self.coupling.enable_sprinkling_groundwater:
             self.mf6_sprinkling_wells[:] = (
