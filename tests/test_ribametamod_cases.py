@@ -89,17 +89,17 @@ def case_backwater_model(
 
 
 def case_two_basin_model(
-    mf6_two_basin_model: Modflow6Simulation,
+    mf6_two_basin_model_3layer: Modflow6Simulation,
     msw_two_basin_model: MetaSwapModel,
     ribasim_two_basin_model: ribasim.Model,
 ) -> RibaMetaMod | MetaSwapModel:
-    mf6_modelname, mf6_model = get_mf6_gwf_modelnames(mf6_two_basin_model)[0]
+    mf6_modelname, mf6_model = get_mf6_gwf_modelnames(mf6_two_basin_model_3layer)[0]
     mf6_active_river_packages = get_mf6_river_packagenames(mf6_model)
     basin_definition = create_basin_definition(
         ribasim_two_basin_model, buffersize=250.0
     )
-    mf6_two_basin_model = add_rch_package(mf6_two_basin_model)
-    mf6_two_basin_model = add_well_package(mf6_two_basin_model)
+    mf6_two_basin_model_3layer = add_rch_package(mf6_two_basin_model_3layer)
+    mf6_two_basin_model_3layer = add_well_package(mf6_two_basin_model_3layer)
     driver_coupling = DriverCoupling(
         mf6_model=mf6_modelname,
         mf6_active_river_packages=mf6_active_river_packages,
@@ -107,7 +107,7 @@ def case_two_basin_model(
     return RibaMetaMod(
         ribasim_model=ribasim_two_basin_model,
         msw_model=msw_two_basin_model,
-        mf6_simulation=mf6_two_basin_model,
+        mf6_simulation=mf6_two_basin_model_3layer,
         basin_definition=basin_definition,
         coupling_list=[driver_coupling],
         mf6_rch_pkgkey="rch_msw",

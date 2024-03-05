@@ -302,9 +302,20 @@ def two_basin_variation(
 ) -> mf6.Modflow6Simulation:
     """Sets some of the identical entries."""
     gwf_model = mf6.GroundwaterFlowModel()
-    gwf_model["dis"] = mf6.StructuredDiscretization(
-        idomain=idomain, top=20.0, bottom=xr.DataArray([-10.0], dims=["layer"])
-    )
+    nlayer = idomain["layer"].size
+    if nlayer > 1:
+        btm = -20.0
+        top = 0.0
+        btms = np.linspace(top, btm, nlayer + 1)[1:]
+        gwf_model["dis"] = mf6.StructuredDiscretization(
+            idomain=idomain,
+            top=top,
+            bottom=xr.DataArray(btms, dims=["layer"]),
+        )
+    else:
+        gwf_model["dis"] = mf6.StructuredDiscretization(
+            idomain=idomain, top=20.0, bottom=xr.DataArray([-10.0], dims=["layer"])
+        )
     gwf_model["riv_1"] = river
     gwf_model["npf"] = mf6.NodePropertyFlow(
         icelltype=0,
@@ -346,6 +357,35 @@ def mf6_two_basin_model() -> mf6.Modflow6Simulation:
     x = np.arange(10.0, 1000.0, 20.0)
     y = np.arange(500.0, -520.0, -20.0)
     layer = np.array([1])
+    shape = (layer.size, y.size, x.size)
+    dims = ["layer", "y", "x"]
+    coords = {"layer": layer, "y": y, "x": x}
+    idomain = xr.DataArray(data=np.ones(shape, dtype=int), coords=coords, dims=dims)
+
+    stage = xr.full_like(idomain, np.nan, dtype=float)
+    conductance = xr.full_like(idomain, np.nan, dtype=float)
+    bottom_elevation = xr.full_like(idomain, np.nan, dtype=float)
+    stage[:, 25, :] = 0.5
+    # Compute conductance as wetted area (length 20.0, width 1.0, entry resistance 1.0)
+    conductance[:, 25, :] = (20.0 * 1.0) / 1.0
+    bottom_elevation[:, 25, :] = 0.0
+    river = mf6.River(
+        stage=stage,
+        conductance=conductance,
+        bottom_elevation=bottom_elevation,
+        save_flows=True,
+    )
+    return two_basin_variation(idomain, river)
+
+
+@pytest_cases.fixture(scope="function")
+def mf6_two_basin_model_3layer() -> mf6.Modflow6Simulation:
+    """
+    This model is created to match the Ribasim two basin test model.
+    """
+    x = np.arange(10.0, 1000.0, 20.0)
+    y = np.arange(500.0, -520.0, -20.0)
+    layer = np.array([1, 2, 3])
     shape = (layer.size, y.size, x.size)
     dims = ["layer", "y", "x"]
     coords = {"layer": layer, "y": y, "x": x}

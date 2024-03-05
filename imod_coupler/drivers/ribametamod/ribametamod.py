@@ -291,7 +291,6 @@ class RibaMetaMod(Driver):
                 mf6_river_packages=self.mf6_river_packages,
                 mf6_drainage_packages=self.mf6_drainage_packages,
                 mf6_active_river_api_packages=self.mf6_active_river_api_packages,
-                # RL666
                 mapping=self.mapping,
                 ribasim_infiltration=self.ribasim_infiltration,
                 ribasim_drainage=self.ribasim_drainage,
