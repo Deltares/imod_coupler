@@ -203,10 +203,10 @@ class RibaMetaMod(Driver):
 
         # Get all relevant Ribasim pointers
         if self.has_ribasim:
-            self.ribasim_infiltration = self.ribasim.get_value_ptr("infiltration")
-            self.ribasim_drainage = self.ribasim.get_value_ptr("drainage")
-            self.ribasim_level = self.ribasim.get_value_ptr("level")
-            self.ribasim_volume = self.ribasim.get_value_ptr("volume")
+            self.ribasim_infiltration = self.ribasim.get_value_ptr("basin.infiltration")
+            self.ribasim_drainage = self.ribasim.get_value_ptr("basin.drainage")
+            self.ribasim_level = self.ribasim.get_value_ptr("basin.level")
+            self.ribasim_volume = self.ribasim.get_value_ptr("basin.storage")
 
         # Get all relevant MetaSWAP pointers
         if self.has_metaswap:
