@@ -139,10 +139,11 @@ class RibaMod(Driver):
         )  # type: ignore
 
         # Get the level, drainage, infiltration from Ribasim
-        self.ribasim_infiltration = self.ribasim.get_value_ptr("infiltration")
-        self.ribasim_drainage = self.ribasim.get_value_ptr("drainage")
-        self.ribasim_level = self.ribasim.get_value_ptr("level")
-        self.subgrid_level = self.ribasim.get_value_ptr("subgrid_level")
+        self.ribasim_infiltration = self.ribasim.get_value_ptr("basin.infiltration")
+        self.ribasim_drainage = self.ribasim.get_value_ptr("basin.drainage")
+        self.ribasim_level = self.ribasim.get_value_ptr("basin.level")
+        self.subgrid_level = self.ribasim.get_value_ptr("basin.subgrid_level")
+
         # Setup some accumulator work arrays
         self.work_infiltration = self.ribasim_infiltration.copy()
         self.work_drainage = self.ribasim_drainage.copy()
