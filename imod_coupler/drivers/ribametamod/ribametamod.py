@@ -312,7 +312,7 @@ class RibaMetaMod(Driver):
             self.exchange.add_flux_estimate_mod(self.delt_gw, self.mf6_head)
 
         if self.has_metaswap and self.has_ribasim:
-            self.msw.prepare_time_step(self.delt_sw)
+            self.msw.prepare_time_step_noSW(self.delt_sw)
             for timestep_sw in self.subtimesteps_sw:
                 self.msw.prepare_surface_water_time_step(timestep_sw)
                 self.exchange.add_ponding_msw(self.delt_sw, self.msw_ponding)

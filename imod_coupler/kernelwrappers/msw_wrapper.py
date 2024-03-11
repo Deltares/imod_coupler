@@ -1,9 +1,10 @@
-from ctypes import byref, c_int
+from ctypes import byref, c_double, c_int
 from pathlib import Path
 
 import numpy as np
 from numpy.typing import NDArray
 from xmipy import XmiWrapper
+from xmipy.utils import cd
 
 
 class MswWrapper(XmiWrapper):
@@ -17,15 +18,23 @@ class MswWrapper(XmiWrapper):
         super().__init__(lib_path, lib_dependency, working_directory, timing)
 
     def initialize_surface_water_component(self) -> None:
-        self._execute_function(self.lib.init_sw_component)
+        with cd(self.working_directory):
+            self._execute_function(self.lib.init_sw_component)
 
     def prepare_surface_water_time_step(self, idtsw: int) -> None:
         idtsw_c = c_int(idtsw)
-        self._execute_function(self.lib.perform_sw_time_step, byref(idtsw_c))
+        with cd(self.working_directory):
+            self._execute_function(self.lib.perform_sw_time_step, byref(idtsw_c))
 
     def finish_surface_water_time_step(self, idtsw: int) -> None:
         idtsw_c = c_int(idtsw)
-        self._execute_function(self.lib.finish_sw_time_step, byref(idtsw_c))
+        with cd(self.working_directory):
+            self._execute_function(self.lib.finish_sw_time_step, byref(idtsw_c))
+
+    def prepare_time_step_noSW(self, dt: float) -> None:
+        dt_c = c_double(dt)
+        with cd(self.working_directory):
+            self._execute_function(self.lib.prepare_time_step_noSW, byref(dt_c))
 
     def get_sw_time_step(self) -> float:
         """
