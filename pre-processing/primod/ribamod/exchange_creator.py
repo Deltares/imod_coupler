@@ -35,11 +35,6 @@ def _find_coupled_cells(
     Only cells that have values in the conductance AND in the gridded
     basin should be coupled.
     """
-    # Conductance is leading parameter to define location, for both river
-    # and drainage.
-    # Use xarray.where() to force the dimension order of conductance, rather than
-    # using gridded_basin.where() (which prioritizes the gridded_basin dims)
-    conductance = _ensure_time_invariant_conductance(conductance)
     basin_id = xr.where(conductance.notnull(), gridded_basin, np.nan)  # type: ignore
     include = basin_id.notnull().to_numpy()
     basin_id_values = basin_id.to_numpy()[include].astype(int)
@@ -96,6 +91,11 @@ def derive_passive_coupling(
     gridded_basin: xr.DataArray,
     basin_ids: pd.Series,
 ) -> pd.DataFrame:
+    # Conductance is leading parameter to define location, for both river
+    # and drainage.
+    # Use xarray.where() to force the dimension order of conductance, rather than
+    # using gridded_basin.where() (which prioritizes the gridded_basin dims)
+    conductance = _ensure_time_invariant_conductance(conductance)
     basin_index, include = _find_coupled_cells(conductance, gridded_basin, basin_ids)
     boundary_index = _derive_boundary_index(conductance, include)
     return pd.DataFrame(
@@ -162,6 +162,11 @@ def derive_active_coupling(
     basin_ids: pd.Series,
     subgrid_df: pd.DataFrame,
 ) -> pd.DataFrame:
+    # Conductance is leading parameter to define location, for both river
+    # and drainage.
+    # Use xarray.where() to force the dimension order of conductance, rather than
+    # using gridded_basin.where() (which prioritizes the gridded_basin dims)
+    conductance = _ensure_time_invariant_conductance(conductance)
     basin_index, include = _find_coupled_cells(conductance, gridded_basin, basin_ids)
     boundary_index = _derive_boundary_index(conductance, include)
     # Match the cells to the subgrid based on xy location.
