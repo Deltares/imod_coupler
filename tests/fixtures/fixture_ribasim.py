@@ -14,7 +14,6 @@ def add_subgrid(model: ribasim.Model) -> ribasim.Model:
     subgrid_df = pd.DataFrame(
         data={
             "node_id": profile_df["node_id"],
-            "basin_id": basin_id,
             "subgrid_id": basin_id,
             "basin_level": profile_df["level"],
             "subgrid_level": profile_df["level"],
