@@ -38,3 +38,10 @@ def ribasim_backwater_model() -> ribasim.Model:
 @pytest_cases.fixture(scope="function")
 def ribasim_two_basin_model() -> ribasim.Model:
     return ribasim_testmodels.two_basin_model()
+
+
+@pytest_cases.fixture(scope="function")
+def ribasim_two_basin_model_dbg() -> ribasim.Model:
+    model = ribasim_testmodels.two_basin_model()
+    model.logging.verbosity = ribasim.Verbosity("debug")
+    return model

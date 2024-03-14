@@ -320,10 +320,10 @@ class RibaMetaMod(Driver):
                 # exchange summed volumes to Ribasim
                 self.exchange.to_ribasim()
                 # update Ribasim per delt_sw
-                self.current_time += self.current_time + self.delt_sw
-                self.ribasim.update_until(
-                    self.current_time * days_to_seconds(self.delt_sw)
-                )
+                self.current_time += self.delt_sw
+                print("Riba update until %f" % days_to_seconds(self.current_time))
+                self.ribasim.update_until(days_to_seconds(self.current_time))
+                print("Riba updated")
                 # get realised values on wateruser nodes
                 fraction_realised_user_nodes = np.array([0.0])  # dummy values for now
                 # exchange realised sprinkling
