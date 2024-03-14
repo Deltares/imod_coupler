@@ -225,7 +225,7 @@ def test_nullify_on_write(
 
     # This basin definition is still a point geometry.
     # This mean it will be rasterized to just two pixels.
-    gdf = ribasim_two_basin_model.network.node.df
+    gdf = ribasim_two_basin_model.node.df
     gdf = gdf.loc[gdf["node_type"] == "Basin"].copy()
     gdf["node_id"] = gdf.index
     driver_coupling = DriverCoupling(
@@ -249,7 +249,7 @@ def test_nullify_on_write(
         ribasim_dll_dependency="c",
     )
     # check if columns will be nullified correctly
-    node = coupled_models.ribasim_model.network.node.df
+    node = coupled_models.ribasim_model.node.df
     node_id = node.loc[node["node_type"].str.contains("Basin")].index.to_numpy()
     df = pd.DataFrame.from_dict(
         {

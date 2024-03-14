@@ -10,7 +10,7 @@ def add_subgrid(model: ribasim.Model) -> ribasim.Model:
 
     profile_df = model.basin.profile.df
     _, basin_id = np.unique(profile_df["node_id"], return_inverse=True)
-    geometry = model.network.node.df.loc[profile_df["node_id"]].geometry
+    geometry = model.node.df.loc[profile_df["node_id"]].geometry
     subgrid_df = pd.DataFrame(
         data={
             "node_id": profile_df["node_id"],
@@ -43,5 +43,6 @@ def ribasim_two_basin_model() -> ribasim.Model:
 @pytest_cases.fixture(scope="function")
 def ribasim_two_basin_model_dbg() -> ribasim.Model:
     model = ribasim_testmodels.two_basin_model()
-    model.logging.verbosity = ribasim.Verbosity("debug")
+    #   model.logging.verbosity = ribasim.Verbosity("debug")
+    #   model.logging.verbosity = "debug"
     return model
