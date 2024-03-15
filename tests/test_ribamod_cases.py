@@ -1,5 +1,3 @@
-from typing import Any
-
 import geopandas as gpd
 import ribasim
 from imod.mf6 import Drainage, GroundwaterFlowModel, Modflow6Simulation, River
@@ -9,9 +7,6 @@ from primod.ribamod import DriverCoupling, RibaMod
 def create_basin_definition(
     ribasim_model: ribasim.Model, buffersize: float
 ) -> gpd.GeoDataFrame:
-    #   node = ribasim_model.nodes
-    #    basin_geometry = node.loc[node["node_type"].str.contains("Basin")].geometry
-    #   nodes: dict[str, Any] = ribasim_model.nodes()
     basin_geometry = ribasim_model.basin.node.df["geometry"]
     basin_ids = ribasim_model.basin.node.df["node_id"]
     # Call to_numpy() to get rid of the index

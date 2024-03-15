@@ -10,15 +10,17 @@ def add_subgrid(model: ribasim.Model) -> ribasim.Model:
 
     profile_df = model.basin.profile.df
     _, basin_id = np.unique(profile_df["node_id"], return_inverse=True)
-    geometry = model.node.df.loc[profile_df["node_id"]].geometry
+    geometry = model.basin.node.df["geometry"]
+    x = geometry.x.iloc[basin_id].to_numpy()
+    y = geometry.y.iloc[basin_id].to_numpy()
     subgrid_df = pd.DataFrame(
         data={
             "node_id": profile_df["node_id"],
             "subgrid_id": basin_id,
             "basin_level": profile_df["level"],
             "subgrid_level": profile_df["level"],
-            "meta_x": geometry.x.to_numpy(),
-            "meta_y": geometry.y.to_numpy(),
+            "meta_x": x,
+            "meta_y": y,
         }
     )
     model.basin.subgrid.df = subgrid_df

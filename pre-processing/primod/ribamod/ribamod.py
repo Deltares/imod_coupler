@@ -241,8 +241,10 @@ class RibaMod:
             to_timestamp(mf6_timedis["time"].isel(time=-1)) + time_delta
         ).to_pydatetime()
 
-        ribasim_start = ribasim_model.starttime
-        ribasim_end = ribasim_model.endtime
+        # The MODFLOW datetimes will not have a timezone, so we'll get rid of
+        # them here.
+        ribasim_start = ribasim_model.starttime.replace(tzinfo=None)
+        ribasim_end = ribasim_model.endtime.replace(tzinfo=None)
         if ribasim_start != mf6_start or ribasim_end != mf6_end:
             raise ValueError(
                 "Ribasim simulation time window does not match MODFLOW6.\n"

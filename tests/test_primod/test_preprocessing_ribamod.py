@@ -77,10 +77,8 @@ def test_ribamod_write__error(
         mf6_active_river_packages=mf6_river_packages,
     )
 
-    ribasim_bucket_model.basin = ribasim.Basin(
-        static=ribasim_bucket_model.basin.static,
-        profile=ribasim_bucket_model.basin.profile,
-    )
+    # Remove subgrid
+    ribasim_bucket_model.basin.subgrid.df = None
 
     coupled_models = RibaMod(
         ribasim_bucket_model,
@@ -225,9 +223,7 @@ def test_nullify_on_write(
 
     # This basin definition is still a point geometry.
     # This mean it will be rasterized to just two pixels.
-    gdf = ribasim_two_basin_model.node.df
-    gdf = gdf.loc[gdf["node_type"] == "Basin"].copy()
-    gdf["node_id"] = gdf.index
+    gdf = ribasim_two_basin_model.basin.node.df
     driver_coupling = DriverCoupling(
         mf6_model=mf6_modelname,
         basin_definition=gdf,
@@ -249,8 +245,7 @@ def test_nullify_on_write(
         ribasim_dll_dependency="c",
     )
     # check if columns will be nullified correctly
-    node = coupled_models.ribasim_model.node.df
-    node_id = node.loc[node["node_type"].str.contains("Basin")].index.to_numpy()
+    node_id = coupled_models.ribasim_model.basin.node.df["node_id"].to_numpy()
     df = pd.DataFrame.from_dict(
         {
             "node_id": node_id,
