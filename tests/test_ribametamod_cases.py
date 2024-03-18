@@ -94,12 +94,6 @@ def case_two_basin_model(
     ribasim_two_basin_model: ribasim.Model,
 ) -> RibaMetaMod | MetaSwapModel:
     ribasim_two_basin_model.solver.saveat = 100
-    ribasim_two_basin_model.starttime = ribasim_two_basin_model.starttime.replace(
-        tzinfo=None
-    )
-    ribasim_two_basin_model.endtime = ribasim_two_basin_model.endtime.replace(
-        tzinfo=None
-    )
     ribasim_two_basin_model.solver.abstol = 1e-6  # optional, default 1e-6
     ribasim_two_basin_model.solver.reltol = 1e-5  # optional, default 1e-5
     ribasim_two_basin_model.solver.maxiters = (

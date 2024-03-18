@@ -387,9 +387,9 @@ def add_logging_request_to_toml_file(toml_dir: Path, toml_filename: str) -> None
         toml_dict = tomli.load(f)
 
     with open(toml_dir / toml_filename, "wb") as f:
-        toml_dict["driver"]["coupling"][0][
-            "output_config_file"
-        ] = "./output_config.toml"
+        toml_dict["driver"]["coupling"][0]["output_config_file"] = (
+            "./output_config.toml"
+        )
         tomli_w.dump(toml_dict, f)
 
     # write output_config file
