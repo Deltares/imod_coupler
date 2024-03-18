@@ -16,14 +16,14 @@ class Coupling(BaseModel):
     enable_sprinkling: bool  # true whemn sprinkling is active
     mf6_model: str  # the MODFLOW 6 model that will be coupled
     mf6_msw_recharge_pkg: str  # the recharge package that will be used for coupling
-    mf6_msw_well_pkg: (
-        str | None
-    ) = None  # the well package that will be used for coupling when sprinkling is active
+    mf6_msw_well_pkg: str | None = (
+        None  # the well package that will be used for coupling when sprinkling is active
+    )
     mf6_msw_node_map: FilePath  # the path to the node map file
     mf6_msw_recharge_map: FilePath  # the path to the recharge map file
-    mf6_msw_sprinkling_map: (
-        FilePath | None
-    ) = None  # the path to the sprinkling map file
+    mf6_msw_sprinkling_map: FilePath | None = (
+        None  # the path to the sprinkling map file
+    )
     output_config_file: FilePath | None = None
 
     @field_validator("mf6_msw_well_pkg")

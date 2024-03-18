@@ -1,8 +1,9 @@
-""" Ribamod: the coupling between MetaSWAP and MODFLOW 6
+"""Ribamod: the coupling between MetaSWAP and MODFLOW 6
 
 description:
 
 """
+
 from __future__ import annotations
 
 from collections import ChainMap
@@ -165,9 +166,9 @@ class RibaMetaMod(Driver):
             self.mf6_active_river_packages = self.mf6.get_rivers_packages(
                 mf6_flowmodel_key, list(self.coupling.mf6_active_river_packages.keys())
             )
-            #           self.mf6_active_river_api_packages = self.get_api_packages(
-            #               mf6_flowmodel_key, list(self.coupling.mf6_active_river_packages.keys())
-            #           )
+            self.mf6_active_river_api_packages = self.get_api_packages(
+                mf6_flowmodel_key, list(self.coupling.mf6_active_river_packages.keys())
+            )
             self.mf6_passive_river_packages = self.mf6.get_rivers_packages(
                 mf6_flowmodel_key, list(self.coupling.mf6_passive_river_packages.keys())
             )
@@ -215,10 +216,6 @@ class RibaMetaMod(Driver):
             self.msw_storage = self.msw.get_storage_ptr()
             self.msw_ponding = self.msw.get_surfacewater_ponding_allocation_ptr()
             self.delt_sw = self.msw.get_sw_time_step()
-            self.delt_gw = self.mf6.get_time_step()
-            self.subtimesteps_sw = range(
-                1, int(self.delt_gw / self.delt_sw) + 1
-            )  # 1-based for MetaSWAP
 
         # set mapping
         # Ribasim - MODFLOW 6
@@ -238,9 +235,9 @@ class RibaMetaMod(Driver):
             mswmod_packages["msw_head"] = self.msw_head
             mswmod_packages["msw_volume"] = self.msw_volume
             mswmod_packages["msw_storage"] = self.msw_storage
-            mswmod_packages[
-                "mf6_recharge"
-            ] = self.mf6_recharge  # waar komt mf6_recharge vandaan
+            mswmod_packages["mf6_recharge"] = (
+                self.mf6_recharge
+            )  # waar komt mf6_recharge vandaan
             if (
                 self.coupling.enable_sprinkling_groundwater
                 and self.coupling.mf6_msw_well_pkg is not None
@@ -283,7 +280,7 @@ class RibaMetaMod(Driver):
         # Set CoupledExchangeClass to handle all exchanges to Ribasim Basins
         labels = []
         if self.has_metaswap:
-            labels.append("ponding")
+            labels.append("sw_ponding")
         if self.has_ribasim:
             labels.extend(list(self.mf6_active_river_packages.keys()))
             labels.extend(list(self.mf6_passive_river_packages.keys()))
@@ -305,6 +302,8 @@ class RibaMetaMod(Driver):
             self.exchange_head_mod2msw()
 
         self.mf6.prepare_time_step(0.0)
+        self.delt_gw = self.mf6.get_time_step()
+        self.subtimesteps_sw = range(1, int(self.delt_gw / self.delt_sw) + 1)
 
         if self.has_ribasim:
             # zeros exchange-arrays, Ribasim pointers and API-packages
@@ -314,7 +313,7 @@ class RibaMetaMod(Driver):
             self.exchange.add_flux_estimate_mod(self.delt_gw, self.mf6_head)
 
         if self.has_metaswap and self.has_ribasim:
-            self.msw.prepare_time_step(self.delt_sw)
+            self.msw.prepare_time_step_noSW(self.delt_sw)
             for timestep_sw in self.subtimesteps_sw:
                 self.msw.prepare_surface_water_time_step(timestep_sw)
                 self.exchange.add_ponding_msw(self.delt_sw, self.msw_ponding)
@@ -322,10 +321,8 @@ class RibaMetaMod(Driver):
                 # exchange summed volumes to Ribasim
                 self.exchange.to_ribasim()
                 # update Ribasim per delt_sw
-                self.current_time += self.current_time + self.delt_sw
-                self.ribasim.update_until(
-                    self.current_time * days_to_seconds(self.delt_sw)
-                )
+                self.current_time += self.delt_sw
+                self.ribasim.update_until(days_to_seconds(self.current_time))
                 # get realised values on wateruser nodes
                 fraction_realised_user_nodes = np.array([0.0])  # dummy values for now
                 # exchange realised sprinkling
@@ -434,7 +431,7 @@ class RibaMetaMod(Driver):
         self.mf6_recharge[:] = (
             self.mapping.msw2mod["recharge_mask"][:] * self.mf6_recharge[:]
             + self.mapping.msw2mod["recharge"].dot(self.msw_volume)[:] / self.delt_gw
-        ) / self.mf6_area[self.mf6_recharge_nodes]
+        ) / self.mf6_area[self.mf6_recharge_nodes - 1]
 
         if self.coupling.enable_sprinkling_groundwater:
             self.mf6_sprinkling_wells[:] = (

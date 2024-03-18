@@ -71,9 +71,9 @@ def ad_msw_model(
             nsubunits = nsubunits.where(elevation.isna())
     msw_model = make_msw_model(mf6_model, nsubunits)
     # Override unsat_svat_path with path from environment
-    msw_model.simulation_settings[
-        "unsa_svat_path"
-    ] = msw_model._render_unsaturated_database_path(metaswap_lookup_table)
+    msw_model.simulation_settings["unsa_svat_path"] = (
+        msw_model._render_unsaturated_database_path(metaswap_lookup_table)
+    )
     return msw_model
 
 
@@ -95,7 +95,7 @@ def msw_backwater_model(
 
 @pytest_cases.fixture(scope="function")
 def msw_two_basin_model(
-    mf6_two_basin_model: mf6.GroundwaterFlowModel,
+    mf6_two_basin_model_3layer: mf6.GroundwaterFlowModel,
     metaswap_lookup_table: Path,
 ) -> msw.MetaSwapModel:
-    return ad_msw_model(mf6_two_basin_model, metaswap_lookup_table)
+    return ad_msw_model(mf6_two_basin_model_3layer, metaswap_lookup_table)
