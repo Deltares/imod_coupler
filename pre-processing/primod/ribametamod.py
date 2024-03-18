@@ -21,6 +21,7 @@ from imod.msw import GridData, MetaSwapModel, Sprinkling
 
 from primod.mapping.node_svat_mapping import NodeSvatMapping
 from primod.mapping.rch_svat_mapping import RechargeSvatMapping
+from primod.mapping.svat_basin_mapping import SvatBasinMapping
 from primod.mapping.wel_svat_mapping import WellSvatMapping
 
 
@@ -128,7 +129,7 @@ class RibaMetaMod:
         else:
             return False
 
-    def _get_gwf_modelnames(self) -> list[str]:
+    def _get_gwf_modelnames(self, mf6_simulation) -> list[str]:
         """
         Get names of gwf models in mf6 simulation
         """
@@ -339,22 +340,6 @@ class RibaMetaMod:
             data={"basin_index": basin_index, "bound_index": boundary_index_values}
         )
 
-    @staticmethod
-    def derive_coupling(
-        gridded_basin: xr.DataArray,
-        basin_ids: "pd.Series[int]",
-        condition: xr.DataArray,
-    ) -> pd.DataFrame:
-        # condition AND gridded_basin notnan are leading directive to define location which to couple to
-        basin_id = xr.where(condition, gridded_basin, np.nan)  # type: ignore
-        include = basin_id.notnull().to_numpy()
-        basin_id_values = basin_id.to_numpy()[include].astype(int)
-        basin_index = np.searchsorted(basin_ids, basin_id_values)
-        boundary_index_values = np.arange(np.size(basin_index))
-        return pd.DataFrame(
-            data={"basin_index": basin_index, "bound_index": boundary_index_values}
-        )
-
     def _get_coupling_dict(
         self,
         directory: Path,
@@ -465,33 +450,15 @@ class RibaMetaMod:
             column="node_id",
         )
 
-        assert self.ribasim_model.basin.profile.df is not None
-        basin_ids = np.unique(self.ribasim_model.basin.profile.df["node_id"])
-        missing = ~np.isin(self.basin_definition["node_id"], basin_ids)
-        if missing.any():
-            missing_basins = self.basin_definition["node_id"].to_numpy()[missing]
-            raise ValueError(
-                "The node IDs of these basins in the basin definition do not "
-                f"occur in the Ribasim model: {missing_basins}"
-            )
-
-        packages = asdict(coupling)
-        for destination in packages:
-            coupling_dict[destination] = {}
-        coupling_dict["mf6_model"] = packages.pop("mf6_model")
-        for destination, keys in packages.items():
-            for key in keys:
-                package = gwf_model[key]
-                table = self.derive_river_drainage_coupling(
-                    gridded_basin_mod, basin_ids, package["conductance"]
-                )
-                table.to_csv(directory / f"{key}.tsv", sep="\t", index=False)
-                coupling_dict[destination][key] = f"exchanges/{key}.tsv"
-
         # ponding for all svats
-        table_ponding = self.derive_coupling(gridded_basin_msw, basin_ids, svat > 0)
-        table_ponding.to_csv(directory / "msw_ponding.tsv", sep="\t", index=False)
-        coupling_dict["rib_msw_ponding_map_surface_water"] = "exchanges/msw_ponding.tsv"
+        table_ponding = SvatBasinMapping(
+            name="msw_ponding",
+            gridded_basin_msw=gridded_basin_msw,
+            basin_ids=basin_ids,
+            condition=svat > 0,
+        )
+        filename = table_ponding.write(directory)
+        coupling_dict["rib_msw_ponding_map_surface_water"] = f"exchanges/{filename}"
 
         if self.is_sprinkling:
             # sprinkling groundwater
@@ -508,12 +475,28 @@ class RibaMetaMod:
                 (nsu, 1, 1),
             )
             _, svat_swspr = swspr_grid_data.generate_index_array()
-            table_sw_sprinkling = self.derive_coupling(
-                gridded_basin_msw, basin_ids, svat_swspr.notnull()
+
+            table_sw_sprinkling = SvatBasinMapping(
+                name="msw_sw_sprinkling",
+                gridded_basin_msw=gridded_basin_msw,
+                basin_ids=basin_ids,
+                condition=svat_swspr.notnull(),
             )
-            table_sw_sprinkling.to_csv(
-                directory / "msw_sw_sprinkling.tsv", sep="\t", index=False
-            )
+            filename = table_sw_sprinkling.write(directory)
             coupling_dict["rib_msw_sprinkling_map_surface_water"] = (
-                "exchanges/msw_sw_sprinkling.tsv"
+                f"exchanges/{filename}"
             )
+
+    def write_exchanges(
+        self,
+        directory: str | Path,
+    ): 
+        dicts = []
+        for driver_coupling in self.coupling_list:
+            mappings = coupling.process(self)
+            dicts.append(mappings)
+        
+        for mapping in dicts:
+            
+
+

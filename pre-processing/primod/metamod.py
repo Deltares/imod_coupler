@@ -6,6 +6,7 @@ from imod.mf6 import Modflow6Simulation
 from imod.mf6.model import Modflow6Model
 from imod.msw import GridData, MetaSwapModel, Sprinkling
 
+from primod.driver_coupling.metamod import MetaModDriverCoupling
 from primod.mapping.node_svat_mapping import NodeSvatMapping
 from primod.mapping.rch_svat_mapping import RechargeSvatMapping
 from primod.mapping.wel_svat_mapping import WellSvatMapping
@@ -35,19 +36,17 @@ class MetaMod:
         self,
         msw_model: MetaSwapModel,
         mf6_simulation: Modflow6Simulation,
-        mf6_rch_pkgkey: str,
-        mf6_wel_pkgkey: str | None = None,
+        coupling_list: list[MetaModDriverCoupling],
     ):
         self.msw_model = msw_model
         self.mf6_simulation = mf6_simulation
-        self.mf6_rch_pkgkey = mf6_rch_pkgkey
-        self.mf6_wel_pkgkey = mf6_wel_pkgkey
-
+        self.coupling_list = coupling_list
         self.is_sprinkling = self._check_coupler_and_sprinkling()
 
     def _check_coupler_and_sprinkling(self) -> bool:
-        mf6_rch_pkgkey = self.mf6_rch_pkgkey
-        mf6_wel_pkgkey = self.mf6_wel_pkgkey
+        driver_coupling = self.coupling_list[0]
+        mf6_rch_pkgkey = driver_coupling.recharge_package
+        mf6_wel_pkgkey = driver_coupling.wel_package
 
         gwf_names = self._get_gwf_modelnames()
 
@@ -136,11 +135,7 @@ class MetaMod:
         # Write exchange files
         exchange_dir = directory / "exchanges"
         exchange_dir.mkdir(mode=755, exist_ok=True)
-        self.write_exchanges(exchange_dir, self.mf6_rch_pkgkey, self.mf6_wel_pkgkey)
-
-        coupling_dict = self._get_coupling_dict(
-            exchange_dir, self.mf6_rch_pkgkey, self.mf6_wel_pkgkey
-        )
+        coupling_dict = self.write_exchanges(exchange_dir)
 
         self.write_toml(
             directory,
@@ -210,74 +205,20 @@ class MetaMod:
         with open(toml_path, "wb") as f:
             tomli_w.dump(coupler_toml, f)
 
-    def _get_gwf_modelnames(self) -> list[str]:
+    def _get_gwf_modelnames(self, mf6_simulation) -> list[str]:
         """
         Get names of gwf models in mf6 simulation
         """
         return [
             key
-            for key, value in self.mf6_simulation.items()
+            for key, value in mf6_simulation.items()
             if isinstance(value, Modflow6Model)
         ]
-
-    def _get_coupling_dict(
-        self,
-        directory: Path,
-        mf6_rch_pkgkey: str,
-        mf6_wel_pkgkey: str | None,
-    ) -> dict[str, Any]:
-        """
-        Get dictionary with names of coupler packages and paths to mappings.
-
-        Parameters
-        ----------
-        directory: Path
-            Directory where .dxc files are written.
-        mf6_rch_pkgkey: str
-            Key of Modflow 6 recharge package to which MetaSWAP is coupled.
-        mf6_wel_pkgkey: str
-            Key of Modflow 6 well package to which MetaSWAP sprinkling is
-            coupled.
-
-        Returns
-        -------
-        coupling_dict: dict
-            Dictionary with names of coupler packages and paths to mappings.
-        """
-
-        coupling_dict: dict[str, Any] = {}
-
-        gwf_names = self._get_gwf_modelnames()
-
-        # Assume only one groundwater flow model
-        # FUTURE: Support multiple groundwater flow models.
-        coupling_dict["mf6_model"] = gwf_names[0]
-
-        coupling_dict["mf6_msw_node_map"] = (
-            f"./{directory.name}/{NodeSvatMapping._file_name}"
-        )
-
-        coupling_dict["mf6_msw_recharge_pkg"] = mf6_rch_pkgkey
-        coupling_dict["mf6_msw_recharge_map"] = (
-            f"./{directory.name}/{RechargeSvatMapping._file_name}"
-        )
-
-        coupling_dict["enable_sprinkling"] = self.is_sprinkling
-
-        if self.is_sprinkling:
-            coupling_dict["mf6_msw_well_pkg"] = mf6_wel_pkgkey
-            coupling_dict["mf6_msw_sprinkling_map"] = (
-                f"./{directory.name}/{WellSvatMapping._file_name}"
-            )
-
-        return coupling_dict
 
     def write_exchanges(
         self,
         directory: str | Path,
-        mf6_rch_pkgkey: str,
-        mf6_wel_pkgkey: str | None,
-    ) -> None:
+    ) -> dict[str, Any]:
         """
         Write exchange files (.dxc) which map MetaSWAP's svats to Modflow 6 node
         numbers, recharge ids, and well ids.
@@ -292,12 +233,32 @@ class MetaMod:
             Key of Modflow 6 well package to which MetaSWAP sprinkling is
             coupled.
         """
-
         gwf_names = self._get_gwf_modelnames()
 
         # Assume only one groundwater flow model
         # FUTURE: Support multiple groundwater flow models.
-        gwf_model = self.mf6_simulation[gwf_names[0]]
+        gwf_name = gwf_names[0]
+        gwf_model = self.mf6_simulation[gwf_name]
+        coupling = self.coupling_list[0]
+        grid_mapping, rch_mapping, well_mapping = coupling.process(
+            msw_model=self.msw_model,
+            gwf_model=gwf_model,
+        )
+
+        coupling_dict: dict[str, Any] = {}
+        coupling_dict["mf6_model"] = gwf_name
+
+        coupling_dict["mf6_msw_node_map"] = grid_mapping.write(directory)
+        coupling_dict["mf6_msw_recharge_pkg"] = coupling.recharge_package
+        coupling_dict["mf6_msw_recharge_map"] = rch_mapping.write(directory)
+        coupling_dict["enable_sprinkling"] = False
+
+        if well_mapping is not None:
+            coupling_dict["enable_sprinkling"] = True
+            coupling_dict["mf6_msw_well_pkg"] = coupling.wel_package
+            coupling_dict["mf6_msw_sprinkling_map"] = well_mapping.write(directory)
+
+        return coupling_dict
 
         grid_data_key = [
             pkgname

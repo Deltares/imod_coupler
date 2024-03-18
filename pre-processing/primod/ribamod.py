@@ -1,9 +1,7 @@
-from dataclasses import asdict, dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-import geopandas as gpd
-import imod
 import numpy as np
 import pandas as pd
 import ribasim
@@ -12,39 +10,8 @@ import xarray as xr
 from imod.mf6 import Drainage, GroundwaterFlowModel, Modflow6Simulation, River
 from numpy.typing import NDArray
 
-from primod.ribamod.exchange_creator import (
-    derive_active_coupling,
-    derive_passive_coupling,
-)
+from primod.driver_coupling.ribamod import RibaModDriverCoupling
 from primod.typing import Int
-
-
-@dataclass
-class DriverCoupling:
-    """A dataclass representing one coupling scenario for the RibaMod driver.
-
-    Attributes
-    ----------
-    mf6_model : str
-        The model of the driver.
-    basin_definition : gpd.GeoDataFrame
-        GeoDataFrame of basin polygons
-    mf6_active_river_packages : list of str
-        A list of active river packages.
-    mf6_passive_river_packages : list of str
-        A list of passive river packages.
-    mf6_active_drainage_packages : list of str
-        A list of active drainage packages.
-    mf6_passive_drainage_packages : list of str
-        A list of passive drainage packages.
-    """
-
-    mf6_model: str
-    basin_definition: gpd.GeoDataFrame
-    mf6_active_river_packages: list[str] = field(default_factory=list)
-    mf6_passive_river_packages: list[str] = field(default_factory=list)
-    mf6_active_drainage_packages: list[str] = field(default_factory=list)
-    mf6_passive_drainage_packages: list[str] = field(default_factory=list)
 
 
 class RibaMod:
@@ -68,7 +35,7 @@ class RibaMod:
         self,
         ribasim_model: ribasim.Model,
         mf6_simulation: Modflow6Simulation,
-        coupling_list: list[DriverCoupling],
+        coupling_list: list[RibaModDriverCoupling],
     ):
         self.validate_time_window(
             ribasim_model=ribasim_model,
@@ -77,25 +44,6 @@ class RibaMod:
         self.ribasim_model = ribasim_model
         self.mf6_simulation = mf6_simulation
         self.coupling_list = coupling_list
-
-    def _get_gwf_modelnames(self) -> list[str]:
-        """
-        Get names of gwf models in mf6 simulation
-        """
-        return [
-            key
-            for key, value in self.mf6_simulation.items()
-            if isinstance(value, GroundwaterFlowModel)
-        ]
-
-    @staticmethod
-    def _empty_coupling_dict() -> dict[str, Any]:
-        return {
-            "mf6_active_river_packages": {},
-            "mf6_passive_river_packages": {},
-            "mf6_active_drainage_packages": {},
-            "mf6_passive_drainage_packages": {},
-        }
 
     def write(
         self,
@@ -251,30 +199,6 @@ class RibaMod:
             )
         return
 
-    def validate_basin_node_ids(self, basin_definition: gpd.GeoDataFrame) -> pd.Series:
-        assert self.ribasim_model.basin.profile.df is not None
-        basin_ids: NDArray[Int] = np.unique(
-            self.ribasim_model.basin.profile.df["node_id"]
-        )
-        missing = ~np.isin(basin_definition["node_id"], basin_ids)
-        if missing.any():
-            missing_basins = basin_definition["node_id"].to_numpy()[missing]
-            raise ValueError(
-                "The node IDs of these basins in the basin definition do not "
-                f"occur in the Ribasim model: {missing_basins}"
-            )
-        return basin_ids
-
-    def validate_subgrid_df(self, coupling: DriverCoupling) -> pd.DataFrame | None:
-        if coupling.mf6_active_river_packages or coupling.mf6_active_drainage_packages:
-            if self.ribasim_model.basin.subgrid.df is None:
-                raise ValueError(
-                    "ribasim.model.basin.subgrid must be defined for actively coupled packages."
-                )
-            return self.ribasim_model.basin.subgrid.df
-        else:
-            return None
-
     def _nullify_ribasim_exchange_input(
         self, coupled_basin_node_ids: NDArray[Int]
     ) -> None:
@@ -302,115 +226,45 @@ class RibaMod:
         _nullify(basin.time.df)
         return
 
-    def _process_driver_coupling(
-        self,
-        gwf_model: GroundwaterFlowModel,
-        coupling: DriverCoupling,
-    ) -> tuple[dict[str, Any], list[NDArray[Int]]]:
-        dis = gwf_model[gwf_model._get_pkgkey("dis")]
-        packages = asdict(coupling)
-        packages.pop("mf6_model")
-        basin_definition = packages.pop("basin_definition")
-
-        # Validate
-        if "node_id" not in basin_definition.columns:
-            raise ValueError(
-                'Basin definition must contain "node_id" column.'
-                f"Columns in dataframe: {basin_definition.columns}"
-            )
-        # Check whether names in driver_coupling are present in MF6 model.
-        self.validate_keys(
-            gwf_model,
-            coupling.mf6_active_river_packages,
-            coupling.mf6_passive_river_packages,
-            River,
-        )
-        self.validate_keys(
-            gwf_model,
-            coupling.mf6_active_drainage_packages,
-            coupling.mf6_passive_drainage_packages,
-            Drainage,
-        )
-
-        # Spatial overlays of MF6 boundaries with basin polygons.
-        basin_ids = self.validate_basin_node_ids(basin_definition)
-        subgrid_df = self.validate_subgrid_df(coupling)
-        gridded_basin = imod.prepare.rasterize(
-            basin_definition,
-            like=dis["idomain"].isel(layer=0, drop=True),
-            column="node_id",
-        )
-
-        # Collect which Ribasim basins are coupled, so that we can set their
-        # drainage and infiltration to NoData later on.
-        tables_dict = self._empty_coupling_dict()
-        coupled_basin_indices = []
-        for destination, keys in packages.items():
-            for key in keys:
-                package = gwf_model[key]
-                # Derive exchange tables
-                if "active" in destination:
-                    table = derive_active_coupling(
-                        gridded_basin=gridded_basin,
-                        basin_ids=basin_ids,
-                        conductance=package["conductance"],
-                        subgrid_df=subgrid_df,
-                    )
-                else:
-                    table = derive_passive_coupling(
-                        gridded_basin=gridded_basin,
-                        basin_ids=basin_ids,
-                        conductance=package["conductance"],
-                    )
-
-                if table.empty:
-                    raise ValueError(
-                        f"No coupling can be derived for MODFLOW 6 package: {key}. "
-                        "No spatial overlap exists between the basin_definition and this package."
-                    )
-
-                tables_dict[destination][key] = table
-                coupled_basin_indices.append(table["basin_index"])
-
-        coupled_basin_indices = np.unique(np.concatenate(coupled_basin_indices))
-        coupled_basin_node_ids = basin_ids[coupled_basin_indices]
-        return tables_dict, coupled_basin_node_ids
-
     def write_exchanges(
         self,
         directory: str | Path,
     ) -> tuple[dict[str, dict[str, str]], NDArray[Int]]:
+        """
+        Write exchanges and return their filenames for the coupler
+        configuration file.
+
+        Also return the coupled basins for Ribasim: for these basins, the
+        drainage and infiltration has to nullified.
+        """
         # Assume only one groundwater flow model
         # FUTURE: Support multiple groundwater flow models.
-        gwf_names = self._get_gwf_modelnames()
         gwf_model = self.mf6_simulation[gwf_names[0]]
 
         exchange_dir = Path(directory) / "exchanges"
         exchange_dir.mkdir(exist_ok=True, parents=True)
 
         coupled_node_indices = []
-        list_of_tables_dicts = []
+        list_of_mapping_dicts = []
         mf6_models = []
         for coupling in self.coupling_list:
             mf6_models.append(coupling.mf6_model)
-            tables_dict, basin_node_indices = self._process_driver_coupling(
+            mapping_dict, basin_node_indices = coupling.process(self)
+                ribasim_model=self.ribasim_model,
                 gwf_model=gwf_model,
-                coupling=coupling,
             )
             coupled_node_indices.append(basin_node_indices)
-            list_of_tables_dicts.append(tables_dict)
+            list_of_mapping_dicts.append(mapping_dict)
 
         # FUTURE: if we support multiple MF6 models, group them by name before
         # merging, and return a list of coupling_dicts.
-        merged_coupling_dict = self._empty_coupling_dict()
+        merged_coupling_dict = self.coupling_list[0]._empty_coupling_dict()
         merged_coupling_dict["mf6_model"] = mf6_models[0]
-        for coupling_dict in list_of_tables_dicts:
-            for destination, tables in coupling_dict.items():
-                for key, table in tables.items():
-                    # Write exchange table to TSV file.
-                    table.to_csv(exchange_dir / f"{key}.tsv", sep="\t", index=False)
-                    # Store path to TSV file for config.
-                    merged_coupling_dict[destination][key] = f"exchanges/{key}.tsv"
+        for mapping_dict in list_of_mapping_dicts:
+            for destination, mappings in mapping_dict.items():
+                for mapping in mappings:
+                    filename = mapping.write(directory)
+                    merged_coupling_dict[destination][mapping.name] = filename
 
         coupled_basin_node_ids = np.unique(np.concatenate(coupled_node_indices))
         return merged_coupling_dict, coupled_basin_node_ids
