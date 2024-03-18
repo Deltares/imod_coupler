@@ -7,11 +7,11 @@ from primod.ribamod import DriverCoupling, RibaMod
 def create_basin_definition(
     ribasim_model: ribasim.Model, buffersize: float
 ) -> gpd.GeoDataFrame:
-    node = ribasim_model.network.node.df
-    basin_geometry = node.loc[node["node_type"].str.contains("Basin")].geometry
+    basin_geometry = ribasim_model.basin.node.df["geometry"]
+    basin_ids = ribasim_model.basin.node.df["node_id"]
     # Call to_numpy() to get rid of the index
     basin_definition = gpd.GeoDataFrame(
-        data={"node_id": basin_geometry.index.to_numpy()},
+        data={"node_id": basin_ids.to_numpy()},
         geometry=basin_geometry.buffer(buffersize).to_numpy(),
     )
     return basin_definition

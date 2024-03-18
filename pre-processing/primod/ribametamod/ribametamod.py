@@ -10,7 +10,13 @@ import pandas as pd
 import ribasim
 import tomli_w
 import xarray as xr
-from imod.mf6 import Drainage, GroundwaterFlowModel, Modflow6Simulation, River
+from imod.mf6 import (
+    ApiPackage,
+    Drainage,
+    GroundwaterFlowModel,
+    Modflow6Simulation,
+    River,
+)
 from imod.msw import GridData, MetaSwapModel, Sprinkling
 
 from primod.mapping.node_svat_mapping import NodeSvatMapping
@@ -177,8 +183,20 @@ class RibaMetaMod:
         if modflow6_write_kwargs is None:
             modflow6_write_kwargs = {}
 
+        gwf_names = self._get_gwf_modelnames()
+        gwf_model = self.mf6_simulation[gwf_names[0]]
+        packages = asdict(self.coupling_list[0])
+        maxbndsize: int
+        for destination in packages["mf6_active_river_packages"]:
+            maxbndsize = gwf_model[destination]._max_active_n()
+            gwf_model["api_" + destination] = ApiPackage(
+                maxbound=maxbndsize,
+                save_flows=True,
+            )
+
         # force to Path
         directory = Path(directory)
+
         self.mf6_simulation.write(
             directory / self._modflow6_model_dir,
             **modflow6_write_kwargs,
@@ -283,7 +301,7 @@ class RibaMetaMod:
         gwf_model: GroundwaterFlowModel,
         active_keys: list[str],
         passive_keys: list[str],
-        expected_type: River | Drainage,
+        expected_type: River | Drainage | ApiPackage,
     ) -> None:
         active_keys_set = set(active_keys)
         passive_keys_set = set(passive_keys)
@@ -370,22 +388,22 @@ class RibaMetaMod:
         # FUTURE: Support multiple groundwater flow models.
         coupling_dict["mf6_model"] = gwf_names[0]
 
-        coupling_dict[
-            "mf6_msw_node_map"
-        ] = f"./{directory.name}/{NodeSvatMapping._file_name}"
+        coupling_dict["mf6_msw_node_map"] = (
+            f"./{directory.name}/{NodeSvatMapping._file_name}"
+        )
 
         coupling_dict["mf6_msw_recharge_pkg"] = mf6_rch_pkgkey
-        coupling_dict[
-            "mf6_msw_recharge_map"
-        ] = f"./{directory.name}/{RechargeSvatMapping._file_name}"
+        coupling_dict["mf6_msw_recharge_map"] = (
+            f"./{directory.name}/{RechargeSvatMapping._file_name}"
+        )
 
         coupling_dict["enable_sprinkling"] = self.is_sprinkling
 
         if self.is_sprinkling:
             coupling_dict["mf6_msw_well_pkg"] = mf6_wel_pkgkey
-            coupling_dict[
-                "mf6_msw_sprinkling_map"
-            ] = f"./{directory.name}/{WellSvatMapping._file_name}"
+            coupling_dict["mf6_msw_sprinkling_map"] = (
+                f"./{directory.name}/{WellSvatMapping._file_name}"
+            )
 
         return coupling_dict
 
@@ -496,6 +514,6 @@ class RibaMetaMod:
             table_sw_sprinkling.to_csv(
                 directory / "msw_sw_sprinkling.tsv", sep="\t", index=False
             )
-            coupling_dict[
-                "rib_msw_sprinkling_map_surface_water"
-            ] = "exchanges/msw_sw_sprinkling.tsv"
+            coupling_dict["rib_msw_sprinkling_map_surface_water"] = (
+                "exchanges/msw_sw_sprinkling.tsv"
+            )
