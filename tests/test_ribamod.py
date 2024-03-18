@@ -150,7 +150,7 @@ def test_ribamod_backwater(
     # Get the last flow between the edges
     final_flow = results.flow_df[results.flow_df["time"] == "2020-12-31"]
     # Check's what lost and gained in the basins
-    basin_ids = ribamod_model.ribasim_model.basin.nodes.df["node_id"]
+    basin_ids = ribamod_model.ribasim_model.basin.node.df["node_id"]
     ribasim_budget = (
         final_flow.loc[
             final_flow["from_node_id"].isin(basin_ids)
