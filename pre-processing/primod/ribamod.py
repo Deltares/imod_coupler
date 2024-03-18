@@ -37,7 +37,7 @@ class RibaMod:
         mf6_simulation: Modflow6Simulation,
         coupling_list: list[RibaModDriverCoupling],
     ):
-        self.validate_time_window(
+        self._validate_time_window(
             ribasim_model=ribasim_model,
             mf6_simulation=mf6_simulation,
         )
@@ -172,59 +172,13 @@ class RibaMod:
                 f"present in the model: {missing}"
             )
 
-    @staticmethod
-    def validate_time_window(
-        ribasim_model: ribasim.Model,
-        mf6_simulation: Modflow6Simulation,
-    ) -> None:
-        def to_timestamp(xr_time: xr.DataArray) -> pd.Timestamp:
-            return pd.Timestamp(xr_time.to_numpy().item())
-
-        mf6_timedis = mf6_simulation["time_discretization"].dataset
-        mf6_start = to_timestamp(mf6_timedis["time"].isel(time=0)).to_pydatetime()
-        time_delta = pd.to_timedelta(
-            mf6_timedis["timestep_duration"].isel(time=-1).item(), unit="days"
-        )
-        mf6_end = (
-            to_timestamp(mf6_timedis["time"].isel(time=-1)) + time_delta
-        ).to_pydatetime()
-
-        ribasim_start = ribasim_model.starttime
-        ribasim_end = ribasim_model.endtime
-        if ribasim_start != mf6_start or ribasim_end != mf6_end:
-            raise ValueError(
-                "Ribasim simulation time window does not match MODFLOW6.\n"
-                f"Ribasim: {ribasim_start} to {ribasim_end}\n"
-                f"MODFLOW6: {mf6_start} to {mf6_end}\n"
-            )
-        return
-
-    def _nullify_ribasim_exchange_input(
-        self, coupled_basin_node_ids: NDArray[Int]
-    ) -> None:
-        """
-        Set the input forcing to NoData for drainage and infiltration.
-
-        Ribasim will otherwise overwrite the values set by the coupler.
-        """
-
-        # FUTURE: in coupling to MetaSWAP, the runoff should be set nodata as well.
-        def _nullify(df: pd.DataFrame) -> None:
-            """Set drainage and infiltration columns to nodata if present in df"""
-            if df is not None:
-                columns_present = list(
-                    {"drainage", "infiltration"}.intersection(df.columns)
-                )
-                if len(columns_present) > 0:
-                    df.loc[
-                        df["node_id"].isin(coupled_basin_node_ids), columns_present
-                    ] = np.nan
-            return
-
-        basin = self.ribasim_model.basin
-        _nullify(basin.static.df)
-        _nullify(basin.time.df)
-        return
+    def _merge_coupling_dicts(dicts: list[dict[str, Any]]) -> dict[str, Any]:
+        coupling_dict = {key: {} for key in dicts[0].keys()}
+        for dict in dicts:
+            for destination, destination_dict in dict.items():
+                for key, filename in destination_dict.items():
+                    coupling_dict[destination][key] = filename
+        return coupling_dict
 
     def write_exchanges(
         self,
@@ -237,34 +191,26 @@ class RibaMod:
         Also return the coupled basins for Ribasim: for these basins, the
         drainage and infiltration has to nullified.
         """
-        # Assume only one groundwater flow model
-        # FUTURE: Support multiple groundwater flow models.
-        gwf_model = self.mf6_simulation[gwf_names[0]]
-
         exchange_dir = Path(directory) / "exchanges"
         exchange_dir.mkdir(exist_ok=True, parents=True)
 
         coupled_node_indices = []
-        list_of_mapping_dicts = []
+        coupling_dicts = []
         mf6_models = []
         for coupling in self.coupling_list:
             mf6_models.append(coupling.mf6_model)
-            mapping_dict, basin_node_indices = coupling.process(self)
-                ribasim_model=self.ribasim_model,
-                gwf_model=gwf_model,
+            coupling_dict = coupling.write_exchanges(
+                directory=directory, coupled_model=self
             )
-            coupled_node_indices.append(basin_node_indices)
-            list_of_mapping_dicts.append(mapping_dict)
+            coupling_dicts.append(coupling_dict)
+
+            indices = getattr(coupling, "_coupled_basin_node_ids", None)
+            if indices is not None:
+                coupled_node_indices.append(indices)
 
         # FUTURE: if we support multiple MF6 models, group them by name before
         # merging, and return a list of coupling_dicts.
-        merged_coupling_dict = self.coupling_list[0]._empty_coupling_dict()
+        merged_coupling_dict = self._merge_coupling_dicts(coupling_dicts)
         merged_coupling_dict["mf6_model"] = mf6_models[0]
-        for mapping_dict in list_of_mapping_dicts:
-            for destination, mappings in mapping_dict.items():
-                for mapping in mappings:
-                    filename = mapping.write(directory)
-                    merged_coupling_dict[destination][mapping.name] = filename
-
         coupled_basin_node_ids = np.unique(np.concatenate(coupled_node_indices))
         return merged_coupling_dict, coupled_basin_node_ids

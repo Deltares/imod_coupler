@@ -233,51 +233,8 @@ class MetaMod:
             Key of Modflow 6 well package to which MetaSWAP sprinkling is
             coupled.
         """
-        gwf_names = self._get_gwf_modelnames()
-
-        # Assume only one groundwater flow model
-        # FUTURE: Support multiple groundwater flow models.
-        gwf_name = gwf_names[0]
-        gwf_model = self.mf6_simulation[gwf_name]
         coupling = self.coupling_list[0]
-        grid_mapping, rch_mapping, well_mapping = coupling.process(
-            msw_model=self.msw_model,
-            gwf_model=gwf_model,
+        coupling_dict = coupling.write_exchanges(
+            directory=directory, coupled_model=self
         )
-
-        coupling_dict: dict[str, Any] = {}
-        coupling_dict["mf6_model"] = gwf_name
-
-        coupling_dict["mf6_msw_node_map"] = grid_mapping.write(directory)
-        coupling_dict["mf6_msw_recharge_pkg"] = coupling.recharge_package
-        coupling_dict["mf6_msw_recharge_map"] = rch_mapping.write(directory)
-        coupling_dict["enable_sprinkling"] = False
-
-        if well_mapping is not None:
-            coupling_dict["enable_sprinkling"] = True
-            coupling_dict["mf6_msw_well_pkg"] = coupling.wel_package
-            coupling_dict["mf6_msw_sprinkling_map"] = well_mapping.write(directory)
-
         return coupling_dict
-
-        grid_data_key = [
-            pkgname
-            for pkgname, pkg in self.msw_model.items()
-            if isinstance(pkg, GridData)
-        ][0]
-
-        dis = gwf_model[gwf_model._get_pkgkey("dis")]
-
-        index, svat = self.msw_model[grid_data_key].generate_index_array()
-        grid_mapping = NodeSvatMapping(svat, dis)
-        grid_mapping.write(directory, index, svat)
-
-        recharge = gwf_model[mf6_rch_pkgkey]
-
-        rch_mapping = RechargeSvatMapping(svat, recharge)
-        rch_mapping.write(directory, index, svat)
-
-        if self.is_sprinkling:
-            well = gwf_model[mf6_wel_pkgkey]
-            well_mapping = WellSvatMapping(svat, well)
-            well_mapping.write(directory, index, svat)

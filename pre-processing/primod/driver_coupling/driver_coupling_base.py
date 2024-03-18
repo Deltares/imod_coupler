@@ -1,4 +1,6 @@
 import abc
+from pathlib import Path
+from typing import Any
 
 
 class DriverCoupling(abc.ABC):
@@ -7,5 +9,9 @@ class DriverCoupling(abc.ABC):
     """
 
     @abc.abstractmethod
-    def derive_mapping(self, *args, **kwargs):
+    def derive_mapping(self, *args, **kwargs) -> Any:
+        pass
+
+    @abc.abstractmethod
+    def write_exchanges(self, directory: Path, coupled_model: Any) -> dict[str, Any]:
         pass

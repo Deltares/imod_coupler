@@ -25,31 +25,6 @@ from primod.mapping.svat_basin_mapping import SvatBasinMapping
 from primod.mapping.wel_svat_mapping import WellSvatMapping
 
 
-@dataclass
-class DriverCoupling:
-    """A dataclass representing one coupling scenario for the RibaMetaMod driver.
-
-    Attributes
-    ----------
-    mf6_model : str
-        The model of the driver.
-    mf6_active_river_packages : list of str
-        A list of active river packages.
-    mf6_passive_river_packages : list of str
-        A list of passive river packages.
-    mf6_active_drainage_packages : list of str
-        A list of active drainage packages.
-    mf6_passive_drainage_packages : list of str
-        A list of passive drainage packages.
-    """
-
-    mf6_model: str
-    mf6_active_river_packages: list[str] = field(default_factory=list)
-    mf6_passive_river_packages: list[str] = field(default_factory=list)
-    mf6_active_drainage_packages: list[str] = field(default_factory=list)
-    mf6_passive_drainage_packages: list[str] = field(default_factory=list)
-
-
 class RibaMetaMod:
     """Couple Ribasim, MetaSWAP and MODFLOW 6.
     Parameters
@@ -74,22 +49,14 @@ class RibaMetaMod:
         ribasim_model: ribasim.Model,
         msw_model: MetaSwapModel,
         mf6_simulation: Modflow6Simulation,
-        basin_definition: gpd.GeoDataFrame,
-        coupling_list: list[DriverCoupling],
-        mf6_rch_pkgkey: str,
-        mf6_wel_pkgkey: str | None = None,
+        coupling_list: list[Any],
     ):
         self.ribasim_model = ribasim_model
         self.mf6_simulation = mf6_simulation
         self.msw_model = msw_model
         self.coupling_list = coupling_list
-        self.mf6_rch_pkgkey = mf6_rch_pkgkey
-        self.mf6_wel_pkgkey = mf6_wel_pkgkey
         self.is_sprinkling = self._check_coupler_and_sprinkling()
 
-        if "node_id" not in basin_definition.columns:
-            raise ValueError('Basin definition must contain "node_id" column')
-        self.basin_definition = basin_definition
 
     def _check_coupler_and_sprinkling(self) -> bool:
         mf6_rch_pkgkey = self.mf6_rch_pkgkey
@@ -197,6 +164,7 @@ class RibaMetaMod:
 
         # force to Path
         directory = Path(directory)
+        directory.mkdir(parents=True, exist_ok=True)
 
         self.mf6_simulation.write(
             directory / self._modflow6_model_dir,
@@ -207,10 +175,8 @@ class RibaMetaMod:
 
         # Write exchange files
         exchange_dir = directory / "exchanges"
-        exchange_dir.mkdir(mode=755, exist_ok=True)
-        coupling_dict = self._get_coupling_dict(
-            exchange_dir, self.mf6_rch_pkgkey, self.mf6_wel_pkgkey
-        )
+        exchange_dir.mkdir(parents=True, exist_ok=True)
+        coupling_dict = self.write_exchanges(directory)
         self.write_exchanges(
             exchange_dir,
             self.mf6_rch_pkgkey,
@@ -290,7 +256,7 @@ class RibaMetaMod:
                         ),
                     },
                 },
-                "coupling": [coupling_dict],
+                "coupling": coupling_dict,
             },
         }
 
