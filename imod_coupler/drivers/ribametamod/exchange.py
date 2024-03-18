@@ -134,9 +134,9 @@ class CoupledExchangeBalance(ExchangeBalance):
         """
         for key in self.mf6_active_river_api_packages.keys():
             self.mf6_active_river_api_packages[key].hcof[:] = 0.0
-            self.mf6_active_river_api_packages[key].nodelist[
-                :
-            ] = self.mf6_river_packages[key].nodelist[:]
+            self.mf6_active_river_api_packages[key].nodelist[:] = (
+                self.mf6_river_packages[key].nodelist[:]
+            )
             self.mf6_active_river_api_packages[key].nbound[:] = self.mf6_river_packages[
                 key
             ].nbound[:]

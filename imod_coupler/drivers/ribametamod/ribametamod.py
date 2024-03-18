@@ -1,8 +1,9 @@
-""" Ribamod: the coupling between MetaSWAP and MODFLOW 6
+"""Ribamod: the coupling between MetaSWAP and MODFLOW 6
 
 description:
 
 """
+
 from __future__ import annotations
 
 from collections import ChainMap
@@ -234,9 +235,9 @@ class RibaMetaMod(Driver):
             mswmod_packages["msw_head"] = self.msw_head
             mswmod_packages["msw_volume"] = self.msw_volume
             mswmod_packages["msw_storage"] = self.msw_storage
-            mswmod_packages[
-                "mf6_recharge"
-            ] = self.mf6_recharge  # waar komt mf6_recharge vandaan
+            mswmod_packages["mf6_recharge"] = (
+                self.mf6_recharge
+            )  # waar komt mf6_recharge vandaan
             if (
                 self.coupling.enable_sprinkling_groundwater
                 and self.coupling.mf6_msw_well_pkg is not None

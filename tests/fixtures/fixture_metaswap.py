@@ -219,9 +219,9 @@ def prepared_msw_model(
 ) -> msw.MetaSwapModel:
     msw_model = make_msw_model(active_idomain)
     # Override unsat_svat_path with path from environment
-    msw_model.simulation_settings[
-        "unsa_svat_path"
-    ] = msw_model._render_unsaturated_database_path(metaswap_lookup_table)
+    msw_model.simulation_settings["unsa_svat_path"] = (
+        msw_model._render_unsaturated_database_path(metaswap_lookup_table)
+    )
 
     return msw_model
 
@@ -233,8 +233,8 @@ def prepared_msw_model_inactive(
 ) -> msw.MetaSwapModel:
     msw_model = make_msw_model(inactive_idomain)
     # Override unsat_svat_path with path from environment
-    msw_model.simulation_settings[
-        "unsa_svat_path"
-    ] = msw_model._render_unsaturated_database_path(metaswap_lookup_table)
+    msw_model.simulation_settings["unsa_svat_path"] = (
+        msw_model._render_unsaturated_database_path(metaswap_lookup_table)
+    )
 
     return msw_model
