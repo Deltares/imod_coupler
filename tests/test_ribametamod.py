@@ -13,6 +13,7 @@ from imod_coupler.drivers.ribametamod.exchange import ExchangeBalance
 msw_outputlabel_ponding: str = "        Pssw(m3)"
 msw_outputlabel_swsprinkling: str = "   ts2dfmput(m3)"
 
+
 @pytest.mark.xfail(reason="MetaSWAP issues")
 @pytest.mark.xdist_group(name="ribasim")
 @parametrize_with_cases("ribametamod_model", glob="backwater_model")
@@ -48,6 +49,7 @@ def test_ribametamod_backwater(
         tot_svat_reference[msw_outputlabel_ponding]
     )
 
+
 @pytest.mark.xfail(reason="MetaSWAP issues")
 @pytest.mark.xdist_group(name="ribasim")
 @parametrize_with_cases("ribametamod_model", glob="bucket_model")
@@ -82,6 +84,7 @@ def test_ribametamod_bucket(
     assert tot_svat_test[msw_outputlabel_ponding].equals(
         tot_svat_reference[msw_outputlabel_ponding]
     )
+
 
 @pytest.mark.xfail(reason="MetaSWAP issues")
 @pytest.mark.xdist_group(name="ribasim")
