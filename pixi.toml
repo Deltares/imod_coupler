@@ -11,7 +11,7 @@ install-ribasim-api = "pip install git+https://github.com/Deltares/Ribasim.git/#
 install-imodc = "pip install --no-deps --editable ."
 install-minimal = { depends_on = ["install-ribasim-api", "install-imodc"] }
 # Build
-build-imod-coupler = "rm -rf dist && pyinstaller coupler/imod_coupler/__main__.py --name imodc"
+build-imod-coupler = "rm -rf dist && pyinstaller imod_coupler/__main__.py --name imodc"
 
 [dependencies]
 h5netcdf = "*"
@@ -19,6 +19,7 @@ loguru = "*"
 numpy = "*"
 pip = "*"
 pydantic = "2.*"
+pyinstaller = "*"
 python = ">=3.10"
 scipy = "*"
 tomli-w = "*"
