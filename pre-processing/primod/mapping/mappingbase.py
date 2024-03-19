@@ -10,6 +10,25 @@ from numpy.typing import NDArray
 
 
 class GenericMapping(abc.ABC):
+    name: str
+    dataframe: pd.DataFrame
+
+    def write(self, directory: Path) -> str:
+        """
+        Write mapping to .tsv  file
+
+        Parameters
+        ----------
+        directory: str or Path
+            directory in which exchange file should be written
+
+        """
+        filename = f"{self.name}.tsv"
+        self.dataframe.to_csv(directory / filename, sep="\t", index=False)
+        return filename
+
+
+class MetaModMapping(abc.ABC):
     """
     MappingBase is used to share methods for specific packages with no time
     component for multiple two-component mappings.
@@ -18,7 +37,7 @@ class GenericMapping(abc.ABC):
     packages.
     """
 
-    __slots__ = "_pkg_id", "dataset"
+    __slots__ = "_pkg_id", "dataset", "index"
     _metadata_dict: dict[str, VariableMetaData]
     _with_subunit: tuple[str, str, str]
     _to_fill: tuple[str]
@@ -88,9 +107,7 @@ class GenericMapping(abc.ABC):
         self._check_range(dataframe)
         self.write_dataframe_fixed_width(file, dataframe)
 
-    def write(
-        self, directory: str | Path, index: NDArray[Any], svat: xr.DataArray
-    ) -> None:
+    def write(self, directory: str | Path) -> None:
         """
         Write mapping to .dxc file.
 
@@ -106,24 +123,4 @@ class GenericMapping(abc.ABC):
 
         filename = directory / self._file_name
         with open(filename, "w") as f:
-            self._render(f, index, svat)
-
-
-class MetaModMapping(GenericMapping):
-    """
-    MetaModMapping is used to share methods for specific packages with no time
-    component.
-
-    It is not meant to be used directly, only to inherit from, to implement new
-    packages.
-    """
-
-
-class RibaMetaMapping(GenericMapping):
-    """
-    MetaRibaMapping is used to share methods for specific packages with no time
-    component.
-
-    It is not meant to be used directly, only to inherit from, to implement new
-    packages.
-    """
+            self._render(f, index=self.index, svat=self.dataset["svat"])

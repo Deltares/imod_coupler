@@ -1,20 +1,15 @@
 from pathlib import Path
 from typing import Any
 
-import numpy as np
 import ribasim
 import tomli_w
 from imod.mf6 import Modflow6Simulation
-from numpy.typing import NDArray
 
 from primod.coupledmodel import CoupledModel
 from primod.driver_coupling.ribamod import RibaModDriverCoupling
 from primod.driver_coupling.util import (
-    _merge_coupling_dicts,
-    _nullify_ribasim_exchange_input,
     _validate_time_window,
 )
-from primod.typing import Int
 
 
 class RibaMod(CoupledModel):

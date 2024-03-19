@@ -2,7 +2,9 @@ import numpy as np
 import xarray as xr
 from imod import mf6
 from imod.msw.fixed_format import VariableMetaData
+from numpy.typing import NDArray
 from primod.mapping.mappingbase import MetaModMapping
+from primod.typing import Int
 
 
 class NodeSvatMapping(MetaModMapping):
@@ -36,8 +38,10 @@ class NodeSvatMapping(MetaModMapping):
         self,
         svat: xr.DataArray,
         modflow_dis: mf6.StructuredDiscretization,
+        index: NDArray[Int],
     ):
         super().__init__()
+        self.index = index
         self.dataset["svat"] = svat
         self.dataset["layer"] = xr.full_like(svat, 1)
         idomain_top_layer = modflow_dis["idomain"].sel(layer=1, drop=True)

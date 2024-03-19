@@ -1,5 +1,3 @@
-from pathlib import Path
-
 import geopandas as gpd
 import numpy as np
 import pandas as pd
@@ -27,20 +25,6 @@ class NodeBasinMapping(GenericMapping):
         self.dataset = pd.DataFrame(
             data={"basin_index": basin_index, "bound_index": boundary_index}
         )
-
-    def write(self, directory: str | Path) -> str:
-        """
-        Write mapping to .tsv  file
-
-        Parameters
-        ----------
-        directory: str or Path
-            directory in which exchange file should be written
-
-        """
-        filename = f"{self.name}.tsv"
-        self.dataset.to_csv(directory / filename, sep="\t")
-        return filename
 
     @staticmethod
     def _ensure_time_invariant_conductance(conductance: xr.DataArray) -> xr.DataArray:

@@ -8,6 +8,7 @@ from imod import mf6
 from imod.msw.fixed_format import VariableMetaData
 from numpy.typing import NDArray
 from primod.mapping.mappingbase import MetaModMapping
+from primod.typing import Int
 
 
 class WellSvatMapping(MetaModMapping):
@@ -36,8 +37,11 @@ class WellSvatMapping(MetaModMapping):
     _with_subunit = ("wel_id", "svat", "layer")
     _to_fill = ("free",)
 
-    def __init__(self, svat: xr.DataArray, well: mf6.WellDisStructured):
+    def __init__(
+        self, svat: xr.DataArray, well: mf6.WellDisStructured, index: NDArray[Int]
+    ):
         super().__init__()
+        self.index = index
         self.well = well
         well_mod_id, well_svat, layer = self._create_well_id(svat)
         self.dataset["wel_id"] = well_mod_id

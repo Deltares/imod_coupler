@@ -28,7 +28,7 @@ class MetaModDriverCoupling(DriverCoupling):
     recharge_package: str
     wel_package: str | None = None
 
-    def _check_keys(
+    def _check_sprinkling(
         self, msw_model: MetaSwapModel, gwf_model: GroundwaterFlowModel
     ) -> bool:
         sprinkling_key = msw_model._get_pkg_key(Sprinkling, optional_package=True)
@@ -68,13 +68,13 @@ class MetaModDriverCoupling(DriverCoupling):
         dis = gwf_model[gwf_model._get_pkgkey("dis")]
 
         index, svat = msw_model[grid_data_key].generate_index_array()
-        grid_mapping = NodeSvatMapping(svat, dis)
+        grid_mapping = NodeSvatMapping(svat=svat, modflow_dis=dis, index=index)
 
         recharge = gwf_model[self.recharge_package]
 
         rch_mapping = RechargeSvatMapping(svat, recharge)
 
-        if self._check_sprinking(msw_model=msw_model, gwf_model=gwf_model):
+        if self._check_sprinkling(msw_model=msw_model, gwf_model=gwf_model):
             well = gwf_model[self.wel_package]
             well_mapping = WellSvatMapping(svat, well)
             return grid_mapping, rch_mapping, well_mapping

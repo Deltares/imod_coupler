@@ -4,6 +4,7 @@ from imod import mf6
 from imod.msw.fixed_format import VariableMetaData
 from numpy.typing import NDArray
 from primod.mapping.mappingbase import MetaModMapping
+from primod.typing import Int
 
 
 class RechargeSvatMapping(MetaModMapping):
@@ -35,8 +36,9 @@ class RechargeSvatMapping(MetaModMapping):
     _with_subunit = ("rch_id", "svat", "layer")
     _to_fill = ("free",)
 
-    def __init__(self, svat: xr.DataArray, recharge: mf6.Recharge):
+    def __init__(self, svat: xr.DataArray, recharge: mf6.Recharge, index: NDArray[Int]):
         super().__init__()
+        self.index = index
         self.dataset["svat"] = svat
         self.dataset["layer"] = xr.full_like(svat, 1)
         rate = recharge.dataset["rate"]

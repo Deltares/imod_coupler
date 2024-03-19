@@ -1,7 +1,6 @@
 from pathlib import Path
 from typing import Any
 
-import geopandas as gpd
 import tomli_w
 from imod.mf6 import Modflow6Simulation
 from imod.msw import MetaSwapModel

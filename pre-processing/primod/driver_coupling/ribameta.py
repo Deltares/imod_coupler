@@ -55,7 +55,7 @@ class RibaMetaDriverCoupling(DriverCoupling):
             pkgname for pkgname, pkg in msw_model.items() if isinstance(pkg, GridData)
         ][0]
 
-        index, svat = msw_model[grid_data_key].generate_index_array()
+        _, svat = msw_model[grid_data_key].generate_index_array()
         basin_ids = _validate_node_ids(
             ribasim_model.basin.node.df, self.basin_definition
         )
