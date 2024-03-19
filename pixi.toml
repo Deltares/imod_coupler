@@ -34,7 +34,9 @@ update-git-dependencies = """pip install --upgrade --force-reinstall --no-deps
                              git+https://github.com/Deltares/Ribasim.git/#subdirectory=python/ribasim_api
                              git+https://github.com/Deltares/Ribasim.git/#subdirectory=python/ribasim_testmodels"""
 # Tests
-tests = "pytest --numprocesses=auto --dist=loadgroup --basetemp=tests/temp --junitxml=report.xml"
+test-primod = "pytest tests/test_primod"
+test-imod-coupler = "pytest --numprocesses=auto --dist=loadgroup --basetemp=tests/temp --junitxml=report.xml tests/test_imod_coupler"
+tests = { depends_on = ["test-primod", "test-imod-coupler"] }
 # Lint
 mypy-imodc = "mypy --ignore-missing-imports --strict imod_coupler"
 mypy-primod = "mypy --ignore-missing-imports pre-processing/primod"
@@ -63,7 +65,7 @@ pytest = "<8"
 pytest-cases = "*"
 pytest-dotenv = "*"
 pytest-xdist = "*"
-python = "3.10"
+python = ">=3.10"
 rasterio = ">=1.0"
 ruff = "*"
 scipy = "*"
@@ -71,3 +73,17 @@ tomli-w = "*"
 tqdm = "*"
 twine = "*"
 xmipy = "*"
+
+[feature.py312.dependencies]
+python = "3.12.*"
+
+[feature.py311.dependencies]
+python = "3.11.*"
+
+[feature.py310.dependencies]
+python = "3.10.*"
+
+[environments]
+py312 = ["py312"]
+py311 = ["py311"]
+py310 = ["py310"]

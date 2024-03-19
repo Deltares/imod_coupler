@@ -91,30 +91,23 @@ def ribasim_dll_regression() -> Path:
 
 
 @pytest.fixture(scope="function")
-def modstrip_loc(request: FixtureRequest) -> Path:
-    """
-    Return the directory of the modstrip data
-
-    Based on: https://stackoverflow.com/a/44935451
-
-    """
-
-    return request.path.parent / "data" / "modstrip"
+def modstrip_loc() -> Path:
+    return Path(__file__).parent.parent.absolute() / "data" / "modstrip"
 
 
 @pytest.fixture(scope="function")
-def test_data_folder(request: FixtureRequest) -> Path:
-    return request.path.parent / "data"
+def test_data_folder() -> Path:
+    return Path(__file__).parent.parent.absolute() / "data"
 
 
 @pytest.fixture(scope="function")
-def reference_result_folder(request: FixtureRequest) -> Path:
-    return request.path.parent / "reference_output"
+def reference_result_folder() -> Path:
+    return Path(__file__).parent.parent.absolute() / "reference_output"
 
 
 @pytest.fixture(scope="function")
-def bucket_ribametamod_loc(request: FixtureRequest) -> Path:
-    return request.path.parent / "data" / "bucket_model"
+def bucket_ribametamod_loc() -> Path:
+    return Path(__file__).parent.parent.absolute() / "data" / "bucket_model"
 
 
 @pytest.fixture(scope="function")
