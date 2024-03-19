@@ -14,6 +14,7 @@ msw_outputlabel_ponding: str = "        Pssw(m3)"
 msw_outputlabel_swsprinkling: str = "   ts2dfmput(m3)"
 
 
+@pytest.mark.xfail(reason="MetaSWAP issues")
 @pytest.mark.xdist_group(name="ribasim")
 @parametrize_with_cases("ribametamod_model", glob="backwater_model")
 def test_ribametamod_backwater(
@@ -49,6 +50,7 @@ def test_ribametamod_backwater(
     )
 
 
+@pytest.mark.xfail(reason="MetaSWAP issues")
 @pytest.mark.xdist_group(name="ribasim")
 @parametrize_with_cases("ribametamod_model", glob="bucket_model")
 def test_ribametamod_bucket(
@@ -84,6 +86,7 @@ def test_ribametamod_bucket(
     )
 
 
+@pytest.mark.xfail(reason="MetaSWAP issues")
 @pytest.mark.xdist_group(name="ribasim")
 @parametrize_with_cases("ribametamod_model", glob="two_basin_model")
 def test_ribametamod_two_basin(
