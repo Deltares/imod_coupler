@@ -1,8 +1,7 @@
-from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from imod.mf6 import GroundwaterFlowModel, Modflow6Simulation
+from imod.mf6 import GroundwaterFlowModel
 from imod.msw import GridData, MetaSwapModel, Sprinkling
 
 from primod.driver_coupling.driver_coupling_base import DriverCoupling
@@ -12,7 +11,6 @@ from primod.mapping.rch_svat_mapping import RechargeSvatMapping
 from primod.mapping.wel_svat_mapping import WellSvatMapping
 
 
-@dataclass
 class MetaModDriverCoupling(DriverCoupling):
     """
     Attributes

@@ -1,5 +1,4 @@
 import copy
-from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
@@ -17,7 +16,6 @@ from primod.driver_coupling.util import (
 from primod.mapping.svat_basin_mapping import SvatBasinMapping
 
 
-@dataclass
 class RibaMetaDriverCoupling(DriverCoupling):
     """A dataclass representing one coupling scenario for the RibaMod driver.
 

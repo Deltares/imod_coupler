@@ -1,5 +1,4 @@
 import abc
-from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
@@ -19,7 +18,6 @@ from primod.driver_coupling.util import (
 from primod.mapping.node_basin_mapping import ActiveNodeBasinMapping, NodeBasinMapping
 
 
-@dataclass
 class RibaModDriverCoupling(DriverCoupling, abc.ABC):
     """A dataclass representing one coupling scenario for the RibaMod driver.
 
@@ -131,14 +129,13 @@ class RibaModDriverCoupling(DriverCoupling, abc.ABC):
         return coupling_dict
 
 
-@dataclass
 class RibaModActiveDriverCoupling(RibaModDriverCoupling):
     @property
     def _prefix(self) -> str:
         return "active"
 
     def _validate_subgrid_df(self, ribasim_model: ribasim.Model) -> pd.DataFrame | None:
-        if self.river_packages or self.drainage_packages:
+        if self.mf6_packages:
             if ribasim_model.basin.subgrid.df is None:
                 raise ValueError(
                     "ribasim.model.basin.subgrid must be defined for actively coupled packages."
@@ -165,7 +162,6 @@ class RibaModActiveDriverCoupling(RibaModDriverCoupling):
         )
 
 
-@dataclass
 class RibaModPassiveDriverCoupling(RibaModDriverCoupling):
     @property
     def _prefix(self) -> str:
