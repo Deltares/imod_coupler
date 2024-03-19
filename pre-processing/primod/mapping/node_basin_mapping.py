@@ -3,9 +3,10 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 from numpy.typing import NDArray
+from scipy.spatial import KDTree
+
 from primod.mapping.mappingbase import GenericMapping
 from primod.typing import Bool, Float, Int
-from scipy.spatial import KDTree
 
 
 class NodeBasinMapping(GenericMapping):
@@ -22,7 +23,7 @@ class NodeBasinMapping(GenericMapping):
         )
         boundary_index = self._derive_boundary_index(conductance, include)
         self.name = name
-        self.dataset = pd.DataFrame(
+        self.dataframe = pd.DataFrame(
             data={"basin_index": basin_index, "bound_index": boundary_index}
         )
 
@@ -127,7 +128,7 @@ class ActiveNodeBasinMapping(NodeBasinMapping):
         conductance_xy = self._get_conductance_xy(conductance, include)
         subgrid_index = self._find_nearest_subgrid_elements(subgrid_xy, conductance_xy)
         self.name = name
-        self.dataset = pd.DataFrame(
+        self.dataframe = pd.DataFrame(
             data={
                 "basin_index": basin_index,
                 "bound_index": boundary_index,

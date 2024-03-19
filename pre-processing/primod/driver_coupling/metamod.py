@@ -72,17 +72,17 @@ class MetaModDriverCoupling(DriverCoupling):
 
         recharge = gwf_model[self.recharge_package]
 
-        rch_mapping = RechargeSvatMapping(svat, recharge)
+        rch_mapping = RechargeSvatMapping(svat, recharge, index=index)
 
         if self._check_sprinkling(msw_model=msw_model, gwf_model=gwf_model):
             well = gwf_model[self.wel_package]
-            well_mapping = WellSvatMapping(svat, well)
+            well_mapping = WellSvatMapping(svat, well, index=index)
             return grid_mapping, rch_mapping, well_mapping
         else:
             return grid_mapping, rch_mapping, None
 
     def write_exchanges(self, directory: Path, coupled_model: Any) -> dict[str, Any]:
-        mf6_simulation = coupled_model
+        mf6_simulation = coupled_model.mf6_simulation
         gwf_names = _get_gwf_modelnames(mf6_simulation)
         gwf_name = gwf_names[0]
         gwf_model = mf6_simulation[gwf_name]

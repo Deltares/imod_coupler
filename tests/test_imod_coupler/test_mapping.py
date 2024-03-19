@@ -54,7 +54,7 @@ def test_recharge_mapping(
 def test_recharge_mapping_fail(
     recharge: mf6.Recharge, prepared_msw_model: msw.MetaSwapModel
 ):
-    _, svat = prepared_msw_model["grid"].generate_index_array()
+    index, svat = prepared_msw_model["grid"].generate_index_array()
 
     with pytest.raises(ValueError):
-        RechargeSvatMapping(svat, recharge)
+        RechargeSvatMapping(svat, recharge, index=index)

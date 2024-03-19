@@ -107,7 +107,7 @@ class MetaModMapping(abc.ABC):
         self._check_range(dataframe)
         self.write_dataframe_fixed_width(file, dataframe)
 
-    def write(self, directory: str | Path) -> None:
+    def write(self, directory: str | Path) -> str:
         """
         Write mapping to .dxc file.
 
@@ -121,6 +121,6 @@ class MetaModMapping(abc.ABC):
         # Force to Path
         directory = Path(directory)
 
-        filename = directory / self._file_name
-        with open(filename, "w") as f:
+        with open(directory / self._file_name, "w") as f:
             self._render(f, index=self.index, svat=self.dataset["svat"])
+        return f"./{directory.name}/{self._file_name}"

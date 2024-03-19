@@ -11,8 +11,7 @@ class DriverCoupling(BaseModel, abc.ABC):
     """
 
     # Config required for e.g. geodataframes
-    class Config:
-        arbitrary_types_allowed = True
+    model_config = {"arbitrary_types_allowed": True}
 
     @abc.abstractmethod
     def derive_mapping(self, *args: Any, **kwargs: Any) -> Any:

@@ -44,11 +44,11 @@ def test_simple_model(fixed_format_parser):
         idomain=xr.full_like(like, 1, dtype=int),
     )
 
-    grid_data = mapping.node_svat_mapping.NodeSvatMapping(svat, dis)
+    grid_data = mapping.node_svat_mapping.NodeSvatMapping(svat, dis, index=index)
 
     with tempfile.TemporaryDirectory() as output_dir:
         output_dir = Path(output_dir)
-        grid_data.write(output_dir, index, svat)
+        grid_data.write(output_dir)
 
         results = fixed_format_parser(
             output_dir / mapping.node_svat_mapping.NodeSvatMapping._file_name,
@@ -91,11 +91,11 @@ def test_simple_model_1_subunit(fixed_format_parser):
         idomain=xr.full_like(like, 1, dtype=int),
     )
 
-    grid_data = mapping.node_svat_mapping.NodeSvatMapping(svat, dis)
+    grid_data = mapping.node_svat_mapping.NodeSvatMapping(svat, dis, index=index)
 
     with tempfile.TemporaryDirectory() as output_dir:
         output_dir = Path(output_dir)
-        grid_data.write(output_dir, index, svat)
+        grid_data.write(output_dir)
 
         results = fixed_format_parser(
             output_dir / mapping.node_svat_mapping.NodeSvatMapping._file_name,
@@ -143,6 +143,7 @@ def test_inactive_idomain_in_svat():
         bottom=xr.full_like(like, 0.0),
         idomain=idomain,
     )
+    index = (svat != 0).to_numpy().ravel()
 
     with pytest.raises(ValueError):
-        mapping.node_svat_mapping.NodeSvatMapping(svat, dis)
+        mapping.node_svat_mapping.NodeSvatMapping(svat, dis, index=index)
