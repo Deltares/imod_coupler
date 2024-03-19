@@ -75,7 +75,7 @@ class WellSvatMapping(MetaModMapping):
 
         return (well_id_1d, well_svat_1d, layer_1d)
 
-    def _render(self, file: TextIOWrapper, *args: Any) -> None:
+    def _render(self, file: TextIOWrapper, *args: Any, **kwargs: Any) -> None:
         data_dict: dict[str, Any] = {}
         data_dict["svat"] = self.dataset["svat"].to_numpy()
         data_dict["layer"] = self.dataset["layer"].to_numpy()
