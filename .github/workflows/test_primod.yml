@@ -33,3 +33,5 @@ jobs:
         run: pixi run --environment ${{ matrix.pixi-environment }} install
       - name: Test Ribasim Python
         run: pixi run --environment ${{ matrix.pixi-environment }} test-primod
+        env: 
+          METASWAP_LOOKUP_TABLE: dummy/path/to/lookup_table
