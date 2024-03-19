@@ -110,7 +110,10 @@ class RibaMetaMod(Driver):
         else:
             self.has_ribasim = False
 
-        if self.ribametamod_config.kernels.metaswap is not None:
+        if (
+            self.ribametamod_config.kernels.metaswap is not None
+            and self.coupling.mf6_msw_node_map is not None
+        ):
             self.msw = MswWrapper(
                 lib_path=self.ribametamod_config.kernels.metaswap.dll,
                 lib_dependency=self.ribametamod_config.kernels.metaswap.dll_dep_dir,
@@ -261,13 +264,24 @@ class RibaMetaMod(Driver):
                 self.msw.get_surfacewater_ponding_allocation_ptr()
             )
 
-        self.mapping = SetMapping(
-            self.coupling,
-            ChainMap(
+        if self.has_metaswap and self.has_ribasim:
+            packages = ChainMap(
                 ribmod_packages,
                 mswmod_packages,
                 ribmsw_packages,
-            ),
+            )
+        elif not self.has_metaswap and self.has_ribasim:
+            packages = ChainMap(
+                ribmod_packages,
+            )
+        elif self.has_metaswap and not self.has_ribasim:
+            packages = ChainMap(
+                mswmod_packages,
+            )
+
+        self.mapping = SetMapping(
+            self.coupling,
+            packages,
             self.has_metaswap,
             self.has_ribasim,
             (
@@ -303,7 +317,6 @@ class RibaMetaMod(Driver):
 
         self.mf6.prepare_time_step(0.0)
         self.delt_gw = self.mf6.get_time_step()
-        self.subtimesteps_sw = range(1, int(self.delt_gw / self.delt_sw) + 1)
 
         if self.has_ribasim:
             # zeros exchange-arrays, Ribasim pointers and API-packages
@@ -313,6 +326,7 @@ class RibaMetaMod(Driver):
             self.exchange.add_flux_estimate_mod(self.delt_gw, self.mf6_head)
 
         if self.has_metaswap and self.has_ribasim:
+            self.subtimesteps_sw = range(1, int(self.delt_gw / self.delt_sw) + 1)
             self.msw.prepare_time_step_noSW(self.delt_sw)
             for timestep_sw in self.subtimesteps_sw:
                 self.msw.prepare_surface_water_time_step(timestep_sw)

@@ -3,7 +3,7 @@ from pathlib import Path
 import numpy as np
 import pytest_cases
 import xarray as xr
-from imod import mf6, msw
+from imod import idf, mf6, msw
 
 from .common import create_wells_max_layer
 from .fixture_metaswap import metaswap_model
@@ -25,10 +25,25 @@ def make_msw_model(
     area = xr.ones_like(idomain_flat, dtype=np.float64) * (
         np.diff(idomain.x)[0] * -np.diff(idomain.y)[0]
     )
-    area = (area.assign_coords(subunit=0).expand_dims(subunit=isubunits)) / nsubunits
-    area = area.where(area.subunit < nsubunits)
 
-    active = (xr.ones_like(idomain_flat) == 1).where(nsubunits.notnull(), other=False)
+    # no svats where river is defined
+    no_river = xr.full_like(area, fill_value=True, dtype=np.bool_)
+    for sys in gwf["GWF_1"].keys():
+        package = gwf["GWF_1"][sys]
+        if isinstance(package, mf6.River):
+            cond = package["conductance"]
+            if "layer" in cond.dims:
+                cond = cond.isel(layer=0, drop=True)
+            no_river.values = np.logical_and(
+                cond.isnull().to_numpy(), no_river.notnull().to_numpy()
+            )
+    idf.save(r"c:\werkmap\TKI_ribasim\test_driver\river.idf", no_river)
+    area = (area.assign_coords(subunit=0).expand_dims(subunit=isubunits)) / nsubunits
+    area = area.where((area.subunit < nsubunits) & no_river)
+
+    active = (xr.ones_like(idomain_flat) == 1).where(
+        nsubunits.notnull() & no_river, other=False
+    )
 
     # Clip off
     modflow_active = idomain.sel(layer=1, drop=True).astype(bool)

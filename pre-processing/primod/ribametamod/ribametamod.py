@@ -397,11 +397,11 @@ class RibaMetaMod:
             f"./{directory.name}/{RechargeSvatMapping._file_name}"
         )
 
-        coupling_dict["enable_sprinkling"] = self.is_sprinkling
+        coupling_dict["mf6_msw_sprinkling_map_groundwater"] = self.is_sprinkling
 
         if self.is_sprinkling:
             coupling_dict["mf6_msw_well_pkg"] = mf6_wel_pkgkey
-            coupling_dict["mf6_msw_sprinkling_map"] = (
+            coupling_dict["mf6_msw_sprinkling_map_groundwater"] = (
                 f"./{directory.name}/{WellSvatMapping._file_name}"
             )
 
