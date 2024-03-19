@@ -5,6 +5,7 @@ import ribasim
 import xarray as xr
 from imod.mf6 import Drainage, GroundwaterFlowModel, Modflow6Simulation, River
 from numpy.typing import NDArray
+from ribasim.config import Basin, UserDemand
 
 from primod.typing import Int
 
@@ -89,7 +90,7 @@ def _validate_keys(
 
 
 def _nullify_ribasim_exchange_input(
-    ribasim_component: ribasim.Basin | ribasim.UserDemand,
+    ribasim_component: Basin | UserDemand,
     coupled_basin_node_ids: NDArray[Int],
     columns: list[str],
 ) -> None:
