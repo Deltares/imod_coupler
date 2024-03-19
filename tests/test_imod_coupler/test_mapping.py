@@ -40,9 +40,9 @@ def test_recharge_mapping(
     """
     Test Recharge package validation
     """
-    _, svat = prepared_msw_model["grid"].generate_index_array()
+    index, svat = prepared_msw_model["grid"].generate_index_array()
 
-    rch_svat_mapping = RechargeSvatMapping(svat, recharge)
+    rch_svat_mapping = RechargeSvatMapping(svat, recharge, index=index)
 
     assert np.all(rch_svat_mapping.dataset["layer"] == 1)
     assert np.all(rch_svat_mapping.dataset["svat"] == svat)
