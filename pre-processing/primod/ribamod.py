@@ -1,20 +1,23 @@
-from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
 import numpy as np
-import pandas as pd
 import ribasim
 import tomli_w
-import xarray as xr
-from imod.mf6 import Drainage, GroundwaterFlowModel, Modflow6Simulation, River
+from imod.mf6 import Modflow6Simulation
 from numpy.typing import NDArray
 
+from primod.coupledmodel import CoupledModel
 from primod.driver_coupling.ribamod import RibaModDriverCoupling
+from primod.driver_coupling.util import (
+    _merge_coupling_dicts,
+    _nullify_ribasim_exchange_input,
+    _validate_time_window,
+)
 from primod.typing import Int
 
 
-class RibaMod:
+class RibaMod(CoupledModel):
     """Couple Ribasim and MODFLOW 6.
 
     Parameters
@@ -37,7 +40,7 @@ class RibaMod:
         mf6_simulation: Modflow6Simulation,
         coupling_list: list[RibaModDriverCoupling],
     ):
-        self._validate_time_window(
+        _validate_time_window(
             ribasim_model=ribasim_model,
             mf6_simulation=mf6_simulation,
         )
@@ -81,9 +84,7 @@ class RibaMod:
 
         # force to Path
         directory = Path(directory)
-        coupling_dict, coupled_basins = self.write_exchanges(directory)
-
-        self._nullify_ribasim_exchange_input(coupled_basins)
+        coupling_dict = self.write_exchanges(directory)
 
         self.mf6_simulation.write(
             directory / self._modflow6_model_dir,
@@ -151,66 +152,3 @@ class RibaMod:
 
         with open(toml_path, "wb") as f:
             tomli_w.dump(coupler_toml, f)
-
-    @staticmethod
-    def validate_keys(
-        gwf_model: GroundwaterFlowModel,
-        active_keys: list[str],
-        passive_keys: list[str],
-        expected_type: River | Drainage,
-    ) -> None:
-        active_keys_set = set(active_keys)
-        passive_keys_set = set(passive_keys)
-        intersection = active_keys_set.intersection(passive_keys_set)
-        if intersection:
-            raise ValueError(f"active and passive keys share members: {intersection}")
-        present = [k for k, v in gwf_model.items() if isinstance(v, expected_type)]
-        missing = (active_keys_set | passive_keys_set).difference(present)
-        if missing:
-            raise ValueError(
-                f"keys with expected type {expected_type.__name__} are not "
-                f"present in the model: {missing}"
-            )
-
-    def _merge_coupling_dicts(dicts: list[dict[str, Any]]) -> dict[str, Any]:
-        coupling_dict = {key: {} for key in dicts[0].keys()}
-        for dict in dicts:
-            for destination, destination_dict in dict.items():
-                for key, filename in destination_dict.items():
-                    coupling_dict[destination][key] = filename
-        return coupling_dict
-
-    def write_exchanges(
-        self,
-        directory: str | Path,
-    ) -> tuple[dict[str, dict[str, str]], NDArray[Int]]:
-        """
-        Write exchanges and return their filenames for the coupler
-        configuration file.
-
-        Also return the coupled basins for Ribasim: for these basins, the
-        drainage and infiltration has to nullified.
-        """
-        exchange_dir = Path(directory) / "exchanges"
-        exchange_dir.mkdir(exist_ok=True, parents=True)
-
-        coupled_node_indices = []
-        coupling_dicts = []
-        mf6_models = []
-        for coupling in self.coupling_list:
-            mf6_models.append(coupling.mf6_model)
-            coupling_dict = coupling.write_exchanges(
-                directory=directory, coupled_model=self
-            )
-            coupling_dicts.append(coupling_dict)
-
-            indices = getattr(coupling, "_coupled_basin_node_ids", None)
-            if indices is not None:
-                coupled_node_indices.append(indices)
-
-        # FUTURE: if we support multiple MF6 models, group them by name before
-        # merging, and return a list of coupling_dicts.
-        merged_coupling_dict = self._merge_coupling_dicts(coupling_dicts)
-        merged_coupling_dict["mf6_model"] = mf6_models[0]
-        coupled_basin_node_ids = np.unique(np.concatenate(coupled_node_indices))
-        return merged_coupling_dict, coupled_basin_node_ids

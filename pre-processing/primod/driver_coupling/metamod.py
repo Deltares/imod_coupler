@@ -3,9 +3,10 @@ from pathlib import Path
 from typing import Any
 
 from imod.mf6 import GroundwaterFlowModel, Modflow6Simulation
-from imod.msw import GridData
+from imod.msw import GridData, MetaSwapModel, Sprinkling
 
 from primod.driver_coupling.driver_coupling_base import DriverCoupling
+from primod.driver_coupling.util import _get_gwf_modelnames
 from primod.mapping.node_svat_mapping import NodeSvatMapping
 from primod.mapping.rch_svat_mapping import RechargeSvatMapping
 from primod.mapping.wel_svat_mapping import WellSvatMapping
@@ -29,13 +30,41 @@ class MetaModDriverCoupling(DriverCoupling):
     recharge_package: str
     wel_package: str | None = None
 
+    def _check_keys(
+        self, msw_model: MetaSwapModel, gwf_model: GroundwaterFlowModel
+    ) -> bool:
+        sprinkling_key = msw_model._get_pkg_key(Sprinkling, optional_package=True)
+        sprinkling_in_msw = sprinkling_key is not None
+        sprinkling_in_mf6 = self.wel_package in gwf_model.keys()
+
+        if sprinkling_in_msw and not sprinkling_in_mf6:
+            raise ValueError(
+                f"No package named {self.wel_package} found in Modflow 6 model, "
+                "but Sprinkling package found in MetaSWAP. "
+                "iMOD Coupler requires a Well Package "
+                "to couple wells."
+            )
+        elif not sprinkling_in_msw and sprinkling_in_mf6:
+            raise ValueError(
+                f"Modflow 6 Well package {self.wel_package} specified for sprinkling, "
+                "but no Sprinkling package found in MetaSWAP model."
+            )
+        elif sprinkling_in_msw and sprinkling_in_mf6:
+            return True
+        else:
+            return False
+
     def derive_mapping(
-        self, msw_model, gwf_model
+        self, msw_model: MetaSwapModel, gwf_model: GroundwaterFlowModel
     ) -> tuple[NodeSvatMapping, RechargeSvatMapping, WellSvatMapping | None]:
+        if self.recharge_package not in gwf_model.keys():
+            raise ValueError(
+                f"No package named {self.recharge_package} detected in Modflow 6 model. "
+                "iMOD_coupler requires a Recharge package."
+            )
+
         grid_data_key = [
-            pkgname
-            for pkgname, pkg in self.msw_model.items()
-            if isinstance(pkg, GridData)
+            pkgname for pkgname, pkg in msw_model.items() if isinstance(pkg, GridData)
         ][0]
 
         dis = gwf_model[gwf_model._get_pkgkey("dis")]
@@ -47,26 +76,16 @@ class MetaModDriverCoupling(DriverCoupling):
 
         rch_mapping = RechargeSvatMapping(svat, recharge)
 
-        if self.is_sprinkling:
+        if self._check_sprinking(msw_model=msw_model, gwf_model=gwf_model):
             well = gwf_model[self.wel_package]
             well_mapping = WellSvatMapping(svat, well)
             return grid_mapping, rch_mapping, well_mapping
         else:
             return grid_mapping, rch_mapping, None
 
-    def _get_gwf_modelnames(self, mf6_simulation: Modflow6Simulation) -> list[str]:
-        """
-        Get names of gwf models in mf6 simulation
-        """
-        return [
-            key
-            for key, value in mf6_simulation.items()
-            if isinstance(value, GroundwaterFlowModel)
-        ]
-
     def write_exchanges(self, directory: Path, coupled_model: Any) -> dict[str, Any]:
         mf6_simulation = coupled_model
-        gwf_names = self._get_gwf_modelnames(mf6_simulation)
+        gwf_names = _get_gwf_modelnames(mf6_simulation)
         gwf_name = gwf_names[0]
         gwf_model = mf6_simulation[gwf_name]
         msw_model = coupled_model.msw_model
@@ -90,28 +109,3 @@ class MetaModDriverCoupling(DriverCoupling):
             coupling_dict["mf6_msw_sprinkling_map"] = well_mapping.write(directory)
 
         return coupling_dict
-
-
-"""
-        grid_data_key = [
-            pkgname
-            for pkgname, pkg in self.msw_model.items()
-            if isinstance(pkg, GridData)
-        ][0]
-
-        dis = gwf_model[gwf_model._get_pkgkey("dis")]
-
-        index, svat = self.msw_model[grid_data_key].generate_index_array()
-        grid_mapping = NodeSvatMapping(svat, dis)
-        grid_mapping.write(directory, index, svat)
-
-        recharge = gwf_model[mf6_rch_pkgkey]
-
-        rch_mapping = RechargeSvatMapping(svat, recharge)
-        rch_mapping.write(directory, index, svat)
-
-        if self.is_sprinkling:
-            well = gwf_model[mf6_wel_pkgkey]
-            well_mapping = WellSvatMapping(svat, well)
-            well_mapping.write(directory, index, svat)
-"""

@@ -1,5 +1,5 @@
 import abc
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
@@ -9,11 +9,13 @@ import pandas as pd
 import ribasim
 import xarray as xr
 from geopandas import gpd
-from imod.mf6 import GroundwaterFlowModel
-from numpy.typing import Int, NDArray
 
-from primod.driver.util import _validate_node_ids
 from primod.driver_coupling.driver_coupling_base import DriverCoupling
+from primod.driver_coupling.util import (
+    _get_gwf_modelnames,
+    _nullify_ribasim_exchange_input,
+    _validate_node_ids,
+)
 from primod.mapping.node_basin_mapping import ActiveNodeBasinMapping, NodeBasinMapping
 
 
@@ -27,17 +29,13 @@ class RibaModDriverCoupling(DriverCoupling, abc.ABC):
         The model of the driver.
     basin_definition : gpd.GeoDataFrame
         GeoDataFrame of basin polygons
-    mf6_river_packages : list of str
-        A list of river packages.
-    mf6_drainage_packages : list of str
-        A list of drainage packages.
+    mf6_packages : list of str
+        A list of river or drainage packages.
     """
 
     mf6_model: str
     basin_definition: gpd.GeoDataFrame
-    river_packages: list[str] = field(default_factory=list)
-    drainage_packages: list[str] = field(default_factory=list)
-    _coupled_basin_node_ids: NDArray[Int] | None = None
+    mf6_packages: list[str]
 
     @abc.abstractmethod
     def derive_mapping(
@@ -63,30 +61,18 @@ class RibaModDriverCoupling(DriverCoupling, abc.ABC):
             "mf6_passive_drainage_packages": {},
         }
 
-    def _get_gwf_modelnames(self) -> list[str]:
-        """
-        Get names of gwf models in mf6 simulation
-        """
-        return [
-            key
-            for key, value in self.mf6_simulation.items()
-            if isinstance(value, GroundwaterFlowModel)
-        ]
-
     def write_exchanges(
         self,
         directory: Path,
         coupled_model: Any,
     ) -> dict[str, Any]:
         mf6_simulation = coupled_model.mf6_simulation
-        gwf_names = self._get_gwf_modelnames(mf6_simulation)
+        gwf_names = _get_gwf_modelnames(mf6_simulation)
         gwf_model = mf6_simulation[gwf_names[0]]
-        ribasim_model = coupled_model
+        ribasim_model = coupled_model.ribasim_model
 
         dis = gwf_model[gwf_model._get_pkgkey("dis")]
-        packages = self.asdict()
-        packages.pop("mf6_model")
-        basin_definition = packages.pop("basin_definition")
+        basin_definition = self.basin_definition
         # Validate and fetch
         basin_ids = _validate_node_ids(ribasim_model, basin_definition)
 
@@ -101,30 +87,47 @@ class RibaModDriverCoupling(DriverCoupling, abc.ABC):
         # drainage and infiltration to NoData later on.
         coupling_dict = self._empty_coupling_dict()
         coupled_basin_indices = []
-        for destination, keys in packages.items():
-            for key in keys:
-                package = gwf_model[key]
-                # Derive exchange tables
-                mapping = self.derive_mapping(
-                    name=key,
-                    gridded_basin=gridded_basin,
-                    basin_ids=basin_ids,
-                    conductance=package["conductance"],
-                    ribasim_model=ribasim_model,
+        for key in self.mf6_packages:
+            package = gwf_model[key]
+            mapping = self.derive_mapping(
+                name=key,
+                gridded_basin=gridded_basin,
+                basin_ids=basin_ids,
+                conductance=package["conductance"],
+                ribasim_model=ribasim_model,
+            )
+            if mapping.dataset.empty:
+                raise ValueError(
+                    f"No coupling can be derived for MODFLOW 6 package: {key}. "
+                    "No spatial overlap exists between the basin_definition and this package."
                 )
 
-                if mapping.dataset.empty:
-                    raise ValueError(
-                        f"No coupling can be derived for MODFLOW 6 package: {key}. "
-                        "No spatial overlap exists between the basin_definition and this package."
-                    )
+            if isinstance(package, imod.mf6.River):
+                # Add a MF6 API package for correction flows
+                gwf_model["api_" + key] = imod.mf6.ApiPackage(
+                    maxbound=package._max_active_n(),
+                    save_flows=True,
+                )
+                destination = "river"
+            elif isinstance(package, imod.mf6.Drainage):
+                destination = "drainage"
+            else:
+                raise TypeError(
+                    f"Expected River or Drainage, received: {type(package).__name__}"
+                )
 
-                filename = mapping.write(directory=directory)
-                coupling_dict[f"mf6_{self._prefix}_{destination}"][key] = filename
-                coupled_basin_indices.append(mapping["basin_index"])
+            filename = mapping.write(directory=directory)
+            coupling_dict[f"mf6_{self._prefix}_{destination}"][key] = filename
+            coupled_basin_indices.append(mapping["basin_index"])
 
         coupled_basin_indices = np.unique(np.concatenate(coupled_basin_indices))
-        self._coupled_basin_node_ids = basin_ids[coupled_basin_indices]
+        coupled_basin_node_ids = basin_ids[coupled_basin_indices]
+
+        _nullify_ribasim_exchange_input(
+            ribasim_component=ribasim_model.basin,
+            coupled_basin_node_ids=coupled_basin_node_ids,
+            columns=["infiltration", "drainage"],
+        )
         return coupling_dict
 
 

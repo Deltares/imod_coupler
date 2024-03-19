@@ -1,16 +1,29 @@
+from typing import Any
+
 import geopandas as gpd
 import numpy as np
 import pandas as pd
 import ribasim
 import xarray as xr
-from imod.mf6 import Modflow6Simulation
+from imod.mf6 import Drainage, GroundwaterFlowModel, Modflow6Simulation, River
 from numpy.typing import NDArray
 
 from primod.typing import Int
 
 
+def _get_gwf_modelnames(mf6_simulation: Modflow6Simulation) -> list[str]:
+    """
+    Get names of gwf models in mf6 simulation
+    """
+    return [
+        key
+        for key, value in mf6_simulation.items()
+        if isinstance(value, GroundwaterFlowModel)
+    ]
+
+
 def _validate_node_ids(
-    ribasim_model: ribasim.Model, definition: gpd.GeoDataFrame
+    dataframe: pd.DataFrame, definition: gpd.GeoDataFrame
 ) -> pd.Series:
     # Validate
     if "node_id" not in definition.columns:
@@ -18,9 +31,8 @@ def _validate_node_ids(
             'Definition must contain "node_id" column.'
             f"Columns in dataframe: {definition.columns}"
         )
-    assert ribasim_model.basin.profile.df is not None
 
-    basin_ids: NDArray[Int] = np.unique(ribasim_model.basin.profile.df["node_id"])
+    basin_ids: NDArray[Int] = np.unique(dataframe["node_id"])
     missing = ~np.isin(definition["node_id"], basin_ids)
     if missing.any():
         missing_nodes = definition["node_id"].to_numpy()[missing]
@@ -55,4 +67,51 @@ def _validate_time_window(
             f"Ribasim: {ribasim_start} to {ribasim_end}\n"
             f"MODFLOW6: {mf6_start} to {mf6_end}\n"
         )
+    return
+
+
+def _validate_keys(
+    gwf_model: GroundwaterFlowModel,
+    active_keys: list[str],
+    passive_keys: list[str],
+    expected_type: River | Drainage,
+) -> None:
+    active_keys_set = set(active_keys)
+    passive_keys_set = set(passive_keys)
+    intersection = active_keys_set.intersection(passive_keys_set)
+    if intersection:
+        raise ValueError(f"active and passive keys share members: {intersection}")
+    present = [k for k, v in gwf_model.items() if isinstance(v, expected_type)]
+    missing = (active_keys_set | passive_keys_set).difference(present)
+    if missing:
+        raise ValueError(
+            f"keys with expected type {expected_type.__name__} are not "
+            f"present in the model: {missing}"
+        )
+
+
+def _nullify_ribasim_exchange_input(
+    ribasim_component: ribasim.Basin | ribasim.UserDemand,
+    coupled_basin_node_ids: NDArray[Int],
+    columns: list[str],
+) -> None:
+    """
+    Set the input forcing to NoData for drainage and infiltration.
+
+    Ribasim will otherwise overwrite the values set by the coupler.
+    """
+
+    # FUTURE: in coupling to MetaSWAP, the runoff should be set nodata as well.
+    def _nullify(df: pd.DataFrame) -> None:
+        """E.g. set drainage, infiltration, runoff columns to nodata if present in df"""
+        if df is not None:
+            columns_present = list(set(columns).intersection(df.columns))
+            if len(columns_present) > 0:
+                df.loc[df["node_id"].isin(coupled_basin_node_ids), columns_present] = (
+                    np.nan
+                )
+        return
+
+    _nullify(ribasim_component.static.df)
+    _nullify(ribasim_component.time.df)
     return
