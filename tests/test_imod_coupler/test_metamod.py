@@ -227,6 +227,7 @@ def test_metamod_regression(
         )
 
 
+@pytest.mark.xfail(reason="MetaSWAP issues")
 @parametrize_with_cases("metamod_model", glob="storage_coefficient_no_sprinkling")
 def test_metamod_regression_balance_output(
     metamod_model: MetaMod,
