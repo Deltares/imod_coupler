@@ -10,6 +10,10 @@ class DriverCoupling(BaseModel, abc.ABC):
     Abstract base class for driver couplings.
     """
 
+    # Config required for e.g. geodataframes
+    class Config:
+        arbitrary_types_allowed = True
+
     @abc.abstractmethod
     def derive_mapping(self, *args: Any, **kwargs: Any) -> Any:
         pass
