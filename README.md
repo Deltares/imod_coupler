@@ -3,13 +3,7 @@
 The `imod_coupler` is used to couple hydrological kernels.
 It currently focuses on groundwater and supports coupling between MetaSWAP and Modflow6.
 
-It can be installed by running
-
-```sh
-pip install imod_coupler
-```
-
-Then you can run it as command line app via
+iMOD Coupler is typically used as a command line app via
 
 ```sh
 imodc /path/to/imod_coupler.toml
