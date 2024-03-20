@@ -27,13 +27,13 @@ class RibaMetaDriverCoupling(DriverCoupling):
         GeoDataFrame of user demand polygons
     """
 
-    basin_definition: gpd.GeoDataFrame
-    user_demand_definition: gpd.GeoDataFrame | None
+    ribasim_basin_definition: gpd.GeoDataFrame
+    ribasim_user_demand_definition: gpd.GeoDataFrame | None
 
     def _check_sprinkling(self, msw_model: MetaSwapModel) -> bool:
         sprinkling_key = msw_model._get_pkg_key(Sprinkling, optional_package=True)
         sprinkling_in_msw = sprinkling_key is not None
-        sprinkling_in_ribasim = self.user_demand_definition is not None
+        sprinkling_in_ribasim = self.ribasim_user_demand_definition is not None
 
         if sprinkling_in_ribasim:
             if sprinkling_in_msw:
@@ -57,10 +57,10 @@ class RibaMetaDriverCoupling(DriverCoupling):
 
         _, svat = msw_model[grid_data_key].generate_index_array()
         basin_ids = _validate_node_ids(
-            ribasim_model.basin.node.df, self.basin_definition
+            ribasim_model.basin.node.df, self.ribasim_basin_definition
         )
         gridded_basin = imod.prepare.rasterize(
-            self.basin_definition,
+            self.ribasim_basin_definition,
             like=svat,
             column="node_id",
         )
@@ -74,10 +74,10 @@ class RibaMetaDriverCoupling(DriverCoupling):
 
         if self._check_sprinkling(msw_model=msw_model):
             user_demand_ids = _validate_node_ids(
-                ribasim_model.user_demand.node.df, self.user_demand_definition
+                ribasim_model.user_demand.node.df, self.ribasim_user_demand_definition
             )
             gridded_user_demand = imod.prepare.rasterize(
-                self.basin_definition,
+                self.ribasim_basin_definition,
                 like=svat,
                 column="node_id",
             )
@@ -116,13 +116,13 @@ class RibaMetaDriverCoupling(DriverCoupling):
 
         # Set Ribasim runoff input to Null for coupled basins
         basin_ids = _validate_node_ids(
-            ribasim_model.basin.node.df, self.basin_definition
+            ribasim_model.basin.node.df, self.ribasim_basin_definition
         )
         coupled_basin_indices = svat_basin_mapping["basin_index"]
         coupled_basin_node_ids = basin_ids[coupled_basin_indices]
         _nullify_ribasim_exchange_input(
             ribasim_component=ribasim_model.basin,
-            coupled_basin_node_ids=coupled_basin_node_ids,
+            coupled_node_ids=coupled_basin_node_ids,
             columns=["runoff"],
         )
 
@@ -131,9 +131,10 @@ class RibaMetaDriverCoupling(DriverCoupling):
             coupling_dict["rib_msw_sprinkling_map_surface_water"] = (
                 svat_user_demand_mapping.write(directory=directory)
             )
+            coupled_user_demand_node_ids = svat_user_demand_mapping["node_id"]
             _nullify_ribasim_exchange_input(
                 ribasim_component=ribasim_model.user_demand,
-                coupled_basin_node_ids=coupled_basin_node_ids,
+                coupled_node_ids=coupled_user_demand_node_ids,
                 columns=["demand"],
             )
         return coupling_dict

@@ -91,7 +91,7 @@ def _validate_keys(
 
 def _nullify_ribasim_exchange_input(
     ribasim_component: Basin | UserDemand,
-    coupled_basin_node_ids: NDArray[Int],
+    coupled_node_ids: NDArray[Int],
     columns: list[str],
 ) -> None:
     """
@@ -106,9 +106,7 @@ def _nullify_ribasim_exchange_input(
         if df is not None:
             columns_present = list(set(columns).intersection(df.columns))
             if len(columns_present) > 0:
-                df.loc[df["node_id"].isin(coupled_basin_node_ids), columns_present] = (
-                    np.nan
-                )
+                df.loc[df["node_id"].isin(coupled_node_ids), columns_present] = np.nan
         return
 
     _nullify(ribasim_component.static.df)

@@ -19,7 +19,7 @@ def test_metamod_write(prepared_msw_model, coupled_mf6_model, tmp_path):
     output_dir = tmp_path / "metamod"
 
     driver_coupling = MetaModDriverCoupling(
-        mf6_model="GWF_1", wel_package="wells_msw", recharge_package="rch_msw"
+        mf6_model="GWF_1", mf6_wel_package="wells_msw", mf6_recharge_package="rch_msw"
     )
     coupled_models = MetaMod(
         prepared_msw_model,
@@ -50,7 +50,7 @@ def test_metamod_write_exchange(
     output_dir.mkdir(exist_ok=True, parents=True)
 
     driver_coupling = MetaModDriverCoupling(
-        mf6_model="GWF_1", wel_package="wells_msw", recharge_package="rch_msw"
+        mf6_model="GWF_1", mf6_wel_package="wells_msw", mf6_recharge_package="rch_msw"
     )
     coupled_models = MetaMod(
         prepared_msw_model, coupled_mf6_model, coupling_list=[driver_coupling]
@@ -122,7 +122,7 @@ def test_metamod_write_exchange_no_sprinkling(
     output_dir.mkdir(exist_ok=True, parents=True)
 
     driver_coupling = MetaModDriverCoupling(
-        mf6_model="GWF_1", recharge_package="rch_msw"
+        mf6_model="GWF_1", mf6_recharge_package="rch_msw"
     )
 
     coupled_models = MetaMod(
@@ -177,7 +177,7 @@ def test_metamod_write_toml(prepared_msw_model, coupled_mf6_model, tmp_path):
     output_dir.mkdir(exist_ok=True, parents=True)
 
     driver_coupling = MetaModDriverCoupling(
-        mf6_model="GWF_1", wel_package="wells_msw", recharge_package="rch_msw"
+        mf6_model="GWF_1", mf6_wel_package="wells_msw", mf6_recharge_package="rch_msw"
     )
     coupled_models = MetaMod(
         prepared_msw_model, coupled_mf6_model, coupling_list=[driver_coupling]
@@ -227,7 +227,7 @@ def test_metamod_get_coupling_dict(prepared_msw_model, coupled_mf6_model, tmp_pa
     output_dir = tmp_path / "exchanges"
 
     driver_coupling = MetaModDriverCoupling(
-        mf6_model="GWF_1", wel_package="wells_msw", recharge_package="rch_msw"
+        mf6_model="GWF_1", mf6_wel_package="wells_msw", mf6_recharge_package="rch_msw"
     )
     coupled_models = MetaMod(
         prepared_msw_model, coupled_mf6_model, coupling_list=[driver_coupling]
@@ -259,7 +259,7 @@ def test_metamod_get_coupling_dict_no_sprinkling(
     prepared_msw_model.pop("sprinkling")
 
     driver_coupling = MetaModDriverCoupling(
-        mf6_model="GWF_1", recharge_package="rch_msw"
+        mf6_model="GWF_1", mf6_recharge_package="rch_msw"
     )
     coupled_models = MetaMod(
         prepared_msw_model, coupled_mf6_model, coupling_list=[driver_coupling]
@@ -286,7 +286,7 @@ def test_metamod_init_no_sprinkling_fail(
     # Remove sprinkling package
     prepared_msw_model.pop("sprinkling")
     driver_coupling = MetaModDriverCoupling(
-        mf6_model="GWF_1", wel_package="wells_msw", recharge_package="rch_msw"
+        mf6_model="GWF_1", mf6_wel_package="wells_msw", mf6_recharge_package="rch_msw"
     )
 
     output_dir = tmp_path / "exchanges"
@@ -299,7 +299,9 @@ def test_metamod_init_no_sprinkling_fail(
 
 def test_metamod_init_no_mf6_well_fail(prepared_msw_model, coupled_mf6_model, tmp_path):
     driver_coupling = MetaModDriverCoupling(
-        mf6_model="GWF_1", wel_package="does not exist", recharge_package="rch_msw"
+        mf6_model="GWF_1",
+        mf6_wel_package="does not exist",
+        mf6_recharge_package="rch_msw",
     )
 
     output_dir = tmp_path / "exchanges"
@@ -314,7 +316,7 @@ def test_metamod_init_no_mf6_well_fail2(
     prepared_msw_model, coupled_mf6_model, tmp_path
 ):
     driver_coupling = MetaModDriverCoupling(
-        mf6_model="GWF_1", recharge_package="rch_msw"
+        mf6_model="GWF_1", mf6_recharge_package="rch_msw"
     )
     output_dir = tmp_path / "exchanges"
     with pytest.raises(ValueError):
@@ -326,7 +328,9 @@ def test_metamod_init_no_mf6_well_fail2(
 
 def test_metamod_init_no_mf6_rch_fail(prepared_msw_model, coupled_mf6_model, tmp_path):
     driver_coupling = MetaModDriverCoupling(
-        mf6_model="GWF_1", recharge_package="does_not_exist", wel_package="wells_msw"
+        mf6_model="GWF_1",
+        mf6_recharge_package="does_not_exist",
+        mf6_wel_package="wells_msw",
     )
     output_dir = tmp_path / "exchanges"
     with pytest.raises(ValueError):

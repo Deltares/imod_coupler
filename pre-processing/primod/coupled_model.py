@@ -1,5 +1,4 @@
 import abc
-from collections import defaultdict
 from pathlib import Path
 from typing import Any
 
@@ -19,10 +18,12 @@ class CoupledModel(abc.ABC):
 
     @staticmethod
     def _merge_coupling_dicts(dicts: list[dict[str, Any]]) -> dict[str, Any]:
-        coupling_dict: defaultdict[str, dict[str, Any] | Any] = defaultdict(dict)
+        coupling_dict: dict[str, dict[str, Any] | Any] = {}
         for top_dict in dicts:
             for top_key, top_value in top_dict.items():
                 if isinstance(top_value, dict):
+                    if top_key not in coupling_dict:
+                        coupling_dict[top_key] = {}
                     for key, filename in top_value.items():
                         coupling_dict[top_key][key] = filename
                 else:

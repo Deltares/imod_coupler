@@ -5,7 +5,7 @@ import ribasim
 import tomli_w
 from imod.mf6 import Modflow6Simulation
 
-from primod.coupledmodel import CoupledModel
+from primod.coupled_model import CoupledModel
 from primod.driver_coupling.ribamod import RibaModDriverCoupling
 from primod.driver_coupling.util import (
     _validate_time_window,

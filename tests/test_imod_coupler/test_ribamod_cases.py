@@ -28,7 +28,7 @@ def case_bucket_model(
 
     driver_coupling = RibaModActiveDriverCoupling(
         mf6_model=mf6_modelname,
-        basin_definition=basin_definition,
+        ribasim_basin_definition=basin_definition,
         mf6_packages=mf6_active_river_packages,
     )
 
@@ -51,7 +51,7 @@ def case_backwater_model(
 
     driver_coupling = RibaModActiveDriverCoupling(
         mf6_model=mf6_modelname,
-        basin_definition=basin_definition,
+        ribasim_basin_definition=basin_definition,
         mf6_packages=mf6_active_river_packages + mf6_active_drainage_packages,
     )
 
@@ -76,7 +76,7 @@ def two_basin_variation(
 
     driver_coupling = RibaModActiveDriverCoupling(
         mf6_model=mf6_modelname,
-        basin_definition=basin_definition,
+        ribasim_basin_definition=basin_definition,
         mf6_packages=mf6_active_river_packages,
     )
 

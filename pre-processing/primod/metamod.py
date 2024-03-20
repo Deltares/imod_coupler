@@ -5,7 +5,7 @@ import tomli_w
 from imod.mf6 import Modflow6Simulation
 from imod.msw import MetaSwapModel
 
-from primod.coupledmodel import CoupledModel
+from primod.coupled_model import CoupledModel
 from primod.driver_coupling.metamod import MetaModDriverCoupling
 
 
