@@ -1,3 +1,4 @@
+from collections.abc import Sequence
 from pathlib import Path
 from typing import Any
 
@@ -28,7 +29,7 @@ class MetaMod(CoupledModel):
         self,
         msw_model: MetaSwapModel,
         mf6_simulation: Modflow6Simulation,
-        coupling_list: list[MetaModDriverCoupling],
+        coupling_list: Sequence[MetaModDriverCoupling],
     ):
         self.msw_model = msw_model
         self.mf6_simulation = mf6_simulation

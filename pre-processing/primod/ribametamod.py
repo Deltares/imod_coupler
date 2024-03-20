@@ -1,3 +1,4 @@
+from collections.abc import Sequence
 from pathlib import Path
 from typing import Any
 
@@ -7,6 +8,7 @@ from imod.mf6 import Modflow6Simulation
 from imod.msw import MetaSwapModel
 
 from primod.coupled_model import CoupledModel
+from primod.driver_coupling.driver_coupling_base import DriverCoupling
 
 
 class RibaMetaMod(CoupledModel):
@@ -33,7 +35,7 @@ class RibaMetaMod(CoupledModel):
         ribasim_model: ribasim.Model,
         msw_model: MetaSwapModel,
         mf6_simulation: Modflow6Simulation,
-        coupling_list: list[Any],
+        coupling_list: Sequence[DriverCoupling],
     ):
         self.ribasim_model = ribasim_model
         self.mf6_simulation = mf6_simulation

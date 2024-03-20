@@ -1,4 +1,5 @@
 import abc
+from collections.abc import Sequence
 from pathlib import Path
 from typing import Any
 
@@ -6,7 +7,7 @@ from primod.driver_coupling.driver_coupling_base import DriverCoupling
 
 
 class CoupledModel(abc.ABC):
-    coupling_list: list[DriverCoupling]
+    coupling_list: Sequence[DriverCoupling]
 
     @abc.abstractmethod
     def write(self, directory: str | Path, *args: Any, **kwargs: Any) -> None:

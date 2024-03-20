@@ -120,7 +120,9 @@ class MetaModMapping(abc.ABC):
         """
         # Force to Path
         directory = Path(directory)
+        # TODO: figure out how to please mypy with the slots here?
+        index = self.index  # type: ignore
 
         with open(directory / self._file_name, "w") as f:
-            self._render(f, index=self.index, svat=self.dataset["svat"])
+            self._render(f, index=index, svat=self.dataset["svat"])
         return f"./{directory.name}/{self._file_name}"

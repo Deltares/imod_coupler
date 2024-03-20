@@ -1,3 +1,4 @@
+from collections.abc import Sequence
 from pathlib import Path
 from typing import Any
 
@@ -33,7 +34,7 @@ class RibaMod(CoupledModel):
         self,
         ribasim_model: ribasim.Model,
         mf6_simulation: Modflow6Simulation,
-        coupling_list: list[RibaModDriverCoupling],
+        coupling_list: Sequence[RibaModDriverCoupling],
     ):
         _validate_time_window(
             ribasim_model=ribasim_model,
