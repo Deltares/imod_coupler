@@ -41,7 +41,7 @@ class CoupledModel(abc.ABC):
         coupling_dicts = []
         for coupling in self.coupling_list:
             coupling_dict = coupling.write_exchanges(
-                directory=directory, coupled_model=self
+                directory=exchange_dir, coupled_model=self
             )
             coupling_dicts.append(coupling_dict)
 

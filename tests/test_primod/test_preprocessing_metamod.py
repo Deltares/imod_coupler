@@ -46,7 +46,7 @@ def test_metamod_write(prepared_msw_model, coupled_mf6_model, tmp_path):
 def test_metamod_write_exchange(
     prepared_msw_model, coupled_mf6_model, fixed_format_parser, tmp_path
 ):
-    output_dir = tmp_path / "exhanges"
+    output_dir = tmp_path
     output_dir.mkdir(exist_ok=True, parents=True)
 
     driver_coupling = MetaModDriverCoupling(
@@ -60,18 +60,19 @@ def test_metamod_write_exchange(
         output_dir,
     )
 
+    exchange_dir = output_dir / "exchanges"
     nodes_dxc = fixed_format_parser(
-        output_dir / NodeSvatMapping._file_name,
+        exchange_dir / NodeSvatMapping._file_name,
         NodeSvatMapping._metadata_dict,
     )
 
     rch_dxc = fixed_format_parser(
-        output_dir / RechargeSvatMapping._file_name,
+        exchange_dir / RechargeSvatMapping._file_name,
         RechargeSvatMapping._metadata_dict,
     )
 
     wel_dxc = fixed_format_parser(
-        output_dir / WellSvatMapping._file_name,
+        exchange_dir / WellSvatMapping._file_name,
         WellSvatMapping._metadata_dict,
     )
 
@@ -117,7 +118,7 @@ def test_metamod_write_exchange_no_sprinkling(
     # Remove sprinkling package
     prepared_msw_model.pop("sprinkling")
 
-    output_dir = tmp_path / "exhanges"
+    output_dir = tmp_path
     output_dir.mkdir(exist_ok=True, parents=True)
 
     driver_coupling = MetaModDriverCoupling(
@@ -132,17 +133,18 @@ def test_metamod_write_exchange_no_sprinkling(
         output_dir,
     )
 
+    exchange_dir = output_dir / "exchanges"
     nodes_dxc = fixed_format_parser(
-        output_dir / NodeSvatMapping._file_name,
+        exchange_dir / NodeSvatMapping._file_name,
         NodeSvatMapping._metadata_dict,
     )
 
     rch_dxc = fixed_format_parser(
-        output_dir / RechargeSvatMapping._file_name,
+        exchange_dir / RechargeSvatMapping._file_name,
         RechargeSvatMapping._metadata_dict,
     )
 
-    well_dxc_written = (output_dir / WellSvatMapping._file_name).exists()
+    well_dxc_written = (exchange_dir / WellSvatMapping._file_name).exists()
 
     assert well_dxc_written is False
 

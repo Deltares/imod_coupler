@@ -116,7 +116,7 @@ class RibaModDriverCoupling(DriverCoupling, abc.ABC):
 
             filename = mapping.write(directory=directory)
             coupling_dict[f"mf6_{self._prefix}_{destination}"][key] = filename
-            coupled_basin_indices.append(mapping["basin_index"])
+            coupled_basin_indices.append(mapping.dataframe["basin_index"])
 
         coupled_basin_indices = np.unique(np.concatenate(coupled_basin_indices))
         coupled_basin_node_ids = basin_ids[coupled_basin_indices]

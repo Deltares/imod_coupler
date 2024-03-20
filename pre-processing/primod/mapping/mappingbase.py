@@ -25,7 +25,7 @@ class GenericMapping(abc.ABC):
         """
         filename = f"{self.name}.tsv"
         self.dataframe.to_csv(directory / filename, sep="\t", index=False)
-        return filename
+        return f"./{directory.name}/{filename}"
 
 
 class MetaModMapping(abc.ABC):
