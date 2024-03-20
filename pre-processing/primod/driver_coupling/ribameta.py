@@ -14,6 +14,7 @@ from primod.driver_coupling.util import (
     _validate_node_ids,
 )
 from primod.mapping.svat_basin_mapping import SvatBasinMapping
+from primod.mapping.svat_user_demand_mapping import SvatUserDemandMapping
 
 
 class RibaMetaDriverCoupling(DriverCoupling):
@@ -50,12 +51,12 @@ class RibaMetaDriverCoupling(DriverCoupling):
         self,
         ribasim_model: ribasim.Model,
         msw_model: MetaSwapModel,
-    ) -> tuple[SvatBasinMapping, SvatBasinMapping | None]:
+    ) -> tuple[SvatBasinMapping, SvatUserDemandMapping | None]:
         grid_data_key = [
             pkgname for pkgname, pkg in msw_model.items() if isinstance(pkg, GridData)
         ][0]
 
-        _, svat = msw_model[grid_data_key].generate_index_array()
+        index, svat = msw_model[grid_data_key].generate_index_array()
         basin_ids = _validate_node_ids(
             ribasim_model.basin.node.df, self.ribasim_basin_definition
         )
@@ -64,12 +65,12 @@ class RibaMetaDriverCoupling(DriverCoupling):
             like=svat,
             column="node_id",
         )
-
         svat_basin_mapping = SvatBasinMapping(
             name="msw_ponding",
             gridded_basin=gridded_basin,
             basin_ids=basin_ids,
-            condition=svat > 0,
+            svat=svat,
+            index=index,
         )
 
         if self._check_sprinkling(msw_model=msw_model):
@@ -89,12 +90,13 @@ class RibaMetaDriverCoupling(DriverCoupling):
                 swsprmax["max_abstraction_surfacewater_m3_d"].values,
                 (nsu, 1, 1),
             )
-            _, svat_swspr = swspr_grid_data.generate_index_array()
-            svat_user_demand_mapping = SvatBasinMapping(
+            index_swspr, svat_swspr = swspr_grid_data.generate_index_array()
+            svat_user_demand_mapping = SvatUserDemandMapping(
                 name="msw_sw_sprinkling",
-                gridded_basin=gridded_user_demand,
-                basin_ids=user_demand_ids,
-                condition=svat_swspr.notnull(),
+                gridded_user_demand=gridded_user_demand,
+                user_demand_ids=user_demand_ids,
+                svat=svat_swspr,
+                index=index_swspr,
             )
             return svat_basin_mapping, svat_user_demand_mapping
         else:
