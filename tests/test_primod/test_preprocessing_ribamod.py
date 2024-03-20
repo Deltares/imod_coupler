@@ -8,8 +8,8 @@ import pytest
 import ribasim
 from imod.mf6 import Drainage, GroundwaterFlowModel, River
 from imod.mf6.simulation import Modflow6Simulation
+from primod import RibaModActiveDriverCoupling, RibaModPassiveDriverCoupling
 from primod.ribamod import RibaMod
-from primod.ribamod.ribamod import DriverCoupling
 from shapely.geometry import Polygon
 
 # tomllib part of Python 3.11, else use tomli
@@ -71,10 +71,10 @@ def test_ribamod_write__error(
     mf6_modelname, mf6_model = get_mf6_gwf_modelnames(mf6_bucket_model)[0]
     mf6_river_packages = get_mf6_river_packagenames(mf6_model)
 
-    driver_coupling = DriverCoupling(
+    driver_coupling = RibaModActiveDriverCoupling(
         mf6_model=mf6_modelname,
         basin_definition=basin_definition,
-        mf6_active_river_packages=mf6_river_packages,
+        mf6_packages=mf6_river_packages,
     )
 
     # Remove subgrid
@@ -100,7 +100,7 @@ def test_ribamod_write(
     mf6_modelname, mf6_model = get_mf6_gwf_modelnames(mf6_bucket_model)[0]
     mf6_river_packages = get_mf6_river_packagenames(mf6_model)
 
-    driver_coupling = DriverCoupling(
+    driver_coupling = RibaModPassiveDriverCoupling(
         mf6_model=mf6_modelname,
         basin_definition=basin_definition,
         mf6_passive_river_packages=mf6_river_packages,
@@ -137,10 +137,10 @@ def test_ribamod_write_toml(
     mf6_modelname, mf6_model = get_mf6_gwf_modelnames(mf6_bucket_model)[0]
     mf6_river_packages = get_mf6_river_packagenames(mf6_model)
 
-    driver_coupling = DriverCoupling(
+    driver_coupling = RibaModPassiveDriverCoupling(
         mf6_model=mf6_modelname,
         basin_definition=basin_definition,
-        mf6_passive_river_packages=mf6_river_packages,
+        mf6_packages=mf6_river_packages,
     )
 
     coupled_models = RibaMod(
@@ -189,10 +189,10 @@ def test_nullify_ribasim_exchange_input(
     mf6_modelname, mf6_model = get_mf6_gwf_modelnames(mf6_bucket_model)[0]
     mf6_river_packages = get_mf6_river_packagenames(mf6_model)
 
-    driver_coupling = DriverCoupling(
+    driver_coupling = RibaModPassiveDriverCoupling(
         mf6_model=mf6_modelname,
         basin_definition=basin_definition,
-        mf6_passive_river_packages=mf6_river_packages,
+        mf6_packages=mf6_river_packages,
     )
 
     coupled_models = RibaMod(
@@ -224,10 +224,10 @@ def test_nullify_on_write(
     # This basin definition is still a point geometry.
     # This mean it will be rasterized to just two pixels.
     gdf = ribasim_two_basin_model.basin.node.df
-    driver_coupling = DriverCoupling(
+    driver_coupling = RibaModPassiveDriverCoupling(
         mf6_model=mf6_modelname,
         basin_definition=gdf,
-        mf6_passive_river_packages=mf6_river_packages,
+        mf6_packages=mf6_river_packages,
     )
 
     coupled_models = RibaMod(

@@ -3,7 +3,11 @@ import xarray as xr
 from fixtures.common import create_wells_max_layer
 from imod.mf6 import Modflow6Simulation, Recharge
 from imod.msw import MetaSwapModel
-from primod.ribametamod import DriverCoupling, RibaMetaMod
+from primod import (
+    MetaModDriverCoupling,
+    RibaMetaMod,
+    RibaModActiveDriverCoupling,
+)
 from test_ribamod_cases import (
     create_basin_definition,
     get_mf6_drainage_packagenames,
@@ -45,18 +49,22 @@ def case_bucket_model(
     mf6_bucket_model = add_rch_package(mf6_bucket_model)
     mf6_bucket_model = add_well_package(mf6_bucket_model)
 
-    driver_coupling = DriverCoupling(
+    metamod_coupling = MetaModDriverCoupling(
         mf6_model=mf6_modelname,
-        mf6_active_river_packages=mf6_active_river_packages,
+        recharge_package="rch_msw",
+        wel_package="well_msw",
+    )
+    ribamod_coupling = RibaModActiveDriverCoupling(
+        mf6_model=mf6_modelname,
+        mf6_packages=mf6_active_river_packages,
+        basin_definition=basin_definition,
     )
     return RibaMetaMod(
         ribasim_model=ribasim_bucket_model,
         msw_model=msw_bucket_model,
         mf6_simulation=mf6_bucket_model,
         basin_definition=basin_definition,
-        coupling_list=[driver_coupling],
-        mf6_rch_pkgkey="rch_msw",
-        mf6_wel_pkgkey="well_msw",
+        coupling_list=[metamod_coupling, ribamod_coupling],
     )
 
 
@@ -72,19 +80,21 @@ def case_backwater_model(
     mf6_backwater_model = add_rch_package(mf6_backwater_model)
     mf6_backwater_model = add_well_package(mf6_backwater_model)
 
-    driver_coupling = DriverCoupling(
+    metamod_coupling = MetaModDriverCoupling(
         mf6_model=mf6_modelname,
-        mf6_active_river_packages=mf6_active_river_packages,
-        mf6_active_drainage_packages=mf6_active_drainage_packages,
+        recharge_package="rch_msw",
+        wel_package="well_msw",
+    )
+    ribamod_coupling = RibaModActiveDriverCoupling(
+        mf6_model=mf6_modelname,
+        mf6_packages=mf6_active_river_packages + mf6_active_drainage_packages,
+        basin_definition=basin_definition,
     )
     return RibaMetaMod(
         ribasim_model=ribasim_backwater_model,
         msw_model=msw_backwater_model,
         mf6_simulation=mf6_backwater_model,
-        basin_definition=basin_definition,
-        coupling_list=[driver_coupling],
-        mf6_rch_pkgkey="rch_msw",
-        mf6_wel_pkgkey="well_msw",
+        coupling_list=[metamod_coupling, ribamod_coupling],
     )
 
 
@@ -107,16 +117,20 @@ def case_two_basin_model(
     )
     mf6_two_basin_model_3layer = add_rch_package(mf6_two_basin_model_3layer)
     mf6_two_basin_model_3layer = add_well_package(mf6_two_basin_model_3layer)
-    driver_coupling = DriverCoupling(
+
+    metamod_coupling = MetaModDriverCoupling(
         mf6_model=mf6_modelname,
-        mf6_active_river_packages=mf6_active_river_packages,
+        recharge_package="rch_msw",
+        wel_package="well_msw",
+    )
+    ribamod_coupling = RibaModActiveDriverCoupling(
+        mf6_model=mf6_modelname,
+        mf6_packages=mf6_active_river_packages,
+        basin_definition=basin_definition,
     )
     return RibaMetaMod(
         ribasim_model=ribasim_two_basin_model,
         msw_model=msw_two_basin_model,
         mf6_simulation=mf6_two_basin_model_3layer,
-        basin_definition=basin_definition,
-        coupling_list=[driver_coupling],
-        mf6_rch_pkgkey="rch_msw",
-        mf6_wel_pkgkey="well_msw",
+        coupling_list=[metamod_coupling, ribamod_coupling],
     )
