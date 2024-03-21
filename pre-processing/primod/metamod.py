@@ -22,8 +22,8 @@ class MetaMod(CoupledModel):
     """
 
     _toml_name = "imod_coupler.toml"
-    _modflow6_model_dir = "Modflow6"
-    _metaswap_model_dir = "MetaSWAP"
+    _modflow6_model_dir = "modflow6"
+    _metaswap_model_dir = "metaswap"
 
     def __init__(
         self,
