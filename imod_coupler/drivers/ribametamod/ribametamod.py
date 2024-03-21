@@ -189,6 +189,9 @@ class RibaMetaMod(Driver):
             self.mf6_drainage_packages = ChainMap(
                 self.mf6_active_drainage_packages, self.mf6_passive_drainage_packages
             )
+            self.mf6_active_packages = ChainMap(
+                self.mf6_active_river_packages, self.mf6_active_drainage_packages
+            )  # type: ignore
 
         # Get all MODFLOW 6 pointers, relevant for optional coupling with MetaSWAP
         if self.coupling.mf6_msw_recharge_pkg is not None:
@@ -210,7 +213,7 @@ class RibaMetaMod(Driver):
             self.ribasim_infiltration = self.ribasim.get_value_ptr("basin.infiltration")
             self.ribasim_drainage = self.ribasim.get_value_ptr("basin.drainage")
             self.ribasim_level = self.ribasim.get_value_ptr("basin.level")
-            self.ribasim_volume = self.ribasim.get_value_ptr("basin.storage")
+            self.subgrid_level = self.ribasim.get_value_ptr("basin.subgrid_level")
 
         # Get all relevant MetaSWAP pointers
         if self.has_metaswap:
@@ -220,7 +223,7 @@ class RibaMetaMod(Driver):
             self.msw_ponding = self.msw.get_surfacewater_ponding_allocation_ptr()
             self.delt_sw = self.msw.get_sw_time_step()
 
-        # set mapping
+        # Mapping
         # Ribasim - MODFLOW 6
         ribmod_packages: ChainMap[str, Any] = ChainMap()
         if self.has_ribasim:
@@ -228,10 +231,12 @@ class RibaMetaMod(Driver):
                 ChainMap[str, Any](
                     self.mf6_river_packages,
                     self.mf6_drainage_packages,
-                    {"ribasim_nbound": len(self.ribasim_level)},
+                    {
+                        "ribasim_nbasin": len(self.ribasim_level),
+                        "ribasim_nsubgrid": len(self.subgrid_level),
+                    },
                 )
             )
-
         # MetaSWAP - MODFLOW 6
         mswmod_packages: dict[str, Any] = {}
         if self.has_metaswap:
@@ -255,33 +260,21 @@ class RibaMetaMod(Driver):
             mswmod_packages["mf6_area"] = self.mf6_area
             mswmod_packages["mf6_top"] = self.mf6_top
             mswmod_packages["mf6_bot"] = self.mf6_bot
-
         # MetaSWAP - Ribasim
+        ribmsw_packages: dict[str, Any] = {}
         if self.has_ribasim and self.has_metaswap:
-            ribmsw_packages: dict[str, Any] = {}
             ribmsw_packages["mf6_bot"] = self.mf6_bot
             ribmsw_packages["ribmsw_nbound"] = np.size(
                 self.msw.get_surfacewater_ponding_allocation_ptr()
             )
 
-        if self.has_metaswap and self.has_ribasim:
-            packages = ChainMap(
+        self.mapping = SetMapping(
+            self.coupling,
+            ChainMap(
                 ribmod_packages,
                 mswmod_packages,
                 ribmsw_packages,
-            )
-        elif not self.has_metaswap and self.has_ribasim:
-            packages = ChainMap(
-                ribmod_packages,
-            )
-        elif self.has_metaswap and not self.has_ribasim:
-            packages = ChainMap(
-                mswmod_packages,
-            )
-
-        self.mapping = SetMapping(
-            self.coupling,
-            packages,
+            ),
             self.has_metaswap,
             self.has_ribasim,
             (
@@ -319,6 +312,7 @@ class RibaMetaMod(Driver):
         self.delt_gw = self.mf6.get_time_step()
 
         if self.has_ribasim:
+            self.ribasim.update_subgrid_level()
             # zeros exchange-arrays, Ribasim pointers and API-packages
             self.exchange.reset()
             # exchange stage and compute flux estimates over MODFLOW 6 timestep
@@ -434,13 +428,15 @@ class RibaMetaMod(Driver):
             )[:]
 
     def exchange_stage_rib2mod(self) -> None:
-        # Set the MODFLOW 6 river stage and drainage to value of waterlevel of Ribasim basin
-        for key, river in self.mf6_active_river_packages.items():
-            # TODO: use specific level after Ribasim can export levels
-            river.stage[:] = self.mapping.rib2mod[key].dot(self.ribasim_level)
-        for key, drainage in self.mf6_active_drainage_packages.items():
-            # TODO: use specific level after Ribasim can export levels
-            drainage.elevation[:] = self.mapping.rib2mod[key].dot(self.ribasim_level)
+        # Mypy refuses to understand this ChainMap for some reason.
+        # ChainMaps work fine in other places...
+        for key, package in self.mf6_active_packages.items():
+            package.update_bottom_minimum()
+            package.set_water_level(
+                self.mapping.mask_rib2mod[key] * package.water_level
+                + self.mapping.map_rib2mod[key].dot(self.subgrid_level)
+            )
+        return
 
     def exchange_msw2mod(self) -> None:
         """Exchange Metaswap to Modflow"""
