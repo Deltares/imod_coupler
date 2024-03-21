@@ -326,11 +326,6 @@ def two_basin_variation(
         gwf_model["dis"] = mf6.StructuredDiscretization(
             idomain=idomain, top=20.0, bottom=xr.DataArray([-10.0], dims=["layer"])
         )
-    gwf_model["npf"] = mf6.NodePropertyFlow(
-        icelltype=0,
-        k=0.1,
-        k33=0.1,
-    )
     gwf_model["riv_1"] = river
     gwf_model["npf"] = mf6.NodePropertyFlow(
         icelltype=0,
