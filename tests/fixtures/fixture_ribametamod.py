@@ -37,7 +37,6 @@ def make_msw_model(
             no_river.values = np.logical_and(
                 cond.isna().to_numpy(), no_river.notnull().to_numpy()
             )
-    idf.save(r"c:\werkmap\TKI_ribasim\test_driver\river.idf", no_river)
     area = (area.assign_coords(subunit=0).expand_dims(subunit=isubunits)) / nsubunits
     area = area.where((area.subunit < nsubunits) & no_river)
 
