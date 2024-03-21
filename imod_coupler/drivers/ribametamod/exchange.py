@@ -154,9 +154,7 @@ class CoupledExchangeBalance(ExchangeBalance):
             river_flux = -river.get_flux_estimate(mf6_head)
             river_flux_negative = np.where(river_flux < 0, river_flux, 0)
             self.demands_mf6[key] = river_flux[:] / days_to_seconds(delt)
-            self.demands[key] = self.mapping.mod2rib[key].dot(
-                self.demands_mf6[key]
-            ) / days_to_seconds(delt)
+            self.demands[key] = self.mapping.mod2rib[key].dot(self.demands_mf6[key])
             self.demands_negative[key] = self.mapping.mod2rib[key].dot(
                 river_flux_negative
             ) / days_to_seconds(delt)
@@ -181,8 +179,8 @@ class CoupledExchangeBalance(ExchangeBalance):
     def to_ribasim(self) -> None:
         demand = self.demand
         # negative demand in exchange class means infiltration from Ribasim
-        self.ribasim_infiltration += np.where(demand < 0, -demand, 0)
-        self.ribasim_drainage += np.where(demand > 0, demand, 0)
+        self.ribasim_infiltration[:] = np.where(demand < 0, -demand, 0)[:]
+        self.ribasim_drainage[:] = np.where(demand > 0, demand, 0)[:]
 
     def to_modflow(self, realised: NDArray[np.float64]) -> None:
         super().compute_realised(realised)

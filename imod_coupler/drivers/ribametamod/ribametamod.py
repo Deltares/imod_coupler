@@ -124,9 +124,6 @@ class RibaMetaMod(Driver):
         else:
             self.has_metaswap = False
 
-        if self.has_metaswap and self.has_ribasim:
-            self.msw.initialize_surface_water_component()
-
         # Print output to stdout
         self.mf6.set_int("ISTDOUTTOFILE", 0)
         self.mf6.initialize()
@@ -140,6 +137,9 @@ class RibaMetaMod(Driver):
             self.ribasim.initialize(ribasim_config_file)
         if self.has_metaswap:
             self.msw.initialize()
+            if self.has_ribasim:
+                self.msw.initialize_surface_water_component()
+
         self.log_version()
 
         if self.coupling.output_config_file is not None:
@@ -327,7 +327,7 @@ class RibaMetaMod(Driver):
 
         if self.has_metaswap and self.has_ribasim:
             self.subtimesteps_sw = range(1, int(self.delt_gw / self.delt_sw) + 1)
-            self.msw.prepare_time_step_noSW(self.delt_sw)
+            self.msw.prepare_time_step_noSW(self.delt_gw)
             for timestep_sw in self.subtimesteps_sw:
                 self.msw.prepare_surface_water_time_step(timestep_sw)
                 self.exchange.add_ponding_msw(self.delt_sw, self.msw_ponding)
@@ -338,18 +338,17 @@ class RibaMetaMod(Driver):
                 self.current_time += self.delt_sw
                 self.ribasim.update_until(days_to_seconds(self.current_time))
                 # get realised values on wateruser nodes
-                fraction_realised_user_nodes = np.array([0.0])  # dummy values for now
+                fraction_realised_user_nodes = np.array([1.0])  # dummy values for now
                 # exchange realised sprinkling
                 self.exchange_sprinkling_flux_realised_msw2rib(
                     fraction_realised_user_nodes
                 )
-                self.msw.finish_surface_water_time_step(timestep_sw)
-        elif self.has_ribasim:
+            self.msw.finish_surface_water_time_step(timestep_sw)
+        elif self.has_ribasim and not self.has_metaswap:
             # exchange summed volumes to Ribasim
             self.exchange.to_ribasim()
-            # update Ribasim per delt_sw
-            self.current_time += self.current_time + self.delt_gw
-            self.ribasim.update_until(self.current_time * days_to_seconds(self.delt_gw))
+            # update Ribasim per delt_gw
+            self.ribasim.update_until(days_to_seconds(self.get_current_time()))
 
         if self.has_ribasim:
             # get realised values on basin boundary nodes and exchange correction flux
@@ -360,10 +359,19 @@ class RibaMetaMod(Driver):
         if self.has_metaswap:
             self.solve_modflow6_metaswap()
         else:
-            self.mf6.update()
+            self.solve_modflow()
         self.mf6.finalize_time_step()
         if self.has_metaswap:
             self.msw.finalize_time_step()
+
+    def solve_modflow(self) -> None:
+        self.mf6.prepare_solve(1)
+        for kiter in range(1, self.max_iter + 1):
+            has_converged = self.do_modflow_iter(1)
+            if has_converged:
+                logger.debug(f"MF6 converged in {kiter} iterations")
+                break
+        self.mf6.finalize_solve(1)
 
     def solve_modflow6_metaswap(self) -> None:
         self.mf6.prepare_solve(1)
@@ -373,6 +381,11 @@ class RibaMetaMod(Driver):
                 logger.debug(f"MF6-MSW converged in {kiter} iterations")
                 break
         self.mf6.finalize_solve(1)
+
+    def do_modflow_iter(self, sol_id: int) -> bool:
+        """Execute a single iteration"""
+        has_converged = self.mf6.solve(sol_id)
+        return has_converged
 
     def do_modflow6_metaswap_iter(self, sol_id: int) -> bool:
         """Execute a single iteration"""
