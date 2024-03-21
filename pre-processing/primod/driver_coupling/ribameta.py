@@ -29,7 +29,7 @@ class RibaMetaDriverCoupling(DriverCoupling):
     """
 
     ribasim_basin_definition: gpd.GeoDataFrame
-    ribasim_user_demand_definition: gpd.GeoDataFrame | None
+    ribasim_user_demand_definition: gpd.GeoDataFrame | None = None
 
     def _check_sprinkling(self, msw_model: MetaSwapModel) -> bool:
         sprinkling_key = msw_model._get_pkg_key(Sprinkling, optional_package=True)

@@ -34,22 +34,26 @@ class MetaModDriverCoupling(DriverCoupling):
         sprinkling_in_msw = sprinkling_key is not None
         sprinkling_in_mf6 = self.mf6_wel_package in gwf_model.keys()
 
-        if sprinkling_in_msw and not sprinkling_in_mf6:
-            raise ValueError(
-                f"No package named {self.mf6_wel_package} found in Modflow 6 model, "
-                "but Sprinkling package found in MetaSWAP. "
-                "iMOD Coupler requires a Well Package "
-                "to couple wells."
-            )
-        elif not sprinkling_in_msw and sprinkling_in_mf6:
-            raise ValueError(
-                f"Modflow 6 Well package {self.mf6_wel_package} specified for sprinkling, "
-                "but no Sprinkling package found in MetaSWAP model."
-            )
-        elif sprinkling_in_msw and sprinkling_in_mf6:
-            return True
-        else:
-            return False
+        value = False
+        match (sprinkling_in_msw, sprinkling_in_mf6):
+            case (True, False):
+                raise ValueError(
+                    f"No package named {self.mf6_wel_package} found in Modflow 6 model, "
+                    "but Sprinkling package found in MetaSWAP. "
+                    "iMOD Coupler requires a Well Package "
+                    "to couple wells."
+                )
+            case (False, True):
+                raise ValueError(
+                    f"Modflow 6 Well package {self.mf6_wel_package} specified for sprinkling, "
+                    "but no Sprinkling package found in MetaSWAP model."
+                )
+            case (True, True):
+                value = True
+            case (False, False):
+                value = False
+
+        return value
 
     def derive_mapping(
         self, msw_model: MetaSwapModel, gwf_model: GroundwaterFlowModel

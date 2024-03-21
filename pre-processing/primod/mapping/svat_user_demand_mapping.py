@@ -22,7 +22,7 @@ class SvatUserDemandMapping(GenericMapping):
         user_id_values = user_id.to_numpy()[include].astype(int)
         user_index = np.searchsorted(user_demand_ids, user_id_values)
 
-        # TODO: I'm not entirely sure this is the correct logic!
+        # TODO (Huite): I'm not entirely sure this is the correct logic!
         # I don't quite understand the whole index business.
         # This should probably be simplified for all MetaModMappings too.
         coupled_svats = svat.isel(subunit=0, drop=True).where(
