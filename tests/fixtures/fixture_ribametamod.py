@@ -3,7 +3,7 @@ from pathlib import Path
 import numpy as np
 import pytest_cases
 import xarray as xr
-from imod import idf, mf6, msw
+from imod import mf6, msw
 
 from .common import create_wells_max_layer
 from .fixture_metaswap import metaswap_model
