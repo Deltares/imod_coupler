@@ -1,7 +1,7 @@
 import geopandas as gpd
 import ribasim
 from imod.mf6 import Drainage, GroundwaterFlowModel, Modflow6Simulation, River
-from primod.ribamod import DriverCoupling, RibaMod
+from primod import RibaMod, RibaModActiveDriverCoupling
 
 
 def create_basin_definition(
@@ -26,10 +26,10 @@ def case_bucket_model(
 
     basin_definition = create_basin_definition(ribasim_bucket_model, buffersize=10.0)
 
-    driver_coupling = DriverCoupling(
+    driver_coupling = RibaModActiveDriverCoupling(
         mf6_model=mf6_modelname,
-        basin_definition=basin_definition,
-        mf6_active_river_packages=mf6_active_river_packages,
+        ribasim_basin_definition=basin_definition,
+        mf6_packages=mf6_active_river_packages,
     )
 
     return RibaMod(
@@ -49,11 +49,10 @@ def case_backwater_model(
 
     basin_definition = create_basin_definition(ribasim_backwater_model, buffersize=5.0)
 
-    driver_coupling = DriverCoupling(
+    driver_coupling = RibaModActiveDriverCoupling(
         mf6_model=mf6_modelname,
-        basin_definition=basin_definition,
-        mf6_active_river_packages=mf6_active_river_packages,
-        mf6_active_drainage_packages=mf6_active_drainage_packages,
+        ribasim_basin_definition=basin_definition,
+        mf6_packages=mf6_active_river_packages + mf6_active_drainage_packages,
     )
 
     return RibaMod(
@@ -75,10 +74,10 @@ def two_basin_variation(
         ribasim_two_basin_model, buffersize=250.0
     )
 
-    driver_coupling = DriverCoupling(
+    driver_coupling = RibaModActiveDriverCoupling(
         mf6_model=mf6_modelname,
-        basin_definition=basin_definition,
-        mf6_active_river_packages=mf6_active_river_packages,
+        ribasim_basin_definition=basin_definition,
+        mf6_packages=mf6_active_river_packages,
     )
 
     return RibaMod(

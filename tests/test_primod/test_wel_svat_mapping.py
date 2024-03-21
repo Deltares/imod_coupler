@@ -45,11 +45,11 @@ def test_simple_model(fixed_format_parser):
         rate=well_rate,
     )
 
-    coupler_mapping = WellSvatMapping(svat, well)
+    coupler_mapping = WellSvatMapping(svat, well, index=index)
 
     with tempfile.TemporaryDirectory() as output_dir:
         output_dir = Path(output_dir)
-        coupler_mapping.write(output_dir, index, svat)
+        coupler_mapping.write(output_dir)
 
         results = fixed_format_parser(
             output_dir / WellSvatMapping._file_name,
@@ -94,11 +94,11 @@ def test_simple_model_1_subunit(fixed_format_parser):
         rate=well_rate,
     )
 
-    coupler_mapping = WellSvatMapping(svat, well)
+    coupler_mapping = WellSvatMapping(svat, well, index=index)
 
     with tempfile.TemporaryDirectory() as output_dir:
         output_dir = Path(output_dir)
-        coupler_mapping.write(output_dir, index, svat)
+        coupler_mapping.write(output_dir)
 
         results = fixed_format_parser(
             output_dir / WellSvatMapping._file_name,
@@ -152,11 +152,11 @@ def test_simple_model_inactive(fixed_format_parser):
         rate=well_rate,
     )
 
-    coupler_mapping = WellSvatMapping(svat, well)
+    coupler_mapping = WellSvatMapping(svat, well, index=index)
 
     with tempfile.TemporaryDirectory() as output_dir:
         output_dir = Path(output_dir)
-        coupler_mapping.write(output_dir, index, svat)
+        coupler_mapping.write(output_dir)
 
         results = fixed_format_parser(
             output_dir / WellSvatMapping._file_name,

@@ -7,7 +7,9 @@ import xarray as xr
 from imod import mf6
 from imod.msw.fixed_format import VariableMetaData
 from numpy.typing import NDArray
+
 from primod.mapping.mappingbase import MetaModMapping
+from primod.typing import Int
 
 
 class WellSvatMapping(MetaModMapping):
@@ -36,8 +38,11 @@ class WellSvatMapping(MetaModMapping):
     _with_subunit = ("wel_id", "svat", "layer")
     _to_fill = ("free",)
 
-    def __init__(self, svat: xr.DataArray, well: mf6.WellDisStructured):
+    def __init__(
+        self, svat: xr.DataArray, well: mf6.WellDisStructured, index: NDArray[Int]
+    ):
         super().__init__()
+        self.index = index
         self.well = well
         well_mod_id, well_svat, layer = self._create_well_id(svat)
         self.dataset["wel_id"] = well_mod_id
@@ -71,7 +76,7 @@ class WellSvatMapping(MetaModMapping):
 
         return (well_id_1d, well_svat_1d, layer_1d)
 
-    def _render(self, file: TextIOWrapper, *args: Any) -> None:
+    def _render(self, file: TextIOWrapper, *args: Any, **kwargs: Any) -> None:
         data_dict: dict[str, Any] = {}
         data_dict["svat"] = self.dataset["svat"].to_numpy()
         data_dict["layer"] = self.dataset["layer"].to_numpy()

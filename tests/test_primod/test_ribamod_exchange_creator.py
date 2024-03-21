@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import pytest
 import xarray as xr
-from primod.ribamod import exchange_creator as exc
+from primod.mapping import ActiveNodeBasinMapping, NodeBasinMapping
 
 
 def conductance():
@@ -24,12 +24,12 @@ def test_ensure_time_invariant_conductance():
     da = conductance()
 
     # Test
-    actual = exc._ensure_time_invariant_conductance(da)
+    actual = NodeBasinMapping._ensure_time_invariant_conductance(da)
     assert actual is da
 
     # Now add time
     time_da = xr.DataArray([1.0, 1.0, 1.0], coords={"time": [0, 1, 2]}) * da
-    actual = exc._ensure_time_invariant_conductance(time_da)
+    actual = NodeBasinMapping._ensure_time_invariant_conductance(time_da)
     assert actual.dims == ("layer", "y", "x")
     assert "time" not in actual.coords
 
@@ -37,7 +37,7 @@ def test_ensure_time_invariant_conductance():
     time_da[1, 1, 1, 1] = np.nan
     time_da[1, 0, 0, 0] = 2.0
     with pytest.raises(ValueError, match="For imod_coupler, the active cells"):
-        exc._ensure_time_invariant_conductance(time_da)
+        NodeBasinMapping._ensure_time_invariant_conductance(time_da)
 
 
 class TestFindCoupledCells:
@@ -52,7 +52,7 @@ class TestFindCoupledCells:
     def test_find_coupled_cells__all(self):
         da = xr.ones_like(self.conductance)
         gridded_basin = xr.full_like(self.gridded_basin, 3)
-        basin_index, include = exc._find_coupled_cells(
+        basin_index, include = NodeBasinMapping._find_coupled_cells(
             da, gridded_basin, self.basin_ids
         )
 
@@ -69,7 +69,7 @@ class TestFindCoupledCells:
         da = xr.ones_like(self.conductance)
         gridded_basin = xr.full_like(self.gridded_basin, 3)
         gridded_basin[..., 2:] = np.nan
-        basin_index, include = exc._find_coupled_cells(
+        basin_index, include = NodeBasinMapping._find_coupled_cells(
             da, gridded_basin, self.basin_ids
         )
 
@@ -85,7 +85,7 @@ class TestFindCoupledCells:
         da = xr.ones_like(self.conductance)
         gridded_basin = xr.full_like(self.gridded_basin, 3)
         da[..., 2:] = np.nan
-        basin_index, include = exc._find_coupled_cells(
+        basin_index, include = NodeBasinMapping._find_coupled_cells(
             da, gridded_basin, self.basin_ids
         )
 
@@ -102,7 +102,7 @@ class TestFindCoupledCells:
         da[1:, ...] = np.nan
         gridded_basin = xr.full_like(self.gridded_basin, 3)
         gridded_basin[..., 2:] = 11
-        basin_index, include = exc._find_coupled_cells(
+        basin_index, include = NodeBasinMapping._find_coupled_cells(
             da, gridded_basin, self.basin_ids
         )
 
@@ -117,18 +117,20 @@ class TestFindCoupledCells:
         gridded_basin = xr.full_like(self.gridded_basin, 3)
         gridded_basin[:, 1] = 7
         gridded_basin[:, 2] = 11
-        basin_index, _ = exc._find_coupled_cells(da, gridded_basin, self.basin_ids)
+        basin_index, _ = NodeBasinMapping._find_coupled_cells(
+            da, gridded_basin, self.basin_ids
+        )
         assert np.array_equal(basin_index, [1, 2, 3])
 
 
 def test_derive_boundary_index():
     da = conductance()
     include = da.notnull().to_numpy()
-    boundary_id = exc._derive_boundary_index(da, include)
+    boundary_id = NodeBasinMapping._derive_boundary_index(da, include)
     assert np.array_equal(boundary_id, [0, 1, 2])
 
     da = xr.ones_like(conductance())
-    boundary_id = exc._derive_boundary_index(da, include)
+    boundary_id = NodeBasinMapping._derive_boundary_index(da, include)
     assert np.array_equal(boundary_id, [0, 26, 52])
 
 
@@ -137,7 +139,8 @@ def test_derive_passive_coupling():
     gridded_basin = xr.full_like(da.isel(layer=0, drop=True), 7)
     basin_ids = pd.Series([1, 3, 7, 11])
 
-    table = exc.derive_passive_coupling(da, gridded_basin, basin_ids)
+    mapping = NodeBasinMapping("passive", da, gridded_basin, basin_ids)
+    table = mapping.dataframe
     assert isinstance(table, pd.DataFrame)
     assert table.shape == (3, 2)
     pd.testing.assert_frame_equal(
@@ -150,7 +153,7 @@ def test_derive_passive_coupling():
 def test_get_subgrid_xy():
     df = pd.DataFrame()
     with pytest.raises(ValueError, match='The columns "meta_x"'):
-        exc._get_subgrid_xy(df)
+        ActiveNodeBasinMapping._get_subgrid_xy(df)
 
     df = pd.DataFrame(
         data={
@@ -160,7 +163,7 @@ def test_get_subgrid_xy():
         }
     )
     with pytest.raises(ValueError, match="Subgrid data contains multiple"):
-        exc._get_subgrid_xy(df)
+        ActiveNodeBasinMapping._get_subgrid_xy(df)
 
     df = pd.DataFrame(
         data={
@@ -169,7 +172,7 @@ def test_get_subgrid_xy():
             "meta_y": [1.0, 1.0, 2.0, 2.0],
         }
     )
-    xy = exc._get_subgrid_xy(df)
+    xy = ActiveNodeBasinMapping._get_subgrid_xy(df)
     assert np.allclose(
         xy,
         [
@@ -182,7 +185,7 @@ def test_get_subgrid_xy():
 def test_get_conductance_xy():
     da = conductance()
     include = da.notnull().to_numpy()
-    xy = exc._get_conductance_xy(da, include)
+    xy = ActiveNodeBasinMapping._get_conductance_xy(da, include)
 
     assert np.allclose(
         xy,
@@ -209,14 +212,16 @@ def test_find_nearest_subgrid_elements():
             [3.0, 12.0],
         ]
     )
-    indices = exc._find_nearest_subgrid_elements(subgrid_xy, conductance_xy)
+    indices = ActiveNodeBasinMapping._find_nearest_subgrid_elements(
+        subgrid_xy, conductance_xy
+    )
 
     assert np.array_equal(indices, [2, 3, 1])
 
 
 def test_derive_active_coupling():
-    da = conductance()
-    gridded_basin = xr.full_like(da.isel(layer=0, drop=True), 7)
+    cond = conductance()
+    gridded_basin = xr.full_like(cond.isel(layer=0, drop=True), 7)
     basin_ids = pd.Series([1, 3, 7, 11])
     subgrid_df = pd.DataFrame(
         data={
@@ -226,7 +231,11 @@ def test_derive_active_coupling():
         }
     )
 
-    table = exc.derive_active_coupling(da, gridded_basin, basin_ids, subgrid_df)
+    mapping = ActiveNodeBasinMapping(
+        "active", cond, gridded_basin, basin_ids, subgrid_df
+    )
+    assert mapping.name == "active"
+    table = mapping.dataframe
     assert isinstance(table, pd.DataFrame)
     assert table.shape == (3, 3)
     pd.testing.assert_frame_equal(
