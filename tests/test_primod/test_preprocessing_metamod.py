@@ -1,8 +1,8 @@
 import numpy as np
 import pytest
 from numpy.testing import assert_equal
-from primod.metamod import (
-    MetaMod,
+from primod import MetaMod, MetaModDriverCoupling
+from primod.mapping import (
     NodeSvatMapping,
     RechargeSvatMapping,
     WellSvatMapping,
@@ -18,11 +18,13 @@ except ModuleNotFoundError:
 def test_metamod_write(prepared_msw_model, coupled_mf6_model, tmp_path):
     output_dir = tmp_path / "metamod"
 
+    driver_coupling = MetaModDriverCoupling(
+        mf6_model="GWF_1", mf6_wel_package="wells_msw", mf6_recharge_package="rch_msw"
+    )
     coupled_models = MetaMod(
         prepared_msw_model,
         coupled_mf6_model,
-        mf6_rch_pkgkey="rch_msw",
-        mf6_wel_pkgkey="wells_msw",
+        coupling_list=[driver_coupling],
     )
 
     coupled_models.write(output_dir, "./modflow6.dll", "./metaswap.dll", "./metaswap")
@@ -44,34 +46,33 @@ def test_metamod_write(prepared_msw_model, coupled_mf6_model, tmp_path):
 def test_metamod_write_exchange(
     prepared_msw_model, coupled_mf6_model, fixed_format_parser, tmp_path
 ):
-    output_dir = tmp_path / "exhanges"
+    output_dir = tmp_path
     output_dir.mkdir(exist_ok=True, parents=True)
 
+    driver_coupling = MetaModDriverCoupling(
+        mf6_model="GWF_1", mf6_wel_package="wells_msw", mf6_recharge_package="rch_msw"
+    )
     coupled_models = MetaMod(
-        prepared_msw_model,
-        coupled_mf6_model,
-        mf6_rch_pkgkey="rch_msw",
-        mf6_wel_pkgkey="wells_msw",
+        prepared_msw_model, coupled_mf6_model, coupling_list=[driver_coupling]
     )
 
     coupled_models.write_exchanges(
         output_dir,
-        mf6_rch_pkgkey="rch_msw",
-        mf6_wel_pkgkey="wells_msw",
     )
 
+    exchange_dir = output_dir / "exchanges"
     nodes_dxc = fixed_format_parser(
-        output_dir / NodeSvatMapping._file_name,
+        exchange_dir / NodeSvatMapping._file_name,
         NodeSvatMapping._metadata_dict,
     )
 
     rch_dxc = fixed_format_parser(
-        output_dir / RechargeSvatMapping._file_name,
+        exchange_dir / RechargeSvatMapping._file_name,
         RechargeSvatMapping._metadata_dict,
     )
 
     wel_dxc = fixed_format_parser(
-        output_dir / WellSvatMapping._file_name,
+        exchange_dir / WellSvatMapping._file_name,
         WellSvatMapping._metadata_dict,
     )
 
@@ -117,33 +118,33 @@ def test_metamod_write_exchange_no_sprinkling(
     # Remove sprinkling package
     prepared_msw_model.pop("sprinkling")
 
-    output_dir = tmp_path / "exhanges"
+    output_dir = tmp_path
     output_dir.mkdir(exist_ok=True, parents=True)
 
+    driver_coupling = MetaModDriverCoupling(
+        mf6_model="GWF_1", mf6_recharge_package="rch_msw"
+    )
+
     coupled_models = MetaMod(
-        prepared_msw_model,
-        coupled_mf6_model,
-        mf6_rch_pkgkey="rch_msw",
-        mf6_wel_pkgkey=None,
+        prepared_msw_model, coupled_mf6_model, coupling_list=[driver_coupling]
     )
 
     coupled_models.write_exchanges(
         output_dir,
-        mf6_rch_pkgkey="rch_msw",
-        mf6_wel_pkgkey=None,
     )
 
+    exchange_dir = output_dir / "exchanges"
     nodes_dxc = fixed_format_parser(
-        output_dir / NodeSvatMapping._file_name,
+        exchange_dir / NodeSvatMapping._file_name,
         NodeSvatMapping._metadata_dict,
     )
 
     rch_dxc = fixed_format_parser(
-        output_dir / RechargeSvatMapping._file_name,
+        exchange_dir / RechargeSvatMapping._file_name,
         RechargeSvatMapping._metadata_dict,
     )
 
-    well_dxc_written = (output_dir / WellSvatMapping._file_name).exists()
+    well_dxc_written = (exchange_dir / WellSvatMapping._file_name).exists()
 
     assert well_dxc_written is False
 
@@ -175,11 +176,11 @@ def test_metamod_write_toml(prepared_msw_model, coupled_mf6_model, tmp_path):
     output_dir = tmp_path
     output_dir.mkdir(exist_ok=True, parents=True)
 
+    driver_coupling = MetaModDriverCoupling(
+        mf6_model="GWF_1", mf6_wel_package="wells_msw", mf6_recharge_package="rch_msw"
+    )
     coupled_models = MetaMod(
-        prepared_msw_model,
-        coupled_mf6_model,
-        mf6_rch_pkgkey="rch_msw",
-        mf6_wel_pkgkey="wells_msw",
+        prepared_msw_model, coupled_mf6_model, coupling_list=[driver_coupling]
     )
 
     coupling_dict = {
@@ -225,11 +226,11 @@ def test_metamod_write_toml(prepared_msw_model, coupled_mf6_model, tmp_path):
 def test_metamod_get_coupling_dict(prepared_msw_model, coupled_mf6_model, tmp_path):
     output_dir = tmp_path / "exchanges"
 
+    driver_coupling = MetaModDriverCoupling(
+        mf6_model="GWF_1", mf6_wel_package="wells_msw", mf6_recharge_package="rch_msw"
+    )
     coupled_models = MetaMod(
-        prepared_msw_model,
-        coupled_mf6_model,
-        mf6_rch_pkgkey="rch_msw",
-        mf6_wel_pkgkey="wells_msw",
+        prepared_msw_model, coupled_mf6_model, coupling_list=[driver_coupling]
     )
 
     dict_expected = {
@@ -242,10 +243,8 @@ def test_metamod_get_coupling_dict(prepared_msw_model, coupled_mf6_model, tmp_pa
         "mf6_msw_sprinkling_map": "./exchanges/wellindex2svat.dxc",
     }
 
-    coupled_dict = coupled_models._get_coupling_dict(
+    coupled_dict = coupled_models.write_exchanges(
         output_dir,
-        mf6_rch_pkgkey="rch_msw",
-        mf6_wel_pkgkey="wells_msw",
     )
 
     assert dict_expected == coupled_dict
@@ -259,11 +258,11 @@ def test_metamod_get_coupling_dict_no_sprinkling(
     # Remove sprinkling package
     prepared_msw_model.pop("sprinkling")
 
+    driver_coupling = MetaModDriverCoupling(
+        mf6_model="GWF_1", mf6_recharge_package="rch_msw"
+    )
     coupled_models = MetaMod(
-        prepared_msw_model,
-        coupled_mf6_model,
-        mf6_rch_pkgkey="rch_msw",
-        mf6_wel_pkgkey=None,
+        prepared_msw_model, coupled_mf6_model, coupling_list=[driver_coupling]
     )
 
     dict_expected = {
@@ -274,53 +273,70 @@ def test_metamod_get_coupling_dict_no_sprinkling(
         "enable_sprinkling": False,
     }
 
-    coupled_dict = coupled_models._get_coupling_dict(
+    coupled_dict = coupled_models.write_exchanges(
         output_dir,
-        mf6_rch_pkgkey="rch_msw",
-        mf6_wel_pkgkey=None,
     )
 
     assert dict_expected == coupled_dict
 
 
-def test_metamod_init_no_sprinkling_fail(prepared_msw_model, coupled_mf6_model):
+def test_metamod_init_no_sprinkling_fail(
+    prepared_msw_model, coupled_mf6_model, tmp_path
+):
     # Remove sprinkling package
     prepared_msw_model.pop("sprinkling")
+    driver_coupling = MetaModDriverCoupling(
+        mf6_model="GWF_1", mf6_wel_package="wells_msw", mf6_recharge_package="rch_msw"
+    )
 
+    output_dir = tmp_path / "exchanges"
     with pytest.raises(ValueError):
-        MetaMod(
+        metamod = MetaMod(
+            prepared_msw_model, coupled_mf6_model, coupling_list=[driver_coupling]
+        )
+        metamod.write_exchanges(output_dir)
+
+
+def test_metamod_init_no_mf6_well_fail(prepared_msw_model, coupled_mf6_model, tmp_path):
+    driver_coupling = MetaModDriverCoupling(
+        mf6_model="GWF_1",
+        mf6_wel_package="does not exist",
+        mf6_recharge_package="rch_msw",
+    )
+
+    output_dir = tmp_path / "exchanges"
+    with pytest.raises(ValueError):
+        metamod = MetaMod(
+            prepared_msw_model, coupled_mf6_model, coupling_list=[driver_coupling]
+        )
+        metamod.write_exchanges(output_dir)
+
+
+def test_metamod_init_no_mf6_well_fail2(
+    prepared_msw_model, coupled_mf6_model, tmp_path
+):
+    driver_coupling = MetaModDriverCoupling(
+        mf6_model="GWF_1", mf6_recharge_package="rch_msw"
+    )
+    output_dir = tmp_path / "exchanges"
+    with pytest.raises(ValueError):
+        metamod = MetaMod(
+            prepared_msw_model, coupled_mf6_model, coupling_list=[driver_coupling]
+        )
+        metamod.write_exchanges(output_dir)
+
+
+def test_metamod_init_no_mf6_rch_fail(prepared_msw_model, coupled_mf6_model, tmp_path):
+    driver_coupling = MetaModDriverCoupling(
+        mf6_model="GWF_1",
+        mf6_recharge_package="does_not_exist",
+        mf6_wel_package="wells_msw",
+    )
+    output_dir = tmp_path / "exchanges"
+    with pytest.raises(ValueError):
+        metamod = MetaMod(
             prepared_msw_model,
             coupled_mf6_model,
-            mf6_rch_pkgkey="rch_msw",
-            mf6_wel_pkgkey="wells_msw",
+            coupling_list=[driver_coupling],
         )
-
-
-def test_metamod_init_no_mf6_well_fail(prepared_msw_model, coupled_mf6_model):
-    with pytest.raises(ValueError):
-        MetaMod(
-            prepared_msw_model,
-            coupled_mf6_model,
-            mf6_rch_pkgkey="rch_msw",
-            mf6_wel_pkgkey="does_not_exist",
-        )
-
-
-def test_metamod_init_no_mf6_well_fail2(prepared_msw_model, coupled_mf6_model):
-    with pytest.raises(ValueError):
-        MetaMod(
-            prepared_msw_model,
-            coupled_mf6_model,
-            mf6_rch_pkgkey="rch_msw",
-            mf6_wel_pkgkey=None,
-        )
-
-
-def test_metamod_init_no_mf6_rch_fail(prepared_msw_model, coupled_mf6_model):
-    with pytest.raises(ValueError):
-        MetaMod(
-            prepared_msw_model,
-            coupled_mf6_model,
-            mf6_rch_pkgkey="does_not_exist",
-            mf6_wel_pkgkey="wells_msw",
-        )
+        metamod.write_exchanges(output_dir)
