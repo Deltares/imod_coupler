@@ -6,7 +6,7 @@ import h5netcdf.legacyapi as nc
 import numpy as np
 import pandas as pd
 
-from test_scripts.mf6_water_balance.MF6_wbal_listing import listfile_to_dataframe
+from common_scripts.mf6_water_balance.MF6_wbal_listing import listfile_to_dataframe
 
 
 def create_modflow_waterbalance_file(
