@@ -327,9 +327,9 @@ class RibaMetaMod(Driver):
             self.exchange_rib2mod()
 
         if self.has_ribasim and self.has_metaswap:
-            self.update_ribasim_metaswap
+            self.update_ribasim_metaswap()
         elif self.has_ribasim and not self.has_metaswap:
-            self.update_ribasim
+            self.update_ribasim()
 
         if self.has_ribasim:
             # get realised values on basin boundary nodes and exchange correction flux
@@ -438,7 +438,6 @@ class RibaMetaMod(Driver):
                 self.mapping.mask_rib2mod[key] * package.water_level
                 + self.mapping.map_rib2mod[key].dot(self.subgrid_level)
             )
-        return
 
     def exchange_msw2mod(self) -> None:
         """Exchange Metaswap to Modflow"""
