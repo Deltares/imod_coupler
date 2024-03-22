@@ -5,6 +5,7 @@ from imod.mf6 import Modflow6Simulation, Recharge
 from imod.msw import MetaSwapModel
 from primod import (
     MetaModDriverCoupling,
+    RibaMetaDriverCoupling,
     RibaMetaMod,
     RibaModActiveDriverCoupling,
 )
@@ -120,9 +121,13 @@ def case_two_basin_model(
         mf6_packages=mf6_active_river_packages,
         ribasim_basin_definition=basin_definition,
     )
+    ribameta_coupling = RibaMetaDriverCoupling(
+        ribasim_basin_definition=basin_definition,
+    )
+
     return RibaMetaMod(
         ribasim_model=ribasim_two_basin_model,
         msw_model=msw_two_basin_model,
         mf6_simulation=mf6_two_basin_model_3layer,
-        coupling_list=[metamod_coupling, ribamod_coupling],
+        coupling_list=[metamod_coupling, ribamod_coupling, ribameta_coupling],
     )
