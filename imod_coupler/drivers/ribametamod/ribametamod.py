@@ -110,7 +110,10 @@ class RibaMetaMod(Driver):
         else:
             self.has_ribasim = False
 
-        if self.ribametamod_config.kernels.metaswap is not None:
+        if (
+            self.ribametamod_config.kernels.metaswap is not None
+            and self.coupling.mf6_msw_node_map is not None
+        ):
             self.msw = MswWrapper(
                 lib_path=self.ribametamod_config.kernels.metaswap.dll,
                 lib_dependency=self.ribametamod_config.kernels.metaswap.dll_dep_dir,
@@ -120,9 +123,6 @@ class RibaMetaMod(Driver):
             self.has_metaswap = True
         else:
             self.has_metaswap = False
-
-        if self.has_metaswap and self.has_ribasim:
-            self.msw.initialize_surface_water_component()
 
         # Print output to stdout
         self.mf6.set_int("ISTDOUTTOFILE", 0)
@@ -137,6 +137,9 @@ class RibaMetaMod(Driver):
             self.ribasim.initialize(ribasim_config_file)
         if self.has_metaswap:
             self.msw.initialize()
+            if self.has_ribasim:
+                self.msw.initialize_surface_water_component()
+
         self.log_version()
 
         if self.coupling.output_config_file is not None:
@@ -154,15 +157,10 @@ class RibaMetaMod(Driver):
         if self.has_metaswap:
             logger.info(f"MetaSWAP version: {self.msw.get_version()}")
 
-    def couple(self) -> None:
-        """Couple Modflow, MetaSWAP and Ribasim"""
-
-        self.max_iter = self.mf6.max_iter()
-        mf6_flowmodel_key = self.coupling.mf6_model
-        self.mf6_head = self.mf6.get_head(mf6_flowmodel_key)
-
-        # Get all MODFLOW 6 pointers, relevant for coupling with Ribasim
+    def couple_ribasim(self, mf6_flowmodel_key: str) -> ChainMap[str, Any]:
+        arrays: ChainMap[str, Any] = ChainMap()
         if self.has_ribasim:
+            # Get all MODFLOW 6 pointers, relevant for coupling with Ribasim
             self.mf6_active_river_packages = self.mf6.get_rivers_packages(
                 mf6_flowmodel_key, list(self.coupling.mf6_active_river_packages.keys())
             )
@@ -186,58 +184,57 @@ class RibaMetaMod(Driver):
             self.mf6_drainage_packages = ChainMap(
                 self.mf6_active_drainage_packages, self.mf6_passive_drainage_packages
             )
+            self.mf6_active_packages = ChainMap(
+                self.mf6_active_river_packages, self.mf6_active_drainage_packages
+            )  # type: ignore
+            # Get all Ribasim pointers, relevant for coupling with MODFLOW 6
+            self.ribasim_infiltration = self.ribasim.get_value_ptr("basin.infiltration")
+            self.ribasim_drainage = self.ribasim.get_value_ptr("basin.drainage")
+            self.ribasim_level = self.ribasim.get_value_ptr("basin.level")
+            self.subgrid_level = self.ribasim.get_value_ptr("basin.subgrid_level")
+            # add to return ChainMap
+            arrays.update(
+                ChainMap[str, Any](
+                    self.mf6_river_packages,
+                    self.mf6_drainage_packages,
+                    {
+                        "ribasim_nbasin": len(self.ribasim_level),
+                        "ribasim_nsubgrid": len(self.subgrid_level),
+                    },
+                )
+            )
+        return arrays
 
-        # Get all MODFLOW 6 pointers, relevant for optional coupling with MetaSWAP
-        if self.coupling.mf6_msw_recharge_pkg is not None:
+    def couple_metaswap(self) -> dict[str, Any]:
+        arrays: dict[str, Any] = {}
+        if self.has_metaswap:
+            # Get all MODFLOW 6 pointers, relevant for coupling with MetaSWAP
             self.mf6_recharge = self.mf6.get_recharge(
                 self.coupling.mf6_model, self.coupling.mf6_msw_recharge_pkg
             )
             self.mf6_recharge_nodes = self.mf6.get_recharge_nodes(
                 self.coupling.mf6_model, self.coupling.mf6_msw_recharge_pkg
             )
-
-        self.mf6_storage = self.mf6.get_storage(self.coupling.mf6_model)
-        self.mf6_has_sc1 = self.mf6.has_sc1(self.coupling.mf6_model)
-        self.mf6_area = self.mf6.get_area(self.coupling.mf6_model)
-        self.mf6_top = self.mf6.get_top(self.coupling.mf6_model)
-        self.mf6_bot = self.mf6.get_bot(self.coupling.mf6_model)
-
-        # Get all relevant Ribasim pointers
-        if self.has_ribasim:
-            self.ribasim_infiltration = self.ribasim.get_value_ptr("basin.infiltration")
-            self.ribasim_drainage = self.ribasim.get_value_ptr("basin.drainage")
-            self.ribasim_level = self.ribasim.get_value_ptr("basin.level")
-            self.ribasim_volume = self.ribasim.get_value_ptr("basin.storage")
-
-        # Get all relevant MetaSWAP pointers
-        if self.has_metaswap:
+            self.mf6_storage = self.mf6.get_storage(self.coupling.mf6_model)
+            self.mf6_has_sc1 = self.mf6.has_sc1(self.coupling.mf6_model)
+            self.mf6_area = self.mf6.get_area(self.coupling.mf6_model)
+            self.mf6_top = self.mf6.get_top(self.coupling.mf6_model)
+            self.mf6_bot = self.mf6.get_bot(self.coupling.mf6_model)
+            # Get all MetaSWAP pointers, relevant for coupling with MODLFOW 6
             self.msw_head = self.msw.get_head_ptr()
             self.msw_volume = self.msw.get_volume_ptr()
             self.msw_storage = self.msw.get_storage_ptr()
-            self.msw_ponding = self.msw.get_surfacewater_ponding_allocation_ptr()
-            self.delt_sw = self.msw.get_sw_time_step()
-
-        # set mapping
-        # Ribasim - MODFLOW 6
-        ribmod_packages: ChainMap[str, Any] = ChainMap()
-        if self.has_ribasim:
-            ribmod_packages.update(
-                ChainMap[str, Any](
-                    self.mf6_river_packages,
-                    self.mf6_drainage_packages,
-                    {"ribasim_nbound": len(self.ribasim_level)},
-                )
-            )
-
-        # MetaSWAP - MODFLOW 6
-        mswmod_packages: dict[str, Any] = {}
-        if self.has_metaswap:
-            mswmod_packages["msw_head"] = self.msw_head
-            mswmod_packages["msw_volume"] = self.msw_volume
-            mswmod_packages["msw_storage"] = self.msw_storage
-            mswmod_packages["mf6_recharge"] = (
-                self.mf6_recharge
-            )  # waar komt mf6_recharge vandaan
+            # add to return dict
+            arrays["msw_head"] = self.msw_head
+            arrays["msw_volume"] = self.msw_volume
+            arrays["msw_storage"] = self.msw_storage
+            arrays["mf6_recharge"] = self.mf6_recharge
+            arrays["mf6_head"] = self.mf6_head
+            arrays["mf6_storage"] = self.mf6_storage
+            arrays["mf6_has_sc1"] = self.mf6_has_sc1
+            arrays["mf6_area"] = self.mf6_area
+            arrays["mf6_top"] = self.mf6_top
+            arrays["mf6_bot"] = self.mf6_bot
             if (
                 self.coupling.enable_sprinkling_groundwater
                 and self.coupling.mf6_msw_well_pkg is not None
@@ -245,28 +242,33 @@ class RibaMetaMod(Driver):
                 self.mf6_sprinkling_wells = self.mf6.get_well(
                     self.coupling.mf6_model, self.coupling.mf6_msw_well_pkg
                 )
-                mswmod_packages["mf6_sprinkling_wells"] = self.mf6_sprinkling_wells
-            mswmod_packages["mf6_head"] = self.mf6_head
-            mswmod_packages["mf6_storage"] = self.mf6_storage
-            mswmod_packages["mf6_has_sc1"] = self.mf6_has_sc1
-            mswmod_packages["mf6_area"] = self.mf6_area
-            mswmod_packages["mf6_top"] = self.mf6_top
-            mswmod_packages["mf6_bot"] = self.mf6_bot
+                arrays["mf6_sprinkling_wells"] = self.mf6_sprinkling_wells
+            # Get all MetaSWAP pointers, relevant for coupling with Ribasim
+            if self.has_ribasim:
+                self.msw_ponding = self.msw.get_surfacewater_ponding_allocation_ptr()
+                self.delt_sw = self.msw.get_sw_time_step()
+                # add to return dict
+                arrays["ribmsw_nbound"] = np.size(
+                    self.msw.get_surfacewater_ponding_allocation_ptr()
+                )
+        return arrays
 
-        # MetaSWAP - Ribasim
-        if self.has_ribasim and self.has_metaswap:
-            ribmsw_packages: dict[str, Any] = {}
-            ribmsw_packages["mf6_bot"] = self.mf6_bot
-            ribmsw_packages["ribmsw_nbound"] = np.size(
-                self.msw.get_surfacewater_ponding_allocation_ptr()
-            )
+    def couple(self) -> None:
+        """Couple Modflow, MetaSWAP and Ribasim"""
+        self.max_iter = self.mf6.max_iter()
+        mf6_flowmodel_key = self.coupling.mf6_model
+        self.mf6_head = self.mf6.get_head(mf6_flowmodel_key)
 
+        # get all relevant pointers
+        modrib_arrays = self.couple_ribasim(mf6_flowmodel_key)
+        modribmsw_arrays = self.couple_metaswap()
+
+        # set mappings
         self.mapping = SetMapping(
             self.coupling,
             ChainMap(
-                ribmod_packages,
-                mswmod_packages,
-                ribmsw_packages,
+                modrib_arrays,
+                modribmsw_arrays,
             ),
             self.has_metaswap,
             self.has_ribasim,
@@ -277,18 +279,11 @@ class RibaMetaMod(Driver):
             ),
         )
 
-        # Set CoupledExchangeClass to handle all exchanges to Ribasim Basins
-        labels = []
-        if self.has_metaswap:
-            labels.append("sw_ponding")
+        # Set exchange-class to handle all exchanges to Ribasim Basins
         if self.has_ribasim:
-            labels.extend(list(self.mf6_active_river_packages.keys()))
-            labels.extend(list(self.mf6_passive_river_packages.keys()))
-            labels.extend(list(self.mf6_active_drainage_packages.keys()))
-            labels.extend(list(self.mf6_passive_drainage_packages.keys()))
             self.exchange = CoupledExchangeBalance(
                 shape=self.ribasim_infiltration.size,
-                labels=labels,
+                labels=self.exchange_labels(),
                 mf6_river_packages=self.mf6_river_packages,
                 mf6_drainage_packages=self.mf6_drainage_packages,
                 mf6_active_river_api_packages=self.mf6_active_river_api_packages,
@@ -297,45 +292,44 @@ class RibaMetaMod(Driver):
                 ribasim_drainage=self.ribasim_drainage,
             )
 
-    def update(self) -> None:
-        if self.has_metaswap:
-            self.exchange_head_mod2msw()
-
-        self.mf6.prepare_time_step(0.0)
-        self.delt_gw = self.mf6.get_time_step()
+    def update_ribasim_metaswap(self) -> None:
         self.subtimesteps_sw = range(1, int(self.delt_gw / self.delt_sw) + 1)
-
-        if self.has_ribasim:
-            # zeros exchange-arrays, Ribasim pointers and API-packages
-            self.exchange.reset()
-            # exchange stage and compute flux estimates over MODFLOW 6 timestep
-            self.exchange_stage_rib2mod()
-            self.exchange.add_flux_estimate_mod(self.delt_gw, self.mf6_head)
-
-        if self.has_metaswap and self.has_ribasim:
-            self.msw.prepare_time_step_noSW(self.delt_sw)
-            for timestep_sw in self.subtimesteps_sw:
-                self.msw.prepare_surface_water_time_step(timestep_sw)
-                self.exchange.add_ponding_msw(self.delt_sw, self.msw_ponding)
-                self.exchange_sprinkling_demand_msw2rib(self.delt_sw)
-                # exchange summed volumes to Ribasim
-                self.exchange.to_ribasim()
-                # update Ribasim per delt_sw
-                self.current_time += self.delt_sw
-                self.ribasim.update_until(days_to_seconds(self.current_time))
-                # get realised values on wateruser nodes
-                fraction_realised_user_nodes = np.array([0.0])  # dummy values for now
-                # exchange realised sprinkling
-                self.exchange_sprinkling_flux_realised_msw2rib(
-                    fraction_realised_user_nodes
-                )
-                self.msw.finish_surface_water_time_step(timestep_sw)
-        elif self.has_ribasim:
+        self.msw.prepare_time_step_noSW(self.delt_gw)
+        for timestep_sw in self.subtimesteps_sw:
+            self.msw.prepare_surface_water_time_step(timestep_sw)
+            self.exchange.add_ponding_msw(self.delt_sw, self.msw_ponding)
+            self.exchange_sprinkling_demand_msw2rib(self.delt_sw)
             # exchange summed volumes to Ribasim
             self.exchange.to_ribasim()
             # update Ribasim per delt_sw
-            self.current_time += self.current_time + self.delt_gw
-            self.ribasim.update_until(self.current_time * days_to_seconds(self.delt_gw))
+            self.current_time += self.delt_sw
+            self.ribasim.update_until(days_to_seconds(self.current_time))
+            # get realised values on wateruser nodes
+            fraction_realised_user_nodes = np.array([1.0])  # dummy values for now
+            # exchange realised sprinkling
+            self.exchange_sprinkling_flux_realised_msw2rib(fraction_realised_user_nodes)
+        self.msw.finish_surface_water_time_step(timestep_sw)
+
+    def update_ribasim(self) -> None:
+        # exchange summed volumes to Ribasim
+        self.exchange.to_ribasim()
+        # update Ribasim per delt_gw
+        self.ribasim.update_until(days_to_seconds(self.get_current_time()))
+
+    def update(self) -> None:
+        if self.has_metaswap:
+            self.exchange_mod2msw()
+
+        self.mf6.prepare_time_step(0.0)
+        self.delt_gw = self.mf6.get_time_step()
+
+        if self.has_ribasim:
+            self.exchange_rib2mod()
+
+        if self.has_ribasim and self.has_metaswap:
+            self.update_ribasim_metaswap()
+        elif self.has_ribasim and not self.has_metaswap:
+            self.update_ribasim()
 
         if self.has_ribasim:
             # get realised values on basin boundary nodes and exchange correction flux
@@ -346,10 +340,19 @@ class RibaMetaMod(Driver):
         if self.has_metaswap:
             self.solve_modflow6_metaswap()
         else:
-            self.mf6.update()
+            self.solve_modflow()
         self.mf6.finalize_time_step()
         if self.has_metaswap:
             self.msw.finalize_time_step()
+
+    def solve_modflow(self) -> None:
+        self.mf6.prepare_solve(1)
+        for kiter in range(1, self.max_iter + 1):
+            has_converged = self.do_modflow_iter(1)
+            if has_converged:
+                logger.debug(f"MF6 converged in {kiter} iterations")
+                break
+        self.mf6.finalize_solve(1)
 
     def solve_modflow6_metaswap(self) -> None:
         self.mf6.prepare_solve(1)
@@ -360,15 +363,35 @@ class RibaMetaMod(Driver):
                 break
         self.mf6.finalize_solve(1)
 
+    def do_modflow_iter(self, sol_id: int) -> bool:
+        """Execute a single iteration"""
+        has_converged = self.mf6.solve(sol_id)
+        return has_converged
+
     def do_modflow6_metaswap_iter(self, sol_id: int) -> bool:
         """Execute a single iteration"""
         self.msw.prepare_solve(0)
         self.msw.solve(0)
         self.exchange_msw2mod()
         has_converged = self.mf6.solve(sol_id)
-        self.exchange_head_mod2msw()
+        self.exchange_mod2msw()
         self.msw.finalize_solve(0)
         return has_converged
+
+    def finalize(self) -> None:
+        self.mf6.finalize()
+        if self.has_ribasim:
+            self.ribasim.finalize()
+            self.ribasim.shutdown_julia()
+        self.exchange_logger.finalize()
+
+    def exchange_rib2mod(self) -> None:
+        self.ribasim.update_subgrid_level()
+        # zeros exchange-arrays, Ribasim pointers and API-packages
+        self.exchange.reset()
+        # exchange stage and compute flux estimates over MODFLOW 6 timestep
+        self.exchange_stage_rib2mod()
+        self.exchange.add_flux_estimate_mod(self.delt_gw, self.mf6_head)
 
     def exchange_sprinkling_demand_msw2rib(self, delt: float) -> None:
         # flux demand from metaswap sprinkling to Ribasim (demand)
@@ -407,13 +430,14 @@ class RibaMetaMod(Driver):
             )[:]
 
     def exchange_stage_rib2mod(self) -> None:
-        # Set the MODFLOW 6 river stage and drainage to value of waterlevel of Ribasim basin
-        for key, river in self.mf6_active_river_packages.items():
-            # TODO: use specific level after Ribasim can export levels
-            river.stage[:] = self.mapping.rib2mod[key].dot(self.ribasim_level)
-        for key, drainage in self.mf6_active_drainage_packages.items():
-            # TODO: use specific level after Ribasim can export levels
-            drainage.elevation[:] = self.mapping.rib2mod[key].dot(self.ribasim_level)
+        # Mypy refuses to understand this ChainMap for some reason.
+        # ChainMaps work fine in other places...
+        for key, package in self.mf6_active_packages.items():
+            package.update_bottom_minimum()
+            package.set_water_level(
+                self.mapping.mask_rib2mod[key] * package.water_level
+                + self.mapping.map_rib2mod[key].dot(self.subgrid_level)
+            )
 
     def exchange_msw2mod(self) -> None:
         """Exchange Metaswap to Modflow"""
@@ -441,20 +465,23 @@ class RibaMetaMod(Driver):
                 / self.delt_gw
             )
 
-    def exchange_head_mod2msw(self) -> None:
+    def exchange_mod2msw(self) -> None:
         """Exchange Modflow to Metaswap"""
-        if self.has_metaswap:
-            self.msw_head[:] = (
-                self.mapping.mod2msw["head_mask"][:] * self.msw_head[:]
-                + self.mapping.mod2msw["head"].dot(self.mf6_head)[:]
-            )
+        self.msw_head[:] = (
+            self.mapping.mod2msw["head_mask"][:] * self.msw_head[:]
+            + self.mapping.mod2msw["head"].dot(self.mf6_head)[:]
+        )
 
-    def finalize(self) -> None:
-        self.mf6.finalize()
+    def exchange_labels(self) -> list[str]:
+        exchange_labels = []
+        if self.has_metaswap:
+            exchange_labels.append("sw_ponding")
         if self.has_ribasim:
-            self.ribasim.finalize()
-            self.ribasim.shutdown_julia()
-        self.exchange_logger.finalize()
+            exchange_labels.extend(list(self.mf6_active_river_packages.keys()))
+            exchange_labels.extend(list(self.mf6_passive_river_packages.keys()))
+            exchange_labels.extend(list(self.mf6_active_drainage_packages.keys()))
+            exchange_labels.extend(list(self.mf6_passive_drainage_packages.keys()))
+        return exchange_labels
 
     def get_current_time(self) -> float:
         return self.mf6.get_current_time()

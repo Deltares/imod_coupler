@@ -401,13 +401,13 @@ def mf6_two_basin_model_3layer() -> mf6.Modflow6Simulation:
     coords = {"layer": layer, "y": y, "x": x}
     idomain = xr.DataArray(data=np.ones(shape, dtype=int), coords=coords, dims=dims)
 
-    stage = xr.full_like(idomain, np.nan, dtype=float)
-    conductance = xr.full_like(idomain, np.nan, dtype=float)
-    bottom_elevation = xr.full_like(idomain, np.nan, dtype=float)
-    stage[:, 25, :] = 0.5
+    stage = xr.full_like(idomain.isel(layer=1), np.nan, dtype=float)
+    conductance = xr.full_like(idomain.isel(layer=1), np.nan, dtype=float)
+    bottom_elevation = xr.full_like(idomain.isel(layer=1), np.nan, dtype=float)
+    stage[25, :] = 0.5
     # Compute conductance as wetted area (length 20.0, width 1.0, entry resistance 1.0)
-    conductance[:, 25, :] = (20.0 * 1.0) / 1.0
-    bottom_elevation[:, 25, :] = 0.0
+    conductance[25, :] = (20.0 * 1.0) / 1.0
+    bottom_elevation[25, :] = 0.0
     river = mf6.River(
         stage=stage,
         conductance=conductance,

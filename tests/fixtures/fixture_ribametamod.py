@@ -25,10 +25,24 @@ def make_msw_model(
     area = xr.ones_like(idomain_flat, dtype=np.float64) * (
         np.diff(idomain.x)[0] * -np.diff(idomain.y)[0]
     )
-    area = (area.assign_coords(subunit=0).expand_dims(subunit=isubunits)) / nsubunits
-    area = area.where(area.subunit < nsubunits)
 
-    active = (xr.ones_like(idomain_flat) == 1).where(nsubunits.notnull(), other=False)
+    # no svats where river is defined
+    no_river = xr.full_like(area, fill_value=True, dtype=np.bool_)
+    for sys in gwf["GWF_1"].keys():
+        package = gwf["GWF_1"][sys]
+        if isinstance(package, mf6.River):
+            cond = package["conductance"]
+            if "layer" in cond.dims:
+                cond = cond.isel(layer=0, drop=True)
+            no_river.values = np.logical_and(
+                cond.isna().to_numpy(), no_river.notnull().to_numpy()
+            )
+    area = (area.assign_coords(subunit=0).expand_dims(subunit=isubunits)) / nsubunits
+    area = area.where((area.subunit < nsubunits) & no_river)
+
+    active = (xr.ones_like(idomain_flat) == 1).where(
+        nsubunits.notnull() & no_river, other=False
+    )
 
     # Clip off
     modflow_active = idomain.sel(layer=1, drop=True).astype(bool)
