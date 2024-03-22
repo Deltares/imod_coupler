@@ -2,7 +2,6 @@ from collections.abc import Callable
 from pathlib import Path
 
 import numpy as np
-import pandas as pd
 import pytest
 from imod.msw import MetaSwapModel
 from primod.ribametamod import RibaMetaMod
