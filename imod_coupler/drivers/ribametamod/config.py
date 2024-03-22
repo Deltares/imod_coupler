@@ -21,8 +21,8 @@ class Coupling(BaseModel):
     mf6_passive_drainage_packages: dict[str, str]
 
     enable_sprinkling_groundwater: bool = False  # true when sprinkling is active
-    mf6_msw_recharge_pkg: str | None = (
-        None  # the recharge package that will be used for coupling
+    mf6_msw_recharge_pkg: str = (
+        ""  # the recharge package that will be used for coupling
     )
     mf6_msw_well_pkg: str | None = (
         None  # the well package that will be used for coupling when sprinkling is active
