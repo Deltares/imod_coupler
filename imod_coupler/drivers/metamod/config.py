@@ -35,9 +35,9 @@ class Coupling(BaseModel):
     def validate_mf6_msw_sprinkling_map(
         cls, mf6_msw_sprinkling_map_groundwater: FilePath | None, info: ValidationInfo
     ) -> FilePath | None:
-        assert info.config is not None
+        assert info.data is not None
         if mf6_msw_sprinkling_map_groundwater is not None:
-            if info.config.get("mf6_msw_well_pkg") is None:
+            if info.data.get("mf6_msw_well_pkg") is None:
                 raise ValueError(
                     "If 'mf6_msw_sprinkling_map_groundwater is set, then `mf6_msw_well_pkg` needs to be set."
                 )
