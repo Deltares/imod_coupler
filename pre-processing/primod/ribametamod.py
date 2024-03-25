@@ -91,13 +91,6 @@ class RibaMetaMod(CoupledModel):
         directory = Path(directory)
         directory.mkdir(parents=True, exist_ok=True)
 
-        self.mf6_simulation.write(
-            directory / self._modflow6_model_dir,
-            **modflow6_write_kwargs,
-        )
-        self.msw_model.write(directory / self._metaswap_model_dir)
-        self.ribasim_model.write(directory / self._ribasim_model_dir / "ribasim.toml")
-
         # Write exchange files
         coupling_dict = self.write_exchanges(directory)
         self.write_toml(
@@ -109,6 +102,14 @@ class RibaMetaMod(CoupledModel):
             ribasim_dll,
             ribasim_dll_dependency,
         )
+
+        # Write models
+        self.mf6_simulation.write(
+            directory / self._modflow6_model_dir,
+            **modflow6_write_kwargs,
+        )
+        self.msw_model.write(directory / self._metaswap_model_dir)
+        self.ribasim_model.write(directory / self._ribasim_model_dir / "ribasim.toml")
 
     def write_toml(
         self,
