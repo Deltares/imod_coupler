@@ -174,7 +174,7 @@ class RibaMetaMod(CoupledModel):
                         ),
                     },
                 },
-                "coupling": coupling_dict,
+                "coupling": [coupling_dict],
             },
         }
 

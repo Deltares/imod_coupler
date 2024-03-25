@@ -31,7 +31,7 @@ cases_missing_files = [
     ["driver", "kernels", "metaswap", "dll"],
     ["driver", "coupling", 0, "mf6_msw_node_map"],
     ["driver", "coupling", 0, "mf6_msw_recharge_map"],
-    ["driver", "coupling", 0, "mf6_msw_sprinkling_map"],
+    ["driver", "coupling", 0, "mf6_msw_sprinkling_map_groundwater"],
 ]
 
 
@@ -104,11 +104,9 @@ def test_sprinkling_requires_files(
     with open(config_path, "rb") as f:
         config_dict = tomli.load(f)
 
-    assert config_dict["driver"]["coupling"][0]["enable_sprinkling"]
-
     # Get the path of `mf6_msw_sprinkling_map`
     sprinkling_map = config_path.parent / get_from_container(
-        config_dict, ["driver", "coupling", 0, "mf6_msw_sprinkling_map"]
+        config_dict, ["driver", "coupling", 0, "mf6_msw_sprinkling_map_groundwater"]
     )
     # Delete `mf6_msw_sprinkling_map`
 

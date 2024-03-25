@@ -100,11 +100,11 @@ class MetaModDriverCoupling(DriverCoupling):
         coupling_dict["mf6_msw_node_map"] = grid_mapping.write(directory)
         coupling_dict["mf6_msw_recharge_pkg"] = self.mf6_recharge_package
         coupling_dict["mf6_msw_recharge_map"] = rch_mapping.write(directory)
-        coupling_dict["enable_sprinkling"] = False
 
         if well_mapping is not None:
-            coupling_dict["enable_sprinkling"] = True
             coupling_dict["mf6_msw_well_pkg"] = self.mf6_wel_package
-            coupling_dict["mf6_msw_sprinkling_map"] = well_mapping.write(directory)
+            coupling_dict["mf6_msw_sprinkling_map_groundwater"] = well_mapping.write(
+                directory
+            )
 
         return coupling_dict

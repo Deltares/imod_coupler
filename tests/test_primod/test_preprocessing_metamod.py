@@ -188,9 +188,8 @@ def test_metamod_write_toml(prepared_msw_model, coupled_mf6_model, tmp_path):
         "mf6_msw_node_map": "./exchanges/nodenr2svat.dxc",
         "mf6_msw_recharge_map": "./exchanges/rchindex2svat.dxc",
         "mf6_msw_recharge_pkg": "rch_msw",
-        "enable_sprinkling": True,
         "mf6_msw_well_pkg": "wells_msw",
-        "mf6_msw_sprinkling_map": "./exchanges/wellindex2svat.dxc",
+        "mf6_msw_sprinkling_map_groundwater": "./exchanges/wellindex2svat.dxc",
     }
 
     coupled_models.write_toml(
@@ -238,9 +237,8 @@ def test_metamod_get_coupling_dict(prepared_msw_model, coupled_mf6_model, tmp_pa
         "mf6_msw_node_map": "./exchanges/nodenr2svat.dxc",
         "mf6_msw_recharge_map": "./exchanges/rchindex2svat.dxc",
         "mf6_msw_recharge_pkg": "rch_msw",
-        "enable_sprinkling": True,
         "mf6_msw_well_pkg": "wells_msw",
-        "mf6_msw_sprinkling_map": "./exchanges/wellindex2svat.dxc",
+        "mf6_msw_sprinkling_map_groundwater": "./exchanges/wellindex2svat.dxc",
     }
 
     coupled_dict = coupled_models.write_exchanges(
@@ -270,7 +268,6 @@ def test_metamod_get_coupling_dict_no_sprinkling(
         "mf6_msw_node_map": "./exchanges/nodenr2svat.dxc",
         "mf6_msw_recharge_map": "./exchanges/rchindex2svat.dxc",
         "mf6_msw_recharge_pkg": "rch_msw",
-        "enable_sprinkling": False,
     }
 
     coupled_dict = coupled_models.write_exchanges(
