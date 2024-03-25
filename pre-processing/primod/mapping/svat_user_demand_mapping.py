@@ -22,9 +22,6 @@ class SvatUserDemandMapping(GenericMapping):
         user_id_values = user_id.to_numpy()[include].astype(int)
         user_index = np.searchsorted(user_demand_ids, user_id_values)
 
-        # TODO (Huite): I'm not entirely sure this is the correct logic!
-        # I don't quite understand the whole index business.
-        # This should probably be simplified for all MetaModMappings too.
         coupled_svats = svat.where(gridded_user_demand.notnull(), other=-1)
         # Set all "deeper" subunits (higher than 0) to -1 so they are filtered away.
         coupled_svats.loc[{"subunit": slice(1, None)}] = -1
