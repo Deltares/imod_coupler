@@ -76,6 +76,19 @@ class MetaMod(CoupledModel):
 
         # force to Path
         directory = Path(directory)
+        directory.mkdir(parents=True, exist_ok=True)
+
+        # Write exchange files
+        coupling_dict = self.write_exchanges(directory)
+        self.write_toml(
+            directory,
+            modflow6_dll,
+            metaswap_dll,
+            metaswap_dll_dependency,
+            coupling_dict,
+        )
+
+        # Write models
         # For some reason the Modflow 6 model has to be written first, before
         # writing the MetaSWAP model. Else we get an Access Violation Error when
         # running the coupler.
@@ -84,17 +97,6 @@ class MetaMod(CoupledModel):
             **modflow6_write_kwargs,
         )
         self.msw_model.write(directory / self._metaswap_model_dir)
-
-        # Write exchange files
-        coupling_dict = self.write_exchanges(directory)
-
-        self.write_toml(
-            directory,
-            modflow6_dll,
-            metaswap_dll,
-            metaswap_dll_dependency,
-            coupling_dict,
-        )
 
     def write_toml(
         self,
