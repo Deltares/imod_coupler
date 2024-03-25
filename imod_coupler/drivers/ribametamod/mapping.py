@@ -161,7 +161,7 @@ class SetMapping:
             "sum",
         )
 
-        if self.coupling.enable_sprinkling_groundwater:
+        if self.coupling.mf6_msw_sprinkling_map_groundwater is not None:
             assert isinstance(self.coupling.mf6_msw_well_pkg, str)
             assert isinstance(self.coupling.mf6_msw_sprinkling_map_groundwater, Path)
 

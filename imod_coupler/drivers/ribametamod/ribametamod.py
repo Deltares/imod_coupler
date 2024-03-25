@@ -57,6 +57,9 @@ class RibaMetaMod(Driver):
     mf6_top: NDArray[Any]  # top of cell (size:nodes)
     mf6_bot: NDArray[Any]  # bottom of cell (size:nodes)
 
+    enable_sprinkling_groundwater: bool
+    enable_sprinkling_surface_water: bool
+
     mf6_active_river_packages: dict[str, Mf6River]
     mf6_active_river_api_packages: dict[str, Mf6Api]
     mf6_passive_river_packages: dict[str, Mf6River]
@@ -92,6 +95,8 @@ class RibaMetaMod(Driver):
         self.coupling = ribametamod_config.coupling[
             0
         ]  # Adapt as soon as we have multimodel support
+        self.enable_sprinkling_groundwater = False
+        self.enable_sprinkling_surface_water = False
 
     def initialize(self) -> None:
         self.mf6 = Mf6Wrapper(
@@ -235,14 +240,15 @@ class RibaMetaMod(Driver):
             arrays["mf6_area"] = self.mf6_area
             arrays["mf6_top"] = self.mf6_top
             arrays["mf6_bot"] = self.mf6_bot
-            if (
-                self.coupling.enable_sprinkling_groundwater
-                and self.coupling.mf6_msw_well_pkg is not None
-            ):
+
+            if self.coupling.mf6_msw_sprinkling_map_groundwater is not None:
+                self.enable_sprinkling_groundwater = True
+                assert self.coupling.mf6_msw_well_pkg is not None  # mypy
                 self.mf6_sprinkling_wells = self.mf6.get_well(
                     self.coupling.mf6_model, self.coupling.mf6_msw_well_pkg
                 )
                 arrays["mf6_sprinkling_wells"] = self.mf6_sprinkling_wells
+
             # Get all MetaSWAP pointers, relevant for coupling with Ribasim
             if self.has_ribasim:
                 self.msw_ponding = self.msw.get_surfacewater_ponding_allocation_ptr()
@@ -395,10 +401,7 @@ class RibaMetaMod(Driver):
 
     def exchange_sprinkling_demand_msw2rib(self, delt: float) -> None:
         # flux demand from metaswap sprinkling to Ribasim (demand)
-        if (
-            "sw_sprinkling" in self.mapping.msw2rib
-            and self.coupling.enable_sprinkling_surface_water
-        ):
+        if self.enable_sprinkling_surface_water:
             self.msw_sprinkling_demand_sec = (
                 self.msw.get_surfacewater_sprinking_demand_ptr() / days_to_seconds(delt)
             )
@@ -417,7 +420,7 @@ class RibaMetaMod(Driver):
         self, realised_fractions: NDArray[np.float64]
     ) -> None:
         # realised flux from Ribasim to metaswap
-        if self.coupling.enable_sprinkling_surface_water:
+        if self.enable_sprinkling_surface_water:
             msw_sprinkling_realised = self.msw.get_surfacewater_sprinking_realised_ptr()
             # map fractions back to the shape of MetaSWAP array
             msw_sprfrac_realised = self.mapping.msw2rib["sw_sprinkling"].T.dot(
@@ -457,7 +460,7 @@ class RibaMetaMod(Driver):
             + self.mapping.msw2mod["recharge"].dot(self.msw_volume)[:] / self.delt_gw
         ) / self.mf6_area[self.mf6_recharge_nodes - 1]
 
-        if self.coupling.enable_sprinkling_groundwater:
+        if self.enable_sprinkling_groundwater:
             self.mf6_sprinkling_wells[:] = (
                 self.mapping.msw2mod["sw_sprinkling_mask"][:]
                 * self.mf6_sprinkling_wells[:]

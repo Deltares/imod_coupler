@@ -50,6 +50,7 @@ class MetaMod(Driver):
     msw_volume: NDArray[Any]  # unsaturated zone flux (as a volume!)
     msw_storage: NDArray[Any]  # MetaSWAP storage coefficients (MODFLOW's sc1)
 
+    enable_sprinkling_groundwater: bool
     # dictionary with mapping tables for mod=>msw coupling
     map_mod2msw: dict[str, csr_matrix] = {}
     # dictionary with mapping tables for msw=>mod coupling
@@ -66,6 +67,7 @@ class MetaMod(Driver):
         self.coupling = metamod_config.coupling[
             0
         ]  # Adapt as soon as we have multimodel support
+        self.enable_sprinkling_groundwater = False
 
     def initialize(self) -> None:
         self.mf6 = Mf6Wrapper(
@@ -189,16 +191,18 @@ class MetaMod(Driver):
             "sum",
         )
 
-        if self.coupling.enable_sprinkling:
+        if self.coupling.mf6_msw_sprinkling_map_groundwater is not None:
             assert isinstance(self.coupling.mf6_msw_well_pkg, str)
-            assert isinstance(self.coupling.mf6_msw_sprinkling_map, Path)
+            assert isinstance(self.coupling.mf6_msw_sprinkling_map_groundwater, Path)
 
             # in this case we have a sprinkling demand from MetaSWAP
             self.mf6_sprinkling_wells = self.mf6.get_well(
                 self.coupling.mf6_model, self.coupling.mf6_msw_well_pkg
             )
             table_well2svat: NDArray[np.int32] = np.loadtxt(
-                self.coupling.mf6_msw_sprinkling_map, dtype=np.int32, ndmin=2
+                self.coupling.mf6_msw_sprinkling_map_groundwater,
+                dtype=np.int32,
+                ndmin=2,
             )
             well_idx = table_well2svat[:, 0] - 1
             msw_idx = [
@@ -274,7 +278,7 @@ class MetaMod(Driver):
             + self.map_msw2mod["recharge"].dot(self.msw_volume)[:] / self.delt
         ) / self.mf6_area[nodelist]
 
-        if self.coupling.enable_sprinkling:
+        if self.enable_sprinkling_groundwater:
             self.mf6_sprinkling_wells[:] = (
                 self.mask_msw2mod["sprinkling"][:] * self.mf6_sprinkling_wells[:]
                 + self.map_msw2mod["sprinkling"].dot(self.msw_volume)[:] / self.delt
