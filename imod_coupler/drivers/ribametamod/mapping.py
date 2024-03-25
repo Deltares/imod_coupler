@@ -13,7 +13,8 @@ from imod_coupler.utils import create_mapping
 class SetMapping:
     # TODO: check who should be leading if no changes are defined
     map_mod2rib: dict[str, csr_matrix]
-    map_rib2mod: dict[str, csr_matrix]
+    map_rib2mod_stage: dict[str, csr_matrix]
+    map_rib2mod_flux: dict[str, csr_matrix]
     mask_rib2mod: dict[str, csr_matrix]
     msw2mod: dict[str, csr_matrix]
     mod2msw: dict[str, csr_matrix]
@@ -39,7 +40,8 @@ class SetMapping:
     def set_ribasim_modflow_mapping(self, packages: ChainMap[str, Any]) -> None:
         self.map_mod2rib = {}
         self.coupled_mod2rib = np.full(packages["ribasim_nbasin"], False)
-        self.map_rib2mod = {}
+        self.map_rib2mod_stage = {}
+        self.map_rib2mod_flux = {}
         self.mask_rib2mod = {}
         active_tables = ChainMap(
             self.coupling.mf6_active_river_packages,
@@ -61,7 +63,9 @@ class SetMapping:
             )
 
             self.map_mod2rib[key] = mod2rib
-            self.map_rib2mod[key] = rib2mod
+            self.map_rib2mod_stage[key] = rib2mod # for mapping stages between subgrid levels and riv nodes
+            self.map_rib2mod_flux[key] = mod2rib.T # for mapping fluxes between basins and riv nodes
+            
             self.mask_rib2mod[key] = (rib2mod.getnnz(axis=1) == 0).astype(int)
             # In-place bitwise or
             self.coupled_mod2rib |= mod2rib.getnnz(axis=1) > 0
