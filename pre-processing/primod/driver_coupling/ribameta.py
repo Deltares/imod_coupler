@@ -62,7 +62,7 @@ class RibaMetaDriverCoupling(DriverCoupling):
         )
         gridded_basin = imod.prepare.rasterize(
             self.ribasim_basin_definition,
-            like=svat,
+            like=svat.isel(subunit=0, drop=True),
             column="node_id",
         )
         svat_basin_mapping = SvatBasinMapping(
@@ -79,7 +79,7 @@ class RibaMetaDriverCoupling(DriverCoupling):
             )
             gridded_user_demand = imod.prepare.rasterize(
                 self.ribasim_basin_definition,
-                like=svat,
+                like=svat.isel(subunit=0, drop=True),
                 column="node_id",
             )
             # sprinkling surface water for subsection of svats determined in 'sprinkling'

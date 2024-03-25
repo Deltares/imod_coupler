@@ -12,11 +12,13 @@ from imod_coupler.utils import create_mapping
 
 class SetMapping:
     # TODO: check who should be leading if no changes are defined
-    mod2rib: dict[str, csr_matrix]
-    rib2mod: dict[str, csr_matrix]
+    map_mod2rib: dict[str, csr_matrix]
+    map_rib2mod: dict[str, csr_matrix]
+    mask_rib2mod: dict[str, csr_matrix]
     msw2mod: dict[str, csr_matrix]
     mod2msw: dict[str, csr_matrix]
     msw2rib: dict[str, csr_matrix]
+    coupled_mod2rib: NDArray[np.bool_]
 
     def __init__(
         self,
@@ -35,27 +37,51 @@ class SetMapping:
             self.set_metaswap_ribasim_mapping(packages, mod2svat)
 
     def set_ribasim_modflow_mapping(self, packages: ChainMap[str, Any]) -> None:
-        coupling_tables = ChainMap(
+        self.map_mod2rib = {}
+        self.coupled_mod2rib = np.full(packages["ribasim_nbasin"], False)
+        self.map_rib2mod = {}
+        self.mask_rib2mod = {}
+        active_tables = ChainMap(
             self.coupling.mf6_active_river_packages,
-            self.coupling.mf6_passive_river_packages,
             self.coupling.mf6_active_drainage_packages,
+        )
+        for key, path in active_tables.items():
+            table = np.loadtxt(path, delimiter="\t", dtype=int, skiprows=1, ndmin=2)
+            package = packages[key]
+            basin_index, bound_index, subgrid_index = table.T
+            data = np.ones_like(basin_index, dtype=np.float64)
+
+            mod2rib = csr_matrix(
+                (data, (basin_index, bound_index)),
+                shape=(packages["ribasim_nbasin"], package.n_bound),
+            )
+            rib2mod = csr_matrix(
+                (data, (bound_index, subgrid_index)),
+                shape=(package.n_bound, packages["ribasim_nsubgrid"]),
+            )
+
+            self.map_mod2rib[key] = mod2rib
+            self.map_rib2mod[key] = rib2mod
+            self.mask_rib2mod[key] = (rib2mod.getnnz(axis=1) == 0).astype(int)
+            # In-place bitwise or
+            self.coupled_mod2rib |= mod2rib.getnnz(axis=1) > 0
+
+        passive_tables = ChainMap(
+            self.coupling.mf6_passive_river_packages,
             self.coupling.mf6_passive_drainage_packages,
         )
-        self.mod2rib = {}
-        self.rib2mod = {}
-        for key, path in coupling_tables.items():
+        for key, path in passive_tables.items():
             table = np.loadtxt(path, delimiter="\t", dtype=int, skiprows=1, ndmin=2)
-            # Ribasim sorts the basins during initialization.
-            row, col = table.T
-            data = np.ones_like(row, dtype=float)
-            # Many to one
-            matrix = csr_matrix(
-                (data, (row, col)),
-                shape=(packages["ribasim_nbound"], packages[key].n_bound),
+            package = packages[key]
+            basin_index, bound_index = table.T
+            data = np.ones_like(basin_index, dtype=np.float64)
+            mod2rib = csr_matrix(
+                (data, (basin_index, bound_index)),
+                shape=(packages["ribasim_nbasin"], package.n_bound),
             )
-            self.mod2rib[key] = matrix
-            # One to many, just transpose
-            self.rib2mod[key] = matrix.T
+            self.map_mod2rib[key] = mod2rib
+            # In-place bitwise or
+            self.coupled_mod2rib |= mod2rib.getnnz(axis=1) > 0
 
     def set_metaswap_modflow_mapping(
         self, packages: ChainMap[str, Any], mod2svat: Path
@@ -177,7 +203,7 @@ class SetMapping:
                 msw_idx,
                 rib_idx,
                 packages["ribmsw_nbound"],
-                packages["ribasim_nbound"],
+                packages["ribasim_nbasin"],
                 "sum",
             )
 
@@ -198,7 +224,7 @@ class SetMapping:
                 msw_idx,
                 rib_idx,
                 packages["ribmsw_nbound"],
-                packages["ribasim_nbound"],
+                packages["ribasim_nbasin"],
                 "sum",
             )
             # should become shape of 'users'-array in Ribasim

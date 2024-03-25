@@ -18,4 +18,4 @@ __all__ = (
     "RibaModPassiveDriverCoupling",
 )
 
-__version__ = "2024.2.1"
+__version__ = "2024.3.0"

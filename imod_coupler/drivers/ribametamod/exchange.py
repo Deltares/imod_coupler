@@ -154,14 +154,14 @@ class CoupledExchangeBalance(ExchangeBalance):
             river_flux = -river.get_flux_estimate(mf6_head)
             river_flux_negative = np.where(river_flux < 0, river_flux, 0)
             self.demands_mf6[key] = river_flux[:] / days_to_seconds(delt)
-            self.demands[key] = self.mapping.mod2rib[key].dot(self.demands_mf6[key])
-            self.demands_negative[key] = self.mapping.mod2rib[key].dot(
+            self.demands[key] = self.mapping.map_mod2rib[key].dot(self.demands_mf6[key])
+            self.demands_negative[key] = self.mapping.map_mod2rib[key].dot(
                 river_flux_negative
             ) / days_to_seconds(delt)
         for key, drainage in self.mf6_drainage_packages.items():
             # Swap sign since a negative RIV flux means a positive contribution to Ribasim
             drain_flux = -drainage.get_flux_estimate(mf6_head)
-            self.demands[key] = self.mapping.mod2rib[key].dot(
+            self.demands[key] = self.mapping.map_mod2rib[key].dot(
                 drain_flux
             ) / days_to_seconds(delt)
 
@@ -179,8 +179,13 @@ class CoupledExchangeBalance(ExchangeBalance):
     def to_ribasim(self) -> None:
         demand = self.demand
         # negative demand in exchange class means infiltration from Ribasim
-        self.ribasim_infiltration += np.where(demand < 0, demand, 0)
-        self.ribasim_drainage += np.where(demand > 0, -demand, 0)
+        coupled_index = self.mapping.coupled_mod2rib
+        self.ribasim_infiltration[coupled_index] = np.where(demand < 0, -demand, 0)[
+            coupled_index
+        ]
+        self.ribasim_drainage[coupled_index] = np.where(demand > 0, demand, 0)[
+            coupled_index
+        ]
 
     def to_modflow(self, realised: NDArray[np.float64]) -> None:
         super().compute_realised(realised)
@@ -194,7 +199,7 @@ class CoupledExchangeBalance(ExchangeBalance):
             # in which case the Modflow demand was POSITIVE, otherwise the correction is 0
             self.mf6_active_river_api_packages[key].rhs[:] = -(
                 np.maximum(self.demands_mf6[key], 0.0)
-                * (1 - self.mapping.mod2rib[key].transpose().dot(realised_fraction))
+                * (1 - self.mapping.map_rib2mod[key].dot(realised_fraction))
             )
 
 
