@@ -80,13 +80,10 @@ class RibaMod(CoupledModel):
 
         # force to Path
         directory = Path(directory)
-        coupling_dict = self.write_exchanges(directory)
+        directory.mkdir(parents=True, exist_ok=True)
 
-        self.mf6_simulation.write(
-            directory / self._modflow6_model_dir,
-            **modflow6_write_kwargs,
-        )
-        self.ribasim_model.write(directory / self._ribasim_model_dir / "ribasim.toml")
+        # Write exchanges
+        coupling_dict = self.write_exchanges(directory)
         self.write_toml(
             directory,
             coupling_dict,
@@ -94,6 +91,13 @@ class RibaMod(CoupledModel):
             ribasim_dll,
             ribasim_dll_dependency,
         )
+
+        # Write models
+        self.mf6_simulation.write(
+            directory / self._modflow6_model_dir,
+            **modflow6_write_kwargs,
+        )
+        self.ribasim_model.write(directory / self._ribasim_model_dir / "ribasim.toml")
 
     def write_toml(
         self,
