@@ -1,10 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<build-type xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" uuid="990bea63-c625-4e78-8461-69808c72ba08" xsi:noNamespaceSchemaLocation="https://www.jetbrains.com/teamcity/schemas/2021.1/project-config.xsd">
-  <name>Testbench Coupler Win64</name>
-  <description>Win64 Regression testbench for MODFLOW6/MetaSWAP coupler</description>
+<template xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" uuid="ce6e3ba1-e858-40ed-bc5c-81c7d3686da9" xsi:noNamespaceSchemaLocation="https://www.jetbrains.com/teamcity/schemas/2021.1/project-config.xsd">
+  <name>Test Primod Win64</name>
   <settings>
     <options>
-      <option name="artifactRules" value="imod_coupler\tests\temp =&gt; test_output.zip" />
       <option name="branchFilter" value="+:*&#xD;&#xA;-:release_imod56" />
       <option name="cleanBuild" value="true" />
       <option name="publishArtifactCondition" value="ALWAYS" />
@@ -29,7 +27,7 @@
       <runner id="RUNNER_1501" name="Set up pixi" type="simpleRunner">
         <parameters>
           <param name="script.content"><![CDATA[pixi --version
-pixi run install]]></param>
+pixi run --environment %pixi-environment% install]]></param>
           <param name="teamcity.build.workingDir" value="imod_coupler" />
           <param name="teamcity.step.mode" value="default" />
           <param name="use.custom.script" value="true" />
@@ -37,7 +35,7 @@ pixi run install]]></param>
       </runner>
       <runner id="RUNNER_1503" name="Run tests" type="simpleRunner">
         <parameters>
-          <param name="script.content" value="pixi run test-imod-coupler" />
+          <param name="script.content" value="pixi run --environment %pixi-environment% test-primod" />
           <param name="teamcity.build.workingDir" value="imod_coupler" />
           <param name="teamcity.step.mode" value="default" />
           <param name="use.custom.script" value="true" />
@@ -56,13 +54,6 @@ pixi run install]]></param>
       <equals id="RQ_195" name="env.OS" value="Windows_NT" />
     </requirements>
     <build-triggers>
-      <build-trigger id="TRIGGER_64" type="buildDependencyTrigger">
-        <parameters>
-          <param name="afterSuccessfulBuildOnly" value="true" />
-          <param name="branchFilter" value="+:&lt;default&gt;" />
-          <param name="dependsOn" value="iMOD6_IMOD6collectorDaily_ReleaseX64" />
-        </parameters>
-      </build-trigger>
       <build-trigger id="TRIGGER_340" type="vcsTrigger">
         <parameters>
           <param name="branchFilter" value="+:*" />
@@ -90,25 +81,7 @@ pixi run install]]></param>
         </parameters>
       </extension>
     </build-extensions>
-    <artifact-dependencies>
-      <dependency id="ARTIFACT_DEPENDENCY_570" sourceBuildTypeId="iMOD6_IMOD6collectorDaily_ReleaseX64" cleanDestination="true">
-        <revisionRule name="sameChainOrLastFinished" revision="latest.sameChainOrLastFinished" />
-        <artifact sourcePath="imod_coupler_windows.zip!** =&gt; imod_collector_devel&#xD;&#xA;" />
-      </dependency>
-      <dependency id="ARTIFACT_DEPENDENCY_66" sourceBuildTypeId="iMOD6_IMOD6collectorDaily_ReleaseX64" cleanDestination="true">
-        <revisionRule name="buildTag" revision="regression.tcbuildtag" />
-        <artifact sourcePath="imod_coupler_windows.zip!** =&gt; imod_collector_regression" />
-      </dependency>
-    </artifact-dependencies>
-    <dependencies>
-      <depend-on sourceBuildTypeId="iMOD6_IMOD6collectorDaily_ReleaseX64">
-        <options>
-          <option name="take-started-build-with-same-revisions" value="true" />
-          <option name="take-successful-builds-only" value="true" />
-        </options>
-      </depend-on>
-    </dependencies>
     <cleanup />
   </settings>
-</build-type>
+</template>
 
