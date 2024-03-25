@@ -63,9 +63,13 @@ class SetMapping:
             )
 
             self.map_mod2rib[key] = mod2rib
-            self.map_rib2mod_stage[key] = rib2mod # for mapping stages between subgrid levels and riv nodes
-            self.map_rib2mod_flux[key] = mod2rib.T # for mapping fluxes between basins and riv nodes
-            
+            self.map_rib2mod_stage[key] = (
+                rib2mod  # for mapping stages between subgrid levels and riv nodes
+            )
+            self.map_rib2mod_flux[key] = (
+                mod2rib.T
+            )  # for mapping fluxes between basins and riv nodes
+
             self.mask_rib2mod[key] = (rib2mod.getnnz(axis=1) == 0).astype(int)
             # In-place bitwise or
             self.coupled_mod2rib |= mod2rib.getnnz(axis=1) > 0
