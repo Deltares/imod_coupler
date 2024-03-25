@@ -436,7 +436,7 @@ class RibaMetaMod(Driver):
             package.update_bottom_minimum()
             package.set_water_level(
                 self.mapping.mask_rib2mod[key] * package.water_level
-                + self.mapping.map_rib2mod[key].dot(self.subgrid_level)
+                + self.mapping.map_rib2mod_stage[key].dot(self.subgrid_level)
             )
 
     def exchange_msw2mod(self) -> None:

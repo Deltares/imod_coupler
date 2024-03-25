@@ -199,7 +199,7 @@ class CoupledExchangeBalance(ExchangeBalance):
             # in which case the Modflow demand was POSITIVE, otherwise the correction is 0
             self.mf6_active_river_api_packages[key].rhs[:] = -(
                 np.maximum(self.demands_mf6[key], 0.0)
-                * (1 - self.mapping.map_rib2mod[key].dot(realised_fraction))
+                * (1 - self.mapping.map_rib2mod_flux[key].dot(realised_fraction))
             )
 
 
