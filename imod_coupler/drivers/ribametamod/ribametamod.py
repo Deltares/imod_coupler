@@ -11,6 +11,7 @@ from collections.abc import Sequence
 from typing import Any
 
 import numpy as np
+import scipy.sparse as sp
 from loguru import logger
 from numpy.typing import NDArray
 from ribasim_api import RibasimApi
@@ -197,6 +198,14 @@ class RibaMetaMod(Driver):
             self.ribasim_drainage = self.ribasim.get_value_ptr("basin.drainage")
             self.ribasim_level = self.ribasim.get_value_ptr("basin.level")
             self.subgrid_level = self.ribasim.get_value_ptr("basin.subgrid_level")
+
+            # Get all Ribasim pointers, relevant for coupling with MetaSWAP
+            self.ribasim_user_demand = self.ribasim.get_value_ptr("user_demand.demand")
+            self.ribasim_user_demand0 = self.ribasim_user_demand.copy()
+            self.ribasim_user_realised = self.ribasim.get_value_ptr(
+                "user_demand.realized"
+            )
+
             # add to return ChainMap
             arrays.update(
                 ChainMap[str, Any](
@@ -311,9 +320,7 @@ class RibaMetaMod(Driver):
             self.current_time += self.delt_sw
             self.ribasim.update_until(days_to_seconds(self.current_time))
             # get realised values on wateruser nodes
-            fraction_realised_user_nodes = np.array([1.0])  # dummy values for now
-            # exchange realised sprinkling
-            self.exchange_sprinkling_flux_realised_msw2rib(fraction_realised_user_nodes)
+            self.exchange_sprinkling_flux_realised_msw2rib()
         self.msw.finish_surface_water_time_step(timestep_sw)
 
     def update_ribasim(self) -> None:
@@ -402,35 +409,42 @@ class RibaMetaMod(Driver):
     def exchange_sprinkling_demand_msw2rib(self, delt: float) -> None:
         # flux demand from metaswap sprinkling to Ribasim (demand)
         if self.enable_sprinkling_surface_water:
-            self.msw_sprinkling_demand_sec = (
-                self.msw.get_surfacewater_sprinking_demand_ptr() / days_to_seconds(delt)
-            )
+            if "sw_sprinkling" in self.mapping.msw2rib:
+                mapped = self.mapping.msw2rib["sw_sprinkling"].dot(
+                    self.msw.get_surfacewater_sprinking_demand_ptr()
+                    / days_to_seconds(delt)
+                )
 
-            ribasim_sprinkling_demand_sec = self.mapping.msw2rib["sw_sprinkling"].dot(
-                self.msw_sprinkling_demand_sec
-            )[:]
-            self.ribasim_infiltration += np.where(
-                ribasim_sprinkling_demand_sec > 0, ribasim_sprinkling_demand_sec, 0
-            )
-            self.ribasim_drainage += np.where(
-                ribasim_sprinkling_demand_sec < 0, -ribasim_sprinkling_demand_sec, 0
-            )
+            user_demands = self.ribasim_user_demand0.copy()
+            # set user demands in the ribasim exchange array wherever positive user_demand
+            user_demands[user_demands > 0] = 1.0
+            self.ribasim_user_demand = mapped[:, np.newaxis] * user_demands
+            # set a proportion of the user demands in the ribasim exchange array wherever positive user_demand
+
+            # static user demands from ribasim normalised
+            user_demands_norm = user_demands / user_demands.sum(axis=1)[:, np.newaxis]
+            self.ribasim_user_demand = mapped[:, np.newaxis] * user_demands_norm
 
     def exchange_sprinkling_flux_realised_msw2rib(
         self, realised_fractions: NDArray[np.float64]
     ) -> None:
-        # realised flux from Ribasim to metaswap
-        if self.enable_sprinkling_surface_water:
-            msw_sprinkling_realised = self.msw.get_surfacewater_sprinking_realised_ptr()
-            # map fractions back to the shape of MetaSWAP array
-            msw_sprfrac_realised = self.mapping.msw2rib["sw_sprinkling"].T.dot(
-                realised_fractions
-            )
-            # multiply fractions with demands
-            msw_sprinkling_realised[:] = (
-                (self.msw_sprinkling_demand_sec * days_to_seconds(self.delt_gw))
-                * msw_sprfrac_realised
-            )[:]
+        msw_sprinkling_realised = self.msw.get_surfacewater_sprinking_realised_ptr()
+        realised_fractions: NDArray[np.float64] = np.full_like(
+            self.ribasim_user_realised, 0.0
+        )
+
+        nonzero = self.ribasim_user_realised > 0.0
+        realised_fractions[nonzero] = (
+            self.ribasim_user_realised[nonzero]
+            / self.ribasim_user_demand.sum(axis=1).flatten()[nonzero]
+        )
+        msw_sprfrac_realised = (
+            realised_fractions * self.mapping.msw2rib["sw_sprinkling"]
+        )
+        msw_sprinkling_realised[:] = (
+            (self.msw_sprinkling_demand_sec * days_to_seconds(self.delt_gw))
+            * msw_sprfrac_realised
+        )[:]
 
     def exchange_stage_rib2mod(self) -> None:
         # Mypy refuses to understand this ChainMap for some reason.
