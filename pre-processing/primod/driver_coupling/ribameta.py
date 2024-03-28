@@ -78,7 +78,7 @@ class RibaMetaDriverCoupling(DriverCoupling):
                 ribasim_model.user_demand.node.df, self.ribasim_user_demand_definition
             )
             gridded_user_demand = imod.prepare.rasterize(
-                self.ribasim_user_demand_definition
+                self.ribasim_user_demand_definition,
                 like=svat.isel(subunit=0, drop=True),
                 column="node_id",
             )
@@ -133,9 +133,9 @@ class RibaMetaDriverCoupling(DriverCoupling):
             user_demand_ids = _validate_node_ids(
                 ribasim_model.user_demand.node.df, self.ribasim_user_demand_definition
             )
-            coupling_dict["rib_msw_sprinkling_map_surface_water"] = (
-                svat_user_demand_mapping.write(directory=directory)
-            )
+            coupling_dict[
+                "rib_msw_sprinkling_map_surface_water"
+            ] = svat_user_demand_mapping.write(directory=directory)
             coupled_user_demand_indices = svat_user_demand_mapping.dataframe[
                 "user_demand_index"
             ]

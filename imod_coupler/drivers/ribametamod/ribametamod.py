@@ -11,7 +11,6 @@ from collections.abc import Sequence
 from typing import Any
 
 import numpy as np
-import scipy.sparse as sp
 from loguru import logger
 from numpy.typing import NDArray
 from ribasim_api import RibasimApi
