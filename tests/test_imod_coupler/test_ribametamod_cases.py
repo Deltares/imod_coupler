@@ -1,4 +1,4 @@
-import ribasim
+from ribasim import Node
 import xarray as xr
 from fixtures.common import create_wells_max_layer
 from imod.mf6 import Modflow6Simulation, Recharge
@@ -9,7 +9,6 @@ from primod import (
     RibaMetaMod,
     RibaModActiveDriverCoupling,
 )
-from ribasim import Node
 from ribasim.nodes import user_demand
 from shapely.geometry import Point
 from test_ribamod_cases import (
@@ -151,13 +150,13 @@ def case_two_basin_model_users(
     ribamodel.user_demand.add(
         Node(7, Point(250.0, 0.0), subnetwork_id=1),
         [
-            user_demand.Static(
+            user_demand.Static(  # type: ignore
                 demand=[1.5], return_factor=[0.0], min_level=[-1.0], priority=[1]
             ),
-            user_demand.Static(
+            user_demand.Static(  # type: ignore
                 demand=[3.0], return_factor=[0.0], min_level=[-1.0], priority=[2]
             ),
-            user_demand.Static(
+            user_demand.Static(  # type: ignore
                 demand=[4.5], return_factor=[0.0], min_level=[-1.0], priority=[3]
             ),
         ],
@@ -166,13 +165,13 @@ def case_two_basin_model_users(
     ribamodel.user_demand.add(
         Node(8, Point(750.0, 0.0), subnetwork_id=2),
         [
-            user_demand.Static(
+            user_demand.Static(  # type: ignore
                 demand=[1.5], return_factor=[0.0], min_level=[-1.0], priority=[1]
             ),
-            user_demand.Static(
+            user_demand.Static(  # type: ignore
                 demand=[3.0], return_factor=[0.0], min_level=[-1.0], priority=[2]
             ),
-            user_demand.Static(
+            user_demand.Static(  # type: ignore
                 demand=[4.5], return_factor=[0.0], min_level=[-1.0], priority=[3]
             ),
         ],
