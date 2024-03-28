@@ -462,9 +462,9 @@ class RibaMetaMod(Driver):
 
         if self.enable_sprinkling_groundwater:
             self.mf6_sprinkling_wells[:] = (
-                self.mapping.msw2mod["sw_sprinkling_mask"][:]
+                self.mapping.msw2mod["gw_sprinkling_mask"][:]
                 * self.mf6_sprinkling_wells[:]
-                + self.mapping.msw2mod["sw_sprinkling"].dot(self.msw_volume)[:]
+                + self.mapping.msw2mod["gw_sprinkling"].dot(self.msw_volume)[:]
                 / self.delt_gw
             )
 
