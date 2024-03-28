@@ -4,6 +4,9 @@ from fixtures.common import create_wells_max_layer
 from imod.mf6 import Modflow6Simulation, Recharge
 from imod.msw import MetaSwapModel
 from primod.ribametamod import DriverCoupling, RibaMetaMod
+from ribasim import Node
+from ribasim.nodes import user_demand
+from shapely.geometry import Point
 from test_ribamod_cases import (
     create_basin_definition,
     get_mf6_drainage_packagenames,
@@ -120,3 +123,50 @@ def case_two_basin_model(
         mf6_rch_pkgkey="rch_msw",
         mf6_wel_pkgkey="well_msw",
     )
+
+
+def case_two_basin_model_users(
+    mf6_two_basin_model_3layer: Modflow6Simulation,
+    msw_two_basin_model: MetaSwapModel,
+    ribasim_two_basin_model: ribasim.Model,
+) -> RibaMetaMod | MetaSwapModel:
+    ribametamod_model = case_two_basin_model(
+        mf6_two_basin_model_3layer,
+        msw_two_basin_model,
+        ribasim_two_basin_model,
+    )
+    ribamodel = ribametamod_model.ribasim_model
+    ribamodel.user_demand.add(
+        Node(7, Point(250.0, 0.0), subnetwork_id=1),
+        [
+            user_demand.Static(
+                demand=[1.5], return_factor=[0.0], min_level=[-1.0], priority=[1]
+            ),
+            user_demand.Static(
+                demand=[3.0], return_factor=[0.0], min_level=[-1.0], priority=[2]
+            ),
+            user_demand.Static(
+                demand=[4.5], return_factor=[0.0], min_level=[-1.0], priority=[3]
+            ),
+        ],
+    )
+
+    ribamodel.user_demand.add(
+        Node(8, Point(750.0, 0.0), subnetwork_id=2),
+        [
+            user_demand.Static(
+                demand=[1.5], return_factor=[0.0], min_level=[-1.0], priority=[1]
+            ),
+            user_demand.Static(
+                demand=[3.0], return_factor=[0.0], min_level=[-1.0], priority=[2]
+            ),
+            user_demand.Static(
+                demand=[4.5], return_factor=[0.0], min_level=[-1.0], priority=[3]
+            ),
+        ],
+    )
+    ribamodel.edge.add(ribamodel.basin[2], ribamodel.user_demand[7])
+    ribamodel.edge.add(ribamodel.basin[3], ribamodel.user_demand[8])
+    check = ribamodel.plot()  # RL666
+    check.show()
+    return ribametamod_model

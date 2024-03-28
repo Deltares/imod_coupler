@@ -326,12 +326,8 @@ class RibaMetaMod(Driver):
                 # update Ribasim per delt_sw
                 self.current_time += self.delt_sw
                 self.ribasim.update_until(days_to_seconds(self.current_time))
-                # get realised values on wateruser nodes
-                fraction_realised_user_nodes = np.array([0.0])  # dummy values for now
                 # exchange realised sprinkling
-                self.exchange_sprinkling_flux_realised_msw2rib(
-                    fraction_realised_user_nodes
-                )
+                self.exchange_sprinkling_flux_realised_msw2rib()
                 self.msw.finish_surface_water_time_step(timestep_sw)
         elif self.has_ribasim:
             # exchange summed volumes to Ribasim
@@ -383,16 +379,22 @@ class RibaMetaMod(Driver):
                 self.msw.get_surfacewater_sprinking_demand_ptr() / days_to_seconds(delt)
             )[:]
             user_demands = self.ribasim_user_demand0.copy()
+            # set user demands in the ribasim exchange array wherever positive user_demand
             user_demands[user_demands > 0] = 1.0
-            self.ribasim_user_demand = np.diag(mapped) * user_demands
+            self.ribasim_user_demand = mapped[:, np.newaxis] * user_demands
+            # set a proportion of the user demands in the ribasim exchange array wherever positive user_demand
 
-    def exchange_sprinkling_flux_realised_msw2rib(
-        self, realised_fractions: NDArray[np.float64]
-    ) -> None:
+            # static user demands from ribasim normalised
+            user_demands_norm = user_demands / user_demands.sum(axis=1)[:, np.newaxis]
+            self.ribasim_user_demand = mapped[:, np.newaxis] * user_demands_norm
+
+    def exchange_sprinkling_flux_realised_msw2rib(self) -> None:
         # realised flux from Ribasim to metaswap
         if self.coupling.enable_sprinkling_surface_water:
             msw_sprinkling_realised = self.msw.get_surfacewater_sprinking_realised_ptr()
-            realised_fractions = np.full_like(self.ribasim_user_realised, 0.0)
+            realised_fractions: NDArray[np.float64] = np.full_like(
+                self.ribasim_user_realised, 0.0
+            )
             nonzero = self.ribasim_user_realised > 0.0
             realised_fractions[nonzero] = (
                 self.ribasim_user_realised[nonzero]
