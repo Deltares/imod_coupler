@@ -126,7 +126,9 @@ def case_two_basin_model(
     )
     ribameta_coupling = RibaMetaDriverCoupling(
         ribasim_basin_definition=basin_definition,
+        ribasim_user_demand_definition=basin_definition,
     )
+
     return RibaMetaMod(
         ribasim_model=ribasim_two_basin_model,
         msw_model=msw_two_basin_model,

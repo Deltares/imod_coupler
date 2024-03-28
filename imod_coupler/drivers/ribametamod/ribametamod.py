@@ -425,9 +425,7 @@ class RibaMetaMod(Driver):
             user_demands_norm = user_demands / user_demands.sum(axis=1)[:, np.newaxis]
             self.ribasim_user_demand = mapped[:, np.newaxis] * user_demands_norm
 
-    def exchange_sprinkling_flux_realised_msw2rib(
-        self, realised_fractions: NDArray[np.float64]
-    ) -> None:
+    def exchange_sprinkling_flux_realised_msw2rib(self) -> None:
         msw_sprinkling_realised = self.msw.get_surfacewater_sprinking_realised_ptr()
         realised_fractions: NDArray[np.float64] = np.full_like(
             self.ribasim_user_realised, 0.0
