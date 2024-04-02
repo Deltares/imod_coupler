@@ -78,7 +78,7 @@ class RibaMetaDriverCoupling(DriverCoupling):
                 ribasim_model.user_demand.node.df, self.ribasim_user_demand_definition
             )
             gridded_user_demand = imod.prepare.rasterize(
-                self.ribasim_basin_definition,
+                self.ribasim_user_demand_definition,
                 like=svat.isel(subunit=0, drop=True),
                 column="node_id",
             )
