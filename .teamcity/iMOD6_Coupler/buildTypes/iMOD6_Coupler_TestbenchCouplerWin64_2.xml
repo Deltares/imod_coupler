@@ -96,7 +96,7 @@ pixi run install]]></param>
         <artifact sourcePath="imod_coupler_windows.zip!** =&gt; imod_collector_devel&#xD;&#xA;" />
       </dependency>
       <dependency id="ARTIFACT_DEPENDENCY_66" sourceBuildTypeId="iMOD6_Coupler_IMODCollector_X64development" cleanDestination="true">
-        <revisionRule name="sameChainOrLastFinished" revision="latest.sameChainOrLastFinished" />
+        <revisionRule name="buildTag" revision="regression.tcbuildtag" />
         <artifact sourcePath="imod_coupler_windows.zip!** =&gt; imod_collector_regression" />
       </dependency>
     </artifact-dependencies>
