@@ -65,7 +65,7 @@ call pytest tests -n=auto --basetemp=tests/temp --junitxml="report.xml"]]></para
         <parameters>
           <param name="afterSuccessfulBuildOnly" value="true" />
           <param name="branchFilter" value="+:&lt;default&gt;" />
-          <param name="dependsOn" value="iMOD6_IMOD6collectorDaily_X64Release55" />
+          <param name="dependsOn" value="iMOD6_Coupler_IMODCollector_X64Release55" />
         </parameters>
       </build-trigger>
       <build-trigger id="TRIGGER_340" type="vcsTrigger">
