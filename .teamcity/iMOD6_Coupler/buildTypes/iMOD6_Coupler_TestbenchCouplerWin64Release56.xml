@@ -104,17 +104,17 @@ call pytest tests -n=auto --basetemp=tests/temp --junitxml="report.xml"]]></para
       </extension>
     </build-extensions>
     <artifact-dependencies>
-      <dependency id="ARTIFACT_DEPENDENCY_570" sourceBuildTypeId="iMOD6_IMOD6collectorDaily_X64Release56" cleanDestination="true">
+      <dependency id="ARTIFACT_DEPENDENCY_570" sourceBuildTypeId="iMOD6_Coupler_IMODCollector_X64Release56" cleanDestination="true">
         <revisionRule name="sameChainOrLastFinished" revision="latest.sameChainOrLastFinished" />
         <artifact sourcePath="imod_coupler.zip!** =&gt;imod_collector_devel&#xD;&#xA;" />
       </dependency>
-      <dependency id="ARTIFACT_DEPENDENCY_66" sourceBuildTypeId="iMOD6_IMOD6collectorDaily_X64Release56" cleanDestination="true">
+      <dependency id="ARTIFACT_DEPENDENCY_66" sourceBuildTypeId="iMOD6_Coupler_IMODCollector_X64Release56" cleanDestination="true">
         <revisionRule name="sameChainOrLastFinished" revision="latest.sameChainOrLastFinished" />
         <artifact sourcePath="imod_coupler.zip!** =&gt;imod_collector_regression" />
       </dependency>
     </artifact-dependencies>
     <dependencies>
-      <depend-on sourceBuildTypeId="iMOD6_IMOD6collectorDaily_X64Release56">
+      <depend-on sourceBuildTypeId="iMOD6_Coupler_IMODCollector_X64Release56">
         <options>
           <option name="take-started-build-with-same-revisions" value="true" />
           <option name="take-successful-builds-only" value="true" />
