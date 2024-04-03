@@ -60,7 +60,7 @@ pixi run install]]></param>
         <parameters>
           <param name="afterSuccessfulBuildOnly" value="true" />
           <param name="branchFilter" value="+:&lt;default&gt;" />
-          <param name="dependsOn" value="iMOD6_IMOD6collectorDaily_ReleaseX64" />
+          <param name="dependsOn" value="iMOD6_Coupler_IMODCollector_X64development" />
         </parameters>
       </build-trigger>
       <build-trigger id="TRIGGER_340" type="vcsTrigger">
@@ -91,17 +91,17 @@ pixi run install]]></param>
       </extension>
     </build-extensions>
     <artifact-dependencies>
-      <dependency id="ARTIFACT_DEPENDENCY_570" sourceBuildTypeId="iMOD6_IMOD6collectorDaily_ReleaseX64" cleanDestination="true">
+      <dependency id="ARTIFACT_DEPENDENCY_570" sourceBuildTypeId="iMOD6_Coupler_IMODCollector_X64development" cleanDestination="true">
         <revisionRule name="sameChainOrLastFinished" revision="latest.sameChainOrLastFinished" />
         <artifact sourcePath="imod_coupler_windows.zip!** =&gt; imod_collector_devel&#xD;&#xA;" />
       </dependency>
-      <dependency id="ARTIFACT_DEPENDENCY_66" sourceBuildTypeId="iMOD6_IMOD6collectorDaily_ReleaseX64" cleanDestination="true">
+      <dependency id="ARTIFACT_DEPENDENCY_66" sourceBuildTypeId="iMOD6_Coupler_IMODCollector_X64development" cleanDestination="true">
         <revisionRule name="buildTag" revision="regression.tcbuildtag" />
         <artifact sourcePath="imod_coupler_windows.zip!** =&gt; imod_collector_regression" />
       </dependency>
     </artifact-dependencies>
     <dependencies>
-      <depend-on sourceBuildTypeId="iMOD6_IMOD6collectorDaily_ReleaseX64">
+      <depend-on sourceBuildTypeId="iMOD6_Coupler_IMODCollector_X64development">
         <options>
           <option name="take-started-build-with-same-revisions" value="true" />
           <option name="take-successful-builds-only" value="true" />
