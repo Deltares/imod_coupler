@@ -20,7 +20,7 @@ jobs:
         run: pixi run --environment=dev install
       - name: Run ruff format
         run: |
-          pixi run --environement=dev format-check
+          pixi run --environment=dev format-check
       - name: Run ruff check
         run: |
           pixi run --environment=dev ruff
