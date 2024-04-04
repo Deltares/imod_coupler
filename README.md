@@ -43,7 +43,7 @@ In order to develop on `imod_coupler` locally, please follow the following steps
   It also generates a `.env` that contains the paths to the downloaded imod_collectors.
 
   ```sh
-  pixi run install-test-dependencies
+  pixi run --environment=dev install-test-dependencies
   ```
 
   `install-test-dependencies` creates a `.env` file in the root of the project with the required environment variables pointing to the paths of imod_collector that can be found in the `.pixi` folder.

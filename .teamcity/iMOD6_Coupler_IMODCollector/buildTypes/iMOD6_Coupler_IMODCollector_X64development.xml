@@ -13,7 +13,7 @@
     <build-runners>
       <runner id="RUNNER_299" name="Install iMOD Coupler" type="simpleRunner">
         <parameters>
-          <param name="script.content"><![CDATA[pixi run install]]></param>
+          <param name="script.content"><![CDATA[pixi run --environment=dev install]]></param>
           <param name="teamcity.build.workingDir" value="coupler" />
           <param name="teamcity.step.mode" value="default" />
           <param name="use.custom.script" value="true" />
