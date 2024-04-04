@@ -93,7 +93,8 @@ python = "3.11.*"
 python = "3.10.*"
 
 [environments]
-dev = ["dev"]
-py312 = ["py312"]
-py311 = ["py311"]
-py310 = ["py310"]
+default = { features = ["py312"], solve-group = "py312" }
+dev = { features = ["py312", "dev"], solve-group = "py312" }
+py312 = { features = ["py312", "dev"], solve-group = "py312" }
+py311 = ["py311", "dev"]
+py310 = ["py310", "dev"]
