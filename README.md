@@ -43,7 +43,7 @@ In order to develop on `imod_coupler` locally, please follow the following steps
   It also generates a `.env` that contains the paths to the downloaded imod_collectors.
 
   ```sh
-  pixi run --environment=dev install-test-dependencies
+  pixi run install-test-dependencies
   ```
 
   `install-test-dependencies` creates a `.env` file in the root of the project with the required environment variables pointing to the paths of imod_collector that can be found in the `.pixi` folder.
@@ -51,13 +51,13 @@ In order to develop on `imod_coupler` locally, please follow the following steps
 - The tests can then be run with:
 
   ```sh
-  pixi run --environment=dev tests
+  pixi run tests
   ```
 
 - Lint the codebase with:
 
   ```sh
-  pixi run --environment=dev lint
+  pixi run lint
   ```
 
 - When developing with visual studio code, it is recommended to open the application via `open-vscode.bat`.

@@ -20,10 +20,10 @@ jobs:
         run: pixi run --environment=dev install
       - name: Run ruff format
         run: |
-          pixi run --environment=dev format-check
+          pixi run format-check
       - name: Run ruff check
         run: |
-          pixi run --environment=dev ruff
+          pixi run ruff
 
   mypy:
     name: Mypy
@@ -38,10 +38,10 @@ jobs:
         run: pixi run --environment=dev install
       - name: Run mypy on imodc
         run: |
-          pixi run --environment=dev mypy-imodc
+          pixi run mypy-imodc
       - name: Run mypy on primod
         run: |
-          pixi run --environment=dev mypy-primod
+          pixi run mypy-primod
 
   check_packages:
     name: Check packages
@@ -56,4 +56,4 @@ jobs:
         run: pixi run --environment=dev install
       - name: Check packages
         run: |
-          pixi run --environment=dev check-package-primod
+          pixi run check-package-primod
