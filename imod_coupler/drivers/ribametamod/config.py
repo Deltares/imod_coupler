@@ -20,9 +20,8 @@ class Coupling(BaseModel):
     mf6_passive_river_packages: dict[str, str]
     mf6_passive_drainage_packages: dict[str, str]
 
-    enable_sprinkling_groundwater: bool = False  # true when sprinkling is active
-    mf6_msw_recharge_pkg: str | None = (
-        None  # the recharge package that will be used for coupling
+    mf6_msw_recharge_pkg: str = (
+        ""  # the recharge package that will be used for coupling
     )
     mf6_msw_well_pkg: str | None = (
         None  # the well package that will be used for coupling when sprinkling is active
@@ -37,28 +36,12 @@ class Coupling(BaseModel):
     )
     output_config_file: FilePath | None = None
 
-    enable_sprinkling_surface_water: bool = False  # true when sprinkling is active
     rib_msw_sprinkling_map_surface_water: FilePath | None = (
         None  # the path to the sprinkling map file
     )
     rib_msw_ponding_map_surface_water: FilePath | None = (
         None  # the path to the ponding map file
     )
-
-    @field_validator("mf6_msw_well_pkg")
-    @classmethod
-    def validate_mf6_msw_well_pkg(
-        cls, mf6_msw_well_pkg: str | None, info: ValidationInfo
-    ) -> str | None:
-        assert info.config is not None
-        if (
-            info.config.get("enable_sprinkling_groundwater")
-            and mf6_msw_well_pkg is None
-        ):
-            raise ValueError(
-                "If `enable_sprinkling_groundwater` is True, then `mf6_msw_well_pkg` needs to be set."
-            )
-        return mf6_msw_well_pkg
 
     @field_validator(
         "output_config_file",
@@ -75,13 +58,13 @@ class Coupling(BaseModel):
     def validate_mf6_msw_sprinkling_map(
         cls, mf6_msw_sprinkling_map_groundwater: FilePath | None, info: ValidationInfo
     ) -> FilePath | None:
-        assert info.config is not None
+        assert info.data is not None
         if mf6_msw_sprinkling_map_groundwater is not None:
+            if info.data.get("mf6_msw_well_pkg") is None:
+                raise ValueError(
+                    "If 'mf6_msw_sprinkling_map_groundwater is set, then `mf6_msw_well_pkg` needs to be set."
+                )
             return mf6_msw_sprinkling_map_groundwater.resolve()
-        elif info.config.get("enable_sprinkling_groundwater"):
-            raise ValueError(
-                "If `enable_sprinkling_groundwater` is True, then `mf6_msw_sprinkling_map_groundwater` needs to be set."
-            )
         return mf6_msw_sprinkling_map_groundwater
 
 

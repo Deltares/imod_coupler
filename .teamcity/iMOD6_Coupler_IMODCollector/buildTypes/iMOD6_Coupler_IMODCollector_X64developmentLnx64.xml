@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<build-type xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" uuid="ae87ff1a-9b4c-4fc7-b86f-5399b04ad138" xsi:noNamespaceSchemaLocation="https://www.jetbrains.com/teamcity/schemas/2021.1/project-config.xsd">
+  <name>x64_development_lnx64</name>
+  <description>Collect all Release_x64 kernels in the iMOD6 suite</description>
+  <settings>
+    <options>
+      <option name="artifactRules" value="dist/imodc/ =&gt; imod_collector.zip!/imod_coupler/&#xA;modflow6/ =&gt; imod_collector.zip!/modflow6/&#xA;metaswap/ =&gt; imod_collector.zip!/metaswap/" />
+    </options>
+    <disabled-settings>
+      <setting-ref ref="ARTIFACT_DEPENDENCY_285" />
+      <setting-ref ref="RUNNER_2341" />
+      <setting-ref ref="TRIGGER_59" />
+    </disabled-settings>
+    <parameters>
+      <param name="conda_env_path" value="%system.teamcity.build.checkoutDir%/imod_collector_env" />
+    </parameters>
+    <build-runners>
+      <runner id="RUNNER_2341" name="list modules" type="simpleRunner">
+        <parameters>
+          <param name="script.content" value="module avail" />
+          <param name="teamcity.step.mode" value="default" />
+          <param name="use.custom.script" value="true" />
+        </parameters>
+      </runner>
+      <runner id="RUNNER_297" name="Create imod_collector conda environment" type="simpleRunner">
+        <parameters>
+          <param name="script.content"><![CDATA[module load anaconda3/2021.05
+rm -rf "%conda_env_path%"
+conda env create --file coupler/environment-minimal.yml -p "%conda_env_path%"]]></param>
+          <param name="teamcity.step.mode" value="default" />
+          <param name="use.custom.script" value="true" />
+        </parameters>
+      </runner>
+      <runner id="RUNNER_2342" name="conda init" type="simpleRunner">
+        <parameters>
+          <param name="script.content"><![CDATA[module load anaconda3/2021.05
+conda init bash]]></param>
+          <param name="teamcity.step.mode" value="default" />
+          <param name="use.custom.script" value="true" />
+        </parameters>
+      </runner>
+      <runner id="RUNNER_299" name="Install imod_coupler" type="simpleRunner">
+        <parameters>
+          <param name="script.content"><![CDATA[module load anaconda3/2021.05
+source ~/.bashrc
+conda activate %conda_env_path%
+pip install -e .]]></param>
+          <param name="teamcity.build.workingDir" value="coupler" />
+          <param name="teamcity.step.mode" value="default" />
+          <param name="use.custom.script" value="true" />
+        </parameters>
+      </runner>
+      <runner id="RUNNER_301" name="Create executable with pyinstaller" type="simpleRunner">
+        <parameters>
+          <param name="script.content"><![CDATA[module load anaconda3/2021.05
+source ~/.bashrc
+conda activate %conda_env_path%
+rm -rf dist
+pyinstaller coupler/imod_coupler/__main__.py --name imodc]]></param>
+          <param name="teamcity.step.mode" value="default" />
+          <param name="use.custom.script" value="true" />
+        </parameters>
+      </runner>
+      <runner id="RUNNER_1232" name="Get version from imod coupler" type="simpleRunner">
+        <parameters>
+          <param name="script.content" value="./dist/imodc/imodc --version" />
+          <param name="teamcity.step.mode" value="default" />
+          <param name="use.custom.script" value="true" />
+        </parameters>
+      </runner>
+    </build-runners>
+    <vcs-settings>
+      <vcs-entry-ref root-id="iMOD6_IMOD6collectorDaily_ImodCoupler">
+        <checkout-rule rule="+:. =&gt; ./coupler" />
+      </vcs-entry-ref>
+    </vcs-settings>
+    <requirements>
+      <equals id="RQ_341" name="teamcity.agent.jvm.os.name" value="Linux" />
+    </requirements>
+    <build-triggers>
+      <build-trigger id="TRIGGER_59" type="buildDependencyTrigger">
+        <parameters>
+          <param name="afterSuccessfulBuildOnly" value="true" />
+          <param name="branchFilter" value="+:&lt;default&gt;" />
+          <param name="dependsOn" value="iMOD6_Modflow6buildWin64" />
+        </parameters>
+      </build-trigger>
+    </build-triggers>
+    <build-extensions>
+      <extension id="BUILD_EXT_139" type="commit-status-publisher">
+        <parameters>
+          <param name="github_authentication_type" value="token" />
+          <param name="github_host" value="https://api.github.com" />
+          <param name="publisherId" value="githubStatusPublisher" />
+          <param name="secure:github_access_token" value="credentialsJSON:71420214-373c-4ccd-ba32-2ea886843f62" />
+          <param name="vcsRootId" value="iMOD6_IMOD6collectorDaily_ImodCoupler" />
+        </parameters>
+      </extension>
+      <extension id="BUILD_EXT_140" type="pullRequests">
+        <parameters>
+          <param name="authenticationType" value="token" />
+          <param name="filterAuthorRole" value="MEMBER" />
+          <param name="providerType" value="github" />
+          <param name="secure:accessToken" value="credentialsJSON:71420214-373c-4ccd-ba32-2ea886843f62" />
+          <param name="vcsRootId" value="iMOD6_IMOD6collectorDaily_ImodCoupler" />
+        </parameters>
+      </extension>
+    </build-extensions>
+    <artifact-dependencies>
+      <dependency id="ARTIFACT_DEPENDENCY_285" sourceBuildTypeId="Ribasim_Windows_BuildLibribasim" cleanDestination="false">
+        <revisionRule name="lastSuccessful" revision="latest.lastSuccessful" />
+        <artifact sourcePath="libribasim.zip!** =&gt; ribasim" />
+      </dependency>
+      <dependency id="ARTIFACT_DEPENDENCY_553" sourceBuildTypeId="MetaSWAP_Modflow_Modflow6trunkLnx64" cleanDestination="true">
+        <revisionRule name="sameChainOrLastFinished" revision="latest.sameChainOrLastFinished" />
+        <artifact sourcePath="libmf6.so =&gt; modflow6/" />
+      </dependency>
+      <dependency id="ARTIFACT_DEPENDENCY_560" sourceBuildTypeId="MSWMOD_MetaSWAP_MetaSWAPDevelopLnx64" cleanDestination="true">
+        <revisionRule name="lastSuccessful" revision="latest.lastSuccessful" />
+        <artifact sourcePath="libmsw.so =&gt; metaswap/" />
+      </dependency>
+    </artifact-dependencies>
+    <dependencies>
+      <depend-on sourceBuildTypeId="MetaSWAP_Modflow_Modflow6trunkLnx64">
+        <options>
+          <option name="run-build-if-dependency-failed" value="RUN_ADD_PROBLEM" />
+          <option name="take-started-build-with-same-revisions" value="true" />
+          <option name="take-successful-builds-only" value="true" />
+        </options>
+      </depend-on>
+    </dependencies>
+    <cleanup />
+  </settings>
+</build-type>
+

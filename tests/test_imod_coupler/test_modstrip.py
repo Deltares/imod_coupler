@@ -20,7 +20,6 @@ def write_toml(
         "mf6_msw_node_map": "./NODENR2SVAT.DXC",
         "mf6_msw_recharge_pkg": "rch_msw",
         "mf6_msw_recharge_map": "./RCHINDEX2SVAT.DXC",
-        "enable_sprinkling": False,
     }
 
     coupler_toml = {

@@ -46,11 +46,11 @@ def test_simple_model(fixed_format_parser):
     # fmt: on
     recharge = mf6.Recharge(rate)
 
-    grid_data = RechargeSvatMapping(svat, recharge)
+    grid_data = RechargeSvatMapping(svat, recharge, index=index)
 
     with tempfile.TemporaryDirectory() as output_dir:
         output_dir_path = Path(output_dir)
-        grid_data.write(output_dir_path, index, svat)
+        grid_data.write(output_dir_path)
 
         results = fixed_format_parser(
             output_dir_path / RechargeSvatMapping._file_name,
@@ -94,11 +94,11 @@ def test_simple_model_1_subunit(fixed_format_parser):
     # fmt: on
     recharge = mf6.Recharge(rate)
 
-    grid_data = RechargeSvatMapping(svat, recharge)
+    grid_data = RechargeSvatMapping(svat, recharge, index=index)
 
     with tempfile.TemporaryDirectory() as output_dir:
         output_dir = Path(output_dir)
-        grid_data.write(output_dir, index, svat)
+        grid_data.write(output_dir)
 
         results = fixed_format_parser(
             output_dir / RechargeSvatMapping._file_name,
@@ -151,11 +151,11 @@ def test_simple_model_inactive_rch(fixed_format_parser):
     # fmt: on
     recharge = mf6.Recharge(rate)
 
-    grid_data = RechargeSvatMapping(svat, recharge)
+    grid_data = RechargeSvatMapping(svat, recharge, index=index)
 
     with tempfile.TemporaryDirectory() as output_dir:
         output_dir = Path(output_dir)
-        grid_data.write(output_dir, index, svat)
+        grid_data.write(output_dir)
 
         results = fixed_format_parser(
             output_dir / RechargeSvatMapping._file_name,
@@ -206,9 +206,10 @@ def test_simple_model_inactive_rch_error():
 
     # fmt: on
     recharge = mf6.Recharge(rate)
+    index = svat != 0
 
     with pytest.raises(ValueError):
-        RechargeSvatMapping(svat, recharge)
+        RechargeSvatMapping(svat, recharge, index=index)
 
 
 def test_simple_model_rch_time_error():
@@ -253,5 +254,6 @@ def test_simple_model_rch_time_error():
     # fmt: on
     recharge = mf6.Recharge(rate)
 
+    index = (svat != 0).to_numpy().ravel()
     with pytest.raises(ValueError):
-        RechargeSvatMapping(svat, recharge)
+        RechargeSvatMapping(svat, recharge, index)
