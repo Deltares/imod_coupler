@@ -26,22 +26,6 @@ tomli = "*"
 tomli-w = "*"
 xmipy = "*"
 
-[feature.common.dependencies]
-build = "*"
-geopandas = "*"
-httpx = "*"
-imod = "0.15.3"
-ipython = "*"
-jupyterlab = "*"
-mypy = "*"
-pytest = "*"
-pytest-cases = "*"
-pytest-dotenv = "*"
-pytest-xdist = "*"
-ruff = "*"
-tqdm = "*"
-twine = "*"
-
 [feature.common.tasks]
 # Install
 install-ribasim-python = "pip install git+https://github.com/Deltares/Ribasim.git/#subdirectory=python/ribasim"
@@ -58,7 +42,24 @@ install = { depends_on = [
     "install-primod",
 ] }
 
+[feature.common.dependencies]
+build = "*"
+geopandas = "*"
+httpx = "*"
+imod = "0.15.3"
+ipython = "*"
+jupyterlab = "*"
+mypy = "*"
+pytest = "*"
+pytest-cases = "*"
+pytest-dotenv = "*"
+pytest-xdist = "*"
+ruff = "*"
+tqdm = "*"
+twine = "*"
+
 [feature.dev.tasks]
+# Install
 install-test-dependencies = { depends_on = [
     "install-metaswap-testmodels",
     "install-imod-collector",
