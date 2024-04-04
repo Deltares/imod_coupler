@@ -22,6 +22,7 @@ pydantic = "2.*"
 pyinstaller = "*"
 python = ">=3.10"
 scipy = "*"
+tomli = "*"
 tomli-w = "*"
 xmipy = "*"
 
