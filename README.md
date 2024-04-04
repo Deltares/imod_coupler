@@ -51,13 +51,13 @@ In order to develop on `imod_coupler` locally, please follow the following steps
 - The tests can then be run with:
 
   ```sh
-  pixi run tests
+  pixi run --environment=dev tests
   ```
 
 - Lint the codebase with:
 
   ```sh
-  pixi run lint
+  pixi run --environment=dev lint
   ```
 
 - When developing with visual studio code, it is recommended to open the application via `open-vscode.bat`.
