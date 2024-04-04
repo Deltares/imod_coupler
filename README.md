@@ -3,13 +3,7 @@
 The `imod_coupler` is used to couple hydrological kernels.
 It currently focuses on groundwater and supports coupling between MetaSWAP and Modflow6.
 
-It can be installed by running
-
-```sh
-pip install imod_coupler
-```
-
-Then you can run it as command line app via
+It as command line app that can be run via
 
 ```sh
 imodc /path/to/imod_coupler.toml
@@ -40,7 +34,7 @@ In order to develop on `imod_coupler` locally, please follow the following steps
 - Create the environment by executing the following in your terminal:
 
   ```sh
-  pixi run install
+  pixi run --environment dev install
   ```
 
 - Install the test dependencies by executing the following in your terminal.
