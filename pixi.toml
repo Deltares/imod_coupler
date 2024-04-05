@@ -42,6 +42,10 @@ install = { depends_on = [
     "install-primod",
 ] }
 
+# Tests
+test-primod = "pytest --junitxml=report.xml tests/test_primod"
+
+
 [feature.common.dependencies]
 build = "*"
 geopandas = "*"
@@ -71,7 +75,6 @@ update-git-dependencies = """pip install --upgrade --force-reinstall --no-deps
                              git+https://github.com/Deltares/Ribasim.git/#subdirectory=python/ribasim_api
                              git+https://github.com/Deltares/Ribasim.git/#subdirectory=python/ribasim_testmodels"""
 # Tests
-test-primod = "pytest --junitxml=report.xml tests/test_primod"
 test-imod-coupler = "pytest --numprocesses=auto --dist=loadgroup --basetemp=tests/temp --junitxml=report.xml tests/test_imod_coupler"
 tests = { depends_on = ["test-primod", "test-imod-coupler"] }
 # Lint
