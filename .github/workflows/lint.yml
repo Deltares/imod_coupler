@@ -17,7 +17,7 @@ jobs:
         with:
           pixi-version: "latest"
       - name: Prepare pixi
-        run: pixi run install
+        run: pixi run --environment=dev install
       - name: Run ruff format
         run: |
           pixi run format-check
@@ -35,7 +35,7 @@ jobs:
         with:
           pixi-version: "latest"
       - name: Prepare pixi
-        run: pixi run install
+        run: pixi run --environment=dev install
       - name: Run mypy on imodc
         run: |
           pixi run mypy-imodc
@@ -53,7 +53,7 @@ jobs:
         with:
           pixi-version: "latest"
       - name: Prepare pixi
-        run: pixi run install
+        run: pixi run --environment=dev install
       - name: Check packages
         run: |
           pixi run check-package-primod
