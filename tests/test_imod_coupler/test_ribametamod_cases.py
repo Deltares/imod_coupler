@@ -1,22 +1,33 @@
-from ribasim import Node
+import geopandas as gpd
+import ribasim
 import xarray as xr
 from fixtures.common import create_wells_max_layer
 from imod.mf6 import Modflow6Simulation, Recharge
 from imod.msw import MetaSwapModel
+from numpy import ndarray
 from primod import (
     MetaModDriverCoupling,
     RibaMetaDriverCoupling,
     RibaMetaMod,
     RibaModActiveDriverCoupling,
 )
+from ribasim.geometry import NodeTable as RibaNodeTbl
 from ribasim.nodes import user_demand
 from shapely.geometry import Point
 from test_ribamod_cases import (
-    create_basin_definition,
     get_mf6_drainage_packagenames,
     get_mf6_gwf_modelnames,
     get_mf6_river_packagenames,
 )
+
+
+def create_basin_definition(node: RibaNodeTbl, buffersize: float) -> gpd.GeoDataFrame:
+    # Call to_numpy() to get rid of the index
+    basin_definition = gpd.GeoDataFrame(
+        data={"node_id": node.df["node_id"].to_numpy()},
+        geometry=node.df["geometry"].buffer(buffersize).to_numpy(),
+    )
+    return basin_definition
 
 
 def add_rch_package(
@@ -48,7 +59,10 @@ def case_bucket_model(
 ) -> RibaMetaMod:
     mf6_modelname, mf6_model = get_mf6_gwf_modelnames(mf6_bucket_model)[0]
     mf6_active_river_packages = get_mf6_river_packagenames(mf6_model)
-    basin_definition = create_basin_definition(ribasim_bucket_model, buffersize=10.0)
+    basin_definition = create_basin_definition(
+        ribasim_bucket_model.basin.node,
+        buffersize=10.0,
+    )
     mf6_bucket_model = add_rch_package(mf6_bucket_model)
     mf6_bucket_model = add_well_package(mf6_bucket_model)
 
@@ -78,7 +92,10 @@ def case_backwater_model(
     mf6_modelname, mf6_model = get_mf6_gwf_modelnames(mf6_backwater_model)[0]
     mf6_active_river_packages = get_mf6_river_packagenames(mf6_model)
     mf6_active_drainage_packages = get_mf6_drainage_packagenames(mf6_backwater_model)
-    basin_definition = create_basin_definition(ribasim_backwater_model, buffersize=5.0)
+    basin_definition = create_basin_definition(
+        ribasim_backwater_model.basin.node,
+        buffersize=5.0,
+    )
     mf6_backwater_model = add_rch_package(mf6_backwater_model)
     mf6_backwater_model = add_well_package(mf6_backwater_model)
 
@@ -108,7 +125,8 @@ def case_two_basin_model(
     mf6_modelname, mf6_model = get_mf6_gwf_modelnames(mf6_two_basin_model_3layer)[0]
     mf6_active_river_packages = get_mf6_river_packagenames(mf6_model)
     basin_definition = create_basin_definition(
-        ribasim_two_basin_model, buffersize=250.0
+        ribasim_two_basin_model.basin.node,
+        buffersize=250.0,
     )
     mf6_two_basin_model_3layer = add_rch_package(mf6_two_basin_model_3layer)
     mf6_two_basin_model_3layer = add_well_package(mf6_two_basin_model_3layer)
@@ -125,7 +143,6 @@ def case_two_basin_model(
     )
     ribameta_coupling = RibaMetaDriverCoupling(
         ribasim_basin_definition=basin_definition,
-        ribasim_user_demand_definition=basin_definition,
     )
 
     return RibaMetaMod(
@@ -148,31 +165,34 @@ def case_two_basin_model_users(
     )
     ribamodel = ribametamod_model.ribasim_model
     ribamodel.user_demand.add(
-        Node(7, Point(250.0, 0.0), subnetwork_id=1),
+        ribasim.Node(7, Point(250.0, 0.0), subnetwork_id=1),
         [
             user_demand.Static(  # type: ignore
-                demand=[1.5], return_factor=[0.0], min_level=[-1.0], priority=[1]
-            ),
-            user_demand.Static(  # type: ignore
-                demand=[3.0], return_factor=[0.0], min_level=[-1.0], priority=[2]
-            ),
-            user_demand.Static(  # type: ignore
-                demand=[4.5], return_factor=[0.0], min_level=[-1.0], priority=[3]
+                demand=3.0,
+                active=True,
+                return_factor=[0.0],
+                min_level=[-1.0],
+                priority=[2],
             ),
         ],
     )
 
     ribamodel.user_demand.add(
-        Node(8, Point(750.0, 0.0), subnetwork_id=2),
+        ribasim.Node(8, Point(750.0, 0.0), subnetwork_id=2),
         [
             user_demand.Static(  # type: ignore
-                demand=[1.5], return_factor=[0.0], min_level=[-1.0], priority=[1]
+                demand=1.5,
+                active=True,
+                return_factor=[0.0],
+                min_level=[-1.0],
+                priority=[1],
             ),
             user_demand.Static(  # type: ignore
-                demand=[3.0], return_factor=[0.0], min_level=[-1.0], priority=[2]
-            ),
-            user_demand.Static(  # type: ignore
-                demand=[4.5], return_factor=[0.0], min_level=[-1.0], priority=[3]
+                demand=4.5,
+                active=True,
+                return_factor=[0.0],
+                min_level=[-1.0],
+                priority=[3],
             ),
         ],
     )
@@ -180,4 +200,11 @@ def case_two_basin_model_users(
     ribamodel.edge.add(ribamodel.basin[3], ribamodel.user_demand[8])
     ribamodel.edge.add(ribamodel.user_demand[7], ribamodel.basin[2])
     ribamodel.edge.add(ribamodel.user_demand[8], ribamodel.basin[3])
+
+    for cpl in ribametamod_model.coupling_list:
+        if isinstance(cpl, RibaMetaDriverCoupling):
+            cpl.ribasim_user_demand_definition = create_basin_definition(
+                ribamodel.user_demand.node,
+                buffersize=250.0,
+            )
     return ribametamod_model

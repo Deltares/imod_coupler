@@ -16,7 +16,7 @@ class SvatUserDemandMapping(GenericMapping):
         svat: xr.DataArray,
         index: NDArray[Int],
     ):
-        condition = svat.notnull()
+        condition = svat > 0
         user_id = xr.where(condition, gridded_user_demand, np.nan)  # type: ignore
         include = user_id.notnull().to_numpy()
         user_id_values = user_id.to_numpy()[include].astype(int)

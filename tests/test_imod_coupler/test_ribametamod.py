@@ -13,7 +13,6 @@ msw_outputlabel_ponding: str = "        Pssw(m3)"
 msw_outputlabel_swsprinkling: str = "   ts2dfmput(m3)"
 
 
-@pytest.mark.xfail(reason="MetaSWAP issues")
 @pytest.mark.xdist_group(name="ribasim")
 @parametrize_with_cases("ribametamod_model", glob="backwater_model")
 def test_ribametamod_backwater(
@@ -49,7 +48,6 @@ def test_ribametamod_backwater(
     # )
 
 
-@pytest.mark.xfail(reason="MetaSWAP issues")
 @pytest.mark.xdist_group(name="ribasim")
 @parametrize_with_cases("ribametamod_model", glob="bucket_model")
 def test_ribametamod_bucket(
@@ -85,7 +83,6 @@ def test_ribametamod_bucket(
     # )
 
 
-@pytest.mark.xfail(reason="MetaSWAP issues")
 @pytest.mark.xdist_group(name="ribasim")
 @parametrize_with_cases("ribametamod_model", glob="two_basin_model")
 def test_ribametamod_two_basin(
@@ -122,12 +119,12 @@ def test_ribametamod_two_basin(
     # )
 
 
-@pytest.mark.xfail(reason="MetaSWAP issues")
 @pytest.mark.xdist_group(name="ribasim")
 @parametrize_with_cases("ribametamod_model", glob="two_basin_model_users")
 def test_ribametamod_two_basin_users(
     tmp_path_dev: Path,
-    ribametamod_model_users: RibaMetaMod,
+    #   ribametamod_model_users: RibaMetaMod,
+    ribametamod_model: RibaMetaMod,
     metaswap_dll_devel: Path,
     metaswap_dll_dep_dir_devel: Path,
     modflow_dll_devel: Path,
@@ -139,7 +136,7 @@ def test_ribametamod_two_basin_users(
     """
     Test if the two-basin model model works with two water users (sprinkling)
     """
-    ribametamod_model_users.write(
+    ribametamod_model.write(
         tmp_path_dev,
         modflow6_dll=modflow_dll_devel,
         ribasim_dll=ribasim_dll_devel,
@@ -148,7 +145,7 @@ def test_ribametamod_two_basin_users(
         metaswap_dll_dependency=metaswap_dll_dep_dir_devel,
     )
 
-    run_coupler_function(tmp_path_dev / ribametamod_model_users._toml_name)
+    run_coupler_function(tmp_path_dev / ribametamod_model._toml_name)
 
 
 def test_exchange_balance() -> None:

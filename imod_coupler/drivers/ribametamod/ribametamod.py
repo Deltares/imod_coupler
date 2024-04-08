@@ -198,13 +198,6 @@ class RibaMetaMod(Driver):
             self.ribasim_level = self.ribasim.get_value_ptr("basin.level")
             self.subgrid_level = self.ribasim.get_value_ptr("basin.subgrid_level")
 
-            # Get all Ribasim pointers, relevant for coupling with MetaSWAP
-            self.ribasim_user_demand = self.ribasim.get_value_ptr("user_demand.demand")
-            self.ribasim_user_demand0 = self.ribasim_user_demand.copy()
-            self.ribasim_user_realised = self.ribasim.get_value_ptr(
-                "user_demand.realized"
-            )
-
             # add to return ChainMap
             arrays.update(
                 ChainMap[str, Any](
@@ -293,8 +286,27 @@ class RibaMetaMod(Driver):
             ),
         )
 
-        # Set exchange-class to handle all exchanges to Ribasim Basins
         if self.has_ribasim:
+            if self.has_metaswap:
+                if self.coupling.rib_msw_sprinkling_map_surface_water is not None:
+                    self.enable_sprinkling_surface_water = True
+                    self.ribasim_user_demand = self.ribasim.get_value_ptr(
+                        "user_demand.demand"
+                    )
+                    modribmsw_arrays["rib_sprinkling_demand"] = self.ribasim_user_demand
+                    n_users = np.shape(self.mapping.msw2rib["sw_sprinkling"])[0]
+                    n_priorities = np.size(self.ribasim_user_demand) // n_users
+                    self.ribasim_user_demand.resize(n_users, n_priorities)
+                    self.ribasim_user_demand0 = self.ribasim_user_demand.copy()
+
+                    self.ribasim_user_realised = self.ribasim.get_value_ptr(
+                        "user_demand.realized"
+                    )
+                    modribmsw_arrays["rib_sprinkling_realised"] = (
+                        self.ribasim_user_realised
+                    )
+
+            # Set exchange-class to handle all exchanges to Ribasim Basins
             self.exchange = CoupledExchangeBalance(
                 shape=self.ribasim_infiltration.size,
                 labels=self.exchange_labels(),
@@ -409,20 +421,18 @@ class RibaMetaMod(Driver):
         # flux demand from metaswap sprinkling to Ribasim (demand)
         if self.enable_sprinkling_surface_water:
             if "sw_sprinkling" in self.mapping.msw2rib:
-                mapped = self.mapping.msw2rib["sw_sprinkling"].dot(
+                self.msw_sprinkling_demand_sec = (
                     self.msw.get_surfacewater_sprinking_demand_ptr()
                     / days_to_seconds(delt)
                 )
+                mapped = self.mapping.msw2rib["sw_sprinkling"].dot(
+                    self.msw_sprinkling_demand_sec
+                )
 
             user_demands = self.ribasim_user_demand0.copy()
-            # set user demands in the ribasim exchange array wherever positive user_demand
-            user_demands[user_demands > 0] = 1.0
+            #           user_demands[user_demands > 0] = 1.0
+            user_demands = user_demands / user_demands.sum(axis=1)[:, np.newaxis]
             self.ribasim_user_demand = mapped[:, np.newaxis] * user_demands
-            # set a proportion of the user demands in the ribasim exchange array wherever positive user_demand
-
-            # static user demands from ribasim normalised
-            user_demands_norm = user_demands / user_demands.sum(axis=1)[:, np.newaxis]
-            self.ribasim_user_demand = mapped[:, np.newaxis] * user_demands_norm
 
     def exchange_sprinkling_flux_realised_msw2rib(self) -> None:
         msw_sprinkling_realised = self.msw.get_surfacewater_sprinking_realised_ptr()
@@ -473,9 +483,9 @@ class RibaMetaMod(Driver):
 
         if self.enable_sprinkling_groundwater:
             self.mf6_sprinkling_wells[:] = (
-                self.mapping.msw2mod["sw_sprinkling_mask"][:]
+                self.mapping.msw2mod["gw_sprinkling_mask"][:]
                 * self.mf6_sprinkling_wells[:]
-                + self.mapping.msw2mod["sw_sprinkling"].dot(self.msw_volume)[:]
+                + self.mapping.msw2mod["gw_sprinkling"].dot(self.msw_volume)[:]
                 / self.delt_gw
             )
 
