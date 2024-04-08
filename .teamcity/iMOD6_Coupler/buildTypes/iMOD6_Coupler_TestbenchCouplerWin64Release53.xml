@@ -56,7 +56,7 @@ call set]]></param>
         <parameters>
           <param name="afterSuccessfulBuildOnly" value="true" />
           <param name="branchFilter" value="+:&lt;default&gt;" />
-          <param name="dependsOn" value="iMOD6_IMOD6collectorDaily_X64Release53" />
+          <param name="dependsOn" value="iMOD6_Coupler_IMODCollector_X64Release53" />
         </parameters>
       </build-trigger>
     </build-triggers>
@@ -81,13 +81,13 @@ call set]]></param>
       </extension>
     </build-extensions>
     <artifact-dependencies>
-      <dependency id="ARTIFACT_DEPENDENCY_88" sourceBuildTypeId="iMOD6_IMOD6collectorDaily_X64Release53" cleanDestination="false">
+      <dependency id="ARTIFACT_DEPENDENCY_88" sourceBuildTypeId="iMOD6_Coupler_IMODCollector_X64Release53" cleanDestination="false">
         <revisionRule name="sameChainOrLastFinished" revision="latest.sameChainOrLastFinished" />
         <artifact sourcePath="imod_coupler.zip!*.*=&gt;imod_coupler" />
       </dependency>
     </artifact-dependencies>
     <dependencies>
-      <depend-on sourceBuildTypeId="iMOD6_IMOD6collectorDaily_X64Release53">
+      <depend-on sourceBuildTypeId="iMOD6_Coupler_IMODCollector_X64Release53">
         <options>
           <option name="run-build-if-dependency-failed" value="RUN_ADD_PROBLEM" />
           <option name="take-started-build-with-same-revisions" value="true" />

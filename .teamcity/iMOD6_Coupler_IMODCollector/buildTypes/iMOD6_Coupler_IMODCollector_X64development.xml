@@ -11,18 +11,9 @@
       <param name="conda_env_path" value="%system.teamcity.build.checkoutDir%/imod_collector_env" />
     </parameters>
     <build-runners>
-      <runner id="Create_imod_collector_conda_environment" name="Create imod_collector conda environment" type="simpleRunner">
-        <parameters>
-          <param name="script.content"><![CDATA[if exist "%conda_env_path%" rd /q /s "%conda_env_path%"
-conda env create --file coupler/environment-minimal.yml -p "%conda_env_path%"]]></param>
-          <param name="teamcity.step.mode" value="default" />
-          <param name="use.custom.script" value="true" />
-        </parameters>
-      </runner>
       <runner id="RUNNER_299" name="Install iMOD Coupler" type="simpleRunner">
         <parameters>
-          <param name="script.content"><![CDATA[call conda activate %conda_env_path%
-call pip install -e .]]></param>
+          <param name="script.content"><![CDATA[pixi run install-minimal]]></param>
           <param name="teamcity.build.workingDir" value="coupler" />
           <param name="teamcity.step.mode" value="default" />
           <param name="use.custom.script" value="true" />
@@ -30,9 +21,7 @@ call pip install -e .]]></param>
       </runner>
       <runner id="RUNNER_301" name="Create executable with pyinstaller" type="simpleRunner">
         <parameters>
-          <param name="script.content"><![CDATA[call conda activate %conda_env_path%
-rmdir dist /s /q
-pyinstaller imod_coupler/__main__.py --name imodc]]></param>
+          <param name="script.content"><![CDATA[pixi run build-imod-coupler]]></param>
           <param name="teamcity.build.workingDir" value="coupler" />
           <param name="teamcity.step.mode" value="default" />
           <param name="use.custom.script" value="true" />
@@ -124,4 +113,3 @@ pyinstaller imod_coupler/__main__.py --name imodc]]></param>
     <cleanup />
   </settings>
 </build-type>
-
