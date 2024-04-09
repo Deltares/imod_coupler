@@ -4,7 +4,6 @@ import xarray as xr
 from fixtures.common import create_wells_max_layer
 from imod.mf6 import Modflow6Simulation, Recharge
 from imod.msw import MetaSwapModel
-from numpy import ndarray
 from primod import (
     MetaModDriverCoupling,
     RibaMetaDriverCoupling,
