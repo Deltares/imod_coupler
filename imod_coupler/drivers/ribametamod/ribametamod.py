@@ -297,9 +297,13 @@ class RibaMetaMod(Driver):
                     n_users = np.shape(self.mapping.msw2rib["sw_sprinkling"])[0]
                     n_priorities = np.size(self.ribasim_user_demand) // n_users
                     self.ribasim_user_demand.resize(n_users, n_priorities)
-                    self.ribasim_user_demand0 = self.ribasim_user_demand.copy()
-#                   self.ribasim_user_demand0[self.ribasim_user_demand0 > 0] = 1.0
-                    self.ribasim_user_demand0 /= self.ribasim_user_demand0.sum(axis=1)[:, np.newaxis]
+                    self.ribasim_user_demand0 = self.ribasim_user_demand.copy().reshape(
+                        n_users, n_priorities
+                    )
+                    #  self.ribasim_user_demand0[self.ribasim_user_demand0 > 0] = 1.0
+                    self.ribasim_user_demand0 /= self.ribasim_user_demand0.sum(axis=1)[
+                        :, np.newaxis
+                    ]
 
                     self.ribasim_user_realised = self.ribasim.get_value_ptr(
                         "user_demand.realized"
@@ -423,16 +427,16 @@ class RibaMetaMod(Driver):
 
     def exchange_sprinkling_demand_msw2rib(self, delt: float) -> None:
         # flux demand from metaswap sprinkling to Ribasim (demand)
-            self.msw_sprinkling_demand_sec = (
-                self.msw.get_surfacewater_sprinking_demand_ptr()
-                / days_to_seconds(delt)
-            )
-            assert("sw_sprinkling" in self.mapping.msw2rib)
-            mapped = self.mapping.msw2rib["sw_sprinkling"].dot(
-                self.msw_sprinkling_demand_sec
-            )
+        self.msw_sprinkling_demand_sec = (
+            self.msw.get_surfacewater_sprinking_demand_ptr() / days_to_seconds(delt)
+        )
+        assert "sw_sprinkling" in self.mapping.msw2rib
+        mapped = self.mapping.msw2rib["sw_sprinkling"].dot(
+            self.msw_sprinkling_demand_sec
+        )
 
-            self.ribasim_user_demand = mapped[:, np.newaxis] * self.ribasim_user_demand0
+        self.ribasim_user_demand[:] = mapped[:, np.newaxis] * self.ribasim_user_demand0
+        pass
 
     def exchange_sprinkling_flux_realised_msw2rib(self) -> None:
         msw_sprinkling_realised = self.msw.get_surfacewater_sprinking_realised_ptr()
@@ -445,7 +449,7 @@ class RibaMetaMod(Driver):
             self.ribasim_user_realised[nonzero]
             / self.ribasim_user_demand.sum(axis=1).flatten()[nonzero]
         )
-        assert("sw_sprinkling" in self.mapping.msw2rib)
+        assert "sw_sprinkling" in self.mapping.msw2rib
         msw_sprfrac_realised = (
             realised_fractions * self.mapping.msw2rib["sw_sprinkling"]
         )

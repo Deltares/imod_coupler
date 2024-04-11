@@ -35,8 +35,7 @@ def make_msw_model(
             if "layer" in cond.dims:
                 cond = cond.isel(layer=0, drop=True)
             no_river.values = np.logical_and(
-                #               cond.isnull().to_numpy(), no_river.notnull().to_numpy()
-                cond.isnull().to_numpy(),
+                cond.isnull().to_numpy(),  # noqa: PD003
                 no_river.notnull().to_numpy(),
             )
     area = (area.assign_coords(subunit=0).expand_dims(subunit=isubunits)) / nsubunits
