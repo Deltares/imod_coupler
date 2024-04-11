@@ -298,6 +298,8 @@ class RibaMetaMod(Driver):
                     n_priorities = np.size(self.ribasim_user_demand) // n_users
                     self.ribasim_user_demand.resize(n_users, n_priorities)
                     self.ribasim_user_demand0 = self.ribasim_user_demand.copy()
+#                   self.ribasim_user_demand0[self.ribasim_user_demand0 > 0] = 1.0
+                    self.ribasim_user_demand0 /= self.ribasim_user_demand0.sum(axis=1)[:, np.newaxis]
 
                     self.ribasim_user_realised = self.ribasim.get_value_ptr(
                         "user_demand.realized"
@@ -430,10 +432,7 @@ class RibaMetaMod(Driver):
                 self.msw_sprinkling_demand_sec
             )
 
-            user_demands = self.ribasim_user_demand0.copy()
-            #           user_demands[user_demands > 0] = 1.0
-            user_demands = user_demands / user_demands.sum(axis=1)[:, np.newaxis]
-            self.ribasim_user_demand = mapped[:, np.newaxis] * user_demands
+            self.ribasim_user_demand = mapped[:, np.newaxis] * self.ribasim_user_demand0
 
     def exchange_sprinkling_flux_realised_msw2rib(self) -> None:
         msw_sprinkling_realised = self.msw.get_surfacewater_sprinking_realised_ptr()
