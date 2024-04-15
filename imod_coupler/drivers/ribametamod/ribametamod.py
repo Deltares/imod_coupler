@@ -339,7 +339,7 @@ class RibaMetaMod(Driver):
             self.ribasim.update_until(days_to_seconds(self.current_time))
             # get realised values on wateruser nodes
             if self.enable_sprinkling_surface_water:
-                self.exchange_sprinkling_flux_realised_msw2rib()
+                self.exchange_sprinkling_flux_realised_msw2rib(self.delt_sw)
         self.msw.finish_surface_water_time_step(timestep_sw)
 
     def update_ribasim(self) -> None:
@@ -438,7 +438,7 @@ class RibaMetaMod(Driver):
         self.ribasim_user_demand[:] = mapped[:, np.newaxis] * self.ribasim_user_demand0
         pass
 
-    def exchange_sprinkling_flux_realised_msw2rib(self) -> None:
+    def exchange_sprinkling_flux_realised_msw2rib(self, delt: float) -> None:
         msw_sprinkling_realised = self.msw.get_surfacewater_sprinking_realised_ptr()
         realised_fractions: NDArray[np.float64] = np.full_like(
             self.ribasim_user_realised, 0.0
@@ -446,7 +446,7 @@ class RibaMetaMod(Driver):
 
         nonzero = self.ribasim_user_realised > 0.0
         realised_fractions[nonzero] = (
-            self.ribasim_user_realised[nonzero]
+            self.ribasim_user_realised[nonzero] / days_to_seconds(delt)
             / self.ribasim_user_demand.sum(axis=1).flatten()[nonzero]
         )
         assert "sw_sprinkling" in self.mapping.msw2rib
@@ -454,9 +454,10 @@ class RibaMetaMod(Driver):
             realised_fractions * self.mapping.msw2rib["sw_sprinkling"]
         )
         msw_sprinkling_realised[:] = (
-            (self.msw_sprinkling_demand_sec * days_to_seconds(self.delt_gw))
+            (self.msw_sprinkling_demand_sec * days_to_seconds(self.delt_sw))
             * msw_sprfrac_realised
-        )[:]
+        )[:] 
+        self.ribasim_user_realised[:] = 0.0     # reset cummulative for the next timestep
 
     def exchange_stage_rib2mod(self) -> None:
         # Mypy refuses to understand this ChainMap for some reason.
