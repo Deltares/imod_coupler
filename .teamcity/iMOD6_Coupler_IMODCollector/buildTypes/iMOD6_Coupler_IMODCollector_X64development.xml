@@ -7,6 +7,9 @@
       <option name="artifactRules" value="coupler/dist/imodc/ =&gt; imod_coupler_windows.zip!/imod_coupler/&#xA;modflow6/ =&gt; imod_coupler_windows.zip!/modflow6/&#xA;metaswap/ =&gt; imod_coupler_windows.zip!/metaswap/&#xA;ribasim/ =&gt; imod_coupler_windows.zip!/ribasim/" />
       <option name="cleanBuild" value="true" />
     </options>
+    <disabled-settings>
+      <setting-ref ref="Create_imod_collector_conda_environment" />
+    </disabled-settings>
     <parameters>
       <param name="conda_env_path" value="%system.teamcity.build.checkoutDir%/imod_collector_env" />
     </parameters>
