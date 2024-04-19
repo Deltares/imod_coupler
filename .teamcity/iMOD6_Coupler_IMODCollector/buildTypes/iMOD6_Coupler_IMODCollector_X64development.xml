@@ -32,7 +32,7 @@ call pip install -e .]]></param>
         <parameters>
           <param name="script.content"><![CDATA[call conda activate %conda_env_path%
 rmdir dist /s /q
-pyinstaller imod_coupler/__main__.py --name imodc]]></param>
+pyinstaller --onefile imod_coupler/__main__.py --name imodc]]></param>
           <param name="teamcity.build.workingDir" value="coupler" />
           <param name="teamcity.step.mode" value="default" />
           <param name="use.custom.script" value="true" />
