@@ -9,6 +9,7 @@
     </options>
     <disabled-settings>
       <setting-ref ref="Create_imod_collector_conda_environment" />
+      <setting-ref ref="RUNNER_299" />
     </disabled-settings>
     <parameters>
       <param name="conda_env_path" value="%system.teamcity.build.checkoutDir%/imod_collector_env" />
