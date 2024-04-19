@@ -4,7 +4,7 @@
   <description>Collect all Release_x64 kernels in the iMOD6 suite</description>
   <settings>
     <options>
-      <option name="artifactRules" value="coupler/dist =&gt; imod_coupler_windows.zip!/imod_coupler/&#xA;modflow6/ =&gt; imod_coupler_windows.zip!/modflow6/&#xA;metaswap/ =&gt; imod_coupler_windows.zip!/metaswap/&#xA;ribasim/ =&gt; imod_coupler_windows.zip!/ribasim/" />
+      <option name="artifactRules" value="coupler/dist/ =&gt; imod_coupler_windows.zip!/imod_coupler/&#xA;modflow6/ =&gt; imod_coupler_windows.zip!/modflow6/&#xA;metaswap/ =&gt; imod_coupler_windows.zip!/metaswap/&#xA;ribasim/ =&gt; imod_coupler_windows.zip!/ribasim/" />
       <option name="cleanBuild" value="true" />
     </options>
     <disabled-settings>
