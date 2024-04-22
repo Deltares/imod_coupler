@@ -132,12 +132,25 @@ def make_idomain() -> xr.DataArray:
         coords={"layer": layer, "y": y, "x": x, "dx": dx, "dy": dy},
     )
 
+def make_idomain_shift(xmin: float, ymax: float, 
+                       zmin: float, zmax: float, cellsize: float, ncol:int, nrow:int, nlay:int):
+
+    x = xmin + np.arange(ncol)*cellsize
+    y = ymax - np.arange(nrow)*cellsize
+    layer=np.linspace(zmin,zmax,nlay)
+    dx = cellsize
+    dy = -cellsize
+
+    return xr.DataArray(
+        data=np.ones((nlay, nrow, ncol), dtype=np.int32),
+        dims=("layer", "y", "x"),
+        coords={"layer": layer, "y": y, "x": x, "dx": dx, "dy": dy},
+    )
 
 @pytest_cases.fixture(scope="function")
 def active_idomain() -> xr.DataArray:
     """Return all active idomain"""
-    idomain = make_idomain()
-
+    idomain = make_idomain_shift(85725.600, 444713.900, 1., 3., 20., 10, 10, 3)
     return idomain
 
 
