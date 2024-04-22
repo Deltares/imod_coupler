@@ -4,16 +4,29 @@
   <description>Collect all Release_x64 kernels in the iMOD6 suite</description>
   <settings>
     <options>
-      <option name="artifactRules" value="coupler/dist/imodc/ =&gt; imod_coupler_windows.zip!/imod_coupler/&#xA;modflow6/ =&gt; imod_coupler_windows.zip!/modflow6/&#xA;metaswap/ =&gt; imod_coupler_windows.zip!/metaswap/&#xA;ribasim/ =&gt; imod_coupler_windows.zip!/ribasim/" />
+      <option name="artifactRules" value="coupler/dist/ =&gt; imod_coupler_windows.zip!/imod_coupler/&#xA;modflow6/ =&gt; imod_coupler_windows.zip!/modflow6/&#xA;metaswap/ =&gt; imod_coupler_windows.zip!/metaswap/&#xA;ribasim/ =&gt; imod_coupler_windows.zip!/ribasim/" />
       <option name="cleanBuild" value="true" />
     </options>
+    <disabled-settings>
+      <setting-ref ref="Create_imod_collector_conda_environment" />
+      <setting-ref ref="RUNNER_299" />
+    </disabled-settings>
     <parameters>
       <param name="conda_env_path" value="%system.teamcity.build.checkoutDir%/imod_collector_env" />
     </parameters>
     <build-runners>
+      <runner id="Create_imod_collector_conda_environment" name="Create imod_collector conda environment" type="simpleRunner">
+        <parameters>
+          <param name="script.content"><![CDATA[if exist "%conda_env_path%" rd /q /s "%conda_env_path%"
+conda env create --file coupler/environment-minimal.yml -p "%conda_env_path%"]]></param>
+          <param name="teamcity.step.mode" value="default" />
+          <param name="use.custom.script" value="true" />
+        </parameters>
+      </runner>
       <runner id="RUNNER_299" name="Install iMOD Coupler" type="simpleRunner">
         <parameters>
-          <param name="script.content"><![CDATA[pixi run install-minimal]]></param>
+          <param name="script.content"><![CDATA[call conda activate %conda_env_path%
+call pip install -e .]]></param>
           <param name="teamcity.build.workingDir" value="coupler" />
           <param name="teamcity.step.mode" value="default" />
           <param name="use.custom.script" value="true" />
@@ -21,7 +34,9 @@
       </runner>
       <runner id="RUNNER_301" name="Create executable with pyinstaller" type="simpleRunner">
         <parameters>
-          <param name="script.content"><![CDATA[pixi run build-imod-coupler]]></param>
+          <param name="script.content"><![CDATA[rmdir dist /s /q
+pixi run -e dev install-minimal
+pixi run -e dev pyinstaller --onefile imod_coupler/__main__.py --name imodc]]></param>
           <param name="teamcity.build.workingDir" value="coupler" />
           <param name="teamcity.step.mode" value="default" />
           <param name="use.custom.script" value="true" />
@@ -29,7 +44,7 @@
       </runner>
       <runner id="RUNNER_1232" name="Get version from imod coupler" type="simpleRunner">
         <parameters>
-          <param name="script.content" value="call dist\imodc\imodc --version" />
+          <param name="script.content" value="call dist\imodc --version" />
           <param name="teamcity.build.workingDir" value="coupler" />
           <param name="teamcity.step.mode" value="default" />
           <param name="use.custom.script" value="true" />
@@ -90,7 +105,7 @@
         <artifact sourcePath="srcbmi/libmf6.dll =&gt; modflow6/" />
       </dependency>
       <dependency id="ARTIFACT_DEPENDENCY_560" sourceBuildTypeId="MSWMOD_MetaSWAP_MetaSWAPBuildWin64trunk" cleanDestination="true">
-        <revisionRule name="buildTag" revision="RibaMetaMod.tcbuildtag" branch="+:*" />
+        <revisionRule name="sameChainOrLastFinished" revision="latest.sameChainOrLastFinished" />
         <artifact sourcePath="MetaSWAP.zip!/x64/Release =&gt; metaswap" />
       </dependency>
     </artifact-dependencies>
@@ -113,3 +128,4 @@
     <cleanup />
   </settings>
 </build-type>
+
