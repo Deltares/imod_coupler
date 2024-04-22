@@ -157,7 +157,7 @@ def active_idomain() -> xr.DataArray:
 @pytest_cases.fixture(scope="function")
 def inactive_idomain() -> xr.DataArray:
     """Return idomain with an inactive cell"""
-    idomain = make_idomain()
+    idomain = make_idomain_shift(85725.600, 444713.900, 1., 3., 20., 10, 10, 3)
     # Deactivate middle cell
     idomain[:, 1, 2] = 0
 
@@ -202,7 +202,7 @@ def mf6_bucket_model(active_idomain: xr.DataArray) -> mf6.Modflow6Simulation:
     # Override time discretization:
     # Make model returns dates in 1970
     # Ribasim bucket models is 2020-2021.
-    times = pd.date_range("2020-01-01", "2021-01-01", freq="D")
+    times = pd.date_range("2020-01-01", "2023-01-01", freq="D")
     simulation.create_time_discretization(additional_times=times)
     return simulation
 

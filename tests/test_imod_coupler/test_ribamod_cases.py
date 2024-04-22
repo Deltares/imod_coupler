@@ -1,4 +1,5 @@
 import geopandas as gpd
+import datetime as dt
 import ribasim
 from imod.mf6 import Drainage, GroundwaterFlowModel, Modflow6Simulation, River
 from primod import RibaMod, RibaModActiveDriverCoupling
@@ -24,7 +25,8 @@ def case_bucket_model(
     mf6_modelname, mf6_model = get_mf6_gwf_modelnames(mf6_bucket_model)[0]
     mf6_active_river_packages = get_mf6_river_packagenames(mf6_model)
 
-    basin_definition = create_basin_definition(ribasim_bucket_model, buffersize=10.0)
+    ribasim_bucket_model.endtime=dt.datetime(2023, 1, 1, 0, 0)
+    basin_definition = create_basin_definition(ribasim_bucket_model, buffersize=100.0)
 
     driver_coupling = RibaModActiveDriverCoupling(
         mf6_model=mf6_modelname,

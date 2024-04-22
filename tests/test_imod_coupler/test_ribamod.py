@@ -135,7 +135,7 @@ def test_ribamod_backwater(
         run_coupler_function=run_coupler_function,
     )
 
-    final_level = results.basin_df[results.basin_df["time"] == "2021-01-01"]["level"]
+    final_level = results.basin_df[results.basin_df["time"] == "2020-12-31"]["level"]
 
     # Assert that the final level is a mototonically decreasing curve.
     assert (np.diff(final_level) < 0).all()
