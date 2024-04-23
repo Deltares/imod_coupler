@@ -150,19 +150,34 @@ def make_idomain_shift(xmin: float, ymax: float,
 @pytest_cases.fixture(scope="function")
 def active_idomain() -> xr.DataArray:
     """Return all active idomain"""
-    idomain = make_idomain_shift(85725.600, 444713.900, 1., 3., 20., 10, 10, 3)
+    idomain = make_idomain()
     return idomain
 
 
 @pytest_cases.fixture(scope="function")
 def inactive_idomain() -> xr.DataArray:
     """Return idomain with an inactive cell"""
-    idomain = make_idomain_shift(85725.600, 444713.900, 1., 3., 20., 10, 10, 3)
+    idomain = make_idomain()
     # Deactivate middle cell
     idomain[:, 1, 2] = 0
 
     return idomain
 
+@pytest_cases.fixture(scope="function")
+def active_idomain_riba() -> xr.DataArray:
+    """Return all active idomain"""
+    idomain = make_idomain_shift(85725.600, 444713.900, 1., 3., 20., 10, 10, 3)
+    return idomain
+
+
+@pytest_cases.fixture(scope="function")
+def inactive_idomain_riba() -> xr.DataArray:
+    """Return idomain with an inactive cell"""
+    idomain = make_idomain_shift(85725.600, 444713.900, 1., 3., 20., 10, 10, 3)
+    # Deactivate middle cell
+    idomain[:, 1, 2] = 0
+
+    return idomain
 
 @pytest_cases.fixture(scope="function")
 def recharge(active_idomain: xr.DataArray) -> mf6.Recharge:
@@ -175,12 +190,12 @@ def coupled_mf6_model(active_idomain: xr.DataArray) -> mf6.Modflow6Simulation:
 
 
 @pytest_cases.fixture(scope="function")
-def mf6_bucket_model(active_idomain: xr.DataArray) -> mf6.Modflow6Simulation:
+def mf6_bucket_model(active_idomain_riba: xr.DataArray) -> mf6.Modflow6Simulation:
     # The bottom of the ribasim trivial model is located at 0.0 m: the surface
     # level of the groundwater model.
-    gwf_model = make_mf6_model(active_idomain)
+    gwf_model = make_mf6_model(active_idomain_riba)
 
-    template = xr.full_like(active_idomain.isel(layer=[0]), np.nan, dtype=np.float64)
+    template = xr.full_like(active_idomain_riba.isel(layer=[0]), np.nan, dtype=np.float64)
     stage = template.copy()
     conductance = template.copy()
     bottom_elevation = template.copy()
@@ -211,7 +226,7 @@ def mf6_bucket_model(active_idomain: xr.DataArray) -> mf6.Modflow6Simulation:
 def coupled_mf6_model_storage_coefficient(
     active_idomain: xr.DataArray,
 ) -> mf6.Modflow6Simulation:
-    coupled_mf6_model = make_coupled_mf6_model(active_idomain)
+    coupled_mf6_model = make_coupled_mf6_model(active_idomain_riba)
 
     gwf_model = coupled_mf6_model["GWF_1"]
     gwf_model = convert_storage_package(gwf_model)

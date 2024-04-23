@@ -33,7 +33,6 @@ def case_no_sprinkling(
         coupling_list=[driver_coupling],
     )
 
-
 def case_storage_coefficient(
     coupled_mf6_model_storage_coefficient: Modflow6Simulation,
     prepared_msw_model: MetaSwapModel,
