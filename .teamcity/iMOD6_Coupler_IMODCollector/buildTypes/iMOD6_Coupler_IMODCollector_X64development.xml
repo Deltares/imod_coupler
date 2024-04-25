@@ -96,9 +96,9 @@ pixi run -e dev pyinstaller --onefile imod_coupler/__main__.py --name imodc]]></
       </extension>
     </build-extensions>
     <artifact-dependencies>
-      <dependency id="ARTIFACT_DEPENDENCY_285" sourceBuildTypeId="Ribasim_Windows_BuildLibribasim" cleanDestination="false">
+      <dependency id="ARTIFACT_DEPENDENCY_285" sourceBuildTypeId="Ribasim_Windows_BuildRibasim" cleanDestination="false">
         <revisionRule name="lastSuccessful" revision="latest.lastSuccessful" />
-        <artifact sourcePath="libribasim.zip!** =&gt; ribasim" />
+        <artifact sourcePath="ribasim_windows.zip!** =&gt; ribasim" />
       </dependency>
       <dependency id="ARTIFACT_DEPENDENCY_553" sourceBuildTypeId="iMOD6_Modflow6buildWin64" cleanDestination="true">
         <revisionRule name="sameChainOrLastFinished" revision="latest.sameChainOrLastFinished" />
