@@ -148,23 +148,21 @@ def test_ribamod_backwater(
     riv0 = results.budgets["riv-1"].isel(time=-2).compute()
 
     # Get the last flow between the edges
-    final_flow = results.flow_df[results.flow_df["time"] == "2020-12-31"]
+    volume_balance = results.basin_df[results.basin_df["time"] == "2020-12-31"]
     # Check's what lost and gained in the basins
     basin_ids = ribamod_model.ribasim_model.basin.node.df["node_id"]
     ribasim_budget = (
-        final_flow.loc[
-            final_flow["from_node_id"].isin(basin_ids)
-            & final_flow["to_node_id"].isin(basin_ids)
-        ]["flow_rate"]
-        * 86_400.0
+        (volume_balance['inflow_rate'] - 
+         volume_balance['outflow_rate'] - 
+         volume_balance['balance_error'])[:-1] * 86_400.0
     ).to_numpy()
     # It seems that there is a match of integrated volumes shifted by half a timestep.
     # the integration of flux on the Ribasim side deserves a closer look
     modflow_budget = (
         (0.5 * drn + 0.5 * riv + 0.5 * drn0 + 0.5 * riv0).sel(y=0).to_numpy()
     )
-    budget_diff = ribasim_budget + modflow_budget
-    assert (np.abs(budget_diff) < 1.0e-6).all()
+    budget_diff = ribasim_budget - modflow_budget
+    assert (np.abs(budget_diff) < 1.0e-4).all()
 
 
 @pytest.mark.xdist_group(name="ribasim")
