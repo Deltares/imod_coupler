@@ -296,18 +296,27 @@ class RibaMetaMod(Driver):
                     modribmsw_arrays["rib_sprinkling_demand"] = self.ribasim_user_demand
                     n_users = np.shape(self.mapping.msw2rib["sw_sprinkling"])[0]
                     n_priorities = np.size(self.ribasim_user_demand) // n_users
-                    self.ribasim_user_demand.resize(n_users, n_priorities)
+                    self.ribasim_user_demand.resize(n_priorities, n_users)
                     self.ribasim_user_demand0 = self.ribasim_user_demand.copy().reshape(
-                        n_users, n_priorities
+                        n_priorities, n_users
                     )
-                    #  self.ribasim_user_demand0[self.ribasim_user_demand0 > 0] = 1.0
-                    self.ribasim_user_demand0 /= self.ribasim_user_demand0.sum(axis=1)[
-                        :, np.newaxis
-                    ]
+                    self.ribasim_user_demand0[self.ribasim_user_demand0 > 0] = 1.0
+                    too_many = (
+                        np.where(self.ribasim_user_demand0.sum(axis=0) > 1)[0] + 1
+                    )
+                    if np.size(too_many) > 0:
+                        raise ValueError(
+                            f"More than one priority set for basins {np.array2string(too_many)}"
+                        )
 
                     self.ribasim_user_realised = self.ribasim.get_value_ptr(
                         "user_demand.realized"
                     )
+                    if self.ribasim_user_realised is not None:
+                        self.realised_fractions_swspr: NDArray[np.float64] = (
+                            np.full_like(self.ribasim_user_realised, 0.0)
+                        )
+
                     modribmsw_arrays["rib_sprinkling_realised"] = (
                         self.ribasim_user_realised
                     )
@@ -332,6 +341,9 @@ class RibaMetaMod(Driver):
             self.exchange.add_ponding_msw(self.delt_sw, self.msw_ponding)
             if self.enable_sprinkling_surface_water:
                 self.exchange_sprinkling_demand_msw2rib(self.delt_sw)
+                self.ribasim_user_realised[:] = (
+                    0.0  # reset cummulative for the next timestep
+                )
             # exchange summed volumes to Ribasim
             self.exchange.to_ribasim()
             # update Ribasim per delt_sw
@@ -430,34 +442,30 @@ class RibaMetaMod(Driver):
         self.msw_sprinkling_demand_sec = (
             self.msw.get_surfacewater_sprinking_demand_ptr() / days_to_seconds(delt)
         )
-        assert "sw_sprinkling" in self.mapping.msw2rib
         mapped = self.mapping.msw2rib["sw_sprinkling"].dot(
             self.msw_sprinkling_demand_sec
         )
 
         self.ribasim_user_demand[:] = mapped[:, np.newaxis] * self.ribasim_user_demand0
-        pass
 
     def exchange_sprinkling_flux_realised_msw2rib(self, delt: float) -> None:
         msw_sprinkling_realised = self.msw.get_surfacewater_sprinking_realised_ptr()
-        realised_fractions: NDArray[np.float64] = np.full_like(
-            self.ribasim_user_realised, 0.0
-        )
 
         nonzero = self.ribasim_user_realised > 0.0
-        realised_fractions[nonzero] = (
-            self.ribasim_user_realised[nonzero] / days_to_seconds(delt)
+        self.realised_fractions_swspr[:] = 0.0
+        self.realised_fractions_swspr[nonzero] = (
+            self.ribasim_user_realised[nonzero]
+            / days_to_seconds(delt)
             / self.ribasim_user_demand.sum(axis=1).flatten()[nonzero]
         )
-        assert "sw_sprinkling" in self.mapping.msw2rib
         msw_sprfrac_realised = (
-            realised_fractions * self.mapping.msw2rib["sw_sprinkling"]
+            self.realised_fractions_swspr * self.mapping.msw2rib["sw_sprinkling"]
         )
         msw_sprinkling_realised[:] = (
             (self.msw_sprinkling_demand_sec * days_to_seconds(self.delt_sw))
             * msw_sprfrac_realised
-        )[:] 
-        self.ribasim_user_realised[:] = 0.0     # reset cummulative for the next timestep
+        )[:]
+        self.ribasim_user_realised[:] = 0.0  # reset cummulative for the next timestep
 
     def exchange_stage_rib2mod(self) -> None:
         # Mypy refuses to understand this ChainMap for some reason.

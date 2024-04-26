@@ -171,7 +171,7 @@ def case_two_basin_model_users(
                 active=True,
                 return_factor=[0.0],
                 min_level=[-1.0],
-                priority=[2],
+                priority=[3],
             ),
         ],
     )
@@ -185,13 +185,6 @@ def case_two_basin_model_users(
                 return_factor=[0.0],
                 min_level=[-1.0],
                 priority=[1],
-            ),
-            user_demand.Static(  # type: ignore
-                demand=4.5,
-                active=True,
-                return_factor=[0.0],
-                min_level=[-1.0],
-                priority=[3],
             ),
         ],
     )
