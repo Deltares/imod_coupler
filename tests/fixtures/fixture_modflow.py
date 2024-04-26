@@ -226,7 +226,7 @@ def mf6_bucket_model(active_idomain_riba: xr.DataArray) -> mf6.Modflow6Simulatio
 def coupled_mf6_model_storage_coefficient(
     active_idomain: xr.DataArray,
 ) -> mf6.Modflow6Simulation:
-    coupled_mf6_model = make_coupled_mf6_model(active_idomain_riba)
+    coupled_mf6_model = make_coupled_mf6_model(active_idomain)
 
     gwf_model = coupled_mf6_model["GWF_1"]
     gwf_model = convert_storage_package(gwf_model)
