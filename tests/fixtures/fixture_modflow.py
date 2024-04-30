@@ -132,12 +132,20 @@ def make_idomain() -> xr.DataArray:
         coords={"layer": layer, "y": y, "x": x, "dx": dx, "dy": dy},
     )
 
-def make_idomain_shift(xmin: float, ymax: float, 
-                       zmin: float, zmax: float, cellsize: float, ncol:int, nrow:int, nlay:int):
 
-    x = xmin + np.arange(ncol)*cellsize
-    y = ymax - np.arange(nrow)*cellsize
-    layer=np.linspace(zmin,zmax,nlay)
+def make_idomain_shift(
+    xmin: float,
+    ymax: float,
+    zmin: float,
+    zmax: float,
+    cellsize: float,
+    ncol: int,
+    nrow: int,
+    nlay: int,
+):
+    x = xmin + np.arange(ncol) * cellsize
+    y = ymax - np.arange(nrow) * cellsize
+    layer = np.linspace(zmin, zmax, nlay)
     dx = cellsize
     dy = -cellsize
 
@@ -146,6 +154,7 @@ def make_idomain_shift(xmin: float, ymax: float,
         dims=("layer", "y", "x"),
         coords={"layer": layer, "y": y, "x": x, "dx": dx, "dy": dy},
     )
+
 
 @pytest_cases.fixture(scope="function")
 def active_idomain() -> xr.DataArray:
@@ -163,21 +172,23 @@ def inactive_idomain() -> xr.DataArray:
 
     return idomain
 
+
 @pytest_cases.fixture(scope="function")
 def active_idomain_riba() -> xr.DataArray:
     """Return all active idomain"""
-    idomain = make_idomain_shift(85725.600, 444713.900, 1., 3., 20., 10, 10, 3)
+    idomain = make_idomain_shift(85725.600, 444713.900, 1.0, 3.0, 20.0, 10, 10, 3)
     return idomain
 
 
 @pytest_cases.fixture(scope="function")
 def inactive_idomain_riba() -> xr.DataArray:
     """Return idomain with an inactive cell"""
-    idomain = make_idomain_shift(85725.600, 444713.900, 1., 3., 20., 10, 10, 3)
+    idomain = make_idomain_shift(85725.600, 444713.900, 1.0, 3.0, 20.0, 10, 10, 3)
     # Deactivate middle cell
     idomain[:, 1, 2] = 0
 
     return idomain
+
 
 @pytest_cases.fixture(scope="function")
 def recharge(active_idomain: xr.DataArray) -> mf6.Recharge:
@@ -195,7 +206,9 @@ def mf6_bucket_model(active_idomain_riba: xr.DataArray) -> mf6.Modflow6Simulatio
     # level of the groundwater model.
     gwf_model = make_mf6_model(active_idomain_riba)
 
-    template = xr.full_like(active_idomain_riba.isel(layer=[0]), np.nan, dtype=np.float64)
+    template = xr.full_like(
+        active_idomain_riba.isel(layer=[0]), np.nan, dtype=np.float64
+    )
     stage = template.copy()
     conductance = template.copy()
     bottom_elevation = template.copy()
