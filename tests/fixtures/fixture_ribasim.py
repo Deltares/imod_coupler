@@ -1,5 +1,3 @@
-from datetime import datetime
-
 import numpy as np
 import pandas as pd
 import pytest_cases
@@ -31,9 +29,7 @@ def add_subgrid(model: ribasim.Model) -> ribasim.Model:
 
 @pytest_cases.fixture(scope="function")
 def ribasim_bucket_model() -> ribasim.Model:
-    bucket = ribasim_testmodels.bucket_model()
-    bucket.endtime = datetime(2023, 1, 1, 0, 0)
-    return add_subgrid(bucket)
+    return add_subgrid(ribasim_testmodels.bucket_model())
 
 
 @pytest_cases.fixture(scope="function")
