@@ -144,9 +144,7 @@ def make_coupled_mf6_model_newton(idomain: xr.DataArray) -> mf6.Modflow6Simulati
     return simulation
 
 
-def make_coupled_mf6_model(
-    idomain: xr.DataArray, newton: bool = False
-) -> mf6.Modflow6Simulation:
+def make_coupled_mf6_model(idomain: xr.DataArray) -> mf6.Modflow6Simulation:
     _, nrow, ncol = idomain.shape
     gwf_model = make_mf6_model(idomain)
     times = get_times()

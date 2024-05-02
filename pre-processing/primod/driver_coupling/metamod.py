@@ -1,6 +1,8 @@
 from pathlib import Path
 from typing import Any
 
+import xarray as xr
+from imod import mf6
 from imod.mf6 import GroundwaterFlowModel, Modflow6Simulation
 from imod.msw import GridData, MetaSwapModel, Sprinkling
 
@@ -28,7 +30,51 @@ class MetaModDriverCoupling(DriverCoupling):
     mf6_wel_package: str | None = None
 
     def has_newton_formulation(self, mf6_simulation: Modflow6Simulation) -> bool:
-        return bool(mf6_simulation[self.mf6_model]._options["newton"])
+        has_newton = bool(mf6_simulation[self.mf6_model]._options["newton"])
+        if has_newton:
+            self._check_newton_simulation_settings(mf6_simulation[self.mf6_model])
+        return has_newton
+
+    def _check_newton_simulation_settings(
+        self, gwf_model: GroundwaterFlowModel
+    ) -> None:
+        # check if both npf-package and sto-package are convertible since npf-sat is used in coupling
+        # and SY is used as exchange variable
+        idomain = get_idomain(gwf_model)
+        mask = xr.ones_like(idomain)
+        for label in gwf_model:
+            package = gwf_model[label]
+            if isinstance(package, mf6.NodePropertyFlow):
+                # broadcast (layered) constants
+                npf_celtype = (mask * gwf_model[label].dataset["icelltype"]) > 0
+            if isinstance(package, mf6.SpecificStorage) or isinstance(
+                package, mf6.StorageCoefficient
+            ):
+                # broadcast (layered) constants
+                sto_celtype = (mask * gwf_model[label].dataset["convertible"]) > 0
+        if not (npf_celtype & sto_celtype).any():
+            raise ValueError("Celtype need to be equal for both NPF and STO package ")
+
+        # Check is fixed_cell option is defined for rch-package
+        if "fixed_cell" not in gwf_model[self.mf6_recharge_package].dataset.var():
+            raise ValueError(
+                f"Option 'fixed_cell' is obligatory for {self.mf6_recharge_package} package, "
+                "when using the 'modflow_newton_formulation' of MetaMod driver"
+            )
+        # Check if well-nodes are non-convertible
+        if self.mf6_wel_package is not None:
+            ilayer = gwf_model[self.mf6_wel_package].dataset["layer"] - 1
+            irow = gwf_model[self.mf6_wel_package].dataset["row"] - 1
+            icolumn = gwf_model[self.mf6_wel_package].dataset["column"] - 1
+            for label in gwf_model:
+                package = gwf_model[label]
+                if isinstance(package, mf6.NodePropertyFlow):
+                    iceltype = mask * package.dataset["icelltype"]
+                    convertible = (iceltype[ilayer, irow, icolumn] != 0).any()
+                    if convertible:
+                        raise ValueError(
+                            "Found convertible cells with irrigation extraction assigned to them"
+                        )
 
     def _check_sprinkling(
         self, msw_model: MetaSwapModel, gwf_model: GroundwaterFlowModel
@@ -110,3 +156,10 @@ class MetaModDriverCoupling(DriverCoupling):
             )
 
         return coupling_dict
+
+
+def get_idomain(gwf_model: GroundwaterFlowModel) -> xr.DataArray:
+    for label in gwf_model:
+        package = gwf_model[label]
+        if isinstance(package, mf6.StructuredDiscretization):
+            return gwf_model[label].dataset["idomain"]

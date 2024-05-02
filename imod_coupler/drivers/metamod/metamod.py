@@ -330,10 +330,6 @@ class MetaModNewton(MetaMod):
     MetaModNewton: the coupling between MetaSWAP and MODFLOW 6, for the Newton formulation of MODFLOW 6
     """
 
-    # TODO: check for fixed_cell in coupled rch-package
-    # TODO: check if nodes with well packages are confined
-    # TODO: check if storage formulation + npf-formulation are both set to convertible
-
     def __init__(self, base_config: BaseConfig, metamod_config: MetaModConfig):
         super().__init__(base_config, metamod_config)
 
