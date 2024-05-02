@@ -7,14 +7,16 @@ from imod import mf6
 from .common import create_wells, get_times, grid_sizes
 
 
-def make_mf6_model(idomain: xr.DataArray) -> mf6.GroundwaterFlowModel:
+def make_mf6_model(
+    idomain: xr.DataArray, newton: bool = False
+) -> mf6.GroundwaterFlowModel:
     _, _, layer, _, _, dz = grid_sizes()
     nlay = len(layer)
 
     top = 0.0
     bottom = top - xr.DataArray(np.cumsum(dz), coords={"layer": layer}, dims="layer")
 
-    gwf_model = mf6.GroundwaterFlowModel()
+    gwf_model = mf6.GroundwaterFlowModel(newton=newton)
     gwf_model["dis"] = mf6.StructuredDiscretization(
         idomain=idomain, top=top, bottom=bottom
     )
@@ -72,10 +74,79 @@ def make_recharge_pkg(idomain: xr.DataArray) -> mf6.Recharge:
     recharge[:, 0] = np.nan
     recharge = recharge.where(idomain_l1)
 
-    return mf6.Recharge(recharge)
+    return mf6.Recharge(recharge, save_flows=True, fixed_cell=1)
 
 
-def make_coupled_mf6_model(idomain: xr.DataArray) -> mf6.Modflow6Simulation:
+def make_coupled_mf6_model_newton(idomain: xr.DataArray) -> mf6.Modflow6Simulation:
+    nlay, nrow, ncol = idomain.shape
+    gwf_model = make_mf6_model(idomain, newton=True)
+    # Add coupling package
+    gwf_model["rch_msw"] = make_recharge_pkg(idomain)
+    # Add GHB-package
+    times = get_times()
+    head = xr.full_like(idomain.astype(np.float64), np.nan)
+    head[-1, :, :] = -2.5
+    head = head.expand_dims(time=times)
+    head = head.where(head.time > head.time[100])
+    conductance = (xr.ones_like(head) * 1000).where(head.notnull())
+    gwf_model["ghb"] = mf6.GeneralHeadBoundary(
+        head=head.where(idomain == 1),
+        conductance=conductance.where(idomain == 1),
+        print_input=True,
+        print_flows=True,
+        save_flows=True,
+    )
+    # update dis-package
+    gwf_model.pop("dis")
+    top = 0.0
+    dz = np.array([1.0] * nlay)
+    bottom = top - xr.DataArray(
+        np.cumsum(dz), coords={"layer": idomain.layer}, dims="layer"
+    )
+    gwf_model["dis"] = mf6.StructuredDiscretization(
+        idomain=idomain, top=top, bottom=bottom
+    )
+    # update npf-package
+    gwf_model.pop("npf")
+    k_values = np.ones(nlay)
+    k = xr.DataArray(k_values, {"layer": idomain.layer}, ("layer",))
+    k33 = k
+    icelltype = xr.full_like(bottom, 1, dtype=int)
+    gwf_model["npf"] = mf6.NodePropertyFlow(
+        icelltype=icelltype, k=k, k33=k33, save_saturation=True, save_flows=True
+    )
+    # update ic-package
+    gwf_model.pop("ic")
+    gwf_model["ic"] = mf6.InitialConditions(start=-2.5)
+    # sto-package
+    gwf_model["sto"].dataset["convertible"] = 1
+
+    # add coupling packages
+    gwf_model["rch_msw"] = make_recharge_pkg(idomain)
+    # gwf_model["wells_msw"] = create_wells(nrow, ncol, idomain)
+
+    simulation = make_mf6_simulation(gwf_model)
+    simulation.pop("solver")
+    simulation["solver"] = mf6.Solution(
+        ["GWF_1"],
+        complexity="complex",
+        outer_dvclose=1e-5,
+        outer_maximum=500,
+        backtracking_number=0,
+        inner_maximum=100,
+        inner_dvclose=1e-6,
+        inner_rclose=1e-6,
+        rclose_option="strict",
+        linear_acceleration="bicgstab",
+        number_orthogonalizations=10,
+        relaxation_factor=0.0,
+    )
+    return simulation
+
+
+def make_coupled_mf6_model(
+    idomain: xr.DataArray, newton: bool = False
+) -> mf6.Modflow6Simulation:
     _, nrow, ncol = idomain.shape
     gwf_model = make_mf6_model(idomain)
     times = get_times()
@@ -133,10 +204,33 @@ def make_idomain() -> xr.DataArray:
     )
 
 
+def make_idomain_partly_inactive() -> xr.DataArray:
+    x, y, layer, dx, dy, _ = grid_sizes()
+    nlay = len(layer)
+    nrow = len(y)
+    ncol = len(x)
+    array = np.ones((nlay, nrow, ncol), dtype=np.int32)
+    array[:, :, 0] = 0
+
+    return xr.DataArray(
+        data=array,
+        dims=("layer", "y", "x"),
+        coords={"layer": layer, "y": y, "x": x, "dx": dx, "dy": dy},
+    )
+
+
 @pytest_cases.fixture(scope="function")
 def active_idomain() -> xr.DataArray:
     """Return all active idomain"""
     idomain = make_idomain()
+
+    return idomain
+
+
+@pytest_cases.fixture(scope="function")
+def partly_inactive_idomain() -> xr.DataArray:
+    """Return partly active idomain"""
+    idomain = make_idomain_partly_inactive()
 
     return idomain
 
@@ -159,6 +253,13 @@ def recharge(active_idomain: xr.DataArray) -> mf6.Recharge:
 @pytest_cases.fixture(scope="function")
 def coupled_mf6_model(active_idomain: xr.DataArray) -> mf6.Modflow6Simulation:
     return make_coupled_mf6_model(active_idomain)
+
+
+@pytest_cases.fixture(scope="function")
+def coupled_mf6_model_newton(
+    partly_inactive_idomain: xr.DataArray,
+) -> mf6.Modflow6Simulation:
+    return make_coupled_mf6_model_newton(partly_inactive_idomain)
 
 
 @pytest_cases.fixture(scope="function")

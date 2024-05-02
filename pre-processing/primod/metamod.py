@@ -34,6 +34,9 @@ class MetaMod(CoupledModel):
         self.msw_model = msw_model
         self.mf6_simulation = mf6_simulation
         self.coupling_list = coupling_list
+        self.newton_formulation = self.coupling_list[0].has_newton_formulation(
+            self.mf6_simulation
+        )
 
     def write(
         self,
@@ -154,6 +157,8 @@ class MetaMod(CoupledModel):
                 "coupling": [coupling_dict],
             },
         }
+        if self.newton_formulation:
+            coupler_toml["modflow_newton_formulation"] = True
 
         with open(toml_path, "wb") as f:
             tomli_w.dump(coupler_toml, f)

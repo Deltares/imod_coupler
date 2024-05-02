@@ -1,7 +1,7 @@
 from pathlib import Path
 from typing import Any
 
-from imod.mf6 import GroundwaterFlowModel
+from imod.mf6 import GroundwaterFlowModel, Modflow6Simulation
 from imod.msw import GridData, MetaSwapModel, Sprinkling
 
 from primod.driver_coupling.driver_coupling_base import DriverCoupling
@@ -26,6 +26,9 @@ class MetaModDriverCoupling(DriverCoupling):
     mf6_model: str
     mf6_recharge_package: str
     mf6_wel_package: str | None = None
+
+    def has_newton_formulation(self, mf6_simulation: Modflow6Simulation) -> bool:
+        return bool(mf6_simulation[self.mf6_model]._options["newton"])
 
     def _check_sprinkling(
         self, msw_model: MetaSwapModel, gwf_model: GroundwaterFlowModel
@@ -96,7 +99,6 @@ class MetaModDriverCoupling(DriverCoupling):
 
         coupling_dict: dict[str, Any] = {}
         coupling_dict["mf6_model"] = self.mf6_model
-
         coupling_dict["mf6_msw_node_map"] = grid_mapping.write(directory)
         coupling_dict["mf6_msw_recharge_pkg"] = self.mf6_recharge_package
         coupling_dict["mf6_msw_recharge_map"] = rch_mapping.write(directory)

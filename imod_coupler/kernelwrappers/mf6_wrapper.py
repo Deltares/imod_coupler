@@ -40,6 +40,10 @@ class Mf6Wrapper(XmiWrapper):
             key: Mf6Drainage(self, mf6_flowmodel_key, key) for key in mf6_drainage_keys
         }
 
+    def has_newton(self, mf6_flowmodel_key: str) -> bool:
+        newton_tag = self.get_var_address("INEWTON", mf6_flowmodel_key)
+        return self.get_value_ptr(newton_tag)[0] == 1
+
     def get_well(
         self,
         mf6_flowmodel_key: str,
@@ -68,10 +72,19 @@ class Mf6Wrapper(XmiWrapper):
         )
         return self.get_value_ptr(mf6_recharge_nodes_tag)
 
-    def get_storage(self, mf6_flowmodel_key: str) -> NDArray[np.float64]:
+    def get_ss(self, mf6_flowmodel_key: str) -> NDArray[np.float64]:
         mf6_storage_tag = self.get_var_address("SS", mf6_flowmodel_key, "STO")
         mf6_storage = self.get_value_ptr(mf6_storage_tag)
         return mf6_storage
+
+    def get_sy(self, mf6_flowmodel_key: str) -> NDArray[np.float64]:
+        mf6_storage_tag = self.get_var_address("SY", mf6_flowmodel_key, "STO")
+        mf6_storage = self.get_value_ptr(mf6_storage_tag)
+        return mf6_storage
+
+    def get_saturation(self, mf6_flowmodel_key: str) -> NDArray[np.float64]:
+        saturation_tag = self.get_var_address("SAT", mf6_flowmodel_key, "NPF")
+        return self.get_value_ptr(saturation_tag)
 
     def has_sc1(self, mf6_flowmodel_key: str) -> bool:
         mf6_is_sc1_tag = self.get_var_address("ISTOR_COEF", mf6_flowmodel_key, "STO")
@@ -92,6 +105,20 @@ class Mf6Wrapper(XmiWrapper):
         mf6_bot_tag = self.get_var_address("BOT", mf6_flowmodel_key, "DIS")
         mf6_bot = self.get_value_ptr(mf6_bot_tag)
         return mf6_bot
+
+    def get_dis_shape(self, mf6_flowmodel_key: str) -> tuple:
+        nlay_tag = self.get_var_address("NLAY", mf6_flowmodel_key, "DIS")
+        nrow_tag = self.get_var_address("NROW", mf6_flowmodel_key, "DIS")
+        ncol_tag = self.get_var_address("NCOL", mf6_flowmodel_key, "DIS")
+        return (
+            self.get_value_ptr(nlay_tag)[0],
+            self.get_value_ptr(nrow_tag)[0],
+            self.get_value_ptr(ncol_tag)[0],
+        )
+
+    def get_nodeuser(self, mf6_flowmodel_key: str) -> NDArray[np.int32]:
+        nodeuser_tag = self.get_var_address("NODEUSER", mf6_flowmodel_key, "DIS")
+        return self.get_value_ptr(nodeuser_tag)
 
     def max_iter(self) -> Any:
         mf6_max_iter_tag = self.get_var_address("MXITER", "SLN_1")
@@ -126,7 +153,7 @@ class Mf6Wrapper(XmiWrapper):
 
         Returns
         -------
-         NDArray[np.float64]:
+        NDArray[np.float64]:
             Drainage elevation in modflow
         """
         bound_address = self.get_var_address(

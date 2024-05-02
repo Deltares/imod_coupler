@@ -67,7 +67,7 @@ def metaswap_model(
         area,
         xr.full_like(area, 1, dtype=int),
         xr.full_like(area, 1.0, dtype=float),
-        xr.full_like(active, 1.0, dtype=float),
+        xr.full_like(active, 0.0, dtype=float),  # to be consistent with mf6 model
         xr.full_like(active, 1, dtype=int),
         active,
     )
@@ -232,6 +232,28 @@ def prepared_msw_model_inactive(
     metaswap_lookup_table: Path,
 ) -> msw.MetaSwapModel:
     msw_model = make_msw_model(inactive_idomain)
+    # Override unsat_svat_path with path from environment
+    msw_model.simulation_settings["unsa_svat_path"] = (
+        msw_model._render_unsaturated_database_path(metaswap_lookup_table)
+    )
+
+    return msw_model
+
+
+@pytest_cases.fixture(scope="function")
+def prepared_msw_model_newton(
+    partly_inactive_idomain: xr.DataArray,
+    metaswap_lookup_table: Path,
+) -> msw.MetaSwapModel:
+    msw_model = make_msw_model(partly_inactive_idomain)
+    # increase precipitation, zero evaporation
+    msw_model["meteo_grid"].dataset["precipitation"] = (
+        msw_model["meteo_grid"].dataset["precipitation"] * 6.0
+    )
+    msw_model["meteo_grid"].dataset["evapotranspiration"] = (
+        msw_model["meteo_grid"].dataset["evapotranspiration"] * 0.0
+    )
+
     # Override unsat_svat_path with path from environment
     msw_model.simulation_settings["unsa_svat_path"] = (
         msw_model._render_unsaturated_database_path(metaswap_lookup_table)
