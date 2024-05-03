@@ -51,7 +51,7 @@ class RibaMetaMod(Driver):
     mf6_head: NDArray[Any]  # the hydraulic head array in the coupled model
     mf6_recharge: NDArray[Any]  # the coupled recharge array from the RCH package
     mf6_recharge_nodes: NDArray[Any]  # node selection of rch nodes
-    mf6_storage: NDArray[Any]  # the specific storage array (ss)
+    mf6_ss: NDArray[Any]  # the specific storage array (ss)
     mf6_has_sc1: bool  # when true, specific storage in mf6 is given as a storage coefficient (sc1)
     mf6_area: NDArray[Any]  # cell area (size:nodes)
     mf6_top: NDArray[Any]  # top of cell (size:nodes)
@@ -220,7 +220,7 @@ class RibaMetaMod(Driver):
             self.mf6_recharge_nodes = self.mf6.get_recharge_nodes(
                 self.coupling.mf6_model, self.coupling.mf6_msw_recharge_pkg
             )
-            self.mf6_storage = self.mf6.get_storage(self.coupling.mf6_model)
+            self.mf6_ss = self.mf6.get_ss(self.coupling.mf6_model)
             self.mf6_has_sc1 = self.mf6.has_sc1(self.coupling.mf6_model)
             self.mf6_area = self.mf6.get_area(self.coupling.mf6_model)
             self.mf6_top = self.mf6.get_top(self.coupling.mf6_model)
@@ -235,7 +235,7 @@ class RibaMetaMod(Driver):
             arrays["msw_storage"] = self.msw_storage
             arrays["mf6_recharge"] = self.mf6_recharge
             arrays["mf6_head"] = self.mf6_head
-            arrays["mf6_storage"] = self.mf6_storage
+            arrays["mf6_storage"] = self.mf6_ss
             arrays["mf6_has_sc1"] = self.mf6_has_sc1
             arrays["mf6_area"] = self.mf6_area
             arrays["mf6_top"] = self.mf6_top
@@ -444,12 +444,12 @@ class RibaMetaMod(Driver):
 
     def exchange_msw2mod(self) -> None:
         """Exchange Metaswap to Modflow"""
-        self.mf6_storage[:] = (
-            self.mapping.msw2mod["storage_mask"][:] * self.mf6_storage[:]
+        self.mf6_ss[:] = (
+            self.mapping.msw2mod["storage_mask"][:] * self.mf6_ss[:]
             + self.mapping.msw2mod["storage"].dot(self.msw_storage)[:]
         )
         self.exchange_logger.log_exchange(
-            "mf6_storage", self.mf6_storage, self.get_current_time()
+            "mf6_storage", self.mf6_ss, self.get_current_time()
         )
         self.exchange_logger.log_exchange(
             "msw_storage", self.msw_storage, self.get_current_time()

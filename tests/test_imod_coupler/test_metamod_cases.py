@@ -190,3 +190,19 @@ def cases_metamod_sprinkling(
     )
 
     return metamod_ss, metamod_sc
+
+
+def case_newton(
+    coupled_mf6_model_newton: Modflow6Simulation,
+    prepared_msw_model_newton: MetaSwapModel,
+) -> MetaMod:
+    prepared_msw_model_newton.pop("sprinkling")
+
+    driver_coupling = MetaModDriverCoupling(
+        mf6_model="GWF_1", mf6_recharge_package="rch_msw"
+    )
+    return MetaMod(
+        prepared_msw_model_newton,
+        coupled_mf6_model_newton,
+        coupling_list=[driver_coupling],
+    )

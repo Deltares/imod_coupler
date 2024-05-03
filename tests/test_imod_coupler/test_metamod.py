@@ -4,6 +4,7 @@ import textwrap
 from collections.abc import Callable
 from pathlib import Path
 
+import numpy as np
 import pytest
 import tomli
 import tomli_w
@@ -13,6 +14,12 @@ from numpy.testing import assert_array_almost_equal
 from primod.metamod import MetaMod
 from pytest_cases import parametrize_with_cases
 from test_utilities import numeric_csvfiles_equal
+
+from imod_coupler.kernelwrappers.mf6_newton_wrapper import (
+    PhreaticHeads,
+    PhreaticRecharge,
+    PhreaticStorage,
+)
 
 
 def mf6_output_files(path: Path) -> tuple[Path, Path, Path, Path]:
@@ -146,6 +153,7 @@ def test_metamod_develop(
         modflow6_dll=modflow_dll_devel,
         metaswap_dll=metaswap_dll_devel,
         metaswap_dll_dependency=metaswap_dll_dep_dir_devel,
+        modflow6_write_kwargs={"binary": False},
     )
 
     run_coupler_function(tmp_path_dev / metamod_model._toml_name)
@@ -411,3 +419,116 @@ def add_logging_request_to_toml_file(toml_dir: Path, toml_filename: str) -> None
     )  # on print ,"\\\\" gets rendered as "\\"
     with open(toml_dir / "output_config.toml", "w") as f:
         f.write(output_config_content.format(workdir=path_quadruple_backslash))
+
+
+def test_newton_clases() -> None:
+    nlay = 3
+    nrow = 4
+    ncol = 4
+    idomain = np.ones((nlay, nrow, ncol))
+    idomain[1, :, :] = -1  # layer two is inactive
+    userid = (np.arange(nlay * nrow * ncol) + 1).reshape((nlay, nrow, ncol))[
+        idomain == 1
+    ]
+    recharge = np.full((3 * 4), fill_value=0.001)
+    recharge_nodelist = np.array(
+        [1, 2, 3, 5, 6, 7, 9, 10, 11, 13, 14, 15]
+    )  # layer 1, first 3 columns
+
+    saturation = np.ones_like(idomain)
+    saturation[2, :, 2] = 0.5  # third column, phreatisch layer = 3
+    saturation[0:2, :, 2] = 0.0
+    saturation[0, :, 1] = 0.6  # second column, phreatisch layer = 1
+    saturation[0, :, 0] = 1.0  # first column,  phreatisch layer = 1
+    saturation = saturation[idomain == 1]
+
+    phreatic_nodelist = [
+        1,
+        2,
+        35 - 16,
+        5,
+        6,
+        39 - 16,
+        9,
+        10,
+        43 - 16,
+        13,
+        14,
+        47 - 16,
+    ]  # -16 for userid -> modelid since layer 2 is inactive
+
+    rch = PhreaticRecharge(
+        [nlay, nrow, ncol], userid, saturation, recharge, recharge_nodelist
+    )
+    recharge_org = np.copy(recharge)
+    rch.set(recharge * 2)
+
+    assert (recharge == recharge_org * 2).all()
+    assert (recharge_nodelist == phreatic_nodelist).all()
+
+    # storage
+    sy = np.full(
+        (nlay - 1, nrow, ncol), fill_value=0.15
+    ).flatten()  # -1 to remove inactive second layer from internal array
+    sy_org = np.copy(sy)
+    ss = np.full(
+        (nlay - 1, nrow, ncol), fill_value=0.1e-6
+    ).flatten()  # -1 to remove inactive second layer from internal array
+    ss_org = np.copy(ss)
+    coupled_nodes = np.array([1, 2, 3, 5, 6, 7, 9, 10, 11, 13, 14, 15])
+
+    # set storage pointers based on saturation
+    sto = PhreaticStorage(
+        [nlay, nrow, ncol],
+        userid,
+        saturation,
+        sy,
+        ss,
+        coupled_nodes,
+    )
+
+    new_sy = np.full((coupled_nodes.size), fill_value=0.20)
+    # coupled first layer, first three columns
+    # should only updates the phreatic nodes underlying the coupled nodes
+    sto.set(new_sy, new_sy)
+
+    phreatic_nodes = np.array(
+        [
+            1,
+            2,
+            35 - 16,
+            5,
+            6,
+            39 - 16,
+            9,
+            10,
+            43 - 16,
+            13,
+            14,
+            47 - 16,
+        ]
+    )  # -16 for userid -> modelid since layer 2 is inactive
+
+    nodes = np.arange((nlay - 1) * nrow * ncol) + 1
+    mask = np.ones_like(nodes)
+    mask[phreatic_nodes - 1] = 0
+    non_phreatic_nodes = nodes[mask.astype(dtype=bool)]
+
+    # sets phreatic values for SY
+    assert (sy[phreatic_nodes - 1] == 0.2).all()
+    assert (sy[non_phreatic_nodes - 1] == 0.15).all()
+    # zeros SS for phreatic nodes
+    assert (ss[phreatic_nodes - 1] == 0.0).all()
+    assert (ss[non_phreatic_nodes - 1] == 0.1e-6).all()
+
+    # resets arrays to initial values
+    sto.reset()
+    assert (sy == sy_org).all()
+    assert (ss == ss_org).all()
+
+    # head
+    heads = np.arange((nlay - 1) * nrow * ncol)
+
+    hds = PhreaticHeads([nlay, nrow, ncol], userid, saturation, heads, coupled_nodes)
+    phreatic_heads = hds.get()
+    assert (phreatic_heads == heads[phreatic_nodes - 1]).all()
