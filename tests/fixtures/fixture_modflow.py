@@ -119,30 +119,15 @@ def convert_storage_package(
     return gwf_model
 
 
-def make_idomain() -> xr.DataArray:
-    x, y, layer, dx, dy, _ = grid_sizes()
+def make_idomain(**kwargs) -> xr.DataArray:
+    if len(kwargs) == 0:
+        x, y, layer, dx, dy, _ = grid_sizes()
+    else:
+        xmin, ymax = kwargs["leftupper"]
+        zmin, zmax = kwargs["z_range"]
+        cellsize = kwargs["cellsize"]
+        ncol, nrow, nlay = kwargs["dimensions"]
 
-    nlay = len(layer)
-    nrow = len(y)
-    ncol = len(x)
-
-    return xr.DataArray(
-        data=np.ones((nlay, nrow, ncol), dtype=np.int32),
-        dims=("layer", "y", "x"),
-        coords={"layer": layer, "y": y, "x": x, "dx": dx, "dy": dy},
-    )
-
-
-def make_idomain_shift(
-    xmin: float,
-    ymax: float,
-    zmin: float,
-    zmax: float,
-    cellsize: float,
-    ncol: int,
-    nrow: int,
-    nlay: int,
-):
     x = xmin + np.arange(ncol) * cellsize
     y = ymax - np.arange(nrow) * cellsize
     layer = np.linspace(zmin, zmax, nlay)
@@ -176,16 +161,26 @@ def inactive_idomain() -> xr.DataArray:
 @pytest_cases.fixture(scope="function")
 def active_idomain_riba() -> xr.DataArray:
     """Return all active idomain"""
-    idomain = make_idomain_shift(85725.600, 444713.900, 1.0, 3.0, 20.0, 10, 10, 3)
+    idomain = make_idomain(
+        leftupper=[85725.600, 444713.900],
+        z_range=[1.0, 3.0],
+        cellsize=20.0,
+        dimensions=[10, 10, 3],
+    )
     return idomain
 
 
 @pytest_cases.fixture(scope="function")
 def inactive_idomain_riba() -> xr.DataArray:
     """Return idomain with an inactive cell"""
-    idomain = make_idomain_shift(85725.600, 444713.900, 1.0, 3.0, 20.0, 10, 10, 3)
+    idomain = make_idomain(
+        leftupper=[85725.600, 444713.900],
+        z_range=[1.0, 3.0],
+        cellsize=20.0,
+        dimensions=[10, 10, 3],
+    )
     # Deactivate middle cell
-    idomain[:, 1, 2] = 0
+    idomain[:, 5, 2] = 0
 
     return idomain
 
