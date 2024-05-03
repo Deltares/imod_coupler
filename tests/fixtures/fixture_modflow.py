@@ -122,17 +122,19 @@ def convert_storage_package(
 def make_idomain(**kwargs) -> xr.DataArray:
     if len(kwargs) == 0:
         x, y, layer, dx, dy, _ = grid_sizes()
+        nlay = np.size(layer)
+        ncol = np.size(x)
+        nrow = np.size(y)
     else:
         xmin, ymax = kwargs["leftupper"]
         zmin, zmax = kwargs["z_range"]
         cellsize = kwargs["cellsize"]
         ncol, nrow, nlay = kwargs["dimensions"]
-
-    x = xmin + np.arange(ncol) * cellsize
-    y = ymax - np.arange(nrow) * cellsize
-    layer = np.linspace(zmin, zmax, nlay)
-    dx = cellsize
-    dy = -cellsize
+        x = xmin + np.arange(ncol) * cellsize
+        y = ymax - np.arange(nrow) * cellsize
+        layer = np.linspace(zmin, zmax, nlay)
+        dx = cellsize
+        dy = -cellsize
 
     return xr.DataArray(
         data=np.ones((nlay, nrow, ncol), dtype=np.int32),
