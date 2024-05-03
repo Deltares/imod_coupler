@@ -119,12 +119,22 @@ def convert_storage_package(
     return gwf_model
 
 
-def make_idomain() -> xr.DataArray:
-    x, y, layer, dx, dy, _ = grid_sizes()
-
-    nlay = len(layer)
-    nrow = len(y)
-    ncol = len(x)
+def make_idomain(**kwargs) -> xr.DataArray:
+    if len(kwargs) == 0:
+        x, y, layer, dx, dy, _ = grid_sizes()
+        nlay = np.size(layer)
+        ncol = np.size(x)
+        nrow = np.size(y)
+    else:
+        xmin, ymax = kwargs["leftupper"]
+        zmin, zmax = kwargs["z_range"]
+        cellsize = kwargs["cellsize"]
+        ncol, nrow, nlay = kwargs["dimensions"]
+        x = xmin + np.arange(ncol) * cellsize
+        y = ymax - np.arange(nrow) * cellsize
+        layer = np.linspace(zmin, zmax, nlay)
+        dx = cellsize
+        dy = -cellsize
 
     return xr.DataArray(
         data=np.ones((nlay, nrow, ncol), dtype=np.int32),
@@ -137,7 +147,6 @@ def make_idomain() -> xr.DataArray:
 def active_idomain() -> xr.DataArray:
     """Return all active idomain"""
     idomain = make_idomain()
-
     return idomain
 
 
@@ -147,6 +156,33 @@ def inactive_idomain() -> xr.DataArray:
     idomain = make_idomain()
     # Deactivate middle cell
     idomain[:, 1, 2] = 0
+
+    return idomain
+
+
+@pytest_cases.fixture(scope="function")
+def active_idomain_riba() -> xr.DataArray:
+    """Return all active idomain"""
+    idomain = make_idomain(
+        leftupper=[85725.600, 444713.900],
+        z_range=[1.0, 3.0],
+        cellsize=20.0,
+        dimensions=[10, 10, 3],
+    )
+    return idomain
+
+
+@pytest_cases.fixture(scope="function")
+def inactive_idomain_riba() -> xr.DataArray:
+    """Return idomain with an inactive cell"""
+    idomain = make_idomain(
+        leftupper=[85725.600, 444713.900],
+        z_range=[1.0, 3.0],
+        cellsize=20.0,
+        dimensions=[10, 10, 3],
+    )
+    # Deactivate middle cell
+    idomain[:, 5, 2] = 0
 
     return idomain
 
@@ -162,12 +198,14 @@ def coupled_mf6_model(active_idomain: xr.DataArray) -> mf6.Modflow6Simulation:
 
 
 @pytest_cases.fixture(scope="function")
-def mf6_bucket_model(active_idomain: xr.DataArray) -> mf6.Modflow6Simulation:
+def mf6_bucket_model(active_idomain_riba: xr.DataArray) -> mf6.Modflow6Simulation:
     # The bottom of the ribasim trivial model is located at 0.0 m: the surface
     # level of the groundwater model.
-    gwf_model = make_mf6_model(active_idomain)
+    gwf_model = make_mf6_model(active_idomain_riba)
 
-    template = xr.full_like(active_idomain.isel(layer=[0]), np.nan, dtype=np.float64)
+    template = xr.full_like(
+        active_idomain_riba.isel(layer=[0]), np.nan, dtype=np.float64
+    )
     stage = template.copy()
     conductance = template.copy()
     bottom_elevation = template.copy()
@@ -189,7 +227,7 @@ def mf6_bucket_model(active_idomain: xr.DataArray) -> mf6.Modflow6Simulation:
     # Override time discretization:
     # Make model returns dates in 1970
     # Ribasim bucket models is 2020-2021.
-    times = pd.date_range("2020-01-01", "2021-01-01", freq="D")
+    times = pd.date_range("2020-01-01", "2023-01-01", freq="D")
     simulation.create_time_discretization(additional_times=times)
     return simulation
 

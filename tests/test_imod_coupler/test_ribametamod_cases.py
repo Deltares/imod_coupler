@@ -58,10 +58,7 @@ def case_bucket_model(
 ) -> RibaMetaMod:
     mf6_modelname, mf6_model = get_mf6_gwf_modelnames(mf6_bucket_model)[0]
     mf6_active_river_packages = get_mf6_river_packagenames(mf6_model)
-    basin_definition = create_basin_definition(
-        ribasim_bucket_model.basin.node,
-        buffersize=10.0,
-    )
+    basin_definition = create_basin_definition(ribasim_bucket_model, buffersize=100.0)
     mf6_bucket_model = add_rch_package(mf6_bucket_model)
     mf6_bucket_model = add_well_package(mf6_bucket_model)
 
