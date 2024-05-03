@@ -127,20 +127,12 @@ def make_coupled_mf6_model_newton(idomain: xr.DataArray) -> mf6.Modflow6Simulati
 
     simulation = make_mf6_simulation(gwf_model)
     simulation.pop("solver")
-    simulation["solver"] = mf6.Solution(
-        ["GWF_1"],
-        complexity="complex",
-        outer_dvclose=1e-5,
-        outer_maximum=500,
-        backtracking_number=0,
-        inner_maximum=100,
-        inner_dvclose=1e-6,
-        inner_rclose=1e-6,
-        rclose_option="strict",
-        linear_acceleration="bicgstab",
-        number_orthogonalizations=10,
-        relaxation_factor=0.0,
-    )
+    simulation["solver"] = mf6.SolutionPresetComplex(["GWF_1"])
+    simulation["solver"].dataset["outer_dvclose"] = 1e-6
+    simulation["solver"].dataset["inner_dvclose"] = 1e-7
+    simulation["solver"].dataset["outer_maximum"] = 500
+    # don't use backtracking since we update parameters in outer iteration
+    simulation["solver"].dataset["backtracking_number"] = 0
     return simulation
 
 
