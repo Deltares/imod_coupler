@@ -7,6 +7,9 @@
       <option name="artifactRules" value="dist\imodc.exe =&gt; imod_coupler.zip&#xA;metaswap\fmpich2.dll =&gt; imod_coupler.zip&#xA;modflow6\libmf6.dll =&gt; imod_coupler.zip&#xA;metaswap\MetaSWAP.dll =&gt; imod_coupler.zip&#xA;metaswap\mpich2mpi.dll =&gt; imod_coupler.zip&#xA;metaswap\mpich2nemesis.dll =&gt; imod_coupler.zip" />
       <option name="cleanBuild" value="true" />
     </options>
+    <disabled-settings>
+      <setting-ref ref="ARTIFACT_DEPENDENCY_285" />
+    </disabled-settings>
     <parameters>
       <param name="conda_env_path" value="%system.teamcity.build.checkoutDir%/imod_collector_env" />
     </parameters>
@@ -90,7 +93,7 @@ pyinstaller --onefile coupler/imod_coupler/__main__.py --name imodc]]></param>
       </extension>
     </build-extensions>
     <artifact-dependencies>
-      <dependency id="ARTIFACT_DEPENDENCY_285" sourceBuildTypeId="Ribasim_Windows_BuildLibribasim" cleanDestination="false">
+      <dependency id="ARTIFACT_DEPENDENCY_285" sourceBuildTypeId="Ribasim_Windows_BuildRibasim" cleanDestination="false">
         <revisionRule name="lastSuccessful" revision="latest.lastSuccessful" />
         <artifact sourcePath="libribasim.zip!** =&gt; ribasim" />
       </dependency>
