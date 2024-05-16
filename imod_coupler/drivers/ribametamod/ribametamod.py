@@ -297,17 +297,18 @@ class RibaMetaMod(Driver):
                     modribmsw_arrays["rib_sprinkling_demand"] = self.ribasim_user_demand
                     n_users = np.shape(self.mapping.msw2rib["sw_sprinkling"])[0]
                     n_priorities = np.size(self.ribasim_user_demand) // n_users
-                    self.ribasim_user_demand.resize(n_users,n_priorities)
+                    self.ribasim_user_demand.resize(n_users, n_priorities)
                     self.ribasim_userprio = self.ribasim_user_demand.copy().reshape(
                         n_users, n_priorities
                     )
                     self.ribasim_userprio[self.ribasim_userprio > 1] = 1.0
                     # number of priorities non-zero elements for each NON-MASKED user, i.e. metaswap sprinkling
-                    nprio_per_target = (1-self.mapping.msw2rib['sw_sprinkling_mask']) \
-                            *self.ribasim_userprio.sum(axis=1)
+                    nprio_per_target = (
+                        1 - self.mapping.msw2rib["sw_sprinkling_mask"]
+                    ) * self.ribasim_userprio.sum(axis=1)
 
                     # gather 1-based indices of users with more than one entry into a list
-                    too_many = np.where(nprio_per_target>1)[0] + 1
+                    too_many = np.where(nprio_per_target > 1)[0] + 1
 
                     # if this list is not empty ...
                     if np.size(too_many) > 0:
@@ -452,8 +453,10 @@ class RibaMetaMod(Driver):
             self.msw_sprinkling_demand_sec
         )
         masked = self.mapping.msw2rib["sw_sprinkling_mask"]
-        self.ribasim_user_demand[:]  = masked[:, np.newaxis] * self.ribasim_user_demand[:] 
-        self.ribasim_user_demand[:] += mapped[:, np.newaxis] * self.ribasim_userprio 
+        self.ribasim_user_demand[:] = (
+            masked[:, np.newaxis] * self.ribasim_user_demand[:]
+        )
+        self.ribasim_user_demand[:] += mapped[:, np.newaxis] * self.ribasim_userprio
         return
 
     def exchange_sprinkling_flux_realised_msw2rib(self, delt: float) -> None:
