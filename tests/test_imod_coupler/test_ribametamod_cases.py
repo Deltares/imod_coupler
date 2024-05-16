@@ -30,7 +30,7 @@ def create_basin_definition(node: RibaNodeTbl, buffersize: float, **kwargs) -> g
     sel = node.df['node_id'].isin(nodelist)
     basin_definition = gpd.GeoDataFrame(
         data={"node_id": node.df.loc[sel]["node_id"].to_numpy()},
-        geometry=node.df["geometry"].buffer(buffersize).to_numpy(),
+        geometry=node.df[sel]["geometry"].buffer(buffersize).to_numpy(),
     )
     return basin_definition
 

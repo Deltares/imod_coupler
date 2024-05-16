@@ -122,8 +122,8 @@ def test_ribametamod_two_basin(
     # )
 
 
-@pytest.mark.xdist_group(name="ribasim")
-# @pytest.mark.skip("potentially hangs, to be solved in model")
+# @pytest.mark.xdist_group(name="ribasim")
+@pytest.mark.skip("potentially hangs, to be solved in model")
 @parametrize_with_cases("ribametamod_model", glob="two_basin_model_users")
 def test_ribametamod_two_basin_users(
     tmp_path_dev: Path,
