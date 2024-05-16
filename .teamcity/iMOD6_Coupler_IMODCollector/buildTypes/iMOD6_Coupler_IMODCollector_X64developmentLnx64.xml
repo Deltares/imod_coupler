@@ -2,7 +2,7 @@
 <build-type xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" uuid="ae87ff1a-9b4c-4fc7-b86f-5399b04ad138" xsi:noNamespaceSchemaLocation="https://www.jetbrains.com/teamcity/schemas/2021.1/project-config.xsd">
   <name>x64_development_lnx64</name>
   <description>Collect all Release_x64 kernels in the iMOD6 suite</description>
-  <settings>
+  <settings ref="iMOD6_Coupler_Linux">
     <options>
       <option name="artifactRules" value="dist/imodc/ =&gt; imod_collector.zip!/imod_coupler/&#xA;modflow6/ =&gt; imod_collector.zip!/modflow6/&#xA;metaswap/ =&gt; imod_collector.zip!/metaswap/" />
     </options>
@@ -107,7 +107,7 @@ pyinstaller coupler/imod_coupler/__main__.py --name imodc]]></param>
       </extension>
     </build-extensions>
     <artifact-dependencies>
-      <dependency id="ARTIFACT_DEPENDENCY_285" sourceBuildTypeId="Ribasim_Windows_BuildLibribasim" cleanDestination="false">
+      <dependency id="ARTIFACT_DEPENDENCY_285" sourceBuildTypeId="Ribasim_Windows_BuildRibasim" cleanDestination="false">
         <revisionRule name="lastSuccessful" revision="latest.lastSuccessful" />
         <artifact sourcePath="libribasim.zip!** =&gt; ribasim" />
       </dependency>
