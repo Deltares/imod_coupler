@@ -20,10 +20,16 @@ from test_ribamod_cases import (
 )
 
 
-def create_basin_definition(node: RibaNodeTbl, buffersize: float) -> gpd.GeoDataFrame:
+def create_basin_definition(node: RibaNodeTbl, buffersize: float, **kwargs) -> gpd.GeoDataFrame:
     # Call to_numpy() to get rid of the index
+    nodelist: list[int]
+    if 'nodes' in kwargs:
+        nodelist = kwargs['nodes']
+    else:
+        nodelist=list(node.df['node_id'])
+    sel = node.df['node_id'].isin(nodelist)
     basin_definition = gpd.GeoDataFrame(
-        data={"node_id": node.df["node_id"].to_numpy()},
+        data={"node_id": node.df.loc[sel]["node_id"].to_numpy()},
         geometry=node.df["geometry"].buffer(buffersize).to_numpy(),
     )
     return basin_definition
@@ -161,20 +167,31 @@ def case_two_basin_model_users(
     )
     ribamodel = ribametamod_model.ribasim_model
     ribamodel.user_demand.add(
-        ribasim.Node(7, Point(250.0, 0.0), subnetwork_id=1),
-        [
-            user_demand.Static(  # type: ignore
-                demand=3.0,
-                active=True,
-                return_factor=[0.0],
-                min_level=[-1.0],
-                priority=[3],
-            ),
-        ],
-    )
-
+         ribasim.Node(7, Point(250.0, 10.0), subnetwork_id=2),
+         [
+             user_demand.Static(  # type: ignore
+                 demand=3.0,
+                 active=True,
+                 return_factor=[0.0],
+                 min_level=[-1.0],
+                 priority=[1],
+             ),
+         ],
+     )
+#   ribamodel.user_demand.add(
+#       ribasim.Node(9, Point(250.0, 0.0), subnetwork_id=2),
+#       [
+#           user_demand.Static(  # type: ignore
+#               demand=1.0,
+#               active=True,
+#               return_factor=[0.0],
+#               min_level=[-1.0],
+#               priority=[2],
+#           ),
+#       ],
+#   )
     ribamodel.user_demand.add(
-        ribasim.Node(8, Point(750.0, 0.0), subnetwork_id=2),
+        ribasim.Node(8, Point(750.0, 0.0), subnetwork_id=1),
         [
             user_demand.Static(  # type: ignore
                 demand=1.5,
@@ -185,15 +202,21 @@ def case_two_basin_model_users(
             ),
         ],
     )
+
     ribamodel.edge.add(ribamodel.basin[2], ribamodel.user_demand[7])
     ribamodel.edge.add(ribamodel.basin[3], ribamodel.user_demand[8])
     ribamodel.edge.add(ribamodel.user_demand[7], ribamodel.basin[2])
     ribamodel.edge.add(ribamodel.user_demand[8], ribamodel.basin[3])
+
+#   ribamodel.edge.add(ribamodel.basin[2], ribamodel.user_demand[9])
+#   ribamodel.edge.add(ribamodel.user_demand[9], ribamodel.basin[2])
+
 
     for cpl in ribametamod_model.coupling_list:
         if isinstance(cpl, RibaMetaDriverCoupling):
             cpl.ribasim_user_demand_definition = create_basin_definition(
                 ribamodel.user_demand.node,
                 buffersize=250.0,
+                nodes=[7]
             )
     return ribametamod_model

@@ -142,7 +142,6 @@ def make_idomain(**kwargs) -> xr.DataArray:
         coords={"layer": layer, "y": y, "x": x, "dx": dx, "dy": dy},
     )
 
-
 @pytest_cases.fixture(scope="function")
 def active_idomain() -> xr.DataArray:
     """Return all active idomain"""
@@ -158,7 +157,6 @@ def inactive_idomain() -> xr.DataArray:
     idomain[:, 1, 2] = 0
 
     return idomain
-
 
 @pytest_cases.fixture(scope="function")
 def active_idomain_riba() -> xr.DataArray:

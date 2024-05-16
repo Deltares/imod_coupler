@@ -196,6 +196,7 @@ class RibaMetaMod(Driver):
             self.ribasim_infiltration = self.ribasim.get_value_ptr("basin.infiltration")
             self.ribasim_drainage = self.ribasim.get_value_ptr("basin.drainage")
             self.ribasim_level = self.ribasim.get_value_ptr("basin.level")
+            self.ribasim_storage = self.ribasim.get_value_ptr("basin.storage")
             self.subgrid_level = self.ribasim.get_value_ptr("basin.subgrid_level")
 
             # add to return ChainMap
@@ -296,14 +297,19 @@ class RibaMetaMod(Driver):
                     modribmsw_arrays["rib_sprinkling_demand"] = self.ribasim_user_demand
                     n_users = np.shape(self.mapping.msw2rib["sw_sprinkling"])[0]
                     n_priorities = np.size(self.ribasim_user_demand) // n_users
-                    self.ribasim_user_demand.resize(n_priorities, n_users)
-                    self.ribasim_user_demand0 = self.ribasim_user_demand.copy().reshape(
-                        n_priorities, n_users
+                    self.ribasim_user_demand.resize(n_users,n_priorities)
+                    self.ribasim_userprio = self.ribasim_user_demand.copy().reshape(
+                        n_users, n_priorities
                     )
-                    self.ribasim_user_demand0[self.ribasim_user_demand0 > 0] = 1.0
-                    too_many = (
-                        np.where(self.ribasim_user_demand0.sum(axis=0) > 1)[0] + 1
-                    )
+                    self.ribasim_userprio[self.ribasim_userprio > 1] = 1.0
+                    # number of priorities non-zero elements for each NON-MASKED user, i.e. metaswap sprinkling
+                    nprio_per_target = (1-self.mapping.msw2rib['sw_sprinkling_mask']) \
+                            *self.ribasim_userprio.sum(axis=1)
+
+                    # gather 1-based indices of users with more than one entry into a list
+                    too_many = np.where(nprio_per_target>1)[0] + 1
+
+                    # if this list is not empty ...
                     if np.size(too_many) > 0:
                         raise ValueError(
                             f"More than one priority set for basins {np.array2string(too_many)}"
@@ -445,8 +451,10 @@ class RibaMetaMod(Driver):
         mapped = self.mapping.msw2rib["sw_sprinkling"].dot(
             self.msw_sprinkling_demand_sec
         )
-
-        self.ribasim_user_demand[:] = mapped[:, np.newaxis] * self.ribasim_user_demand0
+        masked = self.mapping.msw2rib["sw_sprinkling_mask"]
+        self.ribasim_user_demand[:]  = masked[:, np.newaxis] * self.ribasim_user_demand[:] 
+        self.ribasim_user_demand[:] += mapped[:, np.newaxis] * self.ribasim_userprio 
+        return
 
     def exchange_sprinkling_flux_realised_msw2rib(self, delt: float) -> None:
         msw_sprinkling_realised = self.msw.get_surfacewater_sprinking_realised_ptr()
