@@ -38,8 +38,6 @@ def _get_build_info(tag: str | None) -> tuple[str, str]:
     token = os.environ["TEAMCITY_TOKEN"]
     tag_string = f",tag:{tag}" if tag else ""
     info_url = f"https://dpcbuild.deltares.nl/app/rest/builds/buildType:iMOD6_IMOD6collectorDaily_ReleaseX64,count:1,branch:main,status:SUCCESS{tag_string}"
-    print(info_url)  # RL666
-    sys.exit()  # RL666
 
     info_response = httpx.get(
         info_url,
