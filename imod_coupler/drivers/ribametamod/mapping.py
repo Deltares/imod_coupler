@@ -232,7 +232,7 @@ class SetMapping:
                 msw_idx,
                 rib_idx,
                 packages["ribmsw_nbound"],
-                packages["ribasim_nbasin"],
+                packages["ribasim_nuser"],
                 "sum",
             )
             # should become shape of 'users'-array in Ribasim
