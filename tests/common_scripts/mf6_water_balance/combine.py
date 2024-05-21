@@ -3,7 +3,6 @@
 from pathlib import Path
 
 import netCDF4 as nc
-import netCDF4 as nc
 import numpy as np
 import pandas as pd
 
