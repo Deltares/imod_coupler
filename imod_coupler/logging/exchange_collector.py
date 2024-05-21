@@ -2,7 +2,7 @@ import abc
 from pathlib import Path
 from typing import Any
 
-import h5netcdf.legacyapi as nc
+import netCDF4 as nc
 import numpy as np
 import tomli
 from numpy.typing import NDArray

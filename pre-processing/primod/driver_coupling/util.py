@@ -101,12 +101,12 @@ def _nullify_ribasim_exchange_input(
     """
 
     # FUTURE: in coupling to MetaSWAP, the runoff should be set nodata as well.
-    def _nullify(df: pd.DataFrame) -> None:
+    def _nullify(df: pd.DataFrame, fill: float = np.nan) -> None:
         """E.g. set drainage, infiltration, runoff columns to nodata if present in df"""
         if df is not None:
             columns_present = list(set(columns).intersection(df.columns))
             if len(columns_present) > 0:
-                df.loc[df["node_id"].isin(coupled_node_ids), columns_present] = np.nan
+                df.loc[df["node_id"].isin(coupled_node_ids), columns_present] = fill
         return
 
     _nullify(ribasim_component.static.df)
