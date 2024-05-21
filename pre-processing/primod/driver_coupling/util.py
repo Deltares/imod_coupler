@@ -109,6 +109,6 @@ def _nullify_ribasim_exchange_input(
                 df.loc[df["node_id"].isin(coupled_node_ids), columns_present] = fill
         return
 
-    #   _nullify(ribasim_component.static.df, fill=0.0)
+    _nullify(ribasim_component.static.df)
     _nullify(ribasim_component.time.df)
     return
