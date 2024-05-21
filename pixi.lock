@@ -21625,7 +21625,6 @@ packages:
   - flox >=0.5
   - netcdf4 >=1.6.0
   - cartopy >=0.20
-  - h5netcdf >=1.0
   - dask-core >=2022.7
   - cftime >=1.6
   - numba >=0.55
