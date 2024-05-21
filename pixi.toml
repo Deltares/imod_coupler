@@ -14,7 +14,7 @@ install-minimal = { depends_on = ["install-ribasim-api", "install-imodc"] }
 build-imod-coupler = "rm -rf dist && pyinstaller imod_coupler/__main__.py --name imodc"
 
 [dependencies]
-h5netcdf = "*"
+netCDF4 = "*"
 loguru = "*"
 numpy = "*"
 pip = "*"
