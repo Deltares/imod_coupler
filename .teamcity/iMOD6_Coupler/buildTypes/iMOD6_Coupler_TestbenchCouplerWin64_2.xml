@@ -37,7 +37,7 @@ pixi run -e dev install]]></param>
       </runner>
       <runner id="RUNNER_1503" name="Run tests" type="simpleRunner">
         <parameters>
-          <param name="script.content" value="pixi run test-imod-coupler" />
+          <param name="script.content" value="pixi run -e dev test-imod-coupler" />
           <param name="teamcity.build.workingDir" value="imod_coupler" />
           <param name="teamcity.step.mode" value="default" />
           <param name="use.custom.script" value="true" />
