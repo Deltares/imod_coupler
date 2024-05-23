@@ -215,6 +215,9 @@ class RibaMod(Driver):
                 self.mask_rib2mod[key] * package.water_level
                 + self.map_rib2mod[key].dot(self.subgrid_level)
             )
+            self.exchange_logger.log_exchange(
+                ("stage_" + key), package.stage, self.get_current_time()
+            )
         return
 
     def exchange_mod2rib(self) -> None:

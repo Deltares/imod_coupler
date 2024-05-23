@@ -1,3 +1,4 @@
+import geopandas as gpd
 import ribasim
 import xarray as xr
 from fixtures.common import create_wells_max_layer
@@ -60,11 +61,22 @@ def case_bucket_model(
         mf6_packages=mf6_active_river_packages,
         ribasim_basin_definition=basin_definition,
     )
+    ribameta_coupling = RibaMetaDriverCoupling(
+        ribasim_basin_definition=basin_definition,
+    )
+    # increase resistance to 1 day
+    conductance = mf6_bucket_model["GWF_1"][mf6_active_river_packages[0]].dataset[
+        "conductance"
+    ]
+    conductance = conductance / 400
+    mf6_bucket_model["GWF_1"][mf6_active_river_packages[0]].dataset["conductance"] = (
+        conductance
+    )
     return RibaMetaMod(
         ribasim_model=ribasim_bucket_model,
         msw_model=msw_bucket_model,
         mf6_simulation=mf6_bucket_model,
-        coupling_list=[metamod_coupling, ribamod_coupling],
+        coupling_list=[metamod_coupling, ribamod_coupling, ribameta_coupling],
     )
 
 

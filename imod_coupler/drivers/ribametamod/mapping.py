@@ -203,7 +203,7 @@ class SetMapping:
                 ndmin=2,
             )
             rib_idx = table_node2svat[:, 0]
-            msw_idx = table_node2svat[:, 1]
+            msw_idx = table_node2svat[:, 1] - 1
             (
                 self.msw2rib["sw_ponding"],
                 self.msw2rib["sw_ponding_mask"],
@@ -224,7 +224,7 @@ class SetMapping:
                 ndmin=2,
             )
             rib_idx = table_node2svat[:, 0]
-            msw_idx = table_node2svat[:, 1]
+            msw_idx = table_node2svat[:, 1] - 1
             (
                 self.msw2rib["sw_sprinkling"],
                 self.msw2rib["sw_sprinkling_mask"],

@@ -10,6 +10,7 @@ from imod_coupler.kernelwrappers.mf6_wrapper import (
     Mf6Drainage,
     Mf6River,
 )
+from imod_coupler.logging.exchange_collector import ExchangeCollector
 
 
 class ExchangeBalance:
@@ -99,6 +100,7 @@ class CoupledExchangeBalance(ExchangeBalance):
     realised_negative: dict[str, NDArray[np.float64]]
     shape: int
     sum_keys: list[str]
+    exchange_logger: ExchangeCollector
 
     def __init__(
         self,
@@ -110,6 +112,7 @@ class CoupledExchangeBalance(ExchangeBalance):
         mapping: SetMapping,
         ribasim_infiltration: NDArray[Any],
         ribasim_drainage: NDArray[Any],
+        exchange_logger: ExchangeCollector,
     ) -> None:
         super().__init__(shape, labels)
         self.mf6_river_packages = mf6_river_packages
@@ -118,6 +121,7 @@ class CoupledExchangeBalance(ExchangeBalance):
         self.mapping = mapping
         self.ribasim_infiltration = ribasim_infiltration
         self.ribasim_drainage = ribasim_drainage
+        self.exchange_logger = exchange_logger
 
     def update_api_packages(self) -> None:
         """
@@ -164,6 +168,12 @@ class CoupledExchangeBalance(ExchangeBalance):
             self.demands[key] = self.mapping.map_mod2rib[key].dot(
                 drain_flux
             ) / days_to_seconds(delt)
+
+    def log_demands(self, current_time: float) -> None:
+        for key, array in self.demands.items():
+            self.exchange_logger.log_exchange(
+                ("exchange_demand_" + key), self.demands[key], current_time
+            )
 
     def add_ponding_msw(
         self, delt: float, allocated_volume: NDArray[np.float64]

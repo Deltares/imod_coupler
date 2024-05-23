@@ -296,6 +296,7 @@ class RibaMetaMod(Driver):
                 mapping=self.mapping,
                 ribasim_infiltration=self.ribasim_infiltration,
                 ribasim_drainage=self.ribasim_drainage,
+                exchange_logger=self.exchange_logger,
             )
 
     def update_ribasim_metaswap(self) -> None:
@@ -341,6 +342,7 @@ class RibaMetaMod(Driver):
             # get realised values on basin boundary nodes and exchange correction flux
             realised_basin_nodes = self.exchange.demand  # dummy value for now
             self.exchange.to_modflow(realised_basin_nodes)
+            self.exchange.log_demands(self.get_current_time())
 
         # do the MODFLOW-MetaSWAP timestep
         if self.has_metaswap:
@@ -440,6 +442,9 @@ class RibaMetaMod(Driver):
             package.set_water_level(
                 self.mapping.mask_rib2mod[key] * package.water_level
                 + self.mapping.map_rib2mod_stage[key].dot(self.subgrid_level)
+            )
+            self.exchange_logger.log_exchange(
+                ("stage_" + key), package.stage, self.get_current_time()
             )
 
     def exchange_msw2mod(self) -> None:
