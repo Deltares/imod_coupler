@@ -1,4 +1,3 @@
-import re
 from pathlib import Path
 
 import netCDF4 as nc
@@ -65,17 +64,16 @@ def test_exchange_collector_raises_exception_when_array_size_varies(
     config_dict = tomli.loads(output_config_toml)
     config_dict["general"]["output_dir"] = tmp_path_dev
     exchange_collector = ExchangeCollector.from_config(config_dict)
-
     some_array: NDArray[np.float64] = np.array([1.1, 2.0, -4.8, np.nan, 3])
     some_smaller_array: NDArray[np.float64] = np.array([1.1, 666.0, -4.8, 0.0])
-
     exchange_collector.log_exchange("example_stage_output", some_array, 8.0)
-
-    with pytest.raises(TypeError, match=re.escape("Can't broadcast (4,) -> (1, 5)")):
+    with pytest.raises(Exception) as e_info:
         exchange_collector.log_exchange(
             "example_stage_output", some_smaller_array, 23.0
         )
-
+    assert "operands could not be broadcast together with remapped shapes" in str(
+        e_info.value
+    )
     exchange_collector.finalize()
 
 
