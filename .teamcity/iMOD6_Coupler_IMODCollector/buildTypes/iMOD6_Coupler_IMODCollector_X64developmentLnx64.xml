@@ -41,7 +41,12 @@ conda init bash]]></param>
       </runner>
       <runner id="RUNNER_299" name="Install imod_coupler" type="simpleRunner">
         <parameters>
-          <param name="script.content"><![CDATA[module load anaconda3/2021.05
+          <param name="script.content"><![CDATA[rm -rf dist
+pixi run -e dev install-minimal
+pixi run -e dev pyinstaller --onefile imod_coupler/__main__.py --name imodc
+
+
+module load anaconda3/2021.05
 source ~/.bashrc
 conda activate %conda_env_path%
 pip install -e .]]></param>
