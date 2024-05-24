@@ -8,7 +8,6 @@
     </options>
     <disabled-settings>
       <setting-ref ref="ARTIFACT_DEPENDENCY_285" />
-      <setting-ref ref="RUNNER_297" />
       <setting-ref ref="TRIGGER_59" />
     </disabled-settings>
     <parameters>
@@ -18,15 +17,6 @@
       <runner id="RUNNER_2341" name="list modules" type="simpleRunner">
         <parameters>
           <param name="script.content" value="module avail" />
-          <param name="teamcity.step.mode" value="default" />
-          <param name="use.custom.script" value="true" />
-        </parameters>
-      </runner>
-      <runner id="RUNNER_297" name="Create imod_collector conda environment" type="simpleRunner">
-        <parameters>
-          <param name="script.content"><![CDATA[module load anaconda3/2021.05
-rm -rf "%conda_env_path%"
-conda env create --file coupler/environment-minimal.yml -p "%conda_env_path%"]]></param>
           <param name="teamcity.step.mode" value="default" />
           <param name="use.custom.script" value="true" />
         </parameters>
