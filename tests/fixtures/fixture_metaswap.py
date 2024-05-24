@@ -67,7 +67,7 @@ def metaswap_model(
         area,
         xr.full_like(area, 1, dtype=int),
         xr.full_like(area, 1.0, dtype=float),
-        xr.full_like(active, 0.0, dtype=float),
+        xr.full_like(active, dis["top"], dtype=float),  # surfrace level
         xr.full_like(active, 1, dtype=int),
         active,
     )

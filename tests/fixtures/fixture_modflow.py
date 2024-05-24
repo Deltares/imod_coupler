@@ -203,11 +203,6 @@ def mf6_bucket_model(active_idomain_riba: xr.DataArray) -> mf6.Modflow6Simulatio
     # level of the groundwater model.
     gwf_model = make_mf6_model(active_idomain_riba)
 
-    gwf_model.pop("sto")
-    ss = xr.ones_like(active_idomain_riba) * 1e-6
-    ss[0, :, :] = 0.15  # phreatic layer, importent for non coupled nodes
-    gwf_model["sto"] = mf6.StorageCoefficient(ss, 0.1, True, 0)
-
     template = xr.full_like(
         active_idomain_riba.isel(layer=[0]), np.nan, dtype=np.float64
     )

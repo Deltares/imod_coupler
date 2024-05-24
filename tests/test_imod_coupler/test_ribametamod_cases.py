@@ -2,7 +2,7 @@ import geopandas as gpd
 import ribasim
 import xarray as xr
 from fixtures.common import create_wells_max_layer
-from imod.mf6 import Modflow6Simulation, Recharge
+from imod.mf6 import Modflow6Simulation, Recharge, StorageCoefficient
 from imod.msw import MetaSwapModel
 from primod import (
     MetaModDriverCoupling,
@@ -72,6 +72,12 @@ def case_bucket_model(
     mf6_bucket_model["GWF_1"][mf6_active_river_packages[0]].dataset["conductance"] = (
         conductance
     )
+    mf6_bucket_model["GWF_1"].pop("sto")
+    bottom = mf6_bucket_model["GWF_1"]["dis"]["bottom"]
+    ss = xr.ones_like(bottom) * 1e-6
+    ss[0, :, :] = 0.15  # phreatic layer, importent for non coupled nodes
+    mf6_bucket_model["GWF_1"]["sto"] = StorageCoefficient(ss, 0.1, True, 0)
+
     return RibaMetaMod(
         ribasim_model=ribasim_bucket_model,
         msw_model=msw_bucket_model,
@@ -92,6 +98,8 @@ def case_backwater_model(
     mf6_backwater_model = add_rch_package(mf6_backwater_model)
     mf6_backwater_model = add_well_package(mf6_backwater_model)
 
+    mf6_backwater_model["GWF_1"]
+
     metamod_coupling = MetaModDriverCoupling(
         mf6_model=mf6_modelname,
         mf6_recharge_package="rch_msw",
@@ -102,26 +110,35 @@ def case_backwater_model(
         mf6_packages=mf6_active_river_packages + mf6_active_drainage_packages,
         ribasim_basin_definition=basin_definition,
     )
+    ribameta_coupling = RibaMetaDriverCoupling(
+        ribasim_basin_definition=basin_definition,
+    )
     return RibaMetaMod(
         ribasim_model=ribasim_backwater_model,
         msw_model=msw_backwater_model,
         mf6_simulation=mf6_backwater_model,
-        coupling_list=[metamod_coupling, ribamod_coupling],
+        coupling_list=[metamod_coupling, ribamod_coupling, ribameta_coupling],
     )
 
 
 def case_two_basin_model(
-    mf6_two_basin_model_3layer: Modflow6Simulation,
+    mf6_two_basin_model: Modflow6Simulation,
     msw_two_basin_model: MetaSwapModel,
     ribasim_two_basin_model: ribasim.Model,
 ) -> RibaMetaMod | MetaSwapModel:
-    mf6_modelname, mf6_model = get_mf6_gwf_modelnames(mf6_two_basin_model_3layer)[0]
+    mf6_modelname, mf6_model = get_mf6_gwf_modelnames(mf6_two_basin_model)[0]
     mf6_active_river_packages = get_mf6_river_packagenames(mf6_model)
     basin_definition = create_basin_definition(
         ribasim_two_basin_model, buffersize=250.0
     )
-    mf6_two_basin_model_3layer = add_rch_package(mf6_two_basin_model_3layer)
-    mf6_two_basin_model_3layer = add_well_package(mf6_two_basin_model_3layer)
+    mf6_two_basin_model = add_rch_package(mf6_two_basin_model)
+    mf6_two_basin_model = add_well_package(mf6_two_basin_model)
+
+    mf6_two_basin_model["GWF_1"].pop("sto")
+    idomain = mf6_two_basin_model["GWF_1"]["dis"]["idomain"]
+    ss = xr.ones_like(idomain, dtype=float) * 1e-6
+    ss[0, :, :] = 0.15  # phreatic layer, importent for non coupled nodes
+    mf6_two_basin_model["GWF_1"]["sto"] = StorageCoefficient(ss, 0.1, True, 0)
 
     metamod_coupling = MetaModDriverCoupling(
         mf6_model=mf6_modelname,
@@ -140,6 +157,6 @@ def case_two_basin_model(
     return RibaMetaMod(
         ribasim_model=ribasim_two_basin_model,
         msw_model=msw_two_basin_model,
-        mf6_simulation=mf6_two_basin_model_3layer,
+        mf6_simulation=mf6_two_basin_model,
         coupling_list=[metamod_coupling, ribamod_coupling, ribameta_coupling],
     )

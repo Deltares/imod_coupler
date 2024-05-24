@@ -55,10 +55,9 @@ def make_msw_model(
     ncol = idomain.x.size
     nrow = idomain.y.size
     well = create_wells_max_layer(nrow, ncol, idomain.where(active))
-
-    dis = gwf["GWF_1"]["dis"]
-
-    msw_model = metaswap_model(times, area, active, well, dis, unsaturated_database)
+    msw_model = metaswap_model(
+        times, area, active, well, gwf["GWF_1"]["dis"], unsaturated_database
+    )
     # remove bizar large et-flux
     evaporation = msw_model["meteo_grid"].dataset["evapotranspiration"]
     msw_model["meteo_grid"].dataset["evapotranspiration"] = evaporation * 0.01
@@ -100,7 +99,7 @@ def msw_backwater_model(
 
 @pytest_cases.fixture(scope="function")
 def msw_two_basin_model(
-    mf6_two_basin_model_3layer: mf6.GroundwaterFlowModel,
+    mf6_two_basin_model: mf6.GroundwaterFlowModel,
     metaswap_lookup_table: Path,
 ) -> msw.MetaSwapModel:
-    return ad_msw_model(mf6_two_basin_model_3layer, metaswap_lookup_table)
+    return ad_msw_model(mf6_two_basin_model, metaswap_lookup_table)

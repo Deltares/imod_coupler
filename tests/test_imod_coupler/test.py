@@ -5,6 +5,8 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 
+from imod_coupler.__main__ import run_coupler
+
 
 def read_heads(headfile, grbfile):
     heads = imod.mf6.open_hds(headfile, grbfile, False)
@@ -14,13 +16,20 @@ def read_heads(headfile, grbfile):
 
 
 toml = Path(
-    r"c:\Users\kok_hk\AppData\Local\Temp\pytest-of-kok_hk\pytest-188\test_ribametamod_two_basin_two0\develop\imod_coupler.toml"
+    r"c:\Users\kok_hk\AppData\Local\Temp\pytest-of-kok_hk\pytest-204\test_ribametamod_two_basin_two0\develop\imod_coupler.toml"
 )
-headfile = toml.parent / "modflow6" / "GWF_1" / "GWF_1.hds"
-grbfile = toml.parent / "modflow6" / "GWF_1" / "dis.dis.grb"
 
-heads = read_heads(headfile, grbfile)
-imod.idf.save("heads.idf", heads)
+
+run_coupler(toml)
+# headfile = toml.parent / "modflow6" / "GWF_1" / "GWF_1.hds"
+# grbfile = toml.parent / "modflow6" / "GWF_1" / "dis.dis.grb"
+#
+#
+# test = xr.open_dataset(toml.parent / "exchange_logging" / "exchange_demand_riv-1.nc")
+#
+#
+# heads = read_heads(headfile, grbfile)
+# imod.idf.save("heads.idf", heads)
 
 pass
 target = imod.idf.open(
