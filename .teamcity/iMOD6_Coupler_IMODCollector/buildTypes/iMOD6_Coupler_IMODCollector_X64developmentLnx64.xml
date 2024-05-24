@@ -14,13 +14,6 @@
       <param name="conda_env_path" value="%system.teamcity.build.checkoutDir%/imod_collector_env" />
     </parameters>
     <build-runners>
-      <runner id="RUNNER_2341" name="list modules" type="simpleRunner">
-        <parameters>
-          <param name="script.content" value="module avail" />
-          <param name="teamcity.step.mode" value="default" />
-          <param name="use.custom.script" value="true" />
-        </parameters>
-      </runner>
       <runner id="RUNNER_301" name="Create executable with pyinstaller" type="simpleRunner">
         <parameters>
           <param name="script.content"><![CDATA[rm -rf dist
