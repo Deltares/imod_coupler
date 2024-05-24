@@ -11,7 +11,7 @@ import pytest
 import tomli_w
 import xarray as xr
 from imod.msw import MetaSwapModel
-from primod import RibaModActiveDriverCoupling
+from primod import RibaModActiveDriverCoupling, RibaModPassiveDriverCoupling
 from primod.ribametamod import RibaMetaMod
 from pytest_cases import parametrize_with_cases
 from test_ribamod_cases import create_basin_definition
@@ -59,6 +59,7 @@ class exchange_output:
 class Results(NamedTuple):
     basin_df: pd.DataFrame
     flow_df: pd.DataFrame
+    allocation_df: pd.DataFrame
     mf6head: xr.DataArray
     mf6_budgets: dict[str, xr.DataArray]
     msw_budgets: xr.Dataset[Any]
@@ -102,7 +103,9 @@ def get_coupled_msw_mask(
 
     mask_ar = np.full((mf6_idomain.size), fill_value=np.nan)  # user shape model domain
     # take coupled selection of model indices and translate to user indices
-    mask_ar[mf6_user_indices[mf6_model_indices[coupled]]] = basin_indices
+    mask_ar[mf6_user_indices[mf6_model_indices[coupled]]] = (
+        basin_indices + 1
+    )  # one based
     return xr.DataArray(
         data=mask_ar.reshape(
             mf6_idomain.layer.size, mf6_idomain.y.size, mf6_idomain.x.size
@@ -121,7 +124,6 @@ def get_metaswap_results(
     mask = get_coupled_msw_mask(coupling_file, mf6_idomain)
     out = {}
     for var in vars:
-        # columns are shifted relative to the labels, due to datetime column
         ar = imod.idf.open(Path(workdir) / var / "bdgqrun_*_L1.IDF")
         ar["x"] = np.round(ar.x.values, decimals=1)
         ar["y"] = np.round(ar.y.values, decimals=1)
@@ -135,10 +137,19 @@ def flatten(array: xr.DataArray) -> np.ndarray:
     return out[~np.isnan(out)]
 
 
+def sum_budgets(to_sum: np.ndarray, summed: np.ndarray) -> np.ndarray:
+    if summed.size == 0:
+        summed = to_sum
+    else:
+        summed += to_sum
+    return summed
+
+
 def assert_results(
     tmp_path_dev: Path,
     ribametamod_model: RibaMetaMod,
     results: Results,
+    atol: float = 0.5,
 ) -> None:
     # get n-basins
     n_basins = results.basin_df["node_id"].unique()
@@ -146,12 +157,14 @@ def assert_results(
     for n_basin in n_basins:
         basin_mask = results.basin_df["node_id"] == n_basin
         svat_mask = results.msw_budgets["mask"] == n_basin
-        delt = 60 * 60 * 24
+        delt = 24 * 60 * 60
 
-        # get results
-        ribasim_volume = results.basin_df["storage"].to_numpy()[basin_mask]
+        # Ribasim results
+        ribasim_bnd_flux = (
+            results.basin_df["drainage"] - results.basin_df["infiltration"]
+        ).to_numpy()[basin_mask] * delt
 
-        # runoff volumes from MetaA
+        # MetaSWAP runoff
         area = results.msw_budgets["bdgqrun"].dx * -results.msw_budgets["bdgqrun"].dy
         runoff_msw = (
             (-results.msw_budgets["bdgqrun"] * area)
@@ -160,14 +173,8 @@ def assert_results(
             .to_numpy()
         )
         runoff_exchange = (
-            results.exchange_budget["exchange_demand_sw_ponding"].to_numpy() * delt
-        )[:, 0][basin_mask.ravel()]
-
-        # river flux
-        riv_flux_estimate_exchange = (
-            results.exchange_budget["exchange_demand_riv-1"].to_numpy() * delt
-        )[:, 0][basin_mask.ravel()]
-
+            results.exchange_budget["exchange_demand_sw_ponding"].to_numpy()
+        )[:, 0][basin_mask.ravel()] * delt
         plot_results(
             tmp_path_dev,
             {
@@ -176,36 +183,33 @@ def assert_results(
             },
             "metaswap_results",
         )
-        plot_results(
-            tmp_path_dev,
-            {
-                "runoff exchange": runoff_exchange,
-                "riverflux exchange": riv_flux_estimate_exchange,
-                "ribasim d-volume": np.diff(ribasim_volume),
-                "sum exchanges_dashed": runoff_exchange + riv_flux_estimate_exchange,
-            },
-            "results",
-        )
-        # np.testing.assert_allclose(
-        #     runoff_msw, runoff_exchange
-        # )  # MetaSWAP output relative to coupler
-        # np.testing.assert_allclose(
-        #     np.diff(ribasim_volume), runoff_exchange + riv_flux_estimate_exchange
-        # )
+        np.testing.assert_allclose(
+            runoff_msw,
+            runoff_exchange,
+            atol=atol,
+        )  # MetaSWAP output relative to coupler
 
-        # compute river flux as expected in mf6 output, based on the set stages via coupler
+        # River fluxes
         mf6_model = ribametamod_model.mf6_simulation["GWF_1"]
-        # get active coupled packages
+        summed_riv_flux_estimate = np.array([])
+        summed_correction_flux = np.array([])
         for item in ribametamod_model.coupling_list:
             if isinstance(item, RibaModActiveDriverCoupling):
                 for package in item.mf6_packages:
+                    # river flux estimate from coupler logging
+                    riv_flux_estimate_exchange = (
+                        results.exchange_budget["exchange_demand_" + package].to_numpy()
+                    )[:, 0][basin_mask.ravel()] * delt
+                    summed_riv_flux_estimate = sum_budgets(
+                        riv_flux_estimate_exchange, summed_riv_flux_estimate
+                    )
+                    # compute river flux as expected in mf6 output, based on the set stages via coupler
                     cond_ar = mf6_model[package].dataset["conductance"]
                     coupling_file = tmp_path_dev / "exchanges" / (package + ".tsv")
                     package_basin_mask = (
                         get_coupled_mf6_package_mask(coupling_file, cond_ar)
                         == n_basin - 1
                     )
-                    # compute fluxes
                     subset_head = flatten(results.mf6head.where(cond_ar.notnull()))
                     stage = (
                         results.exchange_budget["stage_" + package].to_numpy()[:, 0]
@@ -213,19 +217,58 @@ def assert_results(
                     bottom = flatten(mf6_model[package].dataset["bottom_elevation"])
                     cond = flatten(cond_ar)
                     riv_flux_exchange = (stage - np.maximum(subset_head, bottom)) * cond
-                    riv_flux = flatten(
+                    # river flux from MF6 output
+                    riv_flux_output = flatten(
                         results.mf6_budgets[package].where(package_basin_mask)
+                    )
+                    # riv correction flux from MF6 output
+                    riv_correction_flux = flatten(
+                        results.mf6_budgets["api_" + package].where(package_basin_mask)
+                    )
+                    summed_correction_flux = sum_budgets(
+                        riv_correction_flux, summed_correction_flux
                     )
                     plot_results(
                         tmp_path_dev,
                         {
                             "river flux estimate": -riv_flux_estimate_exchange,
-                            "river flux MF6-output": riv_flux,
+                            "river flux MF6-output": riv_flux_output,
+                            "river flux correction MF6-output": riv_correction_flux,
                             "river flux validation_dashed": riv_flux_exchange,
                         },
                         package,
                     )
-                    # np.testing.assert_allclose(riv_flux_exchange, riv_flux)
+                    np.testing.assert_allclose(
+                        riv_flux_exchange, riv_flux_output, atol=atol
+                    )
+            elif isinstance(item, RibaModPassiveDriverCoupling):
+                for package in item.mf6_packages:
+                    # river flux estimate from coupler logging
+                    riv_flux_estimate_exchange = (
+                        results.exchange_budget["exchange_demand_" + package].to_numpy()
+                    )[:, 0][basin_mask.ravel()] * delt
+                    summed_riv_flux_estimate = sum_budgets(
+                        riv_flux_estimate_exchange, summed_riv_flux_estimate
+                    )
+        # evaluate total coupled waterbalance
+        plot_results(
+            tmp_path_dev,
+            {
+                "MetaSWAP runoff": runoff_exchange,
+                "MF6 river flux estimate": summed_riv_flux_estimate,
+                "MF6 river flux correction": summed_correction_flux,
+                "Ribasim": ribasim_bnd_flux,
+                "sum exchanges_dashed": runoff_exchange
+                + summed_riv_flux_estimate
+                + summed_correction_flux,
+            },
+            "results",
+        )
+        np.testing.assert_allclose(
+            ribasim_bnd_flux,
+            runoff_exchange + summed_riv_flux_estimate + summed_correction_flux,
+            atol=atol,
+        )
 
 
 def plot_results(tmp_path_dev: Path, results: dict[str, np.ndarray], name: str) -> None:
@@ -284,6 +327,10 @@ def write_run_read(
     flow_df = pd.read_feather(
         tmp_path / ribametamod_model._ribasim_model_dir / "results" / "flow.arrow"
     )
+    allocation_df = pd.read_feather(
+        tmp_path / ribametamod_model._ribasim_model_dir / "results" / "allocation.arrow"
+    )
+
     # Read MODFLOW 6 output
     head = imod.mf6.open_hds(
         tmp_path / ribametamod_model._modflow6_model_dir / "GWF_1" / "GWF_1.hds",
@@ -302,7 +349,9 @@ def write_run_read(
         mf6_idomain,
     )
 
-    return Results(basin_df, flow_df, head, budgets, msw_results, exchange_budget)
+    return Results(
+        basin_df, flow_df, allocation_df, head, budgets, msw_results, exchange_budget
+    )
 
 
 # @pytest.mark.xfail(reason="MetaSWAP issues")
@@ -322,15 +371,17 @@ def test_ribametamod_backwater(
     """
     Test if the backwater model works as expected
     """
-    ribametamod_model.write(
+    results = write_run_read(
         tmp_path_dev,
-        modflow6_dll=modflow_dll_devel,
-        ribasim_dll=ribasim_dll_devel,
-        ribasim_dll_dependency=ribasim_dll_dep_dir_devel,
-        metaswap_dll=metaswap_dll_devel,
-        metaswap_dll_dependency=metaswap_dll_dep_dir_devel,
+        ribametamod_model,
+        modflow_dll_devel,
+        ribasim_dll_devel,
+        ribasim_dll_dep_dir_devel,
+        metaswap_dll_devel,
+        metaswap_dll_dep_dir_devel,
+        run_coupler_function,
     )
-    run_coupler_function(tmp_path_dev / ribametamod_model._toml_name)
+    assert_results(tmp_path_dev, ribametamod_model, results)
 
 
 @pytest.mark.xdist_group(name="ribasim")
@@ -363,7 +414,6 @@ def test_ribametamod_bucket(
 
 
 # @pytest.mark.xfail(reason="MetaSWAP issues")
-@pytest.mark.skip("potentially hangs, to be solved in model")
 @parametrize_with_cases("ribametamod_model", glob="two_basin_model")
 def test_ribametamod_two_basin(
     tmp_path_dev: Path,
@@ -374,29 +424,21 @@ def test_ribametamod_two_basin(
     ribasim_dll_devel: Path,
     ribasim_dll_dep_dir_devel: Path,
     run_coupler_function: Callable[[Path], None],
-    ribametamod_two_basin_tot_svat_ref: Path,
 ) -> None:
     """
     Test if the two-basin model model works as expected
     """
-    ribametamod_model.write(
+    results = write_run_read(
         tmp_path_dev,
-        modflow6_dll=modflow_dll_devel,
-        ribasim_dll=ribasim_dll_devel,
-        ribasim_dll_dependency=ribasim_dll_dep_dir_devel,
-        metaswap_dll=metaswap_dll_devel,
-        metaswap_dll_dependency=metaswap_dll_dep_dir_devel,
+        ribametamod_model,
+        modflow_dll_devel,
+        ribasim_dll_devel,
+        ribasim_dll_dep_dir_devel,
+        metaswap_dll_devel,
+        metaswap_dll_dep_dir_devel,
+        run_coupler_function,
     )
-
-    run_coupler_function(tmp_path_dev / ribametamod_model._toml_name)
-    # tot_svat_reference = pd.read_csv(ribametamod_two_basin_tot_svat_ref)
-    # tot_svat_test = pd.read_csv("metaswap/msw/csv/tot_svat_per.csv")
-    # assert tot_svat_test[msw_outputlabel_swsprinkling].equals(
-    #     tot_svat_reference[msw_outputlabel_swsprinkling]
-    # )
-    # assert tot_svat_test[msw_outputlabel_ponding].equals(
-    #     tot_svat_reference[msw_outputlabel_ponding]
-    # )
+    assert_results(tmp_path_dev, ribametamod_model, results)
 
 
 def test_exchange_balance() -> None:

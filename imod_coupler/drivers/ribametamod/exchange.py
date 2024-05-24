@@ -172,7 +172,12 @@ class CoupledExchangeBalance(ExchangeBalance):
     def log_demands(self, current_time: float) -> None:
         for key, array in self.demands.items():
             self.exchange_logger.log_exchange(
-                ("exchange_demand_" + key), self.demands[key], current_time
+                ("exchange_demand_" + key), array, current_time
+            )
+        for key in self.mf6_active_river_api_packages.keys():
+            self.mf6_active_river_api_packages[key].rhs[:]
+            self.exchange_logger.log_exchange(
+                ("exchange_correction_" + key), array, current_time
             )
 
     def add_ponding_msw(

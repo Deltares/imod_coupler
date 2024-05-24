@@ -202,8 +202,8 @@ def mf6_bucket_model(active_idomain_riba: xr.DataArray) -> mf6.Modflow6Simulatio
     # The bottom of the ribasim trivial model is located at 0.0 m: the surface
     # level of the groundwater model.
     gwf_model = make_mf6_model(active_idomain_riba)
-    gwf_model.pop("sto")
 
+    gwf_model.pop("sto")
     ss = xr.ones_like(active_idomain_riba) * 1e-6
     ss[0, :, :] = 0.15  # phreatic layer, importent for non coupled nodes
     gwf_model["sto"] = mf6.StorageCoefficient(ss, 0.1, True, 0)
@@ -232,7 +232,7 @@ def mf6_bucket_model(active_idomain_riba: xr.DataArray) -> mf6.Modflow6Simulatio
     # Override time discretization:
     # Make model returns dates in 1970
     # Ribasim bucket models is 2020-2021.
-    times = pd.date_range("2020-01-01", "2023-01-01", freq="D")  # "2023-01-01"
+    times = pd.date_range("2020-01-01", "2023-01-01", freq="D")
     simulation.create_time_discretization(additional_times=times)
     return simulation
 

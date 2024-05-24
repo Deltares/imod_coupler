@@ -417,6 +417,11 @@ class RibaMetaMod(Driver):
             self.ribasim_drainage += np.where(
                 ribasim_sprinkling_demand_sec < 0, -ribasim_sprinkling_demand_sec, 0
             )
+            self.exchange_logger.log_exchange(
+                ("sprinkling_demand"),
+                ribasim_sprinkling_demand_sec,
+                self.current_time,
+            )
 
     def exchange_sprinkling_flux_realised_msw2rib(
         self, realised_fractions: NDArray[np.float64]
@@ -433,6 +438,11 @@ class RibaMetaMod(Driver):
                 (self.msw_sprinkling_demand_sec * days_to_seconds(self.delt_gw))
                 * msw_sprfrac_realised
             )[:]
+            self.exchange_logger.log_exchange(
+                ("sprinkling_realised"),
+                msw_sprinkling_realised,
+                self.current_time,
+            )
 
     def exchange_stage_rib2mod(self) -> None:
         # Mypy refuses to understand this ChainMap for some reason.

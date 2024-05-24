@@ -5,27 +5,24 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 
-# from imod_coupler.__main__ import run_coupler
+
+def read_heads(headfile, grbfile):
+    heads = imod.mf6.open_hds(headfile, grbfile, False)
+    starttime = pd.to_datetime("2000/01/01")
+    timedelta = pd.to_timedelta(heads["time"] - 1.0, "D")
+    return heads.assign_coords(time=starttime + timedelta)
 
 
-idomain = np.array([1, 1, np.nan, 1]).reshape(2, 2)
+toml = Path(
+    r"c:\Users\kok_hk\AppData\Local\Temp\pytest-of-kok_hk\pytest-188\test_ribametamod_two_basin_two0\develop\imod_coupler.toml"
+)
+headfile = toml.parent / "modflow6" / "GWF_1" / "GWF_1.hds"
+grbfile = toml.parent / "modflow6" / "GWF_1" / "dis.dis.grb"
 
-user_id = np.arange(idomain.size)[idomain.ravel() == 1]
-
-user_selection = np.array([0, 2])
-
-
-target = np.zeros_like(idomain).ravel()
-
-target[user_id[user_selection]] = np.ones_like(user_selection)
-
+heads = read_heads(headfile, grbfile)
+imod.idf.save("heads.idf", heads)
 
 pass
-
-
-path = r"c:\Users\kok_hk\AppData\Local\Temp\pytest-of-kok_hk\pytest-96\test_ribametamod_bucket_bucket0\develop\exchanges\msw_ponding.tsv"
-coupled_indices = pd.read_csv(path, delimiter="\t")["svat_index"].values
-
 target = imod.idf.open(
     r"c:\Users\kok_hk\AppData\Local\Temp\pytest-of-kok_hk\pytest-96\test_ribametamod_bucket_bucket0\develop\metaswap\bdgqrun\bdgqrun_20221231_L1.IDF"
 ).isel(time=0, layer=0, drop=True)
