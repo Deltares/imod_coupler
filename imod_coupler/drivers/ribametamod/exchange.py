@@ -53,11 +53,12 @@ class ExchangeBalance:
     def _check_valid_shortage(
         self, shortage: NDArray[np.float64]
     ) -> None:
-        if np.any(np.logical_and(self.demand > 0.0, shortage > 0.0)):
+        eps: float = 1.0e-06
+        if np.any(np.logical_and(self.demand > eps, shortage > eps)):
             raise ValueError(
                 "Invalid realised values: found shortage for positive demand"
             )
-        if np.any(shortage > np.absolute(self.demand_negative)):
+        if np.any(shortage > np.absolute(self.demand_negative) + eps):
             raise ValueError(
                 "Invalid realised values: found shortage larger than negative demand contributions"
             )
