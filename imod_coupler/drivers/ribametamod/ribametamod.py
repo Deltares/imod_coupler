@@ -396,7 +396,9 @@ class RibaMetaMod(Driver):
             else:
                 self.update_ribasim()
             self.ribasim_drainage_sum -= self.ribasim_infiltration_sum
-            self.exchange.to_modflow(self.ribasim_drainage_sum/days_to_seconds(self.delt_gw))
+            self.exchange.to_modflow(
+                self.ribasim_drainage_sum / days_to_seconds(self.delt_gw)
+            )
 
         # do the MODFLOW-MetaSWAP timestep
         if self.has_metaswap:
