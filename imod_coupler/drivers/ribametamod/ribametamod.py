@@ -389,8 +389,6 @@ class RibaMetaMod(Driver):
             self.exchange_rib2mod()
 
         if self.has_ribasim:
-            self.ribasim_infiltration_sum[:] = 0.0
-            self.ribasim_drainage_sum[:] = 0.0
             if self.has_metaswap:
                 self.update_ribasim_metaswap()
             else:
@@ -456,6 +454,8 @@ class RibaMetaMod(Driver):
         # exchange stage and compute flux estimates over MODFLOW 6 timestep
         self.exchange_stage_rib2mod()
         self.exchange.add_flux_estimate_mod(self.delt_gw, self.mf6_head)
+        self.ribasim_infiltration_sum[:] = 0.0
+        self.ribasim_drainage_sum[:] = 0.0
 
     def exchange_sprinkling_demand_msw2rib(self, delt: float) -> None:
         # flux demand from metaswap sprinkling to Ribasim (demand)
