@@ -106,12 +106,22 @@ class RibaModDriverCoupling(DriverCoupling, abc.ABC):
                     save_flows=True,
                 )
                 destination = "river"
+                if isinstance(self, RibaModPassiveDriverCoupling):
+                    raise TypeError(
+                        f"Expected Drainage (no 'active' packages in passive coupling), received: {type(package).__name__}"
+                    )
+
             elif isinstance(package, imod.mf6.Drainage):
                 destination = "drainage"
             else:
-                raise TypeError(
-                    f"Expected River or Drainage, received: {type(package).__name__}"
-                )
+                if isinstance(self, RibaModPassiveDriverCoupling):
+                    raise TypeError(
+                        f"Expected Drainage, received: {type(package).__name__}"
+                    )
+                else:
+                    raise TypeError(
+                        f"Expected River or Drainage, received: {type(package).__name__}"
+                    )
 
             filename = mapping.write(directory=directory)
             coupling_dict[f"mf6_{self._prefix}_{destination}_packages"][key] = filename
