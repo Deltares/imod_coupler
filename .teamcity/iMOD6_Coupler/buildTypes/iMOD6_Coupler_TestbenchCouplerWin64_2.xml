@@ -29,7 +29,7 @@
       <runner id="RUNNER_1501" name="Set up pixi" type="simpleRunner">
         <parameters>
           <param name="script.content"><![CDATA[pixi --version
-pixi run --environment=dev install]]></param>
+pixi run -e dev install]]></param>
           <param name="teamcity.build.workingDir" value="imod_coupler" />
           <param name="teamcity.step.mode" value="default" />
           <param name="use.custom.script" value="true" />
@@ -37,7 +37,9 @@ pixi run --environment=dev install]]></param>
       </runner>
       <runner id="RUNNER_1503" name="Run tests" type="simpleRunner">
         <parameters>
-          <param name="script.content" value="pixi run test-imod-coupler" />
+          <param name="script.content"><![CDATA[set PATH=d:\ProgramData\pixi\org
+echo %%PATH%%
+pixi run -e dev test-imod-coupler]]></param>
           <param name="teamcity.build.workingDir" value="imod_coupler" />
           <param name="teamcity.step.mode" value="default" />
           <param name="use.custom.script" value="true" />
@@ -111,3 +113,4 @@ pixi run --environment=dev install]]></param>
     <cleanup />
   </settings>
 </build-type>
+

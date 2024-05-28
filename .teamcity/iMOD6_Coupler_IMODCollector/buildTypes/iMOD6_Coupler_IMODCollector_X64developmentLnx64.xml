@@ -8,55 +8,19 @@
     </options>
     <disabled-settings>
       <setting-ref ref="ARTIFACT_DEPENDENCY_285" />
-      <setting-ref ref="RUNNER_2341" />
       <setting-ref ref="TRIGGER_59" />
     </disabled-settings>
     <parameters>
       <param name="conda_env_path" value="%system.teamcity.build.checkoutDir%/imod_collector_env" />
     </parameters>
     <build-runners>
-      <runner id="RUNNER_2341" name="list modules" type="simpleRunner">
-        <parameters>
-          <param name="script.content" value="module avail" />
-          <param name="teamcity.step.mode" value="default" />
-          <param name="use.custom.script" value="true" />
-        </parameters>
-      </runner>
-      <runner id="RUNNER_297" name="Create imod_collector conda environment" type="simpleRunner">
-        <parameters>
-          <param name="script.content"><![CDATA[module load anaconda3/2021.05
-rm -rf "%conda_env_path%"
-conda env create --file coupler/environment-minimal.yml -p "%conda_env_path%"]]></param>
-          <param name="teamcity.step.mode" value="default" />
-          <param name="use.custom.script" value="true" />
-        </parameters>
-      </runner>
-      <runner id="RUNNER_2342" name="conda init" type="simpleRunner">
-        <parameters>
-          <param name="script.content"><![CDATA[module load anaconda3/2021.05
-conda init bash]]></param>
-          <param name="teamcity.step.mode" value="default" />
-          <param name="use.custom.script" value="true" />
-        </parameters>
-      </runner>
-      <runner id="RUNNER_299" name="Install imod_coupler" type="simpleRunner">
-        <parameters>
-          <param name="script.content"><![CDATA[module load anaconda3/2021.05
-source ~/.bashrc
-conda activate %conda_env_path%
-pip install -e .]]></param>
-          <param name="teamcity.build.workingDir" value="coupler" />
-          <param name="teamcity.step.mode" value="default" />
-          <param name="use.custom.script" value="true" />
-        </parameters>
-      </runner>
       <runner id="RUNNER_301" name="Create executable with pyinstaller" type="simpleRunner">
         <parameters>
-          <param name="script.content"><![CDATA[module load anaconda3/2021.05
-source ~/.bashrc
-conda activate %conda_env_path%
+          <param name="script.content"><![CDATA[#!/bin/bash
+module load pixi
 rm -rf dist
-pyinstaller coupler/imod_coupler/__main__.py --name imodc]]></param>
+pixi run -e dev install-minimal
+pixi run -e dev pyinstaller --onefile imod_coupler/__main__.py --name imodc]]></param>
           <param name="teamcity.step.mode" value="default" />
           <param name="use.custom.script" value="true" />
         </parameters>

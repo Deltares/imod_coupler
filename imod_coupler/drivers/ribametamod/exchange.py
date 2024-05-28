@@ -32,7 +32,9 @@ class ExchangeBalance:
         """
         shortage = np.absolute(self.demand - realised)
         demand_negative = self.demand_negative
-        self._check_valid_shortage(shortage, demand_negative)
+        self._check_valid_shortage(
+            shortage
+        )  # use a numpy isclose to set the max non-zero value
         # deal with zero division
         realised_fraction = np.where(
             demand_negative < 0.0, 1.0 - (-shortage / demand_negative), 1.0
@@ -51,14 +53,13 @@ class ExchangeBalance:
             self.demands_negative[flux_label][:] = 0.0
             self.realised_negative[flux_label][:] = 0.0
 
-    def _check_valid_shortage(
-        self, shortage: NDArray[np.float64], demand_negative: NDArray[np.float64]
-    ) -> None:
-        if np.any(np.logical_and(self.demand > 0.0, shortage > 0.0)):
+    def _check_valid_shortage(self, shortage: NDArray[np.float64]) -> None:
+        eps: float = 1.0e-06
+        if np.any(np.logical_and(self.demand > eps, shortage > eps)):
             raise ValueError(
                 "Invalid realised values: found shortage for positive demand"
             )
-        if np.any(shortage > np.absolute(demand_negative)):
+        if np.any(shortage > np.absolute(self.demand_negative) + eps):
             raise ValueError(
                 "Invalid realised values: found shortage larger than negative demand contributions"
             )
@@ -155,19 +156,18 @@ class CoupledExchangeBalance(ExchangeBalance):
         # Compute MODFLOW 6 river and drain flux extimates
         for key, river in self.mf6_river_packages.items():
             # Swap sign since a negative RIV flux means a positive contribution to Ribasim
-            river_flux = -river.get_flux_estimate(mf6_head)
+            river_flux = -river.get_flux_estimate(mf6_head) / days_to_seconds(1.0)
             river_flux_negative = np.where(river_flux < 0, river_flux, 0)
-            self.demands_mf6[key] = river_flux[:] / days_to_seconds(delt)
+            self.demands_mf6[key] = river_flux[:]
             self.demands[key] = self.mapping.map_mod2rib[key].dot(self.demands_mf6[key])
             self.demands_negative[key] = self.mapping.map_mod2rib[key].dot(
                 river_flux_negative
-            ) / days_to_seconds(delt)
+            )
         for key, drainage in self.mf6_drainage_packages.items():
             # Swap sign since a negative RIV flux means a positive contribution to Ribasim
-            drain_flux = -drainage.get_flux_estimate(mf6_head)
-            self.demands[key] = self.mapping.map_mod2rib[key].dot(
-                drain_flux
-            ) / days_to_seconds(delt)
+            drain_flux = -drainage.get_flux_estimate(mf6_head) / days_to_seconds(1.0)
+            self.demands[key] = self.mapping.map_mod2rib[key].dot(drain_flux)
+            # convert modflow flux (m3/day) to ribasim flux (m3/s)
 
     def log_demands(self, current_time: float) -> None:
         for key, array in self.demands.items():
