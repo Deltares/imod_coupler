@@ -108,12 +108,15 @@ class RibaModDriverCoupling(DriverCoupling, abc.ABC):
                 destination = "river"
 
                 #  check on the bottom elevation and ribasim minimal subgrid level
-                minsglevel = ribasim_model.basin.subgrid.df.groupby("subgrid_id").min()[
-                    ["subgrid_level"]
-                ]
+                minsglevel = (
+                    ribasim_model.basin.subgrid.df.groupby("subgrid_id")
+                    .min()[["subgrid_level"]]
+                    .to_numpy()
+                    .ravel()
+                )
                 sugindex = mapping.dataframe["subgrid_index"]
                 bndindex = mapping.dataframe["bound_index"]
-                modflow_minlevel = package["bottom_elevation"].to_numpy.ravel()
+                modflow_minlevel = package["bottom_elevation"].to_numpy().ravel()
                 package_minlevel = modflow_minlevel[~np.isnan(modflow_minlevel)]
                 ribamod_minlevel = np.empty_like(package_minlevel)
                 ribamod_minlevel[:] = np.nan
