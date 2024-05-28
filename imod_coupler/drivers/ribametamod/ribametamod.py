@@ -215,9 +215,9 @@ class RibaMetaMod(Driver):
                     self.mf6_river_packages,
                     self.mf6_drainage_packages,
                     {
-                        "ribasim_nbasin": len(self.ribasim_level),
-                        "ribasim_nuser": len(self.ribasim_user_realized),
-                        "ribasim_nsubgrid": len(self.subgrid_level),
+                        "ribasim_nbasin": self.ribasim_level.size,
+                        "ribasim_nuser": self.ribasim_user_realized.size,
+                        "ribasim_nsubgrid": self.subgrid_level.size,
                     },
                 )
             )
@@ -471,11 +471,11 @@ class RibaMetaMod(Driver):
         self.ribasim_user_demand[:] = (
             masked[:, np.newaxis] * self.ribasim_user_demand[:]
         )
-            self.exchange_logger.log_exchange(
-                ("sprinkling_demand"),
-                ribasim_sprinkling_demand_sec,
-                self.current_time,
-            )
+        self.exchange_logger.log_exchange(
+            ("sprinkling_demand"),
+            self.ribasim_user_demand,
+            self.current_time,
+        )
 
     def exchange_sprinkling_flux_realised_msw2rib(self, delt: float) -> None:
         msw_sprinkling_realised = self.msw.get_surfacewater_sprinking_realised_ptr()
@@ -495,7 +495,11 @@ class RibaMetaMod(Driver):
             * msw_sprfrac_realised
         )[:]
         self.ribasim_user_realised[:] = 0.0  # reset cummulative for the next timestep
-            self.exchange_logger.log_exchange(
+        self.exchange_logger.log_exchange(
+            ("sprinkling_realised"),
+            msw_sprinkling_realised,
+            self.current_time,
+        )
 
     def exchange_stage_rib2mod(self) -> None:
         # Mypy refuses to understand this ChainMap for some reason.
