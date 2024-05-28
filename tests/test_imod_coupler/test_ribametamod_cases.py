@@ -2,6 +2,7 @@ import geopandas as gpd
 import ribasim
 import xarray as xr
 from fixtures.common import create_wells_max_layer
+from imod import msw
 from imod.mf6 import Modflow6Simulation, Recharge, StorageCoefficient
 from imod.msw import MetaSwapModel
 from primod import (
@@ -134,6 +135,12 @@ def case_two_basin_model(
     mf6_two_basin_model = add_rch_package(mf6_two_basin_model)
     mf6_two_basin_model = add_well_package(mf6_two_basin_model)
 
+    msw_two_basin_model.pop("sprinkling")
+    msw_two_basin_model.pop("mod2svat")
+    msw_two_basin_model["mod2svat"] = msw.CouplerMapping(
+        modflow_dis=mf6_two_basin_model["GWF_1"]["dis"]
+    )
+
     mf6_two_basin_model["GWF_1"].pop("sto")
     idomain = mf6_two_basin_model["GWF_1"]["dis"]["idomain"]
     ss = xr.ones_like(idomain, dtype=float) * 1e-6
@@ -143,8 +150,7 @@ def case_two_basin_model(
     metamod_coupling = MetaModDriverCoupling(
         mf6_model=mf6_modelname,
         mf6_recharge_package="rch_msw",
-        mf6_wel_package="well_msw",
-    )
+    )  #         mf6_wel_package="well_msw",
     ribamod_coupling = RibaModActiveDriverCoupling(
         mf6_model=mf6_modelname,
         mf6_packages=mf6_active_river_packages,

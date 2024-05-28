@@ -128,7 +128,7 @@ def get_metaswap_results(
         ar["x"] = np.round(ar.x.values, decimals=1)
         ar["y"] = np.round(ar.y.values, decimals=1)
         out[var] = ar.where(mask.notnull())
-    out["mask"] = mask
+    out["index_mask"] = mask
     return xr.Dataset(out)
 
 
@@ -157,7 +157,7 @@ def assert_results(
     for n_basin in n_basins:
         basin_index += 1
         basin_mask = results.basin_df["node_id"] == n_basin
-        svat_mask = results.msw_budgets["mask"] == n_basin
+        svat_mask = results.msw_budgets["index_mask"] == basin_index
         delt = 24 * 60 * 60
 
         # Ribasim results
@@ -182,7 +182,7 @@ def assert_results(
                 "runoff_msw": runoff_msw,
                 "runoff exchange_dashed": runoff_exchange,
             },
-            "metaswap_results",
+            "metaswap_results_basin_" + str(n_basin),
         )
         # np.testing.assert_allclose(
         #     runoff_msw,
@@ -190,7 +190,7 @@ def assert_results(
         #     atol=atol,
         # )  # MetaSWAP output relative to coupler
 
-        # River fluxes
+        # River fluxes; summed per coupled basin
         mf6_model = ribametamod_model.mf6_simulation["GWF_1"]
         summed_riv_flux_estimate = np.array([])
         summed_correction_flux = np.array([])
@@ -198,33 +198,57 @@ def assert_results(
             if isinstance(item, RibaModActiveDriverCoupling):
                 for package in item.mf6_packages:
                     # river flux estimate from coupler logging
+                    coupling_file = tmp_path_dev / "exchanges" / (package + ".tsv")
+                    basin_indices = pd.read_csv(coupling_file, delimiter="\t")[
+                        "basin_index"
+                    ].to_numpy()
                     riv_flux_estimate_exchange = (
                         results.exchange_budget["exchange_demand_" + package].to_numpy()
-                    )[:, basin_index] * delt  # [basin_mask.ravel()]
+                    )[:, basin_index] * delt
                     summed_riv_flux_estimate = sum_budgets(
                         riv_flux_estimate_exchange, summed_riv_flux_estimate
                     )
+
                     # compute river flux as expected in mf6 output, based on the set stages via coupler
                     cond_ar = mf6_model[package].dataset["conductance"]
-                    coupling_file = tmp_path_dev / "exchanges" / (package + ".tsv")
                     package_basin_mask = (
                         get_coupled_mf6_package_mask(coupling_file, cond_ar)
-                        == n_basin - 1
+                        == basin_index
                     )
-                    subset_head = flatten(results.mf6head.where(cond_ar.notnull()))
-                    stage = (
-                        results.exchange_budget["stage_" + package].to_numpy()[:, 0]
-                    ).reshape(subset_head.shape)
-                    bottom = flatten(mf6_model[package].dataset["bottom_elevation"])
-                    cond = flatten(cond_ar)
-                    riv_flux_exchange = (stage - np.maximum(subset_head, bottom)) * cond
+                    nriv = int(cond_ar.notnull().where(package_basin_mask).sum().item())
+                    ntime = results.mf6head.time.size
+
+                    subset_head = flatten(
+                        results.mf6head.where(cond_ar.notnull() & package_basin_mask)
+                    ).reshape(ntime, nriv)
+
+                    stage = results.exchange_budget["stage_" + package].to_numpy()[
+                        :, basin_indices == basin_index
+                    ]
+                    bottom = flatten(
+                        mf6_model[package]
+                        .dataset["bottom_elevation"]
+                        .where(package_basin_mask)
+                    )
+                    cond = flatten(cond_ar.where(package_basin_mask))
+                    riv_flux_exchange = (
+                        (stage - np.maximum(subset_head, bottom)) * cond
+                    ).sum(axis=1)
                     # river flux from MF6 output
-                    riv_flux_output = flatten(
-                        results.mf6_budgets[package].where(package_basin_mask)
+                    riv_flux_output = (
+                        flatten(results.mf6_budgets[package].where(package_basin_mask))
+                        .reshape(ntime, nriv)
+                        .sum(axis=1)
                     )
                     # riv correction flux from MF6 output
-                    riv_correction_flux = flatten(
-                        results.mf6_budgets["api_" + package].where(package_basin_mask)
+                    riv_correction_flux = (
+                        flatten(
+                            results.mf6_budgets["api_" + package].where(
+                                package_basin_mask
+                            )
+                        )
+                        .reshape(ntime, nriv)
+                        .sum(axis=1)
                     )
                     summed_correction_flux = sum_budgets(
                         riv_correction_flux, summed_correction_flux
@@ -237,7 +261,7 @@ def assert_results(
                             "river flux correction MF6-output": riv_correction_flux,
                             "river flux validation_dashed": riv_flux_exchange,
                         },
-                        package,
+                        package + "_basin_" + str(n_basin),
                     )
                     # np.testing.assert_allclose(
                     #     riv_flux_exchange, riv_flux_output, atol=atol
@@ -340,6 +364,8 @@ def write_run_read(
     budgets = imod.mf6.open_cbc(
         tmp_path / ribametamod_model._modflow6_model_dir / "GWF_1" / "GWF_1.cbc",
         tmp_path / ribametamod_model._modflow6_model_dir / "GWF_1" / "dis.dis.grb",
+        simulation_start_time=pd.to_datetime("2000/01/01"),
+        time_unit="d",
     )
     # get MetaSWAP results from idf output
     mf6_idomain = ribametamod_model.mf6_simulation["GWF_1"]["dis"]["idomain"]
