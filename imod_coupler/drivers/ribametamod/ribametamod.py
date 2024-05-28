@@ -195,6 +195,12 @@ class RibaMetaMod(Driver):
             # Get all Ribasim pointers, relevant for coupling with MODFLOW 6
             self.ribasim_infiltration = self.ribasim.get_value_ptr("basin.infiltration")
             self.ribasim_drainage = self.ribasim.get_value_ptr("basin.drainage")
+            self.ribasim_infiltration_sum = self.ribasim.get_value_ptr(
+                "basin.infiltration_integrated"
+            )
+            self.ribasim_drainage_sum = self.ribasim.get_value_ptr(
+                "basin.drainage_integrated"
+            )
             self.ribasim_level = self.ribasim.get_value_ptr("basin.level")
             self.ribasim_storage = self.ribasim.get_value_ptr("basin.storage")
             self.ribasim_user_demand = self.ribasim.get_value_ptr("user_demand.demand")
@@ -382,15 +388,15 @@ class RibaMetaMod(Driver):
         if self.has_ribasim:
             self.exchange_rib2mod()
 
-        if self.has_ribasim and self.has_metaswap:
-            self.update_ribasim_metaswap()
-        elif self.has_ribasim and not self.has_metaswap:
-            self.update_ribasim()
-
         if self.has_ribasim:
-            # get realised values on basin boundary nodes and exchange correction flux
-            realised_basin_nodes = self.exchange.demand  # dummy value for now
-            self.exchange.to_modflow(realised_basin_nodes)
+            if self.has_metaswap:
+                self.update_ribasim_metaswap()
+            else:
+                self.update_ribasim()
+            self.ribasim_drainage_sum -= self.ribasim_infiltration_sum
+            self.exchange.to_modflow(
+                self.ribasim_drainage_sum / days_to_seconds(self.delt_gw)
+            )
 
         # do the MODFLOW-MetaSWAP timestep
         if self.has_metaswap:
@@ -448,6 +454,8 @@ class RibaMetaMod(Driver):
         # exchange stage and compute flux estimates over MODFLOW 6 timestep
         self.exchange_stage_rib2mod()
         self.exchange.add_flux_estimate_mod(self.delt_gw, self.mf6_head)
+        self.ribasim_infiltration_sum[:] = 0.0
+        self.ribasim_drainage_sum[:] = 0.0
 
     def exchange_sprinkling_demand_msw2rib(self, delt: float) -> None:
         # flux demand from metaswap sprinkling to Ribasim (demand)
