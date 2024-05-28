@@ -106,6 +106,22 @@ class RibaModDriverCoupling(DriverCoupling, abc.ABC):
                     save_flows=True,
                 )
                 destination = "river"
+
+                #  check on the bottom elevation and ribasim minimal subgrid level
+                minsglevel = ribasim_model.basin.subgrid.df.groupby("subgrid_id").min()[
+                    ["subgrid_level"]
+                ]
+                sugindex = mapping.dataframe["subgrid_index"]
+                bndindex = mapping.dataframe["bound_index"]
+                modflow_minlevel = package["bottom_elevation"].to_numpy.ravel()
+                package_minlevel = modflow_minlevel[~np.isnan(modflow_minlevel)]
+                ribamod_minlevel = np.empty_like(package_minlevel)
+                ribamod_minlevel[:] = np.nan
+                ribamod_minlevel[bndindex] = minsglevel[sugindex]
+                if np.any(package_minlevel > ribamod_minlevel):
+                    raise ValueError(
+                        f"Ribasim subgrid levels found below the bottom elevation of for MODFLOW 6 package: {key}."
+                    )
             elif isinstance(package, imod.mf6.Drainage):
                 destination = "drainage"
             else:
