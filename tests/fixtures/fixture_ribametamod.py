@@ -103,3 +103,11 @@ def msw_two_basin_model(
     metaswap_lookup_table: Path,
 ) -> msw.MetaSwapModel:
     return ad_msw_model(mf6_two_basin_model, metaswap_lookup_table)
+
+
+@pytest_cases.fixture(scope="function")
+def msw_two_basin_model_3layer(
+    mf6_two_basin_model_3layer: mf6.GroundwaterFlowModel,
+    metaswap_lookup_table: Path,
+) -> msw.MetaSwapModel:
+    return ad_msw_model(mf6_two_basin_model_3layer, metaswap_lookup_table)

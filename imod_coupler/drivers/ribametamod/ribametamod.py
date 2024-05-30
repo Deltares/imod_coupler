@@ -497,7 +497,7 @@ class RibaMetaMod(Driver):
         self.ribasim_user_realised[:] = 0.0  # reset cummulative for the next timestep
         self.exchange_logger.log_exchange(
             ("sprinkling_realised"),
-            msw_sprinkling_realised,
+            self.ribasim_user_realised,
             self.current_time,
         )
 
