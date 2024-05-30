@@ -114,17 +114,19 @@ class RibaModDriverCoupling(DriverCoupling, abc.ABC):
                     .to_numpy()
                     .ravel()
                 )
-                sugindex = mapping.dataframe["subgrid_index"]
-                bndindex = mapping.dataframe["bound_index"]
-                modflow_minlevel = package["bottom_elevation"].to_numpy().ravel()
-                package_minlevel = modflow_minlevel[~np.isnan(modflow_minlevel)]
-                ribamod_minlevel = np.empty_like(package_minlevel)
-                ribamod_minlevel[:] = np.nan
-                ribamod_minlevel[bndindex] = minsglevel[sugindex]
-                if np.any(package_minlevel > ribamod_minlevel):
-                    raise ValueError(
-                        f"Ribasim subgrid levels found below the bottom elevation of for MODFLOW 6 package: {key}."
-                    )
+                # in active coupling, check subgrid levels versus modflow bottom elevation
+                if isinstance(self, RibaModActiveDriverCoupling):
+                    sugindex = mapping.dataframe["subgrid_index"]
+                    bndindex = mapping.dataframe["bound_index"]
+                    modflow_minlevel = package["bottom_elevation"].to_numpy().ravel()
+                    package_minlevel = modflow_minlevel[~np.isnan(modflow_minlevel)]
+                    ribamod_minlevel = np.empty_like(package_minlevel)
+                    ribamod_minlevel[:] = np.nan
+                    ribamod_minlevel[bndindex] = minsglevel[sugindex]
+                    if np.any(package_minlevel > ribamod_minlevel):
+                        raise ValueError(
+                            f"Ribasim subgrid levels found below the bottom elevation of for MODFLOW 6 package: {key}."
+                        )
             elif isinstance(package, imod.mf6.Drainage):
                 destination = "drainage"
             else:
