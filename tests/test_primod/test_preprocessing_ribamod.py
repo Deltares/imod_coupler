@@ -105,7 +105,7 @@ def test_ribamod_write(
     mf6_modelname, mf6_model = get_mf6_gwf_modelnames(mf6_bucket_model)[0]
     mf6_river_packages = get_mf6_river_packagenames(mf6_model)
 
-    driver_coupling = RibaModPassiveDriverCoupling(
+    driver_coupling = RibaModActiveDriverCoupling(
         mf6_model=mf6_modelname,
         ribasim_basin_definition=basin_definition,
         mf6_packages=mf6_river_packages,
@@ -121,8 +121,8 @@ def test_ribamod_write(
 
     expected_dict = {
         "mf6_model": "GWF_1",
-        "mf6_active_river_packages": {},
-        "mf6_passive_river_packages": {"riv-1": "./exchanges/riv-1.tsv"},
+        "mf6_active_river_packages": {"riv-1": "./exchanges/riv-1.tsv"},
+        "mf6_passive_river_packages": {},
         "mf6_active_drainage_packages": {},
         "mf6_passive_drainage_packages": {},
     }
@@ -131,7 +131,9 @@ def test_ribamod_write(
     exchange_path = Path("./exchanges/riv-1.tsv")
     assert (output_dir / exchange_path).exists()
     exchange_df = pd.read_csv(output_dir / exchange_path, sep="\t")
-    expected_df = pd.DataFrame(data={"basin_index": [0], "bound_index": [0]})
+    expected_df = pd.DataFrame(
+        data={"basin_index": [0], "bound_index": [0], "subgrid_index": [0]}
+    )
     assert exchange_df.equals(expected_df)
 
 
@@ -141,7 +143,7 @@ def test_ribamod_write_toml(
     mf6_modelname, mf6_model = get_mf6_gwf_modelnames(mf6_bucket_model)[0]
     mf6_river_packages = get_mf6_river_packagenames(mf6_model)
 
-    driver_coupling = RibaModPassiveDriverCoupling(
+    driver_coupling = RibaModActiveDriverCoupling(
         mf6_model=mf6_modelname,
         ribasim_basin_definition=basin_definition,
         mf6_packages=mf6_river_packages,
@@ -231,7 +233,7 @@ def test_nullify_on_write(
     # This basin definition is still a point geometry.
     # This mean it will be rasterized to just two pixels.
     gdf = ribasim_two_basin_model.basin.node.df
-    driver_coupling = RibaModPassiveDriverCoupling(
+    driver_coupling = RibaModActiveDriverCoupling(
         mf6_model=mf6_modelname,
         ribasim_basin_definition=gdf,
         mf6_packages=mf6_river_packages,
