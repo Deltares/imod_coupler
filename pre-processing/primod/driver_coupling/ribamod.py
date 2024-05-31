@@ -108,24 +108,22 @@ class RibaModDriverCoupling(DriverCoupling, abc.ABC):
                 destination = "river"
 
                 #  check on the bottom elevation and ribasim minimal subgrid level
-                minsglevel = (
+                minimum_subgrid_level = (
                     ribasim_model.basin.subgrid.df.groupby("subgrid_id")
-                    .min()[["subgrid_level"]]
+                    .min()["subgrid_level"]
                     .to_numpy()
-                    .ravel()
                 )
                 # in active coupling, check subgrid levels versus modflow bottom elevation
                 if isinstance(self, RibaModActiveDriverCoupling):
-                    sugindex = mapping.dataframe["subgrid_index"]
-                    bndindex = mapping.dataframe["bound_index"]
-                    modflow_minlevel = package["bottom_elevation"].to_numpy().ravel()
-                    package_minlevel = modflow_minlevel[~np.isnan(modflow_minlevel)]
-                    ribamod_minlevel = np.empty_like(package_minlevel)
-                    ribamod_minlevel[:] = np.nan
-                    ribamod_minlevel[bndindex] = minsglevel[sugindex]
-                    if np.any(package_minlevel > ribamod_minlevel):
+                    subgrid_index = mapping.dataframe["subgrid_index"]
+                    bound_index = mapping.dataframe["bound_index"]
+                    bottom_elevation = package["bottom_elevation"].to_numpy()
+                    if np.any(
+                        bottom_elevation[np.isfinite(bottom_elevation)][bound_index]
+                        > minimum_subgrid_level[subgrid_index]
+                    ):
                         raise ValueError(
-                            f"Ribasim subgrid levels found below the bottom elevation of for MODFLOW 6 package: {key}."
+                            f"Ribasim subgrid levels found below the bottom elevation for MODFLOW 6 package: {key}."
                         )
             elif isinstance(package, imod.mf6.Drainage):
                 destination = "drainage"
