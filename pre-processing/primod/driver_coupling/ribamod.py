@@ -120,10 +120,10 @@ class RibaModDriverCoupling(DriverCoupling, abc.ABC):
                     bottom_elevation = package["bottom_elevation"].to_numpy()
                     if np.any(
                         bottom_elevation[np.isfinite(bottom_elevation)][bound_index]
-                        > minimum_subgrid_level[subgrid_index]
+                        < minimum_subgrid_level[subgrid_index]
                     ):
                         raise ValueError(
-                            f"Ribasim subgrid levels found below the bottom elevation for MODFLOW 6 package: {key}."
+                            f"Found bottom elevation below minimum subgrid level of Ribasim, for MODFLOW 6 package: {key}."
                         )
             elif isinstance(package, imod.mf6.Drainage):
                 destination = "drainage"
