@@ -108,7 +108,7 @@ class RibaModDriverCoupling(DriverCoupling, abc.ABC):
                 destination = "river"
                 if isinstance(self, RibaModPassiveDriverCoupling):
                     raise TypeError(
-                        f"Expected Drainage (no 'active' packages in passive coupling), received: {type(package).__name__}"
+                        f"Expected Drainage packages for passive coupling, received: {type(package).__name__}"
                     )
 
             elif isinstance(package, imod.mf6.Drainage):
