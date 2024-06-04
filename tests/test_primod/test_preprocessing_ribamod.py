@@ -251,7 +251,7 @@ def test_nullify_on_write(
     # This basin definition is still a point geometry.
     # This mean it will be rasterized to just two pixels.
     gdf = ribasim_two_basin_model.basin.node.df
-    driver_coupling = RibaModPassiveDriverCoupling(
+    driver_coupling = RibaModActiveDriverCoupling(
         mf6_model=mf6_modelname,
         ribasim_basin_definition=gdf,
         mf6_packages=mf6_river_packages,
