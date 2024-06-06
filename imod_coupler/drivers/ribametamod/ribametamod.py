@@ -471,6 +471,7 @@ class RibaMetaMod(Driver):
         self.ribasim_user_demand[:] = (
             masked[:, np.newaxis] * self.ribasim_user_demand[:]
         )
+        self.ribasim_user_demand[:] += mapped[:, np.newaxis] * self.ribasim_userprio
         self.exchange_logger.log_exchange(
             ("sprinkling_demand"),
             self.ribasim_user_demand,
