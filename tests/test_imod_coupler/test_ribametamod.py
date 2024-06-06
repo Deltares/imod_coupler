@@ -1,8 +1,7 @@
 from collections.abc import Callable
 from pathlib import Path
-from typing import Any, Dict, List, NamedTuple
+from typing import Any, NamedTuple
 
-import geopandas as gpd
 import imod
 import matplotlib.pyplot as plt
 import numpy as np
@@ -130,7 +129,7 @@ def get_metaswap_results(
 
 
 def flatten(array: xr.DataArray) -> np.ndarray:
-    out = array.stack(z=["layer", "y", "x"]).to_numpy()
+    out = array.melt(z=["layer", "y", "x"]).to_numpy()
     return out[~np.isnan(out)]
 
 
