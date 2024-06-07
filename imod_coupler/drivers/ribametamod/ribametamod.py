@@ -204,7 +204,7 @@ class RibaMetaMod(Driver):
             self.ribasim_level = self.ribasim.get_value_ptr("basin.level")
             self.ribasim_storage = self.ribasim.get_value_ptr("basin.storage")
             self.ribasim_user_demand = self.ribasim.get_value_ptr("user_demand.demand")
-            self.ribasim_user_realized = self.ribasim.get_value_ptr(
+            self.ribasim_user_realised = self.ribasim.get_value_ptr(
                 "user_demand.realized"
             )
             self.subgrid_level = self.ribasim.get_value_ptr("basin.subgrid_level")
@@ -216,7 +216,7 @@ class RibaMetaMod(Driver):
                     self.mf6_drainage_packages,
                     {
                         "ribasim_nbasin": len(self.ribasim_level),
-                        "ribasim_nuser": len(self.ribasim_user_realized),
+                        "ribasim_nuser": len(self.ribasim_user_realised),
                         "ribasim_nsubgrid": len(self.subgrid_level),
                     },
                 )
@@ -327,9 +327,6 @@ class RibaMetaMod(Driver):
                             f"More than one priority set for basins {np.array2string(too_many)}"
                         )
 
-                    self.ribasim_user_realised = self.ribasim.get_value_ptr(
-                        "user_demand.realized"
-                    )
                     if self.ribasim_user_realised is not None:
                         self.realised_fractions_swspr: NDArray[np.float64] = (
                             np.full_like(self.ribasim_user_realised, 0.0)

@@ -106,11 +106,31 @@ class RibaModDriverCoupling(DriverCoupling, abc.ABC):
                     save_flows=True,
                 )
                 destination = "river"
+
+                #  check if not coupling passive when adding a river package
                 if isinstance(self, RibaModPassiveDriverCoupling):
                     raise TypeError(
                         f"Expected Drainage packages for passive coupling, received: {type(package).__name__}"
                     )
 
+                #  check on the bottom elevation and ribasim minimal subgrid level
+                minimum_subgrid_level = (
+                    ribasim_model.basin.subgrid.df.groupby("subgrid_id")
+                    .min()["subgrid_level"]
+                    .to_numpy()
+                )
+                # in active coupling, check subgrid levels versus modflow bottom elevation
+                if isinstance(self, RibaModActiveDriverCoupling):
+                    subgrid_index = mapping.dataframe["subgrid_index"]
+                    bound_index = mapping.dataframe["bound_index"]
+                    bottom_elevation = package["bottom_elevation"].to_numpy()
+                    if np.any(
+                        bottom_elevation[np.isfinite(bottom_elevation)][bound_index]
+                        < minimum_subgrid_level[subgrid_index]
+                    ):
+                        raise ValueError(
+                            f"Found bottom elevation below minimum subgrid level of Ribasim, for MODFLOW 6 package: {key}."
+                        )
             elif isinstance(package, imod.mf6.Drainage):
                 destination = "drainage"
             else:
