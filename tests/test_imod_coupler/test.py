@@ -35,7 +35,7 @@ ncol = target.x.size
 nrow = target.y.size
 
 mask_ar = np.zeros(ncol * nrow)
-mask_ar[coupled_indices - 1] = 1
+# mask_ar[coupled_indices - 1] = 1
 mask = xr.DataArray(
     data=mask_ar.reshape(nrow, ncol), coords=target.coords, dims=target.dims
 )

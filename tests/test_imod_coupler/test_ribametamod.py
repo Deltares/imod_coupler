@@ -1,8 +1,7 @@
 from collections.abc import Callable
 from pathlib import Path
-from typing import Any, Dict, List, NamedTuple
+from typing import Any, NamedTuple
 
-import geopandas as gpd
 import imod
 import matplotlib.pyplot as plt
 import numpy as np
@@ -130,7 +129,7 @@ def get_metaswap_results(
 
 
 def flatten(array: xr.DataArray) -> np.ndarray:
-    out = array.stack(z=["layer", "y", "x"]).to_numpy()
+    out = array.stack(z=["layer", "y", "x"]).to_numpy()  # noqa
     return out[~np.isnan(out)]
 
 
@@ -188,6 +187,8 @@ def assert_results(
             atol=atol,
         )  # MetaSWAP output relative to coupler
         # MetaSWAP Sprinkling from surface water
+        # evaluate only coupled elements
+        # TODO: check for basinnode vs usernode and index
         svat_mask = results.msw_budgets["bdgPssw_index_mask"] == basin_index
         area = results.msw_budgets["bdgPssw"].dx * -results.msw_budgets["bdgPssw"].dy
         sprinkling_msw = (
@@ -196,10 +197,11 @@ def assert_results(
             .sum(dim=["y", "x", "layer"], skipna=True)
             .to_numpy()
         )
-        # evaluate only coupled elements
+        # Sprinkling from coupler log
         sprinkling_realised_exchange = (
             results.exchange_budget["sprinkling_realised"].to_numpy()
         )[:, basin_index] * delt
+
         if basin_index < 5:
             plot_results(
                 tmp_path_dev,

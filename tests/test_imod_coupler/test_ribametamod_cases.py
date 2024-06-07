@@ -1,6 +1,7 @@
 import geopandas as gpd
 import numpy as np
 import ribasim
+import ribasim.geometry
 import xarray as xr
 from fixtures.common import create_wells_max_layer
 from imod import msw
@@ -248,7 +249,7 @@ def case_two_basin_model_users(
         ],
     )
     ribasim_two_basin_model.user_demand.add(
-        ribasim.Node(8, Point(750.0, 0.0), subnetwork_id=1),
+        ribasim.Node(8, Point(750.0, 10.0), subnetwork_id=3),
         [
             user_demand.Static(  # type: ignore
                 demand=1.5,
@@ -259,21 +260,30 @@ def case_two_basin_model_users(
             ),
         ],
     )
-
+    ribasim_two_basin_model.basin.node.df["subnetwork_id"].loc[
+        ribasim_two_basin_model.basin.node.df["node_id"] == 2
+    ] = 2
+    ribasim_two_basin_model.basin.node.df["subnetwork_id"].loc[
+        ribasim_two_basin_model.basin.node.df["node_id"] == 3
+    ] = 3
     ribasim_two_basin_model.edge.add(
         ribasim_two_basin_model.basin[2], ribasim_two_basin_model.user_demand[7]
     )
     ribasim_two_basin_model.edge.add(
-        ribasim_two_basin_model.basin[3], ribasim_two_basin_model.user_demand[8]
-    )
-    ribasim_two_basin_model.edge.add(
         ribasim_two_basin_model.user_demand[7], ribasim_two_basin_model.basin[2]
+    )
+
+    ribasim_two_basin_model.edge.add(
+        ribasim_two_basin_model.basin[3], ribasim_two_basin_model.user_demand[8]
     )
     ribasim_two_basin_model.edge.add(
         ribasim_two_basin_model.user_demand[8], ribasim_two_basin_model.basin[3]
     )
     user_definition = create_basin_definition(
         ribasim_two_basin_model.user_demand.node, buffersize=250.0, nodes=[7]
+    )
+    ribasim_two_basin_model.allocation = ribasim.Allocation(
+        timestep=86400.0, use_allocation=True
     )
 
     metamod_coupling = MetaModDriverCoupling(
