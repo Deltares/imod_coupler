@@ -236,11 +236,12 @@ def case_two_basin_model_users(
     ss[0, :, :] = 0.15  # phreatic layer, importent for non coupled nodes
     mf6_two_basin_model_3layer["GWF_1"]["sto"] = StorageCoefficient(ss, 0.1, True, 0)
 
+    # Add waterusers to model
     ribasim_two_basin_model.user_demand.add(
         ribasim.Node(7, Point(250.0, 10.0), subnetwork_id=2),
         [
             user_demand.Static(  # type: ignore
-                demand=3.0,
+                demand=[1.0],
                 active=True,
                 return_factor=[0.0],
                 min_level=[-1.0],
@@ -252,20 +253,22 @@ def case_two_basin_model_users(
         ribasim.Node(8, Point(750.0, 10.0), subnetwork_id=3),
         [
             user_demand.Static(  # type: ignore
-                demand=1.5,
+                demand=[0.0, 0.0, 0.0],
                 active=True,
-                return_factor=[0.0],
-                min_level=[-1.0],
-                priority=[1],
+                return_factor=[0.0, 0.0, 0.0],
+                min_level=[-1.0, -1.0, -1.0],
+                priority=[1, 6, 8],
             ),
         ],
     )
+    # add subnetwork id to basins
     ribasim_two_basin_model.basin.node.df["subnetwork_id"].loc[
         ribasim_two_basin_model.basin.node.df["node_id"] == 2
     ] = 2
     ribasim_two_basin_model.basin.node.df["subnetwork_id"].loc[
         ribasim_two_basin_model.basin.node.df["node_id"] == 3
     ] = 3
+    # add two-way connections to water-user nodes
     ribasim_two_basin_model.edge.add(
         ribasim_two_basin_model.basin[2], ribasim_two_basin_model.user_demand[7]
     )
@@ -279,13 +282,14 @@ def case_two_basin_model_users(
     ribasim_two_basin_model.edge.add(
         ribasim_two_basin_model.user_demand[8], ribasim_two_basin_model.basin[3]
     )
-    user_definition = create_basin_definition(
-        ribasim_two_basin_model.user_demand.node, buffersize=250.0, nodes=[7]
-    )
+    # activate Allocation in Ribasim-model
     ribasim_two_basin_model.allocation = ribasim.Allocation(
         timestep=86400.0, use_allocation=True
     )
 
+    user_definition = create_basin_definition(
+        ribasim_two_basin_model.user_demand.node, buffersize=250.0, nodes=[7]
+    )
     metamod_coupling = MetaModDriverCoupling(
         mf6_model=mf6_modelname,
         mf6_recharge_package="rch_msw",
@@ -300,6 +304,15 @@ def case_two_basin_model_users(
         ribasim_basin_definition=basin_definition,
         ribasim_user_demand_definition=user_definition,
     )
+
+    # increase PET in MetaSWAP-model
+    pet = msw_two_basin_model_3layer["meteo_grid"].dataset["evapotranspiration"]
+    pp = msw_two_basin_model_3layer["meteo_grid"].dataset["precipitation"]
+    msw_two_basin_model_3layer["meteo_grid"].dataset["evapotranspiration"] = pet * 100
+    msw_two_basin_model_3layer["meteo_grid"].dataset["precipitation"] = pp * 0.0
+
+    # lower initial conditions MF6 model
+    mf6_two_basin_model_3layer[mf6_modelname]["ic"].dataset["start"] = -100.0
 
     return RibaMetaMod(
         ribasim_model=ribasim_two_basin_model,

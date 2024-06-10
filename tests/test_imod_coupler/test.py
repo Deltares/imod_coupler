@@ -5,7 +5,16 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 
-from imod_coupler.__main__ import run_coupler
+# from imod_coupler.__main__ import run_coupler
+
+basin_df = pd.read_feather(
+    r"c:\Users\kok_hk\AppData\Local\Temp\pytest-of-kok_hk\pytest-381\test_ribametamod_two_basin_use0\develop\ribasim\results\allocation_flow.arrow"
+)
+basin_df.to_csv(
+    r"c:\Users\kok_hk\AppData\Local\Temp\pytest-of-kok_hk\pytest-381\test_ribametamod_two_basin_use0\develop\ribasim\results\allocation_flow.csv"
+)
+
+pass
 
 
 def read_heads(headfile, grbfile):
@@ -20,7 +29,7 @@ toml = Path(
 )
 
 
-run_coupler(toml)
+# run_coupler(toml)
 headfile = toml.parent / "modflow6" / "GWF_1" / "GWF_1.hds"
 grbfile = toml.parent / "modflow6" / "GWF_1" / "dis.dis.grb"
 # test = xr.open_dataset(toml.parent / "exchange_logging" / "exchange_demand_riv-1.nc")
