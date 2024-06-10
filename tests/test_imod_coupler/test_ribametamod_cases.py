@@ -14,7 +14,7 @@ from primod import (
     RibaModActiveDriverCoupling,
 )
 from ribasim.geometry import NodeTable as RibaNodeTbl
-from ribasim.nodes import user_demand
+from ribasim.nodes import level_demand, user_demand
 from shapely.geometry import Point
 from test_ribamod_cases import (
     get_mf6_drainage_packagenames,
@@ -244,7 +244,7 @@ def case_two_basin_model_users(
                 demand=[1.0],
                 active=True,
                 return_factor=[0.0],
-                min_level=[-1.0],
+                min_level=[-999.0],
                 priority=[1],
             ),
         ],
@@ -256,7 +256,7 @@ def case_two_basin_model_users(
                 demand=[0.0, 0.0, 0.0],
                 active=True,
                 return_factor=[0.0, 0.0, 0.0],
-                min_level=[-1.0, -1.0, -1.0],
+                min_level=[-999.0, -999.0, -999.0],
                 priority=[1, 6, 8],
             ),
         ],
@@ -282,6 +282,25 @@ def case_two_basin_model_users(
     ribasim_two_basin_model.edge.add(
         ribasim_two_basin_model.user_demand[8], ribasim_two_basin_model.basin[3]
     )
+
+    # add default level-control to basins
+    ribasim_two_basin_model.level_demand.add(
+        ribasim.Node(9, Point(240.0, 10.0), subnetwork_id=2),
+        [level_demand.Static(priority=[1], min_level=[-1.0e6], max_level=[-1.0e6])],
+    )
+    ribasim_two_basin_model.edge.add(
+        ribasim_two_basin_model.level_demand[9],
+        ribasim_two_basin_model.basin[2],
+    )
+    ribasim_two_basin_model.level_demand.add(
+        ribasim.Node(10, Point(740.0, 10.0), subnetwork_id=3),
+        [level_demand.Static(priority=[1], min_level=[-1.0e6], max_level=[-1.0e6])],
+    )
+    ribasim_two_basin_model.edge.add(
+        ribasim_two_basin_model.level_demand[10],
+        ribasim_two_basin_model.basin[3],
+    )
+
     # activate Allocation in Ribasim-model
     ribasim_two_basin_model.allocation = ribasim.Allocation(
         timestep=86400.0, use_allocation=True
