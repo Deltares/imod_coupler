@@ -51,7 +51,7 @@ call pytest tests -n=auto --basetemp=tests/temp --junitxml="report.xml"]]></para
       <vcs-entry-ref root-id="iMOD6_Coupler_MetaSwapLookupTable">
         <checkout-rule rule=". =&gt; lookup_table" />
       </vcs-entry-ref>
-      <vcs-entry-ref root-id="iMOD6_IMOD6collectorDaily_ImodCouplerImod545">
+      <vcs-entry-ref root-id="iMOD6_Coupler_ImodCouplerImod55">
         <checkout-rule rule=". =&gt; imod_coupler" />
       </vcs-entry-ref>
     </vcs-settings>

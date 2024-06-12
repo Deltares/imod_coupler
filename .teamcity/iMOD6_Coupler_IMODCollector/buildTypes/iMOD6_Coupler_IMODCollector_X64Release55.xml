@@ -52,7 +52,7 @@ pyinstaller --onefile coupler/imod_coupler/__main__.py --name imodc]]></param>
       </runner>
     </build-runners>
     <vcs-settings>
-      <vcs-entry-ref root-id="iMOD6_IMOD6collectorDaily_ImodCouplerImod545">
+      <vcs-entry-ref root-id="iMOD6_Coupler_ImodCouplerImod55">
         <checkout-rule rule="+:. =&gt; ./coupler" />
       </vcs-entry-ref>
     </vcs-settings>
