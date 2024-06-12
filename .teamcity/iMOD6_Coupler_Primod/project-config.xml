@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" parent-id="iMOD6_Coupler" uuid="7fd6b263-291f-435d-9981-f1a608b61696" xsi:noNamespaceSchemaLocation="https://www.jetbrains.com/teamcity/schemas/2021.1/project-config.xsd">
-  <name>Primod</name>
-  <parameters />
-  <cleanup />
-</project>
-
