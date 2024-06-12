@@ -70,7 +70,7 @@ Remove-Item ".\modflow_win64" -Force -Recurse]]></param>
       </runner>
     </build-runners>
     <vcs-settings>
-      <vcs-entry-ref root-id="iMOD6_IMOD6collectorDaily_ImodCouplerReleaseImod52">
+      <vcs-entry-ref root-id="iMOD6_Coupler_IMODCollector_ImodCouplerReleaseImod52">
         <checkout-rule rule="+:. =&gt; ./coupler" />
       </vcs-entry-ref>
     </vcs-settings>
