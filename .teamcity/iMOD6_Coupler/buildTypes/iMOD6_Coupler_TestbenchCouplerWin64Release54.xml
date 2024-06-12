@@ -77,7 +77,7 @@ call set]]></param>
           <param name="branchFilter" value="+:*" />
           <param name="enableQueueOptimization" value="true" />
           <param name="quietPeriodMode" value="DO_NOT_USE" />
-          <param name="triggerRules" value="+:root=iMOD6_IMOD6collectorDaily_ImodCoupler:**" />
+          <param name="triggerRules" value="+:root=iMOD6_Coupler_ImodCoupler:**" />
         </parameters>
       </build-trigger>
     </build-triggers>

@@ -34,7 +34,7 @@ pixi run -e dev pyinstaller --onefile imod_coupler/__main__.py --name imodc]]></
       </runner>
     </build-runners>
     <vcs-settings>
-      <vcs-entry-ref root-id="iMOD6_IMOD6collectorDaily_ImodCoupler">
+      <vcs-entry-ref root-id="iMOD6_Coupler_ImodCoupler">
         <checkout-rule rule="+:. =&gt; ./coupler" />
       </vcs-entry-ref>
     </vcs-settings>
@@ -57,7 +57,7 @@ pixi run -e dev pyinstaller --onefile imod_coupler/__main__.py --name imodc]]></
           <param name="github_host" value="https://api.github.com" />
           <param name="publisherId" value="githubStatusPublisher" />
           <param name="secure:github_access_token" value="credentialsJSON:71420214-373c-4ccd-ba32-2ea886843f62" />
-          <param name="vcsRootId" value="iMOD6_IMOD6collectorDaily_ImodCoupler" />
+          <param name="vcsRootId" value="iMOD6_Coupler_ImodCoupler" />
         </parameters>
       </extension>
       <extension id="BUILD_EXT_140" type="pullRequests">
@@ -66,7 +66,7 @@ pixi run -e dev pyinstaller --onefile imod_coupler/__main__.py --name imodc]]></
           <param name="filterAuthorRole" value="MEMBER" />
           <param name="providerType" value="github" />
           <param name="secure:accessToken" value="credentialsJSON:71420214-373c-4ccd-ba32-2ea886843f62" />
-          <param name="vcsRootId" value="iMOD6_IMOD6collectorDaily_ImodCoupler" />
+          <param name="vcsRootId" value="iMOD6_Coupler_ImodCoupler" />
         </parameters>
       </extension>
     </build-extensions>

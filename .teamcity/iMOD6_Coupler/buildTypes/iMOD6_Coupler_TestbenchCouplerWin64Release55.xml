@@ -72,7 +72,7 @@ call pytest tests -n=auto --basetemp=tests/temp --junitxml="report.xml"]]></para
           <param name="branchFilter" value="+:*" />
           <param name="enableQueueOptimization" value="true" />
           <param name="quietPeriodMode" value="DO_NOT_USE" />
-          <param name="triggerRules" value="+:root=iMOD6_IMOD6collectorDaily_ImodCoupler:**" />
+          <param name="triggerRules" value="+:root=iMOD6_Coupler_ImodCoupler:**" />
         </parameters>
       </build-trigger>
       <build-trigger id="retryBuildTrigger" type="retryBuildTrigger">
@@ -91,7 +91,7 @@ call pytest tests -n=auto --basetemp=tests/temp --junitxml="report.xml"]]></para
           <param name="github_host" value="https://api.github.com" />
           <param name="publisherId" value="githubStatusPublisher" />
           <param name="secure:github_access_token" value="credentialsJSON:71420214-373c-4ccd-ba32-2ea886843f62" />
-          <param name="vcsRootId" value="iMOD6_IMOD6collectorDaily_ImodCoupler" />
+          <param name="vcsRootId" value="iMOD6_Coupler_ImodCoupler" />
         </parameters>
       </extension>
       <extension id="BUILD_EXT_145" type="xml-report-plugin">

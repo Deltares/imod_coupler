@@ -55,7 +55,7 @@ pyinstaller --onefile coupler/imod_coupler/__main__.py --name imodc]]></param>
       </runner>
     </build-runners>
     <vcs-settings>
-      <vcs-entry-ref root-id="iMOD6_IMOD6collectorDaily_ImodCoupler">
+      <vcs-entry-ref root-id="iMOD6_Coupler_ImodCoupler">
         <checkout-rule rule="+:. =&gt; ./coupler" />
       </vcs-entry-ref>
     </vcs-settings>
@@ -85,7 +85,7 @@ pyinstaller --onefile coupler/imod_coupler/__main__.py --name imodc]]></param>
           <param name="filterAuthorRole" value="MEMBER" />
           <param name="providerType" value="github" />
           <param name="secure:accessToken" value="credentialsJSON:71420214-373c-4ccd-ba32-2ea886843f62" />
-          <param name="vcsRootId" value="iMOD6_IMOD6collectorDaily_ImodCoupler" />
+          <param name="vcsRootId" value="iMOD6_Coupler_ImodCoupler" />
         </parameters>
       </extension>
     </build-extensions>

@@ -54,7 +54,7 @@ call pytest tests -s -n=%npar% --basetemp=tests/temp --junitxml="report.xml"]]><
       </runner>
     </build-runners>
     <vcs-settings>
-      <vcs-entry-ref root-id="iMOD6_IMOD6collectorDaily_ImodCoupler">
+      <vcs-entry-ref root-id="iMOD6_Coupler_ImodCoupler">
         <checkout-rule rule=". =&gt; imod_coupler" />
       </vcs-entry-ref>
       <vcs-entry-ref root-id="iMOD6_Coupler_MetaSwapLookupTable">
@@ -78,7 +78,7 @@ call pytest tests -s -n=%npar% --basetemp=tests/temp --junitxml="report.xml"]]><
           <param name="branchFilter" value="+:*" />
           <param name="enableQueueOptimization" value="true" />
           <param name="quietPeriodMode" value="DO_NOT_USE" />
-          <param name="triggerRules" value="+:root=iMOD6_IMOD6collectorDaily_ImodCoupler:**" />
+          <param name="triggerRules" value="+:root=iMOD6_Coupler_ImodCoupler:**" />
         </parameters>
       </build-trigger>
     </build-triggers>

@@ -10,7 +10,7 @@
         <param name="credentialsStorageType" value="credentialsJSON" />
         <param name="enabled" value="true" />
         <param name="ignoreChangesInDependenciesAndVcsSettings" value="false" />
-        <param name="rootId" value="iMOD6_IMOD6collectorDaily_ImodCoupler" />
+        <param name="rootId" value="iMOD6_Coupler_ImodCoupler" />
         <param name="showChanges" value="false" />
       </parameters>
     </extension>

@@ -43,7 +43,7 @@ pixi run --environment %pixi-environment% install]]></param>
       </runner>
     </build-runners>
     <vcs-settings>
-      <vcs-entry-ref root-id="iMOD6_IMOD6collectorDaily_ImodCoupler">
+      <vcs-entry-ref root-id="iMOD6_Coupler_ImodCoupler">
         <checkout-rule rule=". =&gt; imod_coupler" />
       </vcs-entry-ref>
       <vcs-entry-ref root-id="iMOD6_Coupler_MetaSwapLookupTable">
@@ -59,7 +59,7 @@ pixi run --environment %pixi-environment% install]]></param>
           <param name="branchFilter" value="+:*" />
           <param name="enableQueueOptimization" value="true" />
           <param name="quietPeriodMode" value="DO_NOT_USE" />
-          <param name="triggerRules" value="+:root=iMOD6_IMOD6collectorDaily_ImodCoupler:**" />
+          <param name="triggerRules" value="+:root=iMOD6_Coupler_ImodCoupler:**" />
         </parameters>
       </build-trigger>
     </build-triggers>
@@ -70,7 +70,7 @@ pixi run --environment %pixi-environment% install]]></param>
           <param name="github_host" value="https://api.github.com" />
           <param name="publisherId" value="githubStatusPublisher" />
           <param name="secure:github_access_token" value="credentialsJSON:6b37af71-1f2f-4611-8856-db07965445c0" />
-          <param name="vcsRootId" value="iMOD6_IMOD6collectorDaily_ImodCoupler" />
+          <param name="vcsRootId" value="iMOD6_Coupler_ImodCoupler" />
         </parameters>
       </extension>
       <extension id="BUILD_EXT_145" type="xml-report-plugin">
