@@ -360,17 +360,18 @@ class MetaModNewton(MetaMod):
         )
         self.map_msw2mod["storage"] = conversion_matrix * self.map_msw2mod["storage"]
         # Create extra mapping for SY, since the SS mapping could contains a different conversion term
-        self.map_msw2mod["storage_sy"], self.mask_msw2mod["storage_sy"] = (
-            create_mapping(
-                self.msw_idx,
-                self.node_idx,
-                self.msw_storage.size,
-                first_layer_nodes.size,
-                "sum",
-            )
+        (
+            self.map_msw2mod["storage_sy"],
+            self.mask_msw2mod["storage_sy"],
+        ) = create_mapping(
+            self.msw_idx,
+            self.node_idx,
+            self.msw_storage.size,
+            first_layer_nodes.size,
+            "sum",
         )
-        # For exchange to SY, only the multiplication by area needs to be undone.
-        conversion_matrix = self.sto_conversion_terms(False, first_layer_nodes)
+        # For exchange to SY, act as is sc1
+        conversion_matrix = self.sto_conversion_terms(True, first_layer_nodes)
         self.map_msw2mod["storage_sy"] = (
             conversion_matrix * self.map_msw2mod["storage_sy"]
         )
@@ -382,7 +383,6 @@ class MetaModNewton(MetaMod):
         saturation = self.mf6.get_saturation(self.coupling.mf6_model)
         self.sy = self.mf6.get_sy(self.coupling.mf6_model)
         self.sy_top = self.sy[first_layer_nodes]
-        self.ss_top = self.mf6_ss[first_layer_nodes]
         self.recharge_nodelist = self.mf6.get_recharge_nodes(
             self.coupling.mf6_model, self.coupling.mf6_msw_recharge_pkg
         )
@@ -415,12 +415,8 @@ class MetaModNewton(MetaMod):
             self.mask_msw2mod["storage_sy"][:] * self.sy_top[:]
             + self.map_msw2mod["storage_sy"].dot(self.msw_storage)[:]
         )
-        new_ss = (
-            self.mask_msw2mod["storage"][:] * self.ss_top[:]
-            + self.map_msw2mod["storage"].dot(self.msw_storage)[:]
-        )
         self.sto.reset()
-        self.sto.set(new_sy, new_ss)
+        self.sto.set(new_sy)
         self.exchange_logger.log_exchange("mf6_sy", new_sy, self.get_current_time())
         self.exchange_logger.log_exchange(
             "msw_storage", self.msw_storage, self.get_current_time()
@@ -475,7 +471,6 @@ class MetaModNewton(MetaMod):
             conversion_terms = 1.0 / (
                 self.mf6_area[indices] * (self.mf6_top[indices] - self.mf6_bot[indices])
             )
-
         conversion_matrix = dia_matrix(
             (conversion_terms, [0]),
             shape=(self.mf6_area[indices].size, self.mf6_area[indices].size),

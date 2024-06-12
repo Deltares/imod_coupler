@@ -209,6 +209,7 @@ class PhreaticBCArray(PhreaticModelArray):
             ptr_package_nodelist,
         )
         self.nodes_ptr = ptr_package_nodelist  # used for nodes after prepare_timestep
+        self.initialised = False
 
     def _set_user_indices(self) -> None:
         # the nodelist for bc-packages is only filled after the first prepare-timestep call
@@ -235,7 +236,7 @@ class PhreaticBCArray(PhreaticModelArray):
         self._set_user_indices()
         # use initial_nodes since self.nodes is updated by set_ptr method
         return np.argmax(self.saturation.broadcast() > 0, axis=0).flatten()[
-            self.initial_nodes
+            self.variable.userid[self.initial_nodes]
         ]
 
 
@@ -284,7 +285,7 @@ class PhreaticStorage:
         self.sy.variable.variable_model[:] = self.initial_sy[:]
         self.ss.variable.variable_model[:] = self.initial_ss[:]
 
-    def set(self, new_sy: NDArray[Any], new_ss: NDArray[Any]) -> None:
+    def set(self, new_sy: NDArray[Any]) -> None:
         self.sy.set_ptr(new_sy)
         self.ss.set_ptr(self.zeros)
 
