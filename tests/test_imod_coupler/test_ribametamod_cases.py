@@ -323,6 +323,8 @@ def case_two_basin_model_users(
         ribasim_basin_definition=basin_definition,
         ribasim_user_demand_definition=user_definition,
     )
+    # increase inflow rate to be able to extract irrigation water
+    ribasim_two_basin_model.flow_boundary.static.df["flow_rate"][0] = 0.05
 
     # increase PET in MetaSWAP-model
     pet = msw_two_basin_model_3layer["meteo_grid"].dataset["evapotranspiration"]
@@ -333,6 +335,16 @@ def case_two_basin_model_users(
     # lower initial conditions MF6 model
     mf6_two_basin_model_3layer[mf6_modelname]["ic"].dataset["start"] = -100.0
 
+    # increase river resistance so basins don't run dry
+    cond = (20 * 20) / 50
+    active = (
+        mf6_two_basin_model_3layer[mf6_modelname][mf6_active_river_packages[0]]
+        .dataset["conductance"]
+        .notnull()
+    )
+    mf6_two_basin_model_3layer[mf6_modelname][mf6_active_river_packages[0]].dataset[
+        "conductance"
+    ] = xr.full_like(active, fill_value=cond).where(active)
     return RibaMetaMod(
         ribasim_model=ribasim_two_basin_model,
         msw_model=msw_two_basin_model_3layer,

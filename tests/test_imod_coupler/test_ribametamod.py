@@ -65,24 +65,27 @@ class Results(NamedTuple):
 
 
 def get_coupled_mf6_package_mask(
-    coupling_file: Path, package_mask: xr.DataArray
+    coupling_file: Path, mask_array: xr.DataArray
 ) -> xr.DataArray:
+    # returns array with coupled basin indexes basied on tsv-files
     coupling_data = pd.read_csv(coupling_file, delimiter="\t")
     basin_indices = coupling_data["basin_index"].to_numpy()
-    mask_ar = np.copy(package_mask.to_numpy())
-    mask_ar[~np.isnan(mask_ar)] = basin_indices
+    mask_ar = np.copy(mask_array.to_numpy())
+    mask_ar[np.isfinite(mask_ar)] = basin_indices
     return xr.DataArray(
         data=mask_ar.reshape(
-            package_mask.layer.size, package_mask.y.size, package_mask.x.size
+            mask_array.layer.size, mask_array.y.size, mask_array.x.size
         ),
-        coords=package_mask.coords,
-        dims=package_mask.dims,
+        coords=mask_array.coords,
+        dims=mask_array.dims,
     ).dropna(dim="layer", how="all")
 
 
 def get_coupled_msw_mask(
     coupling_file: list[Path, str], mf6_idomain: xr.DataArray
-) -> xr.DataArray:
+) -> xr.Dataset[Any]:
+    # returns dataset with two array's containing: the basin (or user) index
+    # and corresponding svat number based on dxc- and tsv-files
     coupling_data = pd.read_csv(coupling_file[0], delimiter="\t")
     svat_indices = coupling_data["svat_index"].to_numpy() - 1
     basin_indices = coupling_data[coupling_file[1]].to_numpy()
@@ -99,16 +102,28 @@ def get_coupled_msw_mask(
     svats[svat_indices] = 1
     coupled = np.flatnonzero(svats)
 
-    mask_ar = np.full((mf6_idomain.size), fill_value=np.nan)  # user shape model domain
+    index_ar = np.full((mf6_idomain.size), fill_value=np.nan)  # user shape model domain
     # take coupled selection of model indices and translate to user indices
-    mask_ar[mf6_user_indices[mf6_model_indices[coupled]]] = basin_indices  # zero based
-    return xr.DataArray(
-        data=mask_ar.reshape(
+    index_ar[mf6_user_indices[mf6_model_indices[coupled]]] = basin_indices  # zero based
+    out = {}
+    out["index"] = xr.DataArray(
+        data=index_ar.reshape(
             mf6_idomain.layer.size, mf6_idomain.y.size, mf6_idomain.x.size
         ),
         coords=mf6_idomain.coords,
         dims=mf6_idomain.dims,
     ).dropna(dim="layer", how="all")
+
+    svat_ar = np.full((mf6_idomain.size), fill_value=np.nan)
+    svat_ar[mf6_user_indices[mf6_model_indices[coupled]]] = svat_indices  # zero based
+    out["svat"] = xr.DataArray(
+        data=svat_ar.reshape(
+            mf6_idomain.layer.size, mf6_idomain.y.size, mf6_idomain.x.size
+        ),
+        coords=mf6_idomain.coords,
+        dims=mf6_idomain.dims,
+    ).dropna(dim="layer", how="all")
+    return xr.Dataset(out)
 
 
 def get_metaswap_results(
@@ -119,18 +134,19 @@ def get_metaswap_results(
 ) -> xr.Dataset[Any]:
     out = {}
     for var in vars:
-        mask = get_coupled_msw_mask(coupling_files[var], mf6_idomain)
+        masks = get_coupled_msw_mask(coupling_files[var], mf6_idomain)
         ar = imod.idf.open(Path(workdir) / var / (var + "_*_L1.IDF"))
         ar["x"] = np.round(ar.x.values, decimals=1)
         ar["y"] = np.round(ar.y.values, decimals=1)
-        out[var] = ar.where(mask.notnull())
-        out[var + "_index_mask"] = mask
+        out[var] = ar.where(masks["index"].notnull())
+        out[var + "_mask_index"] = masks["index"]
+        out[var + "_mask_svat"] = masks["svat"]
     return xr.Dataset(out)
 
 
 def flatten(array: xr.DataArray) -> np.ndarray:
     out = array.stack(z=["layer", "y", "x"]).to_numpy()  # noqa
-    return out[~np.isnan(out)]
+    return out[np.isfinite(out)]
 
 
 def sum_budgets(to_sum: np.ndarray, summed: np.ndarray) -> np.ndarray:
@@ -163,7 +179,7 @@ def assert_results(
         ).to_numpy()[basin_mask] * delt
 
         # MetaSWAP runoff
-        svat_mask = results.msw_budgets["bdgqrun_index_mask"] == basin_index
+        svat_mask = results.msw_budgets["bdgqrun_mask_index"] == basin_index
         area = results.msw_budgets["bdgqrun"].dx * -results.msw_budgets["bdgqrun"].dy
         runoff_msw = (
             (-results.msw_budgets["bdgqrun"] * area)
@@ -187,37 +203,6 @@ def assert_results(
             np.testing.assert_allclose(
                 runoff_msw,
                 runoff_exchange,
-                atol=atol,
-            )  # MetaSWAP output relative to coupler
-        # MetaSWAP Sprinkling from surface water
-        # evaluate only coupled elements
-        # TODO: check for basinnode vs usernode and index
-        svat_mask = results.msw_budgets["bdgPssw_index_mask"] == basin_index
-        area = results.msw_budgets["bdgPssw"].dx * -results.msw_budgets["bdgPssw"].dy
-        sprinkling_msw = (
-            (-results.msw_budgets["bdgPssw"] * area)
-            .where(svat_mask)
-            .sum(dim=["y", "x", "layer"], skipna=True)
-            .to_numpy()
-        )
-        # Sprinkling from coupler log
-        sprinkling_realised_exchange = (
-            results.exchange_budget["sprinkling_realised"].to_numpy()
-        )[:, basin_index] * delt
-
-        if basin_index < 5:
-            plot_results(
-                tmp_path_dev,
-                {
-                    "sprinkling msw": sprinkling_msw,
-                    "sprinkling realised exchange_dashed": sprinkling_realised_exchange,
-                },
-                "metaswap_results_sprinkling_basin_" + str(n_basin),
-            )
-        if do_assert:
-            np.testing.assert_allclose(
-                sprinkling_msw,
-                sprinkling_realised_exchange,
                 atol=atol,
             )  # MetaSWAP output relative to coupler
 
@@ -329,6 +314,41 @@ def assert_results(
                 runoff_exchange + summed_riv_flux_estimate + summed_correction_flux,
                 atol=atol,
             )
+    # MetaSWAP sprinkling from surface water, per water user
+    users = np.unique(results.msw_budgets["bdgPssw_mask_index"].to_numpy())
+    users = users[np.isfinite(users)]
+    for user in users:
+        # evaluate only coupled elements
+        user_mask = results.msw_budgets["bdgPssw_mask_index"] == user
+        svat_mask = results.msw_budgets["bdgPssw_mask_svat"].where(user_mask)
+        area = results.msw_budgets["bdgPssw"].dx * -results.msw_budgets["bdgPssw"].dy
+        sprinkling_msw = (
+            (-results.msw_budgets["bdgPssw"] * area)
+            .where(svat_mask.notnull())
+            .sum(dim=["y", "x", "layer"], skipna=True)
+            .to_numpy()
+        )
+        # Sprinkling from coupler log for coupled indices
+        coupled_svats = svat_mask.to_numpy()
+        coupled_svats = coupled_svats[np.isfinite(coupled_svats)].astype(dtype=np.int32)
+        sprinkling_realised_exchange = (
+            results.exchange_budget["sprinkling_realised"].to_numpy()
+        )[:, coupled_svats].sum(axis=1)
+        if basin_index < 5:
+            plot_results(
+                tmp_path_dev,
+                {
+                    "sprinkling msw": sprinkling_msw,
+                    "sprinkling realised exchange_dashed": sprinkling_realised_exchange,
+                },
+                "metaswap_results_sprinkling_user_" + str(int(user)),
+            )
+        if do_assert:
+            np.testing.assert_allclose(
+                sprinkling_msw,
+                sprinkling_realised_exchange,
+                atol=atol,
+            )  # MetaSWAP output relative to coupler
 
 
 def plot_results(tmp_path_dev: Path, results: dict[str, np.ndarray], name: str) -> None:

@@ -321,22 +321,6 @@ class RibaMetaMod(Driver):
                         self.ribasim_user_demand[:, self.coupled_user_indices] != 0.0
                     )
 
-                    # self.ribasim_userprio = self.ribasim_user_demand.copy()
-                    # self.ribasim_userprio[self.ribasim_userprio > 1] = 1.0
-                    # # number of priorities non-zero elements for each NON-MASKED user, i.e. metaswap sprinkling
-                    # nprio_per_target = (
-                    #     1 - self.mapping.msw2rib["sw_sprinkling_mask"]
-                    # ) * self.ribasim_userprio.sum(axis=1)
-                    #
-                    # # gather 1-based indices of users with more than one entry into a list
-                    # too_many = np.where(nprio_per_target > 1)[0] + 1
-                    #
-                    # # if this list is not empty ...
-                    # if np.size(too_many) > 0:
-                    #     raise ValueError(
-                    #         f"More than one priority set for basins {np.array2string(too_many)}"
-                    #     )
-
                     self.ribasim_user_realised = self.ribasim.get_value_ptr(
                         "user_demand.realized"
                     )
@@ -471,21 +455,16 @@ class RibaMetaMod(Driver):
 
     def exchange_sprinkling_demand_msw2rib(self, delt: float) -> None:
         # flux demand from metaswap sprinkling to Ribasim (demand)
-        self.msw_sprinkling_demand_sec = -(
+        self.msw_sprinkling_demand_sec = (
             self.msw.get_surfacewater_sprinking_demand_ptr() / days_to_seconds(delt)
-        )  # flip sign since ribasim expect a positive value for demand
-        mapped = self.mapping.msw2rib["sw_sprinkling"].dot(
-            self.msw_sprinkling_demand_sec
         )
+        mapped = self.mapping.msw2rib["sw_sprinkling"].dot(
+            -self.msw_sprinkling_demand_sec
+        )  # flip sign since ribasim expect a positive value for demand
         self.ribasim_user_demand[
             self.coupled_priority_indices, self.coupled_user_indices
         ] = mapped[self.coupled_user_indices]
 
-        # masked = self.mapping.msw2rib["sw_sprinkling_mask"]
-        # self.ribasim_user_demand[:] = (
-        #     masked[:, np.newaxis] * self.ribasim_user_demand[:]
-        # )
-        # self.ribasim_user_demand[:] += mapped[:, np.newaxis] * self.ribasim_userprio
         self.exchange_logger.log_exchange(
             ("sprinkling_demand"),
             self.msw.get_surfacewater_sprinking_demand_ptr(),
@@ -506,12 +485,6 @@ class RibaMetaMod(Driver):
         ) / self.ribasim_user_demand[
             self.coupled_priority_indices, nonzero_coupled_user_indices
         ]
-
-        # self.realised_fractions_swspr[nonzero] = (
-        #     self.ribasim_user_realised[nonzero]
-        #     / days_to_seconds(delt)
-        #     / self.ribasim_user_demand[self.coupled_priority_indices,self.coupled_user_indices]
-        # )
 
         msw_sprfrac_realised = (
             self.realised_fractions_swspr * self.mapping.msw2rib["sw_sprinkling"]

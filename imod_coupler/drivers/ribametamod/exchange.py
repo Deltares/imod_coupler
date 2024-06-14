@@ -211,11 +211,8 @@ class CoupledExchangeBalance(ExchangeBalance):
                 self.realised_negative[key] / self.demands_negative[key],
             )
             # correction only applies to MF6 cells which negatively contribute to the Ribasim volumes
-            # MF6 demands in this class are negative for infiltration to groundwater (sign is swaped
-            # relative to MF6 analogy)
-            # correction should always be positive. Since in this class, signs are swaped relative to the
-            # MF6 analogy, the demand can be used directly
-            self.mf6_active_river_api_packages[key].rhs[:] = (
+            # correction as extraction from MF6 model.
+            self.mf6_active_river_api_packages[key].rhs[:] = -(
                 np.minimum(self.demands_mf6[key], 0.0) * days_to_seconds(1.0)
             ) * (1 - self.mapping.map_rib2mod_flux[key].dot(realised_fraction))
 
