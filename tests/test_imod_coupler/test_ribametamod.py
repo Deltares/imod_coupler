@@ -406,10 +406,10 @@ def write_run_read(
     flow_df = pd.read_feather(
         tmp_path / ribametamod_model._ribasim_model_dir / "results" / "flow.arrow"
     )
+    # should become optional output
     allocation_df = pd.read_feather(
         tmp_path / ribametamod_model._ribasim_model_dir / "results" / "allocation.arrow"
     )
-    allocation_df.to_csv("allocation.csv")
     # Read MODFLOW 6 output
     head = imod.mf6.open_hds(
         tmp_path / ribametamod_model._modflow6_model_dir / "GWF_1" / "GWF_1.hds",
