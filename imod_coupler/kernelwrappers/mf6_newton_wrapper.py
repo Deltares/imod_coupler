@@ -229,6 +229,8 @@ class PhreaticBCArray(PhreaticModelArray):
     def set_ptr(self, new_values: NDArray[Any]) -> None:
         # The package nodelist is set to the phreatic nodes
         self.variable.variable_model[:] = new_values[:]
+
+    def set_ptr_nodes(self) -> None:
         self.variable.nodelist[:] = (self.phreatic_modelid + 1)[:]  # type ignore
 
     @property
@@ -313,6 +315,9 @@ class PhreaticRecharge:
 
     def set(self, new_recharge: NDArray[Any]) -> None:
         self.recharge.set_ptr(new_recharge)
+
+    def set_nodes(self) -> None:
+        self.recharge.set_ptr_nodes()
 
 
 class PhreaticHeads:

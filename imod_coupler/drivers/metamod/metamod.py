@@ -422,7 +422,7 @@ class MetaModNewton(MetaMod):
             "msw_storage", self.msw_storage, self.get_current_time()
         )
 
-        # Set recharge
+        # Set recharge values
         new_recharge = (
             self.mask_msw2mod["recharge"][:] * self.mf6_recharge[:]
             + self.map_msw2mod["recharge"].dot(self.msw_volume)[:] / self.delt
@@ -442,6 +442,18 @@ class MetaModNewton(MetaMod):
             self.mask_mod2msw["head"][:] * self.msw_head[:]
             + self.map_mod2msw["head"].dot(mf6_head)[:]
         )
+
+    def do_iter(self, sol_id: int) -> bool:
+        """Execute a single iteration"""
+        self.msw.prepare_solve(0)
+        self.msw.solve(0)
+        self.exchange_msw2mod()
+        has_converged = self.mf6.solve(sol_id)
+        self.exchange_mod2msw()
+        self.msw.finalize_solve(0)
+        # update nodelist rch-package
+        self.rch.set_nodes()
+        return has_converged
 
     def get_first_layer_nodes(self) -> NDArray[Any]:
         _, nrow, ncol = self.mf6.get_dis_shape(self.coupling.mf6_model)
