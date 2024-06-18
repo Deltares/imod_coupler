@@ -337,15 +337,14 @@ def case_two_basin_model_single_users(
     mf6_two_basin_model_3layer[mf6_modelname]["ic"].dataset["start"] = -100.0
 
     # increase river resistance so basins don't run dry
-    cond = (20 * 20) / 50
-    active = (
-        mf6_two_basin_model_3layer[mf6_modelname][mf6_active_river_packages[0]]
-        .dataset["conductance"]
-        .notnull()
-    )
+    cond = mf6_two_basin_model_3layer[mf6_modelname][
+        mf6_active_river_packages[0]
+    ].dataset["conductance"]
+    cond_new = (20 * 20) / 50
+    active = cond.notnull()
     mf6_two_basin_model_3layer[mf6_modelname][mf6_active_river_packages[0]].dataset[
         "conductance"
-    ] = xr.full_like(active, fill_value=cond).where(active)
+    ] = xr.full_like(cond, fill_value=cond_new).where(active)
     return RibaMetaMod(
         ribasim_model=ribasim_two_basin_model,
         msw_model=msw_two_basin_model_3layer,
@@ -460,22 +459,22 @@ def case_two_basin_model_double_users(
     # increatse initial stage second basin, so irrigation can take place.
     ribasim_two_basin_model.basin.state.df["level"].loc[
         ribasim_two_basin_model.basin.node.df["node_id"] == 3
-    ] = 1.0
+    ] = 8.0
+    new_df = pd.DataFrame(
+        {
+            "node_id": np.array([4] * 3),
+            "active": np.array([pd.NA] * 3),
+            "level": np.array([0, 3.0, 6.0]),
+            "flow_rate": np.array([0.0, 0.0, 0.000000001]),
+            "control_state": [None, None, None],
+        }
+    )
+    ribasim_two_basin_model.tabulated_rating_curve.static.df = new_df
 
     # activate Allocation in Ribasim-model
     ribasim_two_basin_model.allocation = ribasim.Allocation(
         timestep=86400.0, use_allocation=True
     )
-    new_df = pd.DataFrame(
-        {
-            "node_id": np.array([4] * 3),
-            "active": np.array([pd.NA] * 3),
-            "level": np.array([0, 0.5, 1.0]),
-            "flow_rate": np.array([0.0, 0.0, 0.0000001]),
-            "control_state": [None, None, None],
-        }
-    )
-    ribasim_two_basin_model.tabulated_rating_curve.static.df = new_df
 
     user_definitions = create_basin_definition(
         ribasim_two_basin_model.user_demand.node,
@@ -506,19 +505,35 @@ def case_two_basin_model_double_users(
     msw_two_basin_model_3layer["meteo_grid"].dataset["evapotranspiration"] = pet * 100
     msw_two_basin_model_3layer["meteo_grid"].dataset["precipitation"] = pp * 0.0
 
+    # increase sprinkling season
+    msw_two_basin_model_3layer["landuse_options"]["start_sprinkling_season"][:] = 0.0
+    msw_two_basin_model_3layer.simulation_settings["tdbgsm"] = 0.0
+    soil_cover = msw_two_basin_model_3layer["crop_factors"]["soil_cover"]
+    soil_cover[:] = 1.0
+    new = msw.AnnualCropFactors(
+        soil_cover=soil_cover,
+        leaf_area_index=xr.full_like(soil_cover, 3.0),
+        interception_capacity=xr.zeros_like(soil_cover),
+        vegetation_factor=xr.ones_like(soil_cover),
+        interception_factor=xr.ones_like(soil_cover),
+        bare_soil_factor=xr.ones_like(soil_cover),
+        ponding_factor=xr.ones_like(soil_cover),
+    )
+    msw_two_basin_model_3layer.pop("crop_factors")
+    msw_two_basin_model_3layer["crop_factors"] = new
+
     # lower initial conditions MF6 model
     mf6_two_basin_model_3layer[mf6_modelname]["ic"].dataset["start"] = -100.0
 
     # increase river resistance so basins don't run dry
-    cond = (20 * 20) / 50
-    active = (
-        mf6_two_basin_model_3layer[mf6_modelname][mf6_active_river_packages[0]]
-        .dataset["conductance"]
-        .notnull()
-    )
+    cond = mf6_two_basin_model_3layer[mf6_modelname][
+        mf6_active_river_packages[0]
+    ].dataset["conductance"]
+    cond_new = (20 * 20) / 50
+    active = cond.notnull()
     mf6_two_basin_model_3layer[mf6_modelname][mf6_active_river_packages[0]].dataset[
         "conductance"
-    ] = xr.full_like(active, fill_value=cond).where(active)
+    ] = xr.full_like(cond, fill_value=cond_new).where(active)
     return RibaMetaMod(
         ribasim_model=ribasim_two_basin_model,
         msw_model=msw_two_basin_model_3layer,

@@ -406,7 +406,7 @@ def write_run_read(
     flow_df = pd.read_feather(
         tmp_path / ribametamod_model._ribasim_model_dir / "results" / "flow.arrow"
     )
-    # should become optional output
+    # optional output
     file = (
         tmp_path / ribametamod_model._ribasim_model_dir / "results" / "allocation.arrow"
     )

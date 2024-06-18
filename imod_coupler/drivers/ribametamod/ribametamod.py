@@ -453,12 +453,12 @@ class RibaMetaMod(Driver):
         self.msw_sprinkling_demand_sec = (
             self.msw.get_surfacewater_sprinking_demand_ptr() / days_to_seconds(delt)
         )
-        mapped = self.mapping.msw2rib["sw_sprinkling"].dot(
+        self.mapped_sprinkling_demand = self.mapping.msw2rib["sw_sprinkling"].dot(
             -self.msw_sprinkling_demand_sec
         )  # flip sign since ribasim expect a positive value for demand
         self.ribasim_user_demand[
             self.coupled_priority_indices, self.coupled_user_indices
-        ] = mapped[self.coupled_user_indices]
+        ] = self.mapped_sprinkling_demand[self.coupled_user_indices]
 
         self.exchange_logger.log_exchange(
             ("sprinkling_demand"),
@@ -470,13 +470,13 @@ class RibaMetaMod(Driver):
         msw_sprinkling_realized = self.msw.get_surfacewater_sprinking_realised_ptr()
 
         nonzero_coupled_user_indices = np.nonzero(
-            self.ribasim_user_realized[self.coupled_user_indices] > 0.0
+            self.mapped_sprinkling_demand[self.coupled_user_indices]
         )
-        self.realised_fractions_swspr[:] = 0.0
+        nonzero_user_indices = np.nonzero(self.mapped_sprinkling_demand)
 
-        self.realised_fractions_swspr[nonzero_coupled_user_indices] = (
-            self.ribasim_user_realized[nonzero_coupled_user_indices]
-            / days_to_seconds(delt)
+        self.realised_fractions_swspr[:] = 0.0
+        self.realised_fractions_swspr[nonzero_user_indices] = (
+            self.ribasim_user_realized[nonzero_user_indices] / days_to_seconds(delt)
         ) / self.ribasim_user_demand[
             self.coupled_priority_indices, self.coupled_user_indices
         ][nonzero_coupled_user_indices]
