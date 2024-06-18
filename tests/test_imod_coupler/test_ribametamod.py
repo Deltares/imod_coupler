@@ -57,7 +57,7 @@ class exchange_output:
 class Results(NamedTuple):
     basin_df: pd.DataFrame
     flow_df: pd.DataFrame
-    allocation_df: pd.DataFrame
+    allocation_df: pd.DataFrame | None
     mf6head: xr.DataArray
     mf6_budgets: dict[str, xr.DataArray]
     msw_budgets: xr.Dataset[Any]
@@ -304,7 +304,7 @@ def assert_results(
                     "Ribasim": ribasim_bnd_flux,
                     "sum exchanges_dashed": runoff_exchange
                     + summed_riv_flux_estimate
-                    + summed_correction_flux,
+                    - summed_correction_flux,
                 },
                 "results_basin_" + str(n_basin),
             )
@@ -332,7 +332,7 @@ def assert_results(
         coupled_svats = svat_mask.to_numpy()
         coupled_svats = coupled_svats[np.isfinite(coupled_svats)].astype(dtype=np.int32)
         sprinkling_realised_exchange = (
-            results.exchange_budget["sprinkling_realised"].to_numpy()
+            results.exchange_budget["sprinkling_realized"].to_numpy()
         )[:, coupled_svats].sum(axis=1)
         if basin_index < 5:
             plot_results(
@@ -407,9 +407,13 @@ def write_run_read(
         tmp_path / ribametamod_model._ribasim_model_dir / "results" / "flow.arrow"
     )
     # should become optional output
-    allocation_df = pd.read_feather(
+    file = (
         tmp_path / ribametamod_model._ribasim_model_dir / "results" / "allocation.arrow"
     )
+    if file.is_file():
+        allocation_df = pd.read_feather(file)
+    else:
+        allocation_df = None
     # Read MODFLOW 6 output
     head = imod.mf6.open_hds(
         tmp_path / ribametamod_model._modflow6_model_dir / "GWF_1" / "GWF_1.hds",
@@ -543,8 +547,8 @@ def test_ribametamod_two_basin(
 
 
 @pytest.mark.xdist_group(name="ribasim")
-@parametrize_with_cases("ribametamod_model", glob="two_basin_model_users")
-def test_ribametamod_two_basin_users(
+@parametrize_with_cases("ribametamod_model", glob="two_basin_model_single_users")
+def test_ribametamod_two_basin_single_users(
     tmp_path_dev: Path,
     ribametamod_model: RibaMetaMod,
     metaswap_dll_devel: Path,
@@ -570,7 +574,42 @@ def test_ribametamod_two_basin_users(
             "exchange_demand_riv_1",
             "exchange_demand_sw_ponding",
             "stage_riv_1",
-            "sprinkling_realised",
+            "sprinkling_realized",
+            "sprinkling_demand",
+        ],
+    )
+    assert_results(tmp_path_dev, ribametamod_model, results)
+
+
+@pytest.mark.xdist_group(name="ribasim")
+@parametrize_with_cases("ribametamod_model", glob="two_basin_model_double_users")
+def test_ribametamod_two_basin_double_users(
+    tmp_path_dev: Path,
+    ribametamod_model: RibaMetaMod,
+    metaswap_dll_devel: Path,
+    metaswap_dll_dep_dir_devel: Path,
+    modflow_dll_devel: Path,
+    ribasim_dll_devel: Path,
+    ribasim_dll_dep_dir_devel: Path,
+    run_coupler_function: Callable[[Path], None],
+) -> None:
+    """
+    Test if the two-basin model model works as expected
+    """
+    results = write_run_read(
+        tmp_path_dev,
+        ribametamod_model,
+        modflow_dll_devel,
+        ribasim_dll_devel,
+        ribasim_dll_dep_dir_devel,
+        metaswap_dll_devel,
+        metaswap_dll_dep_dir_devel,
+        run_coupler_function,
+        output_labels=[
+            "exchange_demand_riv_1",
+            "exchange_demand_sw_ponding",
+            "stage_riv_1",
+            "sprinkling_realized",
             "sprinkling_demand",
         ],
     )

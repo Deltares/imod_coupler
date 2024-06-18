@@ -1,5 +1,6 @@
 import geopandas as gpd
 import numpy as np
+import pandas as pd
 import ribasim
 import ribasim.geometry
 import xarray as xr
@@ -216,7 +217,7 @@ def case_two_basin_model(
     )
 
 
-def case_two_basin_model_users(
+def case_two_basin_model_single_users(
     mf6_two_basin_model_3layer: Modflow6Simulation,
     msw_two_basin_model_3layer: MetaSwapModel,
     ribasim_two_basin_model: ribasim.Model,
@@ -322,6 +323,179 @@ def case_two_basin_model_users(
     ribameta_coupling = RibaMetaDriverCoupling(
         ribasim_basin_definition=basin_definition,
         ribasim_user_demand_definition=user_definition,
+    )
+    # increase inflow rate to be able to extract irrigation water
+    ribasim_two_basin_model.flow_boundary.static.df["flow_rate"][0] = 0.05
+
+    # increase PET in MetaSWAP-model
+    pet = msw_two_basin_model_3layer["meteo_grid"].dataset["evapotranspiration"]
+    pp = msw_two_basin_model_3layer["meteo_grid"].dataset["precipitation"]
+    msw_two_basin_model_3layer["meteo_grid"].dataset["evapotranspiration"] = pet * 100
+    msw_two_basin_model_3layer["meteo_grid"].dataset["precipitation"] = pp * 0.0
+
+    # lower initial conditions MF6 model
+    mf6_two_basin_model_3layer[mf6_modelname]["ic"].dataset["start"] = -100.0
+
+    # increase river resistance so basins don't run dry
+    cond = (20 * 20) / 50
+    active = (
+        mf6_two_basin_model_3layer[mf6_modelname][mf6_active_river_packages[0]]
+        .dataset["conductance"]
+        .notnull()
+    )
+    mf6_two_basin_model_3layer[mf6_modelname][mf6_active_river_packages[0]].dataset[
+        "conductance"
+    ] = xr.full_like(active, fill_value=cond).where(active)
+    return RibaMetaMod(
+        ribasim_model=ribasim_two_basin_model,
+        msw_model=msw_two_basin_model_3layer,
+        mf6_simulation=mf6_two_basin_model_3layer,
+        coupling_list=[metamod_coupling, ribamod_coupling, ribameta_coupling],
+    )
+
+
+def case_two_basin_model_double_users(
+    mf6_two_basin_model_3layer: Modflow6Simulation,
+    msw_two_basin_model_3layer: MetaSwapModel,
+    ribasim_two_basin_model: ribasim.Model,
+) -> RibaMetaMod:
+    mf6_modelname, mf6_model = get_mf6_gwf_modelnames(mf6_two_basin_model_3layer)[0]
+    mf6_active_river_packages = get_mf6_river_packagenames(mf6_model)
+    basin_definition = create_basin_definition(
+        ribasim_two_basin_model.basin.node,
+        buffersize=250.0,
+    )
+    mf6_two_basin_model_3layer = add_rch_package(mf6_two_basin_model_3layer)
+    mf6_two_basin_model_3layer = add_well_package(mf6_two_basin_model_3layer)
+
+    mf6_two_basin_model_3layer["GWF_1"].pop("sto")
+    idomain = mf6_two_basin_model_3layer["GWF_1"]["dis"]["idomain"]
+    ss = xr.ones_like(idomain, dtype=float) * 1e-6
+    ss[0, :, :] = 0.15  # phreatic layer, important for non coupled nodes
+    mf6_two_basin_model_3layer["GWF_1"]["sto"] = StorageCoefficient(ss, 0.1, True, 0)
+
+    # Add waterusers to model; basin 2
+    ribasim_two_basin_model.user_demand.add(
+        ribasim.Node(7, Point(250.0, 10.0), subnetwork_id=2),
+        [
+            user_demand.Static(  # type: ignore
+                demand=[1.0],
+                active=True,
+                return_factor=[0.0],
+                min_level=[-999.0],
+                priority=[1],
+            ),
+        ],
+    )
+    ribasim_two_basin_model.user_demand.add(
+        ribasim.Node(8, Point(240.0, 20.0), subnetwork_id=2),
+        [
+            user_demand.Static(  # type: ignore
+                demand=[0.00001, 0.00002],
+                active=True,
+                return_factor=[0.0, 0.0],
+                min_level=[-999.0, -999.0],
+                priority=[4, 8],
+            ),
+        ],
+    )
+    # Add waterusers to model; basin 3
+    ribasim_two_basin_model.user_demand.add(
+        ribasim.Node(9, Point(750.0, 10.0), subnetwork_id=3),
+        [
+            user_demand.Static(  # type: ignore
+                demand=[1.0],
+                active=True,
+                return_factor=[0.0],
+                min_level=[-999.0],
+                priority=[3],
+            ),
+        ],
+    )
+    # add subnetwork id to basins
+    ribasim_two_basin_model.basin.node.df["subnetwork_id"].loc[
+        ribasim_two_basin_model.basin.node.df["node_id"] == 2
+    ] = 2
+    ribasim_two_basin_model.basin.node.df["subnetwork_id"].loc[
+        ribasim_two_basin_model.basin.node.df["node_id"] == 3
+    ] = 3
+    # add two-way connections to water-user nodes; basin 2
+    ribasim_two_basin_model.edge.add(
+        ribasim_two_basin_model.basin[2], ribasim_two_basin_model.user_demand[7]
+    )
+    ribasim_two_basin_model.edge.add(
+        ribasim_two_basin_model.user_demand[7], ribasim_two_basin_model.basin[2]
+    )
+    ribasim_two_basin_model.edge.add(
+        ribasim_two_basin_model.basin[2], ribasim_two_basin_model.user_demand[8]
+    )
+    ribasim_two_basin_model.edge.add(
+        ribasim_two_basin_model.user_demand[8], ribasim_two_basin_model.basin[2]
+    )
+    # add two-way connections to water-user nodes; basin 3
+    ribasim_two_basin_model.edge.add(
+        ribasim_two_basin_model.basin[3], ribasim_two_basin_model.user_demand[9]
+    )
+    ribasim_two_basin_model.edge.add(
+        ribasim_two_basin_model.user_demand[9], ribasim_two_basin_model.basin[3]
+    )
+    # add default level-control to basins
+    ribasim_two_basin_model.level_demand.add(
+        ribasim.Node(10, Point(240.0, 10.0), subnetwork_id=2),
+        [level_demand.Static(priority=[1], min_level=[-1.0e6], max_level=[-1.0e6])],
+    )
+    ribasim_two_basin_model.edge.add(
+        ribasim_two_basin_model.level_demand[10],
+        ribasim_two_basin_model.basin[2],
+    )
+    ribasim_two_basin_model.level_demand.add(
+        ribasim.Node(11, Point(740.0, 10.0), subnetwork_id=3),
+        [level_demand.Static(priority=[1], min_level=[-1.0e6], max_level=[-1.0e6])],
+    )
+    ribasim_two_basin_model.edge.add(
+        ribasim_two_basin_model.level_demand[11],
+        ribasim_two_basin_model.basin[3],
+    )
+
+    # increatse initial stage second basin, so irrigation can take place.
+    ribasim_two_basin_model.basin.state.df["level"].loc[
+        ribasim_two_basin_model.basin.node.df["node_id"] == 3
+    ] = 1.0
+
+    # activate Allocation in Ribasim-model
+    ribasim_two_basin_model.allocation = ribasim.Allocation(
+        timestep=86400.0, use_allocation=True
+    )
+    new_df = pd.DataFrame(
+        {
+            "node_id": np.array([4] * 3),
+            "active": np.array([pd.NA] * 3),
+            "level": np.array([0, 0.5, 1.0]),
+            "flow_rate": np.array([0.0, 0.0, 0.0000001]),
+            "control_state": [None, None, None],
+        }
+    )
+    ribasim_two_basin_model.tabulated_rating_curve.static.df = new_df
+
+    user_definitions = create_basin_definition(
+        ribasim_two_basin_model.user_demand.node,
+        buffersize=250.0,
+        nodes=[7, 9],
+    )
+
+    metamod_coupling = MetaModDriverCoupling(
+        mf6_model=mf6_modelname,
+        mf6_recharge_package="rch_msw",
+        mf6_wel_package="well_msw",
+    )
+    ribamod_coupling = RibaModActiveDriverCoupling(
+        mf6_model=mf6_modelname,
+        mf6_packages=mf6_active_river_packages,
+        ribasim_basin_definition=basin_definition,
+    )
+    ribameta_coupling = RibaMetaDriverCoupling(
+        ribasim_basin_definition=basin_definition,
+        ribasim_user_demand_definition=user_definitions,
     )
     # increase inflow rate to be able to extract irrigation water
     ribasim_two_basin_model.flow_boundary.static.df["flow_rate"][0] = 0.05
