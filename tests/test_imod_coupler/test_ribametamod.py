@@ -82,7 +82,7 @@ def get_coupled_mf6_package_mask(
 
 
 def get_coupled_msw_mask(
-    coupling_file: list[Path, str], mf6_idomain: xr.DataArray
+    coupling_file: list[Path | str], mf6_idomain: xr.DataArray
 ) -> xr.Dataset[Any]:
     # returns dataset with two array's containing: the basin (or user) index
     # and corresponding svat number based on dxc- and tsv-files
@@ -130,10 +130,9 @@ def get_metaswap_results(
     workdir: Path,
     coupling_files: dict[str, list],
     mf6_idomain: xr.DataArray,
-    vars: list[str],
 ) -> xr.Dataset[Any]:
     out = {}
-    for var in vars:
+    for var in coupling_files.keys():
         masks = get_coupled_msw_mask(coupling_files[var], mf6_idomain)
         ar = imod.idf.open(Path(workdir) / var / (var + "_*_L1.IDF"))
         ar["x"] = np.round(ar.x.values, decimals=1)
@@ -314,41 +313,46 @@ def assert_results(
                 runoff_exchange + summed_riv_flux_estimate + summed_correction_flux,
                 atol=atol,
             )
-    # MetaSWAP sprinkling from surface water, per water user
-    users = np.unique(results.msw_budgets["bdgPssw_mask_index"].to_numpy())
-    users = users[np.isfinite(users)]
-    for user in users:
-        # evaluate only coupled elements
-        user_mask = results.msw_budgets["bdgPssw_mask_index"] == user
-        svat_mask = results.msw_budgets["bdgPssw_mask_svat"].where(user_mask)
-        area = results.msw_budgets["bdgPssw"].dx * -results.msw_budgets["bdgPssw"].dy
-        sprinkling_msw = (
-            (-results.msw_budgets["bdgPssw"] * area)
-            .where(svat_mask.notnull())
-            .sum(dim=["y", "x", "layer"], skipna=True)
-            .to_numpy()
-        )
-        # Sprinkling from coupler log for coupled indices
-        coupled_svats = svat_mask.to_numpy()
-        coupled_svats = coupled_svats[np.isfinite(coupled_svats)].astype(dtype=np.int32)
-        sprinkling_realised_exchange = (
-            results.exchange_budget["sprinkling_realized"].to_numpy()
-        )[:, coupled_svats].sum(axis=1)
-        if basin_index < 5:
-            plot_results(
-                tmp_path_dev,
-                {
-                    "sprinkling msw": sprinkling_msw,
-                    "sprinkling realised exchange_dashed": sprinkling_realised_exchange,
-                },
-                "metaswap_results_sprinkling_user_" + str(int(user)),
+    if results.allocation_df is not None:
+        # MetaSWAP sprinkling from surface water, per water user
+        users = np.unique(results.msw_budgets["bdgPssw_mask_index"].to_numpy())
+        users = users[np.isfinite(users)]
+        for user in users:
+            # evaluate only coupled elements
+            user_mask = results.msw_budgets["bdgPssw_mask_index"] == user
+            svat_mask = results.msw_budgets["bdgPssw_mask_svat"].where(user_mask)
+            area = (
+                results.msw_budgets["bdgPssw"].dx * -results.msw_budgets["bdgPssw"].dy
             )
-        if do_assert:
-            np.testing.assert_allclose(
-                sprinkling_msw,
-                sprinkling_realised_exchange,
-                atol=atol,
-            )  # MetaSWAP output relative to coupler
+            sprinkling_msw = (
+                (-results.msw_budgets["bdgPssw"] * area)
+                .where(svat_mask.notnull())
+                .sum(dim=["y", "x", "layer"], skipna=True)
+                .to_numpy()
+            )
+            # Sprinkling from coupler log for coupled indices
+            coupled_svats = svat_mask.to_numpy()
+            coupled_svats = coupled_svats[np.isfinite(coupled_svats)].astype(
+                dtype=np.int32
+            )
+            sprinkling_realised_exchange = (
+                results.exchange_budget["sprinkling_realized"].to_numpy()
+            )[:, coupled_svats].sum(axis=1)
+            if basin_index < 5:
+                plot_results(
+                    tmp_path_dev,
+                    {
+                        "sprinkling msw": sprinkling_msw,
+                        "sprinkling realised exchange_dashed": sprinkling_realised_exchange,
+                    },
+                    "metaswap_results_sprinkling_user_" + str(int(user)),
+                )
+            if do_assert:
+                np.testing.assert_allclose(
+                    sprinkling_msw,
+                    sprinkling_realised_exchange,
+                    atol=atol,
+                )  # MetaSWAP output relative to coupler
 
 
 def plot_results(tmp_path_dev: Path, results: dict[str, np.ndarray], name: str) -> None:
@@ -414,6 +418,7 @@ def write_run_read(
         allocation_df = pd.read_feather(file)
     else:
         allocation_df = None
+
     # Read MODFLOW 6 output
     head = imod.mf6.open_hds(
         tmp_path / ribametamod_model._modflow6_model_dir / "GWF_1" / "GWF_1.hds",
@@ -426,19 +431,21 @@ def write_run_read(
         simulation_start_time=pd.to_datetime("2000/01/01"),
         time_unit="d",
     )
+
     # get MetaSWAP results from idf output
     mf6_idomain = ribametamod_model.mf6_simulation["GWF_1"]["dis"]["idomain"]
+    coupling_files = {
+        "bdgqrun": [tmp_path / "exchanges" / "msw_ponding.tsv", "basin_index"],
+    }
+    if allocation_df is not None:
+        coupling_files["bdgPssw"] = [
+            tmp_path / "exchanges" / "msw_sw_sprinkling.tsv",
+            "user_demand_index",
+        ]
     msw_results = get_metaswap_results(
         ribametamod_model._metaswap_model_dir,
-        {
-            "bdgqrun": [tmp_path / "exchanges" / "msw_ponding.tsv", "basin_index"],
-            "bdgPssw": [
-                tmp_path / "exchanges" / "msw_sw_sprinkling.tsv",
-                "user_demand_index",
-            ],
-        },
+        coupling_files,
         mf6_idomain,
-        ["bdgqrun", "bdgPssw"],
     )
 
     return Results(

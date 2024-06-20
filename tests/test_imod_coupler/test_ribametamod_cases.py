@@ -529,7 +529,7 @@ def case_two_basin_model_double_users(
     cond = mf6_two_basin_model_3layer[mf6_modelname][
         mf6_active_river_packages[0]
     ].dataset["conductance"]
-    cond_new = (20 * 20) / 50
+    cond_new = (20 * 20) / 10000  # prevents basin to run dry
     active = cond.notnull()
     mf6_two_basin_model_3layer[mf6_modelname][mf6_active_river_packages[0]].dataset[
         "conductance"

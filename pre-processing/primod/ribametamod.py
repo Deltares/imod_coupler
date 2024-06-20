@@ -186,9 +186,9 @@ class RibaMetaMod(CoupledModel):
         }
 
         if output_config_file is not None:
-            coupler_toml["driver"]["coupling"][0]["output_config_file"] = str(
+            coupler_toml["driver"]["coupling"][0]["output_config_file"] = str(  # type: ignore
                 output_config_file
-            )  # type: ignore
+            )
 
         with open(toml_path, "wb") as f:
             tomli_w.dump(coupler_toml, f)
