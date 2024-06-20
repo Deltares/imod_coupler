@@ -105,7 +105,7 @@ def test_ribamod_write(
     mf6_modelname, mf6_model = get_mf6_gwf_modelnames(mf6_bucket_model)[0]
     mf6_river_packages = get_mf6_river_packagenames(mf6_model)
 
-    driver_coupling = RibaModPassiveDriverCoupling(
+    driver_coupling = RibaModActiveDriverCoupling(
         mf6_model=mf6_modelname,
         ribasim_basin_definition=basin_definition,
         mf6_packages=mf6_river_packages,
@@ -121,8 +121,8 @@ def test_ribamod_write(
 
     expected_dict = {
         "mf6_model": "GWF_1",
-        "mf6_active_river_packages": {},
-        "mf6_passive_river_packages": {"riv-1": "./exchanges/riv-1.tsv"},
+        "mf6_active_river_packages": {"riv-1": "./exchanges/riv-1.tsv"},
+        "mf6_passive_river_packages": {},
         "mf6_active_drainage_packages": {},
         "mf6_passive_drainage_packages": {},
     }
@@ -131,7 +131,9 @@ def test_ribamod_write(
     exchange_path = Path("./exchanges/riv-1.tsv")
     assert (output_dir / exchange_path).exists()
     exchange_df = pd.read_csv(output_dir / exchange_path, sep="\t")
-    expected_df = pd.DataFrame(data={"basin_index": [0], "bound_index": [0]})
+    expected_df = pd.DataFrame(
+        data={"basin_index": [0], "bound_index": [0], "subgrid_index": [0]}
+    )
     assert exchange_df.equals(expected_df)
 
 
@@ -154,6 +156,24 @@ def test_ribamod_write_toml(
     )
 
     output_dir = tmp_path / "ribamod"
+    # Exception expected due to river package in a passive ribamod driver coupling
+    with pytest.raises(TypeError) as e_info:
+        coupling_dict = coupled_models.write_exchanges(output_dir)
+    assert "Expected Drainage packages for passive coupling, received: River" in str(
+        e_info.value
+    )
+
+    # Remove riv-1 (river) and api_riv-1 packages, add drn-1 (drainage) package
+    conductance = mf6_bucket_model["GWF_1"]["riv-1"]["conductance"]
+    bottom_elevation = mf6_bucket_model["GWF_1"]["riv-1"]["bottom_elevation"]
+    mf6_bucket_model["GWF_1"].pop("riv-1")
+    mf6_bucket_model["GWF_1"].pop("api_riv-1")
+    mf6_bucket_model["GWF_1"]["drn-1"] = Drainage(
+        elevation=bottom_elevation, conductance=conductance
+    )
+    driver_coupling.mf6_packages.remove("riv-1")
+    driver_coupling.mf6_packages.append("drn-1")
+
     coupling_dict = coupled_models.write_exchanges(output_dir)
 
     coupled_models.write_toml(
@@ -231,7 +251,7 @@ def test_nullify_on_write(
     # This basin definition is still a point geometry.
     # This mean it will be rasterized to just two pixels.
     gdf = ribasim_two_basin_model.basin.node.df
-    driver_coupling = RibaModPassiveDriverCoupling(
+    driver_coupling = RibaModActiveDriverCoupling(
         mf6_model=mf6_modelname,
         ribasim_basin_definition=gdf,
         mf6_packages=mf6_river_packages,
@@ -242,6 +262,7 @@ def test_nullify_on_write(
         mf6_partial_two_basin_model,
         coupling_list=[driver_coupling],
     )
+
     coupled_models.write_exchanges(tmp_path)
 
     coupled_models.write(

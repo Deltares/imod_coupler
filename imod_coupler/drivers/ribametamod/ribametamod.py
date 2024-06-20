@@ -204,7 +204,7 @@ class RibaMetaMod(Driver):
             self.ribasim_level = self.ribasim.get_value_ptr("basin.level")
             self.ribasim_storage = self.ribasim.get_value_ptr("basin.storage")
             self.ribasim_user_demand = self.ribasim.get_value_ptr("user_demand.demand")
-            self.ribasim_user_realized = self.ribasim.get_value_ptr(
+            self.ribasim_user_realised = self.ribasim.get_value_ptr(
                 "user_demand.realized"
             )
             self.subgrid_level = self.ribasim.get_value_ptr("basin.subgrid_level")

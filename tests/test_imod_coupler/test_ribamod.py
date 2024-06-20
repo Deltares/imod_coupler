@@ -112,6 +112,20 @@ def test_ribamod_bucket(
     # Assert that the basin nearly empties
     assert final_storage < 60
 
+    # Alter ribasim subgrid level to trigger an exception (minimum subgrid level above modflow bottom elevation)
+    ribamod_model.ribasim_model.basin.subgrid.df.loc[0, "subgrid_level"] = 0.3
+    with pytest.raises(
+        ValueError,
+    ):
+        results = write_run_read(
+            tmp_path=tmp_path_dev,
+            ribamod_model=ribamod_model,
+            modflow_dll=modflow_dll_devel,
+            ribasim_dll=ribasim_dll_devel,
+            ribasim_dll_dep_dir=ribasim_dll_dep_dir_devel,
+            run_coupler_function=run_coupler_function,
+        )
+
 
 @pytest.mark.xdist_group(name="ribasim")
 @parametrize_with_cases("ribamod_model", glob="backwater_model")
