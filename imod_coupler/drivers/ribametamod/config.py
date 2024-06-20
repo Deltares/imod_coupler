@@ -31,6 +31,9 @@ class Coupling(BaseModel):
     mf6_msw_sprinkling_map_groundwater: FilePath | None = (
         None  # the path to the sprinkling map file (optional)
     )
+    # for deprecation warning on label
+    mf6_msw_sprinkling_map: FilePath | None = None
+
     mf6_msw_ponding_map_groundwater: FilePath | None = (
         None  # the path to the ponding map file (optional)
     )
@@ -66,6 +69,16 @@ class Coupling(BaseModel):
                 )
             return mf6_msw_sprinkling_map_groundwater.resolve()
         return mf6_msw_sprinkling_map_groundwater
+
+    @field_validator("mf6_msw_sprinkling_map")
+    @classmethod
+    def validate_sprinkling_map_label(
+        cls, mf6_msw_sprinkling_map: FilePath | None
+    ) -> None:
+        if mf6_msw_sprinkling_map is not None:
+            raise ValueError(
+                "The use of 'enable_sprinkling' label is depricated; now use mf6_msw_sprinkling_map_groundwater"
+            )
 
 
 class RibaMetaModConfig(BaseModel):

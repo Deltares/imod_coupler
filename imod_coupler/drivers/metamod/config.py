@@ -23,6 +23,9 @@ class Coupling(BaseModel):
     mf6_msw_sprinkling_map_groundwater: FilePath | None = (
         None  # the path to the sprinkling map file
     )
+    # for deprecation warning on label
+    mf6_msw_sprinkling_map: FilePath | None = None
+
     output_config_file: FilePath | None = None
 
     @field_validator("mf6_msw_node_map", "mf6_msw_recharge_map", "output_config_file")
@@ -43,6 +46,16 @@ class Coupling(BaseModel):
                 )
             return mf6_msw_sprinkling_map_groundwater.resolve()
         return mf6_msw_sprinkling_map_groundwater
+
+    @field_validator("mf6_msw_sprinkling_map")
+    @classmethod
+    def validate_sprinkling_map_label(
+        cls, mf6_msw_sprinkling_map: FilePath | None
+    ) -> None:
+        if mf6_msw_sprinkling_map is not None:
+            raise ValueError(
+                "The use of 'enable_sprinkling' label is depricated; now use mf6_msw_sprinkling_map_groundwater"
+            )
 
 
 class MetaModConfig(BaseModel):
