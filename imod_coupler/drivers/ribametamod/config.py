@@ -77,7 +77,7 @@ class Coupling(BaseModel):
     ) -> None:
         if mf6_msw_sprinkling_map is not None:
             raise ValueError(
-                "The use of 'enable_sprinkling' label is depricated; now use mf6_msw_sprinkling_map_groundwater"
+                "The use of 'mf6_msw_sprinkling_map' label is depricated; now use mf6_msw_sprinkling_map_groundwater"
             )
 
 
