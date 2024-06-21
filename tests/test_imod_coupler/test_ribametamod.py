@@ -56,7 +56,7 @@ class exchange_output:
 
 class Results(NamedTuple):
     basin_df: pd.DataFrame
-    flow_df: pd.DataFrame
+    flow_df: pd.DataFrame | None
     allocation_df: pd.DataFrame | None
     mf6head: xr.DataArray
     mf6_budgets: dict[str, xr.DataArray]
@@ -407,9 +407,12 @@ def write_run_read(
     basin_df = pd.read_feather(
         tmp_path / ribametamod_model._ribasim_model_dir / "results" / "basin.arrow"
     )
-    flow_df = pd.read_feather(
-        tmp_path / ribametamod_model._ribasim_model_dir / "results" / "flow.arrow"
-    )
+    file = tmp_path / ribametamod_model._ribasim_model_dir / "results" / "flow.arrow"
+    if file.is_file():
+        flow_df = pd.read_feather(file)
+    else:
+        flow_df = None
+
     # optional output
     file = (
         tmp_path / ribametamod_model._ribasim_model_dir / "results" / "allocation.arrow"
@@ -554,43 +557,10 @@ def test_ribametamod_two_basin(
 
 
 @pytest.mark.xdist_group(name="ribasim")
-@parametrize_with_cases("ribametamod_model", glob="two_basin_model_single_users")
-def test_ribametamod_two_basin_single_users(
-    tmp_path_dev: Path,
-    ribametamod_model: RibaMetaMod,
-    metaswap_dll_devel: Path,
-    metaswap_dll_dep_dir_devel: Path,
-    modflow_dll_devel: Path,
-    ribasim_dll_devel: Path,
-    ribasim_dll_dep_dir_devel: Path,
-    run_coupler_function: Callable[[Path], None],
-) -> None:
-    """
-    Test if the two-basin model model works as expected
-    """
-    results = write_run_read(
-        tmp_path_dev,
-        ribametamod_model,
-        modflow_dll_devel,
-        ribasim_dll_devel,
-        ribasim_dll_dep_dir_devel,
-        metaswap_dll_devel,
-        metaswap_dll_dep_dir_devel,
-        run_coupler_function,
-        output_labels=[
-            "exchange_demand_riv_1",
-            "exchange_demand_sw_ponding",
-            "stage_riv_1",
-            "sprinkling_realized",
-            "sprinkling_demand",
-        ],
-    )
-    assert_results(tmp_path_dev, ribametamod_model, results)
-
-
-@pytest.mark.xdist_group(name="ribasim")
-@parametrize_with_cases("ribametamod_model", glob="two_basin_model_double_users")
-def test_ribametamod_two_basin_double_users(
+@parametrize_with_cases(
+    "ribametamod_model", glob="case_two_basin_model_sprinkling_surface_water"
+)
+def case_two_basin_model_sprinkling_surface_water(
     tmp_path_dev: Path,
     ribametamod_model: RibaMetaMod,
     metaswap_dll_devel: Path,
