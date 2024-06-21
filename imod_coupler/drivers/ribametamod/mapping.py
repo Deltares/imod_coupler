@@ -63,12 +63,12 @@ class SetMapping:
             )
 
             # check rib2mod for multiple subgrid per modflow node (should not occur)
-            nz=list(np.nonzero(rib2mod)[0])
-            too_many=np.where(np.array([nz.count(i) for i in range(max(nz)+1)])>1)
+            count_list = rib2mod.indptr[1:] - rib2mod.indptr[:-1]
+            too_many = np.where(count_list > 1)[0] + 1
             if np.size(too_many) > 0:
                 raise ValueError(
-                          f"More than one ribasim subgrid element associated with MODFLOW6 node {np.array2string(too_many)+1}"
-                        )
+                    f"More than one ribasim subgrid element associated with MODFLOW6 node {too_many}."
+                )
 
             self.map_mod2rib[key] = mod2rib
             self.map_rib2mod_stage[key] = (

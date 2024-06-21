@@ -210,13 +210,18 @@ class RibaMetaMod(Driver):
             self.subgrid_level = self.ribasim.get_value_ptr("basin.subgrid_level")
 
             # add to return ChainMap
+
             arrays.update(
                 ChainMap[str, Any](
                     self.mf6_river_packages,
                     self.mf6_drainage_packages,
                     {
                         "ribasim_nbasin": len(self.ribasim_level),
-                        "ribasim_nuser": len(self.ribasim_user_realised),
+                        "ribasim_nuser": (
+                            len(self.ribasim_user_realised)
+                            if self.ribasim_user_realised.shape != ()
+                            else 0
+                        ),
                         "ribasim_nsubgrid": len(self.subgrid_level),
                     },
                 )
