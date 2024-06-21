@@ -212,13 +212,18 @@ class RibaMetaMod(Driver):
             self.subgrid_level = self.ribasim.get_value_ptr("basin.subgrid_level")
 
             # add to return ChainMap
+            ribasim_user_realized_size = len(
+                self.ribasim_user_realized.shape
+            )  # xmipy returns array of size 1, for empty users array
+            if ribasim_user_realized_size > 0:
+                ribasim_user_realized_size = self.ribasim_user_realized.size
             arrays.update(
                 ChainMap[str, Any](
                     self.mf6_river_packages,
                     self.mf6_drainage_packages,
                     {
                         "ribasim_nbasin": self.ribasim_level.size,
-                        "ribasim_nuser": self.ribasim_user_realized.size,
+                        "ribasim_nuser": ribasim_user_realized_size,
                         "ribasim_nsubgrid": self.subgrid_level.size,
                     },
                 )
@@ -324,7 +329,7 @@ class RibaMetaMod(Driver):
                         self.mapping.msw2rib["sw_sprinkling_mask"] == 0
                     )
                     self.coupled_priority_indices, _ = np.nonzero(
-                        self.ribasim_user_demand[:, self.coupled_user_indices] != 0.0
+                        self.ribasim_user_demand[:, self.coupled_user_indices] > 0
                     )
                     # zero all coupled demand elements
                     self.ribasim_user_demand[
@@ -478,7 +483,8 @@ class RibaMetaMod(Driver):
 
         self.realised_fractions_swspr[:] = 0.0
         self.realised_fractions_swspr[nonzero_user_indices] = (
-            self.ribasim_user_realized[nonzero_user_indices] / days_to_seconds(delt)
+            self.ribasim_user_realized[nonzero_user_indices]
+            / days_to_seconds(self.delt_sw)
         ) / self.ribasim_user_demand[
             self.coupled_priority_indices, self.coupled_user_indices
         ][nonzero_coupled_user_indices]
