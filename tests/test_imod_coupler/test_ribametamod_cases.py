@@ -236,7 +236,7 @@ def case_backwater_model(
     # get variables
     mf6_modelname, mf6_model = get_mf6_gwf_modelnames(mf6_backwater_model)[0]
     mf6_active_river_packages = get_mf6_river_packagenames(mf6_model)
-    mf6_active_drainage_packages = get_mf6_drainage_packagenames(mf6_backwater_model)
+    mf6_active_drainage_packages = get_mf6_drainage_packagenames(mf6_model)
     basin_definition = create_basin_definition(
         ribasim_backwater_model.basin.node,
         buffersize=5.0,

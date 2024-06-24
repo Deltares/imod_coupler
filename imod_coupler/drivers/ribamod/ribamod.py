@@ -216,7 +216,7 @@ class RibaMod(Driver):
                 + self.map_rib2mod[key].dot(self.subgrid_level)
             )
             self.exchange_logger.log_exchange(
-                ("stage_" + key), package.stage, self.get_current_time()
+                ("stage_" + key), package.water_level, self.get_current_time()
             )
         return
 

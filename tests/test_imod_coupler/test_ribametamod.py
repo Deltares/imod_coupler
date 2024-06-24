@@ -239,11 +239,14 @@ def assert_results(
                     stage = results.exchange_budget["stage_" + package].to_numpy()[
                         :, basin_indices == basin_index
                     ]
-                    bottom = flatten(
-                        mf6_model[package]
-                        .dataset["bottom_elevation"]
-                        .where(package_basin_mask)
-                    )
+                    if isinstance(mf6_model[package], imod.mf6.River):
+                        bottom = flatten(
+                            mf6_model[package]
+                            .dataset["bottom_elevation"]
+                            .where(package_basin_mask)
+                        )
+                    else:
+                        bottom = stage
                     cond = flatten(cond_ar.where(package_basin_mask))
                     riv_flux_exchange = (
                         (stage - np.maximum(subset_head, bottom)) * cond
@@ -254,19 +257,22 @@ def assert_results(
                         .reshape(ntime, nriv)
                         .sum(axis=1)
                     )
-                    # riv correction flux from MF6 output
-                    riv_correction_flux = (
-                        flatten(
-                            results.mf6_budgets["api_" + package].where(
-                                package_basin_mask
+                    if isinstance(mf6_model[package], imod.mf6.River):
+                        # riv correction flux from MF6 output
+                        riv_correction_flux = (
+                            flatten(
+                                results.mf6_budgets["api_" + package].where(
+                                    package_basin_mask
+                                )
                             )
+                            .reshape(ntime, nriv)
+                            .sum(axis=1)
                         )
-                        .reshape(ntime, nriv)
-                        .sum(axis=1)
-                    )
-                    summed_correction_flux = sum_budgets(
-                        riv_correction_flux, summed_correction_flux
-                    )
+                        summed_correction_flux = sum_budgets(
+                            riv_correction_flux, summed_correction_flux
+                        )
+                    else:
+                        riv_correction_flux = np.array([np.nan])
                     if basin_index < 5:
                         plot_results(
                             tmp_path_dev,
@@ -455,6 +461,9 @@ def write_run_read(
     )
 
 
+# The above code is using the `xdist_group` marker from the `pytest-xdist` plugin to group tests under
+# the name "ribasim". This marker is used for test grouping and can be helpful when running tests in
+# parallel using pytest-xdist.
 @pytest.mark.xdist_group(name="ribasim")
 @parametrize_with_cases("ribametamod_model", glob="backwater_model")
 def test_ribametamod_backwater(
@@ -481,8 +490,10 @@ def test_ribametamod_backwater(
         run_coupler_function,
         output_labels=[
             "exchange_demand_riv-1",
+            "exchange_demand_drn-1",
             "exchange_demand_sw_ponding",
             "stage_riv-1",
+            "stage_drn-1",
         ],
     )
     assert_results(tmp_path_dev, ribametamod_model, results)

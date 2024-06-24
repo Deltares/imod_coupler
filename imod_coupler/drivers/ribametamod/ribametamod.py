@@ -471,7 +471,7 @@ class RibaMetaMod(Driver):
     def exchange_sprinkling_flux_realised_msw2rib(self, delt: float) -> None:
         msw_sprinkling_realized = self.msw.get_surfacewater_sprinking_realised_ptr()
 
-        nonzero_user_indices = np.nonzero(self.mapped_sprinkling_demand)
+        nonzero_user_indices = np.flatnonzero(self.mapped_sprinkling_demand)
 
         self.realised_fractions_swspr[:] = 0.0
         self.realised_fractions_swspr[nonzero_user_indices] = (
@@ -503,7 +503,7 @@ class RibaMetaMod(Driver):
                 + self.mapping.map_rib2mod_stage[key].dot(self.subgrid_level)
             )
             self.exchange_logger.log_exchange(
-                ("stage_" + key), package.stage, self.get_current_time()
+                ("stage_" + key), package.water_level, self.get_current_time()
             )
 
     def exchange_msw2mod(self) -> None:
