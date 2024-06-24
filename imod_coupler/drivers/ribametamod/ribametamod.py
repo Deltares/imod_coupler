@@ -316,20 +316,15 @@ class RibaMetaMod(Driver):
                     modribmsw_arrays["rib_sprinkling_realized"] = (
                         self.ribasim_user_realized
                     )
-                    first_id = id(self.ribasim_user_demand)
                     modribmsw_arrays["rib_sprinkling_demand"] = self.ribasim_user_demand
                     n_users = self.ribasim_user_realized.size
                     n_priorities = self.ribasim_user_demand.size // n_users
                     self.ribasim_user_demand.resize(n_priorities, n_users)
-                    if first_id != id(self.ribasim_user_demand):
-                        raise ValueError(
-                            "reshaping user demand array resulted in a copy of array"
-                        )
                     self.coupled_user_indices = np.flatnonzero(
                         self.mapping.msw2rib["sw_sprinkling_mask"] == 0
                     )
                     self.coupled_priority_indices, _ = np.nonzero(
-                        self.ribasim_user_demand[:, self.coupled_user_indices] > 0
+                        self.ribasim_user_demand[:, self.coupled_user_indices]
                     )
                     # zero all coupled demand elements
                     self.ribasim_user_demand[
@@ -476,18 +471,13 @@ class RibaMetaMod(Driver):
     def exchange_sprinkling_flux_realised_msw2rib(self, delt: float) -> None:
         msw_sprinkling_realized = self.msw.get_surfacewater_sprinking_realised_ptr()
 
-        nonzero_coupled_user_indices = np.nonzero(
-            self.mapped_sprinkling_demand[self.coupled_user_indices]
-        )
         nonzero_user_indices = np.nonzero(self.mapped_sprinkling_demand)
 
         self.realised_fractions_swspr[:] = 0.0
         self.realised_fractions_swspr[nonzero_user_indices] = (
             self.ribasim_user_realized[nonzero_user_indices]
             / days_to_seconds(self.delt_sw)
-        ) / self.ribasim_user_demand[
-            self.coupled_priority_indices, self.coupled_user_indices
-        ][nonzero_coupled_user_indices]
+        ) / self.mapped_sprinkling_demand[nonzero_user_indices]
 
         msw_sprfrac_realised = (
             self.realised_fractions_swspr * self.mapping.msw2rib["sw_sprinkling"]

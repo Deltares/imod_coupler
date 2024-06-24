@@ -151,7 +151,7 @@ class RibaMetaMod(CoupledModel):
         ribasim_dll_dependency: str or Path
             Directory with ribasim .dll dependencies.
         output_config_file: str or Path
-            Optional file for logging exchange fluxes to nc-file for dubugging purposes
+            Optional file for logging exchange fluxes to nc-file for debugging purposes
         """
         # force to Path
         directory = Path(directory)
