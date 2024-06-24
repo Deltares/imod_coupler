@@ -288,6 +288,10 @@ def case_two_basin_model(
         buffersize=250.0,
     )
 
+    # increase recharge to induce ponding water
+    pp = msw_two_basin_model["meteo_grid"].dataset["precipitation"]
+    msw_two_basin_model["meteo_grid"].dataset["precipitation"] = pp * 10
+
     metamod_coupling = MetaModDriverCoupling(
         mf6_model=mf6_modelname,
         mf6_recharge_package="rch_msw",
