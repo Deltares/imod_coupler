@@ -42,9 +42,13 @@ def write_run_read(
     basin_df = pd.read_feather(
         tmp_path / ribamod_model._ribasim_model_dir / "results" / "basin.arrow"
     )
-    flow_df = pd.read_feather(
-        tmp_path / ribamod_model._ribasim_model_dir / "results" / "flow.arrow"
-    )
+    if not ribamod_model.ribasim_model.edge.df.empty:
+        flow_df = pd.read_feather(
+            tmp_path / ribamod_model._ribasim_model_dir / "results" / "flow.arrow"
+        )
+    else:
+        flow_df = pd.DataFrame()
+
     # Read MODFLOW 6 output
     head = imod.mf6.open_hds(
         tmp_path / ribamod_model._modflow6_model_dir / "GWF_1" / "GWF_1.hds",

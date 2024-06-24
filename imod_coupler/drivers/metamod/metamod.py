@@ -67,7 +67,6 @@ class MetaMod(Driver):
         self.coupling = metamod_config.coupling[
             0
         ]  # Adapt as soon as we have multimodel support
-        self.enable_sprinkling_groundwater = False
 
     def initialize(self) -> None:
         self.mf6 = Mf6Wrapper(
@@ -195,6 +194,7 @@ class MetaMod(Driver):
             assert isinstance(self.coupling.mf6_msw_well_pkg, str)
             assert isinstance(self.coupling.mf6_msw_sprinkling_map_groundwater, Path)
 
+            self.enable_sprinkling_groundwater = True
             # in this case we have a sprinkling demand from MetaSWAP
             self.mf6_sprinkling_wells = self.mf6.get_well(
                 self.coupling.mf6_model, self.coupling.mf6_msw_well_pkg
@@ -220,6 +220,8 @@ class MetaMod(Driver):
                 self.mf6_sprinkling_wells.size,
                 "sum",
             )
+        else:
+            self.enable_sprinkling_groundwater = False
 
     def update(self) -> None:
         # heads to MetaSWAP
