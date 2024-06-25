@@ -62,6 +62,14 @@ class SetMapping:
                 shape=(package.n_bound, packages["ribasim_nsubgrid"]),
             )
 
+            # check rib2mod for multiple subgrid per modflow node (should not occur)
+            count_list = rib2mod.indptr[1:] - rib2mod.indptr[:-1]
+            too_many = np.flatnonzero(count_list > 1)
+            if np.size(too_many) > 0:
+                raise ValueError(
+                    f"More than one ribasim subgrid element associated with MODFLOW6 node {too_many}."
+                )
+
             self.map_mod2rib[key] = mod2rib
             self.map_rib2mod_stage[key] = (
                 rib2mod  # for mapping stages between subgrid levels and riv nodes
