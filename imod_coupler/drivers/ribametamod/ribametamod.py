@@ -212,19 +212,18 @@ class RibaMetaMod(Driver):
             self.subgrid_level = self.ribasim.get_value_ptr("basin.subgrid_level")
 
             # add to return ChainMap
-            ribasim_user_realized_size = len(
-                self.ribasim_user_realized.shape
-            )  # xmipy returns array of size 1, for empty users array
-            if ribasim_user_realized_size > 0:
-                ribasim_user_realized_size = self.ribasim_user_realized.size
             arrays.update(
                 ChainMap[str, Any](
                     self.mf6_river_packages,
                     self.mf6_drainage_packages,
                     {
-                        "ribasim_nbasin": self.ribasim_level.size,
-                        "ribasim_nuser": ribasim_user_realized_size,
-                        "ribasim_nsubgrid": self.subgrid_level.size,
+                        "ribasim_nbasin": len(self.ribasim_level),
+                        "ribasim_nuser": (
+                            len(self.ribasim_user_realized)
+                            if self.ribasim_user_realized.ndim > 0
+                            else 0
+                        ),
+                        "ribasim_nsubgrid": len(self.subgrid_level),
                     },
                 )
             )
