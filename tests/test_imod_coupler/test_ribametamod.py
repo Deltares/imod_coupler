@@ -134,7 +134,7 @@ def get_metaswap_results(
     out = {}
     for var in coupling_files.keys():
         masks = get_coupled_msw_mask(coupling_files[var], mf6_idomain)
-        ar = imod.idf.open(Path(workdir) / var / (var + "_*_L1.IDF"))
+        ar = imod.idf.open(workdir / var / (var + "_*_L1.IDF"))
         ar["x"] = np.round(ar.x.values, decimals=1)
         ar["y"] = np.round(ar.y.values, decimals=1)
         out[var] = ar.where(masks["index"].notnull())
@@ -451,7 +451,7 @@ def write_run_read(
             "user_demand_index",
         ]
     msw_results = get_metaswap_results(
-        ribametamod_model._metaswap_model_dir,
+        tmp_path / ribametamod_model._metaswap_model_dir,
         coupling_files,
         mf6_idomain,
     )
