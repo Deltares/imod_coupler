@@ -51,6 +51,7 @@ class RibaMetaMod(CoupledModel):
         metaswap_dll: str | Path,
         metaswap_dll_dependency: str | Path,
         modflow6_write_kwargs: dict[str, Any] | None = None,
+        output_config_file: str | Path | None = None,
     ) -> None:
         """
         Write Ribasim, MetaSWAP and Modflow 6 model with exchange files, as well as a
@@ -82,6 +83,8 @@ class RibaMetaMod(CoupledModel):
             Modflow6 models. You can use this for example to turn off the
             validation at writing (``validation=False``) or to write text files
             (``binary=False``)
+        output_config_file: str or Path
+            Optional file for logging exchange fluxes to nc-file for dubugging purposes
         """
 
         if modflow6_write_kwargs is None:
@@ -101,6 +104,7 @@ class RibaMetaMod(CoupledModel):
             metaswap_dll_dependency,
             ribasim_dll,
             ribasim_dll_dependency,
+            output_config_file,
         )
 
         # Write models
@@ -120,6 +124,7 @@ class RibaMetaMod(CoupledModel):
         metaswap_dll_dependency: str | Path,
         ribasim_dll: str | Path,
         ribasim_dll_dependency: str | Path,
+        output_config_file: str | Path | None = None,
     ) -> None:
         """
         Write .toml file which configures the imod coupler run.
@@ -145,6 +150,8 @@ class RibaMetaMod(CoupledModel):
             Path to ribasim .dll.
         ribasim_dll_dependency: str or Path
             Directory with ribasim .dll dependencies.
+        output_config_file: str or Path
+            Optional file for logging exchange fluxes to nc-file for debugging purposes
         """
         # force to Path
         directory = Path(directory)
@@ -177,6 +184,11 @@ class RibaMetaMod(CoupledModel):
                 "coupling": [coupling_dict],
             },
         }
+
+        if output_config_file is not None:
+            coupler_toml["driver"]["coupling"][0]["output_config_file"] = str(  # type: ignore
+                output_config_file
+            )
 
         with open(toml_path, "wb") as f:
             tomli_w.dump(coupler_toml, f)

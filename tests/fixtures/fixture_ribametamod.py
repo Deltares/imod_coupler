@@ -17,12 +17,12 @@ def make_msw_model(
 
     idomain = gwf["GWF_1"]["dis"]["idomain"]
     if "layer" in idomain.dims:
-        idomain_flat = idomain.sel(layer=1)
+        idomain_layer1 = idomain.sel(layer=1)
     if nsubunits is None:
         nsubunits = xr.ones_like(idomain)
 
     isubunits = np.arange(nsubunits.max())
-    area = xr.ones_like(idomain_flat, dtype=np.float64) * (
+    area = xr.ones_like(idomain_layer1, dtype=np.float64) * (
         np.diff(idomain.x)[0] * -np.diff(idomain.y)[0]
     )
 
@@ -41,7 +41,7 @@ def make_msw_model(
     area = (area.assign_coords(subunit=0).expand_dims(subunit=isubunits)) / nsubunits
     area = area.where((area.subunit < nsubunits) & no_river)
 
-    active = (xr.ones_like(idomain_flat) == 1).where(
+    active = (xr.ones_like(idomain_layer1) == 1).where(
         nsubunits.notnull() & no_river, other=False
     )
 
@@ -54,11 +54,14 @@ def make_msw_model(
     # Well
     ncol = idomain.x.size
     nrow = idomain.y.size
-    well = create_wells_max_layer(nrow, ncol, idomain)
-
-    dis = gwf["GWF_1"]["dis"]
-
-    return metaswap_model(times, area, active, well, dis, unsaturated_database)
+    well = create_wells_max_layer(nrow, ncol, idomain.where(active))
+    msw_model = metaswap_model(
+        times, area, active, well, gwf["GWF_1"]["dis"], unsaturated_database
+    )
+    # remove bizar large et-flux
+    evaporation = msw_model["meteo_grid"].dataset["evapotranspiration"]
+    msw_model["meteo_grid"].dataset["evapotranspiration"] = evaporation * 0.01
+    return msw_model
 
 
 def ad_msw_model(
@@ -70,20 +73,6 @@ def ad_msw_model(
         mf6_model["GWF_1"]["dis"]["idomain"].sel(layer=1, drop=True),
         dtype=np.int32,
     )
-    # No svats in nodes with river definitions
-    # TODO check how to deal with area-wide drn-packages for olf,
-    # packages that represent tube-draiange and olf should be skipped here.
-    for package in mf6_model["GWF_1"]:
-        if isinstance(package, mf6.River):
-            stage = mf6_model["GWF_1"][package]["stage"]
-            if "layer" in stage.dims:
-                stage = stage.sel(layer=1, drop=True)
-            nsubunits = nsubunits.where(stage.isna())
-        elif isinstance(package, mf6.Drainage):
-            elevation = mf6_model["GWF_1"][package]["elevation"]
-            if "layer" in elevation.dims:
-                elevation = elevation.sel(layer=1, drop=True)
-            nsubunits = nsubunits.where(elevation.isna())
     msw_model = make_msw_model(mf6_model, nsubunits)
     # Override unsat_svat_path with path from environment
     msw_model.simulation_settings["unsa_svat_path"] = (
@@ -110,6 +99,14 @@ def msw_backwater_model(
 
 @pytest_cases.fixture(scope="function")
 def msw_two_basin_model(
+    mf6_two_basin_model: mf6.GroundwaterFlowModel,
+    metaswap_lookup_table: Path,
+) -> msw.MetaSwapModel:
+    return ad_msw_model(mf6_two_basin_model, metaswap_lookup_table)
+
+
+@pytest_cases.fixture(scope="function")
+def msw_two_basin_model_3layer(
     mf6_two_basin_model_3layer: mf6.GroundwaterFlowModel,
     metaswap_lookup_table: Path,
 ) -> msw.MetaSwapModel:

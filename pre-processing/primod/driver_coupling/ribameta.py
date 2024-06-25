@@ -130,19 +130,10 @@ class RibaMetaDriverCoupling(DriverCoupling):
 
         # Now deal with sprinkling if set
         if svat_user_demand_mapping is not None:
-            user_demand_ids = _validate_node_ids(
+            _ = _validate_node_ids(
                 ribasim_model.user_demand.node.df, self.ribasim_user_demand_definition
             )
             coupling_dict["rib_msw_sprinkling_map_surface_water"] = (
                 svat_user_demand_mapping.write(directory=directory)
-            )
-            coupled_user_demand_indices = svat_user_demand_mapping.dataframe[
-                "user_demand_index"
-            ]
-            coupled_user_demand_node_ids = user_demand_ids[coupled_user_demand_indices]
-            _nullify_ribasim_exchange_input(
-                ribasim_component=ribasim_model.user_demand,
-                coupled_node_ids=coupled_user_demand_node_ids,
-                columns=["demand"],
             )
         return coupling_dict

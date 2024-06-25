@@ -67,7 +67,7 @@ def metaswap_model(
         area,
         xr.full_like(area, 1, dtype=int),
         xr.full_like(area, 1.0, dtype=float),
-        xr.full_like(active, 1.0, dtype=float),
+        xr.full_like(active, dis["top"], dtype=float),  # surfrace level
         xr.full_like(active, 1, dtype=int),
         active,
     )
@@ -81,8 +81,10 @@ def metaswap_model(
 
     # Sprinkling
     msw_model["sprinkling"] = msw.Sprinkling(
-        max_abstraction_groundwater=xr.full_like(msw_grid, 100.0),
-        max_abstraction_surfacewater=xr.full_like(msw_grid, 100.0),
+        max_abstraction_groundwater=xr.full_like(msw_grid, 0.0),
+        max_abstraction_surfacewater=xr.full_like(
+            msw_grid, 0.02 * (20 * 20)
+        ),  # 20 mm/d
         well=well,
     )
 

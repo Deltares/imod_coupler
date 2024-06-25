@@ -278,7 +278,7 @@ class MetaMod(Driver):
         self.mf6_recharge[:] = (
             self.mask_msw2mod["recharge"][:] * self.mf6_recharge[:]
             + self.map_msw2mod["recharge"].dot(self.msw_volume)[:] / self.delt
-        ) / self.mf6_area[nodelist]
+        ) / self.mf6_area[nodelist - 1]
 
         if self.enable_sprinkling_groundwater:
             self.mf6_sprinkling_wells[:] = (

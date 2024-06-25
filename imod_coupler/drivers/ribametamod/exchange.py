@@ -10,6 +10,7 @@ from imod_coupler.kernelwrappers.mf6_wrapper import (
     Mf6Drainage,
     Mf6River,
 )
+from imod_coupler.logging.exchange_collector import ExchangeCollector
 
 
 class ExchangeBalance:
@@ -53,8 +54,8 @@ class ExchangeBalance:
             self.realised_negative[flux_label][:] = 0.0
 
     def _check_valid_shortage(self, shortage: NDArray[np.float64]) -> None:
-        eps: float = 1.0e-06
-        if np.any(np.logical_and(self.demand > eps, shortage > eps)):
+        eps: float = 1.0e-05
+        if np.any(np.logical_and(self.demand > 0.0, shortage > eps)):
             raise ValueError(
                 "Invalid realised values: found shortage for positive demand"
             )
@@ -100,6 +101,7 @@ class CoupledExchangeBalance(ExchangeBalance):
     realised_negative: dict[str, NDArray[np.float64]]
     shape: int
     sum_keys: list[str]
+    exchange_logger: ExchangeCollector
 
     def __init__(
         self,
@@ -111,6 +113,7 @@ class CoupledExchangeBalance(ExchangeBalance):
         mapping: SetMapping,
         ribasim_infiltration: NDArray[Any],
         ribasim_drainage: NDArray[Any],
+        exchange_logger: ExchangeCollector,
     ) -> None:
         super().__init__(shape, labels)
         self.mf6_river_packages = mf6_river_packages
@@ -119,6 +122,7 @@ class CoupledExchangeBalance(ExchangeBalance):
         self.mapping = mapping
         self.ribasim_infiltration = ribasim_infiltration
         self.ribasim_drainage = ribasim_drainage
+        self.exchange_logger = exchange_logger
 
     def update_api_packages(self) -> None:
         """
@@ -165,6 +169,17 @@ class CoupledExchangeBalance(ExchangeBalance):
             self.demands[key] = self.mapping.map_mod2rib[key].dot(drain_flux)
             # convert modflow flux (m3/day) to ribasim flux (m3/s)
 
+    def log_demands(self, current_time: float) -> None:
+        for key, array in self.demands.items():
+            self.exchange_logger.log_exchange(
+                ("exchange_demand_" + key), array, current_time
+            )
+        for key in self.mf6_active_river_api_packages.keys():
+            self.mf6_active_river_api_packages[key].rhs[:]
+            self.exchange_logger.log_exchange(
+                ("exchange_correction_" + key), array, current_time
+            )
+
     def add_ponding_msw(
         self, delt: float, allocated_volume: NDArray[np.float64]
     ) -> None:
@@ -195,12 +210,11 @@ class CoupledExchangeBalance(ExchangeBalance):
                 1.0,
                 self.realised_negative[key] / self.demands_negative[key],
             )
-            # correction only applies to Modflow cells which negatively contribute to the Ribasim volumes
-            # in which case the Modflow demand was POSITIVE, otherwise the correction is 0
+            # correction only applies to MF6 cells which negatively contribute to the Ribasim volumes
+            # correction as extraction from MF6 model.
             self.mf6_active_river_api_packages[key].rhs[:] = -(
-                np.maximum(self.demands_mf6[key], 0.0)
-                * (1 - self.mapping.map_rib2mod_flux[key].dot(realised_fraction))
-            )
+                np.minimum(self.demands_mf6[key], 0.0) * days_to_seconds(1.0)
+            ) * (1 - self.mapping.map_rib2mod_flux[key].dot(realised_fraction))
 
 
 def days_to_seconds(day: float) -> float:

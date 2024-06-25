@@ -29,7 +29,7 @@ def make_mf6_model(idomain: xr.DataArray) -> mf6.GroundwaterFlowModel:
         icelltype=icelltype,
         k=k,
         k33=k33,
-        variable_vertical_conductance=True,
+        variable_vertical_conductance=False,
         dewatered=False,
         perched=False,
         save_flows=True,
@@ -352,24 +352,36 @@ def two_basin_variation(
     gwf_model = mf6.GroundwaterFlowModel()
     nlayer = idomain["layer"].size
     if nlayer > 1:
-        btm = -20.0
         top = 0.0
-        btms = np.linspace(top, btm, nlayer + 1)[1:]
+        bottom = xr.DataArray(
+            np.linspace(top, -30.0, nlayer + 1)[1:],
+            coords={"layer": idomain["layer"].layer},
+            dims=["layer"],
+        )
+        thickness = top - bottom
+        fractions = 30 / thickness
         gwf_model["dis"] = mf6.StructuredDiscretization(
             idomain=idomain,
             top=top,
-            bottom=xr.DataArray(btms, dims=["layer"]),
+            bottom=bottom,
+        )
+        gwf_model["npf"] = mf6.NodePropertyFlow(
+            icelltype=0,
+            k=0.1 * fractions,
+            k33=0.1 * fractions,
         )
     else:
         gwf_model["dis"] = mf6.StructuredDiscretization(
             idomain=idomain, top=20.0, bottom=xr.DataArray([-10.0], dims=["layer"])
         )
+        gwf_model["npf"] = mf6.NodePropertyFlow(
+            icelltype=0,
+            k=0.1,
+            k33=0.1,
+        )
+
     gwf_model["riv_1"] = river
-    gwf_model["npf"] = mf6.NodePropertyFlow(
-        icelltype=0,
-        k=0.1,
-        k33=0.1,
-    )
+
     gwf_model["ic"] = mf6.InitialConditions(start=0.0)
     gwf_model["sto"] = mf6.SpecificStorage(1e-5, 0.15, True, 1)
     gwf_model["oc"] = mf6.OutputControl(save_head="last", save_budget="last")
@@ -439,13 +451,13 @@ def mf6_two_basin_model_3layer() -> mf6.Modflow6Simulation:
     coords = {"layer": layer, "y": y, "x": x}
     idomain = xr.DataArray(data=np.ones(shape, dtype=int), coords=coords, dims=dims)
 
-    stage = xr.full_like(idomain.isel(layer=1), np.nan, dtype=float)
-    conductance = xr.full_like(idomain.isel(layer=1), np.nan, dtype=float)
-    bottom_elevation = xr.full_like(idomain.isel(layer=1), np.nan, dtype=float)
-    stage[25, :] = 0.5
+    stage = xr.full_like(idomain, np.nan, dtype=float)
+    conductance = xr.full_like(idomain, np.nan, dtype=float)
+    bottom_elevation = xr.full_like(idomain, np.nan, dtype=float)
+    stage[0, 25, :] = 0.5
     # Compute conductance as wetted area (length 20.0, width 1.0, entry resistance 1.0)
-    conductance[25, :] = (20.0 * 1.0) / 1.0
-    bottom_elevation[25, :] = 0.0
+    conductance[0, 25, :] = (20.0 * 1.0) / 1.0
+    bottom_elevation[0, 25, :] = 0.0
     river = mf6.River(
         stage=stage,
         conductance=conductance,
