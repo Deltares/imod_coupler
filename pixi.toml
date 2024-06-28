@@ -7,63 +7,22 @@ platforms = ["win-64", "linux-64"]
 
 [tasks]
 # Install
-install-ribasim-api = "pip install git+https://github.com/Deltares/Ribasim.git/#subdirectory=python/ribasim_api"
-install-imodc = "pip install --no-deps --editable ."
-install-minimal = { depends_on = ["install-ribasim-api", "install-imodc"] }
-# Build
-build-imod-coupler = "rm -rf dist && pyinstaller imod_coupler/__main__.py --name imodc"
-
-[dependencies]
-netCDF4 = "*"
-loguru = "*"
-numpy = "*"
-pip = "*"
-pydantic = "2.*"
-pyinstaller = "*"
-python = ">=3.10"
-scipy = "*"
-tomli = "*"
-tomli-w = "*"
-xmipy = "*"
-
-[feature.common.tasks]
-# Install
 install-ribasim-python = "pip install git+https://github.com/Deltares/Ribasim.git/#subdirectory=python/ribasim"
+install-ribasim-api = "pip install git+https://github.com/Deltares/Ribasim.git/#subdirectory=python/ribasim_api"
 install-ribasim-testmodels = "pip install git+https://github.com/Deltares/Ribasim.git/#subdirectory=python/ribasim_testmodels"
 install-primod = "pip install --no-deps --editable pre-processing"
+install-imodc = "pip install --no-deps --editable ."
 install-metaswap-testmodels = "svn checkout https://repos.deltares.nl/repos/DSCTestbench/trunk/cases/e150_metaswap/f00_common/c00_common/LHM2016_v01vrz .imod_collector/e150_metaswap"
 install-imod-collector = "python scripts/download_imod_collector.py"
 install-imod-collector-regression = "python scripts/download_imod_collector.py regression"
 generate-env-file = "python scripts/generate_env_file.py"
 install = { depends_on = [
-    "install-minimal",
     "install-ribasim-python",
+    "install-ribasim-api",
     "install-ribasim-testmodels",
     "install-primod",
+    "install-imodc",
 ] }
-
-# Tests
-test-primod = "pytest --junitxml=report.xml tests/test_primod"
-
-
-[feature.common.dependencies]
-build = "*"
-geopandas = "*"
-httpx = "*"
-imod = "0.15.3"
-ipython = "*"
-jupyterlab = "*"
-mypy = "*"
-pytest = "*"
-pytest-cases = "*"
-pytest-dotenv = "*"
-pytest-xdist = "*"
-ruff = "*"
-tqdm = "*"
-twine = "*"
-
-[feature.dev.tasks]
-# Install
 install-test-dependencies = { depends_on = [
     "install-metaswap-testmodels",
     "install-imod-collector",
@@ -75,8 +34,7 @@ update-git-dependencies = """pip install --upgrade --force-reinstall --no-deps
                              git+https://github.com/Deltares/Ribasim.git/#subdirectory=python/ribasim_api
                              git+https://github.com/Deltares/Ribasim.git/#subdirectory=python/ribasim_testmodels"""
 # Tests
-test-imod-coupler = "pytest --numprocesses=auto --dist=loadgroup --basetemp=tests/temp --junitxml=report.xml tests/test_imod_coupler"
-tests = { depends_on = ["test-primod", "test-imod-coupler"] }
+tests = "pytest --numprocesses=auto --dist=loadgroup --basetemp=tests/temp --junitxml=report.xml"
 # Lint
 mypy-imodc = "mypy --ignore-missing-imports --strict imod_coupler"
 mypy-primod = "mypy --ignore-missing-imports pre-processing/primod"
@@ -88,19 +46,31 @@ lint = { depends_on = ["format", "ruff", "mypy-imodc", "mypy-primod"] }
 # Publish primod
 publish-primod = { cmd = "rm --recursive --force dist && python -m build && twine check dist/* && twine upload dist/*", cwd = "pre-processing" }
 
+[dependencies]
+black = "*"
+build = "*"
+geopandas = "*"
+h5netcdf = "*"
+loguru = "*"
+mypy = "*"
+numpy = "*"
+ipython = "*"
+jupyterlab = "*"
+pip = "*"
+pydantic = "2.*"
+pytest = "*"
+pytest-cases = "*"
+pytest-dotenv = "*"
+pytest-xdist = "*"
+python = "3.10"
+rasterio = ">=1.0"
+ruff = "*"
+scipy = "*"
+tomli-w = "*"
+tqdm = "*"
+twine = "*"
+types-requests = "*"
+xmipy = "*"
 
-[feature.py312.dependencies]
-python = "3.12.*"
-
-[feature.py311.dependencies]
-python = "3.11.*"
-
-[feature.py310.dependencies]
-python = "3.10.*"
-
-[environments]
-default = { features = ["py312"], solve-group = "py312" }
-dev = { features = ["py312", "dev", "common"], solve-group = "py312" }
-py312 = { features = ["py312", "common"], solve-group = "py312" }
-py311 = ["py311", "common"]
-py310 = ["py310", "common"]
+[pypi-dependencies]
+imod = "~=0.15.2"
