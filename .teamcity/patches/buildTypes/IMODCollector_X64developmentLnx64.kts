@@ -11,6 +11,19 @@ To apply the patch, change the buildType with id = 'IMODCollector_X64development
 accordingly, and delete the patch script.
 */
 changeBuildType(RelativeId("IMODCollector_X64developmentLnx64")) {
+    check(artifactRules == """
+        dist/imodc/ => imod_collector.zip!/imod_coupler/
+        modflow6/ => imod_collector.zip!/modflow6/
+        metaswap/ => imod_collector.zip!/metaswap/
+    """.trimIndent()) {
+        "Unexpected option value: artifactRules = $artifactRules"
+    }
+    artifactRules = """
+        coupler/dist/imodc/ => imod_collector.zip!/imod_coupler/
+        modflow6/ => imod_collector.zip!/modflow6/
+        metaswap/ => imod_collector.zip!/metaswap/
+    """.trimIndent()
+
     expectSteps {
         script {
             name = "Create executable with pyinstaller"
