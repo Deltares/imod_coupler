@@ -5,6 +5,9 @@ authors = ["Hofer-Julian <julianhofer@gnome.org>"]
 channels = ["conda-forge"]
 platforms = ["win-64", "linux-64"]
 
+[system-requirements]
+linux = "4.12.14"
+
 [tasks]
 # Install
 install-ribasim-api = "pip install git+https://github.com/Deltares/Ribasim.git/#subdirectory=python/ribasim_api"
