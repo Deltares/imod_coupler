@@ -48,5 +48,10 @@ changeBuildType(RelativeId("IMODCollector_X64developmentLnx64")) {
             clearConditions()
             workingDir = "coupler"
         }
+        update<ScriptBuildStep>(1) {
+            id = "RUNNER_1232"
+            clearConditions()
+            scriptContent = "./coupler/dist/imodc --version"
+        }
     }
 }
