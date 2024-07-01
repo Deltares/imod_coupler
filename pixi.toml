@@ -25,10 +25,14 @@ scipy = "*"
 tomli = "*"
 tomli-w = "*"
 xmipy = "*"
+pandera = "<=0.19" 
+
+[pypi-dependencies]
+ribasim = {git = "https://github.com/Deltares/Ribasim.git/#subdirectory=python/ribasim"}
 
 [feature.common.tasks]
 # Install
-install-ribasim-python = "pip install git+https://github.com/Deltares/Ribasim.git/#subdirectory=python/ribasim"
+# install-ribasim-python = "pip install git+https://github.com/Deltares/Ribasim.git/#subdirectory=python/ribasim"
 install-ribasim-testmodels = "pip install git+https://github.com/Deltares/Ribasim.git/#subdirectory=python/ribasim_testmodels"
 install-primod = "pip install --no-deps --editable pre-processing"
 install-metaswap-testmodels = "svn checkout https://repos.deltares.nl/repos/DSCTestbench/trunk/cases/e150_metaswap/f00_common/c00_common/LHM2016_v01vrz .imod_collector/e150_metaswap"
