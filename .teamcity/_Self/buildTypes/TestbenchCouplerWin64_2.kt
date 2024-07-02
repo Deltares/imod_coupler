@@ -58,8 +58,6 @@ object TestbenchCouplerWin64_2 : BuildType({
             name = "Run tests"
             workingDir = "imod_coupler"
             scriptContent = """
-                set PATH=d:\ProgramData\pixi\org
-                echo %%PATH%%
                 pixi run -e dev test-imod-coupler
             """.trimIndent()
         }
