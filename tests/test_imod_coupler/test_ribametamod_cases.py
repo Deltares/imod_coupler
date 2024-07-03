@@ -92,9 +92,6 @@ def remove_sprinkling_from_groundwater(
 
 
 def add_water_users(ribasim_model: ribasim.Model) -> ribasim.Model:
-    # activate Allocation in Ribasim-model
-    ribasim_model.allocation = ribasim.Allocation(timestep=86400.0, use_allocation=True)
-
     # add subnetwork id to basins
     ribasim_model.basin.node.df["subnetwork_id"].loc[
         ribasim_model.basin.node.df["node_id"] == 2
@@ -169,6 +166,114 @@ def add_water_users(ribasim_model: ribasim.Model) -> ribasim.Model:
         ribasim_model.basin[3],
     )
     return ribasim_model
+
+
+def two_basin_model_sprinkling_sw_variations(
+    mf6_two_basin_model_3layer: Modflow6Simulation,
+    msw_two_basin_model_3layer: MetaSwapModel,
+    ribasim_two_basin_model: ribasim.Model,
+) -> RibaMetaMod:
+    mf6_two_basin_model_3layer = set_confined_storage_formulation(
+        mf6_two_basin_model_3layer
+    )
+
+    # add rch and well-package for coupling MetaMod
+    mf6_two_basin_model_3layer = add_rch_package(mf6_two_basin_model_3layer)
+    mf6_two_basin_model_3layer = add_well_package(mf6_two_basin_model_3layer)
+
+    # get variables
+    mf6_modelname, mf6_model = get_mf6_gwf_modelnames(mf6_two_basin_model_3layer)[0]
+    mf6_active_river_packages = get_mf6_river_packagenames(mf6_model)
+    basin_definition = create_basin_definition(
+        ribasim_two_basin_model.basin.node,
+        buffersize=250.0,
+    )
+
+    # add waterusers
+    ribasim_two_basin_model = add_water_users(ribasim_two_basin_model)
+
+    # increase initial stage second basin, to be able to extract irrigation water.
+    ribasim_two_basin_model.basin.state.df["level"].loc[
+        ribasim_two_basin_model.basin.node.df["node_id"] == 3
+    ] = 8.0
+    new_df = pd.DataFrame(
+        {
+            "node_id": np.array([4] * 3),
+            "active": np.array([pd.NA] * 3),
+            "level": np.array([0, 3.0, 6.0]),
+            "flow_rate": np.array([0.0, 0.0, 0.000000001]),
+            "control_state": [None, None, None],
+        }
+    )
+    ribasim_two_basin_model.tabulated_rating_curve.static.df = new_df
+
+    # increase inflow rate first basinto be able to extract irrigation water
+    ribasim_two_basin_model.flow_boundary.static.df["flow_rate"][0] = 0.05
+
+    # increase river resistance so basins don't run dry
+    cond = mf6_two_basin_model_3layer[mf6_modelname][
+        mf6_active_river_packages[0]
+    ].dataset["conductance"]
+    cond_new = (20 * 20) / 10000  # prevents basin to run dry
+    active = cond.notnull()
+    mf6_two_basin_model_3layer[mf6_modelname][mf6_active_river_packages[0]].dataset[
+        "conductance"
+    ] = xr.full_like(cond, fill_value=cond_new).where(active)
+
+    # increase PET in MetaSWAP-model
+    pet = msw_two_basin_model_3layer["meteo_grid"].dataset["evapotranspiration"]
+    pp = msw_two_basin_model_3layer["meteo_grid"].dataset["precipitation"]
+    msw_two_basin_model_3layer["meteo_grid"].dataset["evapotranspiration"] = pet * 100
+    msw_two_basin_model_3layer["meteo_grid"].dataset["precipitation"] = pp * 0.0
+
+    # extent sprinkling season
+    msw_two_basin_model_3layer["landuse_options"]["start_sprinkling_season"][:] = 0.0
+    msw_two_basin_model_3layer.simulation_settings["tdbgsm"] = 0.0
+    soil_cover = msw_two_basin_model_3layer["crop_factors"]["soil_cover"]
+    soil_cover[:] = 1.0
+    new = msw.AnnualCropFactors(
+        soil_cover=soil_cover,
+        leaf_area_index=xr.full_like(soil_cover, 3.0),
+        interception_capacity=xr.zeros_like(soil_cover),
+        vegetation_factor=xr.ones_like(soil_cover),
+        interception_factor=xr.ones_like(soil_cover),
+        bare_soil_factor=xr.ones_like(soil_cover),
+        ponding_factor=xr.ones_like(soil_cover),
+    )
+    msw_two_basin_model_3layer.pop("crop_factors")
+    msw_two_basin_model_3layer["crop_factors"] = new
+
+    # lower initial conditions MF6 model
+    mf6_two_basin_model_3layer[mf6_modelname]["ic"].dataset["start"] = -100.0
+
+    # user definition for coupling
+    user_definitions = create_basin_definition(
+        ribasim_two_basin_model.user_demand.node,
+        buffersize=250.0,
+        nodes=[7, 9],
+    )
+
+    metamod_coupling = MetaModDriverCoupling(
+        mf6_model=mf6_modelname,
+        mf6_recharge_package="rch_msw",
+        mf6_wel_package="well_msw",
+    )
+    ribamod_coupling = RibaModActiveDriverCoupling(
+        mf6_model=mf6_modelname,
+        mf6_packages=mf6_active_river_packages,
+        ribasim_basin_definition=basin_definition,
+    )
+    ribameta_coupling = RibaMetaDriverCoupling(
+        ribasim_basin_definition=basin_definition,
+        ribasim_user_demand_definition=user_definitions,
+    )
+
+    return RibaMetaMod(
+        ribasim_model=ribasim_two_basin_model,
+        msw_model=msw_two_basin_model_3layer,
+        mf6_simulation=mf6_two_basin_model_3layer,
+        coupling_list=[metamod_coupling, ribamod_coupling, ribameta_coupling],
+    )
 
 
 def case_bucket_model(
@@ -313,109 +418,29 @@ def case_two_basin_model(
     )
 
 
-def case_two_basin_model_sprinkling_surface_water(
+def case_two_basin_model_sprinkling_sw(
     mf6_two_basin_model_3layer: Modflow6Simulation,
     msw_two_basin_model_3layer: MetaSwapModel,
     ribasim_two_basin_model: ribasim.Model,
 ) -> RibaMetaMod:
-    mf6_two_basin_model_3layer = set_confined_storage_formulation(
-        mf6_two_basin_model_3layer
+    return two_basin_model_sprinkling_sw_variations(
+        mf6_two_basin_model_3layer,
+        msw_two_basin_model_3layer,
+        ribasim_two_basin_model,
     )
 
-    # add rch and well-package for coupling MetaMod
-    mf6_two_basin_model_3layer = add_rch_package(mf6_two_basin_model_3layer)
-    mf6_two_basin_model_3layer = add_well_package(mf6_two_basin_model_3layer)
 
-    # get variables
-    mf6_modelname, mf6_model = get_mf6_gwf_modelnames(mf6_two_basin_model_3layer)[0]
-    mf6_active_river_packages = get_mf6_river_packagenames(mf6_model)
-    basin_definition = create_basin_definition(
-        ribasim_two_basin_model.basin.node,
-        buffersize=250.0,
+def case_two_basin_model_sprinkling_sw_allocation(
+    mf6_two_basin_model_3layer: Modflow6Simulation,
+    msw_two_basin_model_3layer: MetaSwapModel,
+    ribasim_two_basin_model: ribasim.Model,
+) -> RibaMetaMod:
+    ribametamod = two_basin_model_sprinkling_sw_variations(
+        mf6_two_basin_model_3layer,
+        msw_two_basin_model_3layer,
+        ribasim_two_basin_model,
     )
-
-    # add waterusers
-    ribasim_two_basin_model = add_water_users(ribasim_two_basin_model)
-
-    # increase initial stage second basin, to be able to extract irrigation water.
-    ribasim_two_basin_model.basin.state.df["level"].loc[
-        ribasim_two_basin_model.basin.node.df["node_id"] == 3
-    ] = 8.0
-    new_df = pd.DataFrame(
-        {
-            "node_id": np.array([4] * 3),
-            "active": np.array([pd.NA] * 3),
-            "level": np.array([0, 3.0, 6.0]),
-            "flow_rate": np.array([0.0, 0.0, 0.000000001]),
-            "control_state": [None, None, None],
-        }
+    ribametamod.ribasim_model.allocation = ribasim.Allocation(
+        timestep=86400.0, use_allocation=True
     )
-    ribasim_two_basin_model.tabulated_rating_curve.static.df = new_df
-
-    # increase inflow rate first basinto be able to extract irrigation water
-    ribasim_two_basin_model.flow_boundary.static.df["flow_rate"][0] = 0.05
-
-    # increase river resistance so basins don't run dry
-    cond = mf6_two_basin_model_3layer[mf6_modelname][
-        mf6_active_river_packages[0]
-    ].dataset["conductance"]
-    cond_new = (20 * 20) / 10000  # prevents basin to run dry
-    active = cond.notnull()
-    mf6_two_basin_model_3layer[mf6_modelname][mf6_active_river_packages[0]].dataset[
-        "conductance"
-    ] = xr.full_like(cond, fill_value=cond_new).where(active)
-
-    # increase PET in MetaSWAP-model
-    pet = msw_two_basin_model_3layer["meteo_grid"].dataset["evapotranspiration"]
-    pp = msw_two_basin_model_3layer["meteo_grid"].dataset["precipitation"]
-    msw_two_basin_model_3layer["meteo_grid"].dataset["evapotranspiration"] = pet * 100
-    msw_two_basin_model_3layer["meteo_grid"].dataset["precipitation"] = pp * 0.0
-
-    # extent sprinkling season
-    msw_two_basin_model_3layer["landuse_options"]["start_sprinkling_season"][:] = 0.0
-    msw_two_basin_model_3layer.simulation_settings["tdbgsm"] = 0.0
-    soil_cover = msw_two_basin_model_3layer["crop_factors"]["soil_cover"]
-    soil_cover[:] = 1.0
-    new = msw.AnnualCropFactors(
-        soil_cover=soil_cover,
-        leaf_area_index=xr.full_like(soil_cover, 3.0),
-        interception_capacity=xr.zeros_like(soil_cover),
-        vegetation_factor=xr.ones_like(soil_cover),
-        interception_factor=xr.ones_like(soil_cover),
-        bare_soil_factor=xr.ones_like(soil_cover),
-        ponding_factor=xr.ones_like(soil_cover),
-    )
-    msw_two_basin_model_3layer.pop("crop_factors")
-    msw_two_basin_model_3layer["crop_factors"] = new
-
-    # lower initial conditions MF6 model
-    mf6_two_basin_model_3layer[mf6_modelname]["ic"].dataset["start"] = -100.0
-
-    # user definition for coupling
-    user_definitions = create_basin_definition(
-        ribasim_two_basin_model.user_demand.node,
-        buffersize=250.0,
-        nodes=[7, 9],
-    )
-
-    metamod_coupling = MetaModDriverCoupling(
-        mf6_model=mf6_modelname,
-        mf6_recharge_package="rch_msw",
-        mf6_wel_package="well_msw",
-    )
-    ribamod_coupling = RibaModActiveDriverCoupling(
-        mf6_model=mf6_modelname,
-        mf6_packages=mf6_active_river_packages,
-        ribasim_basin_definition=basin_definition,
-    )
-    ribameta_coupling = RibaMetaDriverCoupling(
-        ribasim_basin_definition=basin_definition,
-        ribasim_user_demand_definition=user_definitions,
-    )
-
-    return RibaMetaMod(
-        ribasim_model=ribasim_two_basin_model,
-        msw_model=msw_two_basin_model_3layer,
-        mf6_simulation=mf6_two_basin_model_3layer,
-        coupling_list=[metamod_coupling, ribamod_coupling, ribameta_coupling],
-    )
+    return ribametamod
