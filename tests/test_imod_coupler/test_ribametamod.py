@@ -318,7 +318,7 @@ def assert_results(
                 runoff_exchange + summed_riv_flux_estimate - summed_correction_flux,
                 atol=atol,
             )
-    if results.allocation_df is not None:
+    if "bdgPssw_mask_index" in results.msw_budgets:
         # MetaSWAP sprinkling from surface water, per water user
         users = np.unique(results.msw_budgets["bdgPssw_mask_index"].to_numpy())
         users = users[np.isfinite(users)]
@@ -445,9 +445,10 @@ def write_run_read(
     coupling_files = {
         "bdgqrun": [tmp_path / "exchanges" / "msw_ponding.tsv", "basin_index"],
     }
-    if allocation_df is not None:
+    sprinkling_file = tmp_path / "exchanges" / "msw_sw_sprinkling.tsv"
+    if sprinkling_file.is_file():
         coupling_files["bdgPssw"] = [
-            tmp_path / "exchanges" / "msw_sw_sprinkling.tsv",
+            sprinkling_file,
             "user_demand_index",
         ]
     msw_results = get_metaswap_results(
@@ -567,10 +568,45 @@ def test_ribametamod_two_basin(
 
 
 @pytest.mark.xdist_group(name="ribasim")
+@parametrize_with_cases("ribametamod_model", glob="two_basin_model_sprinkling_sw")
+def test_ribametamod_two_basin_sprinkling_sw(
+    tmp_path_dev: Path,
+    ribametamod_model: RibaMetaMod,
+    metaswap_dll_devel: Path,
+    metaswap_dll_dep_dir_devel: Path,
+    modflow_dll_devel: Path,
+    ribasim_dll_devel: Path,
+    ribasim_dll_dep_dir_devel: Path,
+    run_coupler_function: Callable[[Path], None],
+) -> None:
+    """
+    Test if the two-basin model model works as expected
+    """
+    results = write_run_read(
+        tmp_path_dev,
+        ribametamod_model,
+        modflow_dll_devel,
+        ribasim_dll_devel,
+        ribasim_dll_dep_dir_devel,
+        metaswap_dll_devel,
+        metaswap_dll_dep_dir_devel,
+        run_coupler_function,
+        output_labels=[
+            "exchange_demand_riv_1",
+            "exchange_demand_sw_ponding",
+            "stage_riv_1",
+            "sprinkling_realized",
+            "sprinkling_demand",
+        ],
+    )
+    assert_results(tmp_path_dev, ribametamod_model, results)
+
+
+@pytest.mark.xdist_group(name="ribasim")
 @parametrize_with_cases(
-    "ribametamod_model", glob="two_basin_model_sprinkling_surface_water"
+    "ribametamod_model", glob="two_basin_model_sprinkling_sw_allocation"
 )
-def test_ribametamod_two_basin_sprinkling_surface_water(
+def test_ribametamod_two_basin_sprinkling_sw_allocation(
     tmp_path_dev: Path,
     ribametamod_model: RibaMetaMod,
     metaswap_dll_devel: Path,
