@@ -34,6 +34,7 @@ object IMODCollector_X64developmentLnx64 : BuildType({
             workingDir = "./coupler"
             scriptContent = """
                 #!/bin/bash
+                source  /usr/share/Modules/init/profile.sh
                 module load pixi
                 rm -rf dist
                 pixi run -e dev install-minimal
