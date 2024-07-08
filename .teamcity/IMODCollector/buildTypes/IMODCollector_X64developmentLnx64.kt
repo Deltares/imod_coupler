@@ -31,6 +31,7 @@ object IMODCollector_X64developmentLnx64 : BuildType({
         script {
             name = "Create executable with pyinstaller"
             id = "RUNNER_301"
+            workingDir = "./coupler"
             scriptContent = """
                 #!/bin/bash
                 module load pixi
