@@ -6,7 +6,7 @@ channels = ["conda-forge"]
 platforms = ["win-64", "linux-64"]
 
 [system-requirements]
-linux = "4.12.14"
+linux = "4.4.0"
 
 [tasks]
 # Install
