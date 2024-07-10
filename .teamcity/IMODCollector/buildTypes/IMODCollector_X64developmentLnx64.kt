@@ -14,7 +14,7 @@ object IMODCollector_X64developmentLnx64 : BuildType({
     description = "Collect all Release_x64 kernels in the iMOD6 suite"
 
     artifactRules = """
-        dist/imodc/ => imod_collector.zip!/imod_coupler/
+        coupler/dist/ => imod_collector.zip!/imod_coupler/
         modflow6/ => imod_collector.zip!/modflow6/
         metaswap/ => imod_collector.zip!/metaswap/
     """.trimIndent()
@@ -31,8 +31,10 @@ object IMODCollector_X64developmentLnx64 : BuildType({
         script {
             name = "Create executable with pyinstaller"
             id = "RUNNER_301"
+            workingDir = "./coupler"
             scriptContent = """
                 #!/bin/bash
+                source  /usr/share/Modules/init/profile.sh
                 module load pixi
                 rm -rf dist
                 pixi run -e dev install-minimal
@@ -42,7 +44,7 @@ object IMODCollector_X64developmentLnx64 : BuildType({
         script {
             name = "Get version from imod coupler"
             id = "RUNNER_1232"
-            scriptContent = "./dist/imodc/imodc --version"
+            scriptContent = "./coupler/dist/imodc --version"
         }
     }
 
