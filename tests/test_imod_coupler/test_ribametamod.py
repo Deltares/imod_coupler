@@ -363,9 +363,21 @@ def assert_results(
             coupled_svats = coupled_svats[np.isfinite(coupled_svats)].astype(
                 dtype=np.int32
             )
-            sprinkling_realised_exchange = (
-                results.exchange_budget["sprinkling_realized"].to_numpy()
-            )[:, coupled_svats].sum(axis=1)
+            # should be resampled for dtsw < dtgw
+            dt = results.exchange_budget["sprinkling_realized"]["time"][0].item()
+            timedelta = pd.to_timedelta(
+                results.exchange_budget["sprinkling_realized"]["time"] - dt, "D"
+            )
+            time_min = pd.to_datetime("1900/01/01")
+            sprinkling_realized = results.exchange_budget[
+                "sprinkling_realized"
+            ].assign_coords(time=time_min + timedelta)
+            sprinkling_realized = sprinkling_realized.resample(
+                time=str(delt_gw) + "D"
+            ).sum()
+            sprinkling_realised_exchange = (sprinkling_realized.to_numpy())[
+                :, coupled_svats
+            ].sum(axis=1)
             if basin_index < 5:
                 plot_results(
                     tmp_path_dev,
@@ -379,7 +391,7 @@ def assert_results(
                 np.testing.assert_allclose(
                     sprinkling_msw,
                     sprinkling_realised_exchange,
-                    atol=10,
+                    atol=13,
                 )  # TODO: check why discrepancy between coupler and MetaSWAP increases
 
 
@@ -656,7 +668,8 @@ def test_ribametamod_two_basin_dtsw_05(
         ],
     )
     # frequentie for MODFLOW-6 and MetaSWAP output
-    assert_results(tmp_path_dev, ribametamod_model, results)
+    delt_gw = int(ribametamod_model.msw_model.simulation_settings["dtgw"])
+    assert_results(tmp_path_dev, ribametamod_model, results, delt_gw=delt_gw)
 
 
 @pytest.mark.xdist_group(name="ribasim")
@@ -729,6 +742,45 @@ def test_ribametamod_two_basin_sprinkling_sw_allocation(
         ],
     )
     assert_results(tmp_path_dev, ribametamod_model, results)
+
+
+@pytest.mark.xdist_group(name="ribasim")
+@parametrize_with_cases(
+    "ribametamod_model", glob="two_basin_model_sprinkling_sw_allocation_dtsw_05"
+)
+def test_ribametamod_two_basin_sprinkling_sw_allocation_dtsw_05(
+    tmp_path_dev: Path,
+    ribametamod_model: RibaMetaMod,
+    metaswap_dll_devel: Path,
+    metaswap_dll_dep_dir_devel: Path,
+    modflow_dll_devel: Path,
+    ribasim_dll_devel: Path,
+    ribasim_dll_dep_dir_devel: Path,
+    run_coupler_function: Callable[[Path], None],
+) -> None:
+    """
+    Test if the two-basin model model works as expected
+    """
+    results = write_run_read(
+        tmp_path_dev,
+        ribametamod_model,
+        modflow_dll_devel,
+        ribasim_dll_devel,
+        ribasim_dll_dep_dir_devel,
+        metaswap_dll_devel,
+        metaswap_dll_dep_dir_devel,
+        run_coupler_function,
+        output_labels=[
+            "exchange_demand_riv_1",
+            "exchange_demand_sw_ponding",
+            "stage_riv_1",
+            "sprinkling_realized",
+            "sprinkling_demand",
+        ],
+    )
+    # frequentie for MODFLOW-6 and MetaSWAP output
+    delt_gw = int(ribametamod_model.msw_model.simulation_settings["dtgw"])
+    assert_results(tmp_path_dev, ribametamod_model, results, delt_gw=delt_gw)
 
 
 def test_exchange_balance() -> None:

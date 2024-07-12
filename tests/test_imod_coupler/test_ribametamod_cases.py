@@ -443,7 +443,6 @@ def case_two_basin_model_dtgw_2(
     times = pd.date_range("2020-01-01", "2021-01-01", freq="2d")
     mf6_two_basin_model.create_time_discretization(additional_times=times)
     msw_two_basin_model.simulation_settings["dtgw"] = 2.0
-    # msw_two_basin_model.simulation_settings["dtsw"] = 0.5
 
     # get variables
     mf6_modelname, mf6_model = get_mf6_gwf_modelnames(mf6_two_basin_model)[0]
@@ -552,4 +551,22 @@ def case_two_basin_model_sprinkling_sw_allocation(
     ribametamod.ribasim_model.allocation = ribasim.Allocation(
         timestep=86400.0, use_allocation=True
     )
+    return ribametamod
+
+
+def case_two_basin_model_sprinkling_sw_allocation_dtsw_05(
+    mf6_two_basin_model_3layer: Modflow6Simulation,
+    msw_two_basin_model_3layer: MetaSwapModel,
+    ribasim_two_basin_model: ribasim.Model,
+) -> RibaMetaMod:
+    ribametamod = two_basin_model_sprinkling_sw_variations(
+        mf6_two_basin_model_3layer,
+        msw_two_basin_model_3layer,
+        ribasim_two_basin_model,
+    )
+    ribametamod.ribasim_model.allocation = ribasim.Allocation(
+        timestep=86400.0, use_allocation=True
+    )
+    # update delt-sw for MetaSWAP
+    ribametamod.msw_model.simulation_settings["dtsw"] = 0.5
     return ribametamod
