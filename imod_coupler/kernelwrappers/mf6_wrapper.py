@@ -586,7 +586,7 @@ class Mf6River(Mf6HeadBoundary):
     ) -> NDArray[np.float64]:
         """
         Returns the river fluxes consistent with current head, river stage and conductance.
-        a simple linear model is used: flux = conductance * (stage - max(head, bottom))
+        a simple linear model is used: flux[m3/d] = conductance[m2/d] * (stage[m] - max(head[m], bottom[m]))
         Bottom is the level of the river bottom.
 
         This function does not use the HCOF and RHS for calculating the flux, bacause it is used
