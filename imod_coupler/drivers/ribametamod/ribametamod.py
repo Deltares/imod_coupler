@@ -472,6 +472,12 @@ class RibaMetaMod(Driver):
 
         nonzero_user_indices = np.flatnonzero(self.mapped_sprinkling_demand)
 
+        # maximize realised array by demand values
+        self.ribasim_user_realized[:] = np.minimum(
+            self.ribasim_user_realized[:],
+            self.mapped_sprinkling_demand[:] * days_to_seconds(self.delt_sw),
+        )
+
         self.realised_fractions_swspr[:] = 0.0
         self.realised_fractions_swspr[nonzero_user_indices] = (
             self.ribasim_user_realized[nonzero_user_indices]
