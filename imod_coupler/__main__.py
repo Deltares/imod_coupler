@@ -12,6 +12,10 @@ from imod_coupler.drivers.driver import get_driver
 from imod_coupler.parser import parse_args
 from imod_coupler.utils import setup_logger
 
+# Trick to force the inclusion of the fft package, 
+# because it is 'needed' by array_api_compat\numpy 
+# To be fixed/removed as soon as possible !!
+from scipy._lib.array_api_compat.numpy import fft  # noqa: F401
 
 def main() -> None:
     args = parse_args()
