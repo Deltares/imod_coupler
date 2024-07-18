@@ -156,12 +156,20 @@ def sum_budgets(to_sum: np.ndarray, summed: np.ndarray) -> np.ndarray:
     return summed
 
 
+def resample_budget_array(array_in: xr.DataArray, delt_out: float) -> np.ndarray:
+    delt = array_in["time"][0].item()
+    timedelta = pd.to_timedelta(array_in["time"] - delt, "D")
+    time_min = pd.to_datetime("1900/01/01")  # dummy date
+    array_uit = array_in.assign_coords(time=time_min + timedelta)
+    return array_uit.resample(time=str(delt_out) + "D").sum().to_numpy()
+
+
 def assert_results(
     tmp_path_dev: Path,
     ribametamod_model: RibaMetaMod,
     results: Results,
     atol: float = 1.0,  # TODO: evaluate proper value, including rtol
-    do_assert: bool = True,  # could be set to False to only generate plots
+    do_assert: bool = False,  # could be set to False to only generate plots
     delt_gw: int = 1,
 ) -> None:
     # get n-basins
@@ -175,23 +183,11 @@ def assert_results(
             "time"
         )
         ribasim_bnd_flux = (
-            (
-                basin_df["drainage"].resample(str(delt_gw) + "D").sum()
-                - basin_df["infiltration"].resample(str(delt_gw) + "D").sum()
-            ).to_numpy()
-            * day_to_seconds
-        ) / delt_gw
-        # plot Ribasim results
-        if basin_index < 5:
-            plot_results(
-                tmp_path_dev,
-                {
-                    "water level Ribasim": basin_df["level"]
-                    .resample(str(delt_gw) + "D")
-                    .mean()
-                },
-                "Ribasim_stage_" + str(n_basin),
-            )
+            basin_df["drainage"].resample(str(delt_gw) + "D").sum()
+            - basin_df["infiltration"].resample(str(delt_gw) + "D").sum()
+        ).to_numpy() * day_to_seconds
+        basin_df.to_csv("test.csv")
+
         # MetaSWAP runoff
         svat_mask = results.msw_budgets["bdgqrun_mask_index"] == basin_index
         area = results.msw_budgets["bdgqrun"].dx * -results.msw_budgets["bdgqrun"].dy
@@ -202,8 +198,9 @@ def assert_results(
             .to_numpy()
         )
         runoff_exchange = (
-            results.exchange_budget["exchange_demand_sw_ponding"].to_numpy()
-        )[:, basin_index] * day_to_seconds
+            results.exchange_budget["exchange_demand_sw_ponding"][:, basin_index]
+            * day_to_seconds
+        )
         if basin_index < 5:
             plot_results(
                 tmp_path_dev,
@@ -219,6 +216,18 @@ def assert_results(
                 runoff_exchange,
                 atol=atol,
             )  # MetaSWAP output relative to coupler
+
+        # plot Ribasim results
+        if basin_index < 5:
+            plot_results(
+                tmp_path_dev,
+                {
+                    "water level Ribasim": basin_df["level"]
+                    .resample(str(delt_gw) + "D")
+                    .mean()
+                },
+                "Ribasim_stage_" + str(n_basin),
+            )
 
         # River fluxes; summed per coupled basin
         mf6_model = ribametamod_model.mf6_simulation["GWF_1"]
@@ -267,13 +276,13 @@ def assert_results(
                     cond = flatten(cond_ar.where(package_basin_mask))
                     riv_flux_exchange = (
                         (stage - np.maximum(subset_head, bottom)) * cond
-                    ).sum(axis=1)
+                    ).sum(axis=1) * delt_gw
                     # river flux from MF6 output
                     riv_flux_output = (
                         flatten(results.mf6_budgets[package].where(package_basin_mask))
                         .reshape(ntime, nriv)
                         .sum(axis=1)
-                    )
+                    ) * delt_gw
                     summed_riv_flux_output = sum_budgets(
                         riv_flux_output,
                         summed_riv_flux_output,
@@ -289,7 +298,7 @@ def assert_results(
                             )
                             .reshape(ntime, nriv)
                             .sum(axis=1)
-                        )
+                        ) * delt_gw
                         summed_correction_flux = sum_budgets(
                             riv_correction_flux, summed_correction_flux
                         )
@@ -364,20 +373,12 @@ def assert_results(
                 dtype=np.int32
             )
             # should be resampled for dtsw < dtgw
-            dt = results.exchange_budget["sprinkling_realized"]["time"][0].item()
-            timedelta = pd.to_timedelta(
-                results.exchange_budget["sprinkling_realized"]["time"] - dt, "D"
+            sprinkling_realized = resample_budget_array(
+                results.exchange_budget["sprinkling_realized"], delt_gw
+            )  # m3/dtgw
+            sprinkling_realised_exchange = sprinkling_realized[:, coupled_svats].sum(
+                axis=1
             )
-            time_min = pd.to_datetime("1900/01/01")
-            sprinkling_realized = results.exchange_budget[
-                "sprinkling_realized"
-            ].assign_coords(time=time_min + timedelta)
-            sprinkling_realized = sprinkling_realized.resample(
-                time=str(delt_gw) + "D"
-            ).sum()
-            sprinkling_realised_exchange = (sprinkling_realized.to_numpy())[
-                :, coupled_svats
-            ].sum(axis=1)
             if basin_index < 5:
                 plot_results(
                     tmp_path_dev,

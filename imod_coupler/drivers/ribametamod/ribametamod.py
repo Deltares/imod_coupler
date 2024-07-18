@@ -348,14 +348,14 @@ class RibaMetaMod(Driver):
 
         for timestep_sw in range(1, int(nsubtimesteps) + 1):
             self.msw.prepare_surface_water_time_step(timestep_sw)
-            self.exchange.add_ponding_msw(self.msw_ponding / nsubtimesteps)
+            self.exchange.add_ponding_msw(self.msw_ponding)
             if self.enable_sprinkling_surface_water:
                 self.exchange_sprinkling_demand_msw2rib(self.delt_sw)
                 self.ribasim_user_realized[:] = (
                     0.0  # reset cummulative for the next timestep
                 )
             # exchange summed volumes to Ribasim
-            self.exchange.to_ribasim(nsubtimesteps)
+            self.exchange.to_ribasim(self.delt_sw / self.delt_gw)
             # update Ribasim per delt_sw
             self.current_time += self.delt_sw
             self.ribasim.update_until(days_to_seconds(self.current_time))
@@ -366,7 +366,7 @@ class RibaMetaMod(Driver):
 
     def update_ribasim(self) -> None:
         # exchange summed volumes to Ribasim
-        self.exchange.to_ribasim(1)
+        self.exchange.to_ribasim(self.delt_gw)
         # update Ribasim per delt_gw
         self.ribasim.update_until(days_to_seconds(self.get_current_time()))
 
@@ -387,9 +387,11 @@ class RibaMetaMod(Driver):
                 self.update_ribasim()
             self.exchange.to_modflow(
                 (self.ribasim_drainage_sum - self.ribasim_infiltration_sum)
-                / days_to_seconds(self.delt_gw)
+                / days_to_seconds(1.0),
+                self.delt_gw,
             )
-            self.exchange.log_demands(self.get_current_time())
+            self.exchange.log_msw_demands(self.current_time, self.delt_sw)
+            self.exchange.log_mf6_demands(self.get_current_time())
 
         # do the MODFLOW-MetaSWAP timestep
         if self.has_metaswap:
@@ -446,7 +448,7 @@ class RibaMetaMod(Driver):
         self.exchange.reset()
         # exchange stage and compute flux estimates over MODFLOW 6 timestep
         self.exchange_stage_rib2mod()
-        self.exchange.add_flux_estimate_mod(self.mf6_head)
+        self.exchange.add_flux_estimate_mod(self.mf6_head, self.delt_gw)
         # reset Ribasim pointers
         self.ribasim_infiltration_sum[:] = 0.0
         self.ribasim_drainage_sum[:] = 0.0
