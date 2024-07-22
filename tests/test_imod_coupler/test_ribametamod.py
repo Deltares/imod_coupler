@@ -169,7 +169,7 @@ def assert_results(
     ribametamod_model: RibaMetaMod,
     results: Results,
     atol: float = 1.0,  # TODO: evaluate proper value, including rtol
-    do_assert: bool = False,  # could be set to False to only generate plots
+    do_assert: bool = True,  # could be set to False to only generate plots
     delt_gw: int = 1,
 ) -> None:
     # get n-basins
@@ -186,7 +186,6 @@ def assert_results(
             basin_df["drainage"].resample(str(delt_gw) + "D").sum()
             - basin_df["infiltration"].resample(str(delt_gw) + "D").sum()
         ).to_numpy() * day_to_seconds
-        basin_df.to_csv("test.csv")
 
         # MetaSWAP runoff
         svat_mask = results.msw_budgets["bdgqrun_mask_index"] == basin_index

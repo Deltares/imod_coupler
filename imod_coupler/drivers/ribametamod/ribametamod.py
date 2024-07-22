@@ -355,7 +355,7 @@ class RibaMetaMod(Driver):
                     0.0  # reset cummulative for the next timestep
                 )
             # exchange summed volumes to Ribasim
-            self.exchange.to_ribasim(self.delt_sw / self.delt_gw)
+            self.exchange.to_ribasim(self.delt_gw, self.delt_sw)
             # update Ribasim per delt_sw
             self.current_time += self.delt_sw
             self.ribasim.update_until(days_to_seconds(self.current_time))
@@ -366,7 +366,7 @@ class RibaMetaMod(Driver):
 
     def update_ribasim(self) -> None:
         # exchange summed volumes to Ribasim
-        self.exchange.to_ribasim(self.delt_gw)
+        self.exchange.to_ribasim(self.delt_gw, self.delt_gw)
         # update Ribasim per delt_gw
         self.ribasim.update_until(days_to_seconds(self.get_current_time()))
 
@@ -379,6 +379,7 @@ class RibaMetaMod(Driver):
 
         if self.has_ribasim:
             self.exchange_rib2mod()
+            self.exchange_mod2rib()
 
         if self.has_ribasim:
             if self.has_metaswap:
@@ -390,8 +391,7 @@ class RibaMetaMod(Driver):
                 / days_to_seconds(1.0),
                 self.delt_gw,
             )
-            self.exchange.log_msw_demands(self.current_time, self.delt_sw)
-            self.exchange.log_mf6_demands(self.get_current_time())
+            self.exchange.log_demands(self.get_current_time())
 
         # do the MODFLOW-MetaSWAP timestep
         if self.has_metaswap:
@@ -448,6 +448,8 @@ class RibaMetaMod(Driver):
         self.exchange.reset()
         # exchange stage and compute flux estimates over MODFLOW 6 timestep
         self.exchange_stage_rib2mod()
+
+    def exchange_mod2rib(self) -> None:
         self.exchange.add_flux_estimate_mod(self.mf6_head, self.delt_gw)
         # reset Ribasim pointers
         self.ribasim_infiltration_sum[:] = 0.0

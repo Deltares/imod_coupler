@@ -152,13 +152,12 @@ class CoupledExchangeBalance(ExchangeBalance):
         self.ribasim_drainage[:] = 0.0
         super().reset()
         self.update_api_packages()
+        # reset cummulative array for subtimestepping
+        self.exchanged_ponding_dtsw[:] = 0.0
 
     def add_flux_estimate_mod(
         self, mf6_head: NDArray[np.float64], delt_gw: float
     ) -> None:
-        # reset cummulative array for subtimestepping
-        self.exchanged_ponding_dtsw[:] = 0.0
-        self.demands["sw_ponding"][:] = 0.0
         # Compute MODFLOW 6 river and drain flux extimates
         for key, river in self.mf6_river_packages.items():
             # Swap sign since a negative RIV flux means a positive contribution to Ribasim
@@ -178,17 +177,8 @@ class CoupledExchangeBalance(ExchangeBalance):
                 -drainage.get_flux_estimate(mf6_head) * delt_gw
             ) / days_to_seconds()
             self.demands[key] = self.mapping.map_mod2rib[key].dot(drain_flux)
-            # convert modflow flux (m3/day) to ribasim flux (m3/s)
 
-    def log_msw_demands(self, current_time: float, delt_sw: float) -> None:
-        # log per delt_gw
-        self.exchange_logger.log_exchange(
-            ("exchange_demand_sw_ponding"),
-            self.demands["sw_ponding"],
-            current_time,
-        )
-
-    def log_mf6_demands(self, current_time: float) -> None:
+    def log_demands(self, current_time: float) -> None:
         for key, array in self.demands.items():
             if "sw_ponding" not in key:
                 self.exchange_logger.log_exchange(
@@ -200,18 +190,28 @@ class CoupledExchangeBalance(ExchangeBalance):
                 self.exchange_logger.log_exchange(
                     ("exchange_correction_" + key), array, current_time
                 )
+        self.exchange_logger.log_exchange(
+            ("exchange_demand_sw_ponding"),
+            self.demands["sw_ponding"],
+            current_time,
+        )
 
     def add_ponding_msw(self, allocated_volume: NDArray[np.float64]) -> None:
         if self.mapping.msw2rib is not None:
-            # flux from metaswap ponding to Ribasim
+            # volume per dtsw, from metaswap ponding to Ribasim
             if "sw_ponding" in self.mapping.msw2rib:
                 allocated_flux_sec = allocated_volume / days_to_seconds()
                 self.demands["sw_ponding"] += self.mapping.msw2rib["sw_ponding"].dot(
                     allocated_flux_sec
                 )[:]
 
-    def to_ribasim(self, delt_sw: float) -> None:
-        demand = self.demand_per(delt_sw) - self.exchanged_ponding_dtsw
+    def to_ribasim(self, delt_gw: float, delt_sw: float) -> None:
+        # conversion to flux per day
+        delt_gw = 1.0 / delt_gw
+        delt_sw = 1.0 / delt_sw
+        demand = self.demand_per(delt_gw, delt_sw) - (
+            self.exchanged_ponding_dtsw * delt_sw
+        )
         # negative demand in exchange class means infiltration from Ribasim
         coupled_index = self.mapping.coupled_mod2rib
         self.ribasim_infiltration[coupled_index] = np.where(demand < 0, -demand, 0)[
@@ -224,8 +224,8 @@ class CoupledExchangeBalance(ExchangeBalance):
         # subtracted the next subtimestep
         self.exchanged_ponding_dtsw += self.demands["sw_ponding"]
 
-    def to_modflow(self, realised: NDArray[np.float64], delt_gw: float) -> None:
-        super().compute_realised(realised)
+    def to_modflow(self, realised_flux: NDArray[np.float64], delt_gw: float) -> None:
+        super().compute_realised(realised_flux)
         for key in self.mf6_active_river_api_packages.keys():
             realised_fraction = np.where(
                 np.isclose(self.demands_negative[key], 0.0),
@@ -238,12 +238,12 @@ class CoupledExchangeBalance(ExchangeBalance):
                 np.minimum(self.demands_mf6[key] / delt_gw, 0.0) * days_to_seconds()
             ) * (1 - self.mapping.map_rib2mod_flux[key].dot(realised_fraction))
 
-    def demand_per(self, delt_sw: float) -> Any:
+    def demand_per(self, delt_gw: float, delt_sw: float) -> Any:
         mf6_labels = list(self.demands.keys())
         mf6_labels.remove("sw_ponding")
         demands = {key: self.demands[key] for key in mf6_labels}
         mf6_demand = np.stack(list(demands.values())).sum(axis=0)
-        return (mf6_demand * delt_sw) + self.demands["sw_ponding"]
+        return (mf6_demand * delt_gw) + (self.demands["sw_ponding"] * delt_sw)
 
 
 def days_to_seconds(day: float = 1.0) -> float:
