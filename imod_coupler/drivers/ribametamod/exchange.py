@@ -23,14 +23,14 @@ class ExchangeBalance:
 
     def __init__(self, shape: int, labels: list[str]) -> None:
         self.shape = shape
-        self.flux_labels = labels
+        self.volume_labels = labels
         self._init_arrays()
 
-    def compute_realised(self, realised: NDArray[np.float64]) -> None:
+    def compute_realised(self, realised_volume: NDArray[np.float64]) -> None:
         """
         This function computes the realised (negative) volumes
         """
-        shortage = np.absolute(self.demand - realised)
+        shortage = np.absolute(self.demand - realised_volume)
         demand_negative = self.demand_negative
         self._check_valid_shortage(
             shortage
@@ -39,29 +39,29 @@ class ExchangeBalance:
         realised_fraction = np.where(
             demand_negative < 0.0, 1.0 - (-shortage / demand_negative), 1.0
         )
-        for flux_label in self.flux_labels:
-            self.realised_negative[flux_label] = (
-                self.demands_negative[flux_label] * realised_fraction
+        for volume_label in self.volume_labels:
+            self.realised_negative[volume_label] = (
+                self.demands_negative[volume_label] * realised_fraction
             )
 
     def reset(self) -> None:
         """
         function sets all arrays to zero
         """
-        for flux_label in self.flux_labels:
-            self.demands[flux_label][:] = 0.0
-            self.demands_negative[flux_label][:] = 0.0
-            self.realised_negative[flux_label][:] = 0.0
+        for volume_label in self.volume_labels:
+            self.demands[volume_label][:] = 0.0
+            self.demands_negative[volume_label][:] = 0.0
+            self.realised_negative[volume_label][:] = 0.0
 
     def _check_valid_shortage(self, shortage: NDArray[np.float64]) -> None:
-        eps: float = 1.0e-04
+        eps: float = 1.0e-04 * day_to_seconds
         if np.any(np.logical_and(self.demand > 0.0, shortage > eps)):
             raise ValueError(
-                "Invalid realised values: found shortage for positive demand"
+                "Invalid realised volumes: found shortage for positive demand"
             )
         if np.any(shortage > np.absolute(self.demand_negative) + eps):
             raise ValueError(
-                "Invalid realised values: found shortage larger than negative demand contributions"
+                "Invalid realised volumes: found shortage larger than negative demand contributions"
             )
 
     def _zeros_array(self) -> NDArray[np.float64]:
@@ -72,10 +72,10 @@ class ExchangeBalance:
         self.demands_mf6 = {}
         self.demands_negative = {}
         self.realised_negative = {}
-        for flux_label in self.flux_labels:
-            self.demands[flux_label] = self._zeros_array()
-            self.demands_negative[flux_label] = self._zeros_array()
-            self.realised_negative[flux_label] = self._zeros_array()
+        for volume_label in self.volume_labels:
+            self.demands[volume_label] = self._zeros_array()
+            self.demands_negative[volume_label] = self._zeros_array()
+            self.realised_negative[volume_label] = self._zeros_array()
 
     @property
     def demand_negative(self) -> Any:
@@ -123,7 +123,7 @@ class CoupledExchangeBalance(ExchangeBalance):
         self.ribasim_infiltration = ribasim_infiltration
         self.ribasim_drainage = ribasim_drainage
         self.exchange_logger = exchange_logger
-        self.exchanged_ponding_dtsw = np.zeros_like(self.demand)
+        self.exchanged_ponding_per_dtsw = np.zeros_like(self.demand)
 
     def update_api_packages(self) -> None:
         """
@@ -153,7 +153,7 @@ class CoupledExchangeBalance(ExchangeBalance):
         super().reset()
         self.update_api_packages()
         # reset cummulative array for subtimestepping
-        self.exchanged_ponding_dtsw[:] = 0.0
+        self.exchanged_ponding_per_dtsw[:] = 0.0
 
     def add_flux_estimate_mod(
         self, mf6_head: NDArray[np.float64], delt_gw: float
@@ -161,10 +161,8 @@ class CoupledExchangeBalance(ExchangeBalance):
         # Compute MODFLOW 6 river and drain flux extimates
         for key, river in self.mf6_river_packages.items():
             # Swap sign since a negative RIV flux means a positive contribution to Ribasim
-            # the flux estimation is based on conductance and therefore always in m3/d
-            river_flux = (
-                -river.get_flux_estimate(mf6_head) * delt_gw
-            ) / days_to_seconds()
+            # Flux estimation is always in m3/d; add to demands as volume per delt_gw
+            river_flux = -river.get_flux_estimate(mf6_head) * delt_gw
             river_flux_negative = np.where(river_flux < 0, river_flux, 0)
             self.demands_mf6[key] = river_flux[:]
             self.demands[key] = self.mapping.map_mod2rib[key].dot(self.demands_mf6[key])
@@ -173,10 +171,61 @@ class CoupledExchangeBalance(ExchangeBalance):
             )
         for key, drainage in self.mf6_drainage_packages.items():
             # Swap sign since a negative RIV flux means a positive contribution to Ribasim
-            drain_flux = (
-                -drainage.get_flux_estimate(mf6_head) * delt_gw
-            ) / days_to_seconds()
+            drain_flux = -drainage.get_flux_estimate(mf6_head) * delt_gw
             self.demands[key] = self.mapping.map_mod2rib[key].dot(drain_flux)
+
+    def add_ponding_volume_msw(self, allocated_volume: NDArray[np.float64]) -> None:
+        if self.mapping.msw2rib is not None:
+            # sw_ponding volumes are accumulated over the delt_gw timestep,
+            # resulting in a total volume per delt_gw
+            if "sw_ponding" in self.mapping.msw2rib:
+                self.demands["sw_ponding"] += self.mapping.msw2rib["sw_ponding"].dot(
+                    allocated_volume
+                )[:]
+
+    def flux_to_ribasim(self, delt_gw: float, delt_sw: float) -> None:
+        demand_per_subtimestep = self.get_demand_flux_sec(delt_gw, delt_sw)
+
+        # exchange to Ribasim; negative demand in exchange class means infiltration from Ribasim
+        coupled_index = self.mapping.coupled_mod2rib
+        self.ribasim_infiltration[coupled_index] = np.where(
+            demand_per_subtimestep < 0, -demand_per_subtimestep, 0
+        )[coupled_index]
+        self.ribasim_drainage[coupled_index] = np.where(
+            demand_per_subtimestep > 0, demand_per_subtimestep, 0
+        )[coupled_index]
+
+    def flux_to_modflow(
+        self, realised_volume: NDArray[np.float64], delt_gw: float
+    ) -> None:
+        super().compute_realised(realised_volume)
+        for key in self.mf6_active_river_api_packages.keys():
+            realised_fraction = np.where(
+                np.isclose(self.demands_negative[key], 0.0),
+                1.0,
+                self.realised_negative[key] / self.demands_negative[key],
+            )
+            # correction only applies to MF6 cells which negatively contribute to the Ribasim volumes
+            # correction as extraction from MF6 model.
+            # demands in exchange class are volumes per delt_gw, RHS needs a flux in m3/day
+            self.mf6_active_river_api_packages[key].rhs[:] = -(
+                np.minimum(self.demands_mf6[key] / delt_gw, 0.0)
+            ) * (1 - self.mapping.map_rib2mod_flux[key].dot(realised_fraction))
+
+    def get_demand_flux_sec(self, delt_gw: float, delt_sw: float) -> Any:
+        # returns the MODFLOW6 demands and MetaSWAP demands as a flux in m3/s
+        mf6_labels = list(self.demands.keys())
+        mf6_labels.remove("sw_ponding")
+        demands = {key: self.demands[key] for key in mf6_labels}
+        mf6_demand_flux = np.stack(list(demands.values())).sum(axis=0) / delt_gw
+        msw_demand_flux = (
+            self.demands["sw_ponding"] - self.exchanged_ponding_per_dtsw
+        ) / delt_sw
+
+        # update the ponding demand volume exchanged to Ribasim.
+        self.exchanged_ponding_per_dtsw[:] = self.demands["sw_ponding"][:]
+
+        return (mf6_demand_flux + msw_demand_flux) / day_to_seconds
 
     def log_demands(self, current_time: float) -> None:
         for key, array in self.demands.items():
@@ -196,55 +245,5 @@ class CoupledExchangeBalance(ExchangeBalance):
             current_time,
         )
 
-    def add_ponding_msw(self, allocated_volume: NDArray[np.float64]) -> None:
-        if self.mapping.msw2rib is not None:
-            # volume per dtsw, from metaswap ponding to Ribasim
-            if "sw_ponding" in self.mapping.msw2rib:
-                allocated_flux_sec = allocated_volume / days_to_seconds()
-                self.demands["sw_ponding"] += self.mapping.msw2rib["sw_ponding"].dot(
-                    allocated_flux_sec
-                )[:]
 
-    def to_ribasim(self, delt_gw: float, delt_sw: float) -> None:
-        # conversion to flux per day
-        delt_gw = 1.0 / delt_gw
-        delt_sw = 1.0 / delt_sw
-        demand = self.demand_per(delt_gw, delt_sw) - (
-            self.exchanged_ponding_dtsw * delt_sw
-        )
-        # negative demand in exchange class means infiltration from Ribasim
-        coupled_index = self.mapping.coupled_mod2rib
-        self.ribasim_infiltration[coupled_index] = np.where(demand < 0, -demand, 0)[
-            coupled_index
-        ]
-        self.ribasim_drainage[coupled_index] = np.where(demand > 0, demand, 0)[
-            coupled_index
-        ]
-        # update the demand already exchanged to Ribasim. This should be
-        # subtracted the next subtimestep
-        self.exchanged_ponding_dtsw += self.demands["sw_ponding"]
-
-    def to_modflow(self, realised_flux: NDArray[np.float64], delt_gw: float) -> None:
-        super().compute_realised(realised_flux)
-        for key in self.mf6_active_river_api_packages.keys():
-            realised_fraction = np.where(
-                np.isclose(self.demands_negative[key], 0.0),
-                1.0,
-                self.realised_negative[key] / self.demands_negative[key],
-            )
-            # correction only applies to MF6 cells which negatively contribute to the Ribasim volumes
-            # correction as extraction from MF6 model. RHS units are always m3/d.
-            self.mf6_active_river_api_packages[key].rhs[:] = -(
-                np.minimum(self.demands_mf6[key] / delt_gw, 0.0) * days_to_seconds()
-            ) * (1 - self.mapping.map_rib2mod_flux[key].dot(realised_fraction))
-
-    def demand_per(self, delt_gw: float, delt_sw: float) -> Any:
-        mf6_labels = list(self.demands.keys())
-        mf6_labels.remove("sw_ponding")
-        demands = {key: self.demands[key] for key in mf6_labels}
-        mf6_demand = np.stack(list(demands.values())).sum(axis=0)
-        return (mf6_demand * delt_gw) + (self.demands["sw_ponding"] * delt_sw)
-
-
-def days_to_seconds(day: float = 1.0) -> float:
-    return day * 86400
+day_to_seconds = 86400

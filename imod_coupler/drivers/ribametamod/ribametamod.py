@@ -270,7 +270,9 @@ class RibaMetaMod(Driver):
 
             # Get all MetaSWAP pointers, relevant for coupling with Ribasim
             if self.has_ribasim:
-                self.msw_ponding = self.msw.get_surfacewater_ponding_allocation_ptr()
+                self.msw_ponding_volume = (
+                    self.msw.get_surfacewater_ponding_allocation_ptr()
+                )
                 self.delt_sw = self.msw.get_sw_time_step()
                 # add to return dict
                 arrays["ribmsw_nbound"] = np.size(
@@ -348,17 +350,17 @@ class RibaMetaMod(Driver):
 
         for timestep_sw in range(1, int(nsubtimesteps) + 1):
             self.msw.prepare_surface_water_time_step(timestep_sw)
-            self.exchange.add_ponding_msw(self.msw_ponding)
+            self.exchange.add_ponding_volume_msw(self.msw_ponding_volume)
             if self.enable_sprinkling_surface_water:
-                self.exchange_sprinkling_demand_msw2rib(self.delt_sw)
+                self.exchange_sprinkling_demand_msw2rib()
                 self.ribasim_user_realized[:] = (
                     0.0  # reset cummulative for the next timestep
                 )
             # exchange summed volumes to Ribasim
-            self.exchange.to_ribasim(self.delt_gw, self.delt_sw)
+            self.exchange.flux_to_ribasim(self.delt_gw, self.delt_sw)
             # update Ribasim per delt_sw
             self.current_time += self.delt_sw
-            self.ribasim.update_until(days_to_seconds(self.current_time))
+            self.ribasim.update_until(day_to_seconds * self.current_time)
             # get realised values on wateruser nodes
             if self.enable_sprinkling_surface_water:
                 self.exchange_sprinkling_flux_realised_msw2rib()
@@ -366,9 +368,9 @@ class RibaMetaMod(Driver):
 
     def update_ribasim(self) -> None:
         # exchange summed volumes to Ribasim
-        self.exchange.to_ribasim(self.delt_gw, self.delt_gw)
+        self.exchange.flux_to_ribasim(self.delt_gw, self.delt_gw)
         # update Ribasim per delt_gw
-        self.ribasim.update_until(days_to_seconds(self.get_current_time()))
+        self.ribasim.update_until(day_to_seconds * self.get_current_time())
 
     def update(self) -> None:
         if self.has_metaswap:
@@ -386,9 +388,8 @@ class RibaMetaMod(Driver):
                 self.update_ribasim_metaswap()
             else:
                 self.update_ribasim()
-            self.exchange.to_modflow(
-                (self.ribasim_drainage_sum - self.ribasim_infiltration_sum)
-                / days_to_seconds(1.0),
+            self.exchange.flux_to_modflow(
+                (self.ribasim_drainage_sum - self.ribasim_infiltration_sum),
                 self.delt_gw,
             )
             self.exchange.log_demands(self.get_current_time())
@@ -455,12 +456,13 @@ class RibaMetaMod(Driver):
         self.ribasim_infiltration_sum[:] = 0.0
         self.ribasim_drainage_sum[:] = 0.0
 
-    def exchange_sprinkling_demand_msw2rib(self, delt: float) -> None:
+    def exchange_sprinkling_demand_msw2rib(self) -> None:
         # flux demand from metaswap sprinkling to Ribasim (demand)
         self.msw_sprinkling_demand_sec = (
             self.msw.get_surfacewater_sprinking_demand_ptr()
-            / days_to_seconds(self.delt_sw)
+            / (self.delt_sw * day_to_seconds)
         )
+
         self.mapped_sprinkling_demand = self.mapping.msw2rib["sw_sprinkling"].dot(
             -self.msw_sprinkling_demand_sec
         )  # flip sign since ribasim expect a positive value for demand
@@ -482,7 +484,7 @@ class RibaMetaMod(Driver):
         self.realised_fractions_swspr[:] = 1.0  # all realized for non-coupled svats
         self.realised_fractions_swspr[nonzero_user_indices] = (
             self.ribasim_user_realized[nonzero_user_indices]
-            / days_to_seconds(self.delt_sw)
+            / (self.delt_sw * day_to_seconds)
         ) / self.mapped_sprinkling_demand[nonzero_user_indices]
 
         msw_sprfrac_realised = (
@@ -579,5 +581,4 @@ class RibaMetaMod(Driver):
         return dict(zip(return_labels, return_values))
 
 
-def days_to_seconds(day: float) -> float:
-    return day * 86400
+day_to_seconds = 86400.0
