@@ -63,6 +63,8 @@ class Driver(ABC):
 def get_driver(
     config_dict: dict[str, Any], config_dir: Path, base_config: BaseConfig
 ) -> Driver:
+    import shutil as sh
+
     from imod_coupler.drivers.metamod.config import MetaModConfig
     from imod_coupler.drivers.metamod.metamod import MetaMod
     from imod_coupler.drivers.ribametamod.config import RibaMetaModConfig
@@ -70,6 +72,12 @@ def get_driver(
     from imod_coupler.drivers.ribamod.config import RibaModConfig
     from imod_coupler.drivers.ribamod.ribamod import RibaMod
 
+    config_dict["driver"]["kernels"]["metaswap"]["dll"] = sh.which(
+        config_dict["driver"]["kernels"]["metaswap"]["dll"]
+    )
+    config_dict["driver"]["kernels"]["modflow6"]["dll"] = sh.which(
+        config_dict["driver"]["kernels"]["modflow6"]["dll"]
+    )
     if base_config.driver_type == "metamod":
         metamod_config = MetaModConfig(config_dir=config_dir, **config_dict["driver"])
         return MetaMod(base_config, metamod_config)
