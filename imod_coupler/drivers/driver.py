@@ -63,12 +63,19 @@ class Driver(ABC):
 def get_driver(
     config_dict: dict[str, Any], config_dir: Path, base_config: BaseConfig
 ) -> Driver:
+    import shutil as sh
+
     from imod_coupler.drivers.metamod.config import MetaModConfig
     from imod_coupler.drivers.metamod.metamod import MetaMod
     from imod_coupler.drivers.ribametamod.config import RibaMetaModConfig
     from imod_coupler.drivers.ribametamod.ribametamod import RibaMetaMod
     from imod_coupler.drivers.ribamod.config import RibaModConfig
     from imod_coupler.drivers.ribamod.ribamod import RibaMod
+
+    # resolve library locations using which
+    for kernel in config_dict["driver"]["kernels"].values():
+        if "dll" in kernel:
+            kernel["dll"] = sh.which(kernel["dll"])
 
     if base_config.driver_type == "metamod":
         metamod_config = MetaModConfig(config_dir=config_dir, **config_dict["driver"])
