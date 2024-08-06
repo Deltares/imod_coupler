@@ -28,7 +28,6 @@ scipy = "*"
 tomli = "*"
 tomli-w = "*"
 xmipy = "*"
-pandera = "<=0.19" 
 
 [pypi-dependencies]
 ribasim = {git = "https://github.com/Deltares/Ribasim.git/#subdirectory=python/ribasim"}
