@@ -23,7 +23,7 @@ class Modflow6(BaseModel):
 
 class Metaswap(BaseModel):
     dll: FilePath
-    dll_dep_dir: DirectoryPath
+    dll_dep_dir: DirectoryPath | None = None
     work_dir: DirectoryPath
 
     @field_validator("dll")
