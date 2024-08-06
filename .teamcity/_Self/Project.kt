@@ -15,12 +15,7 @@ object Project : Project({
     vcsRoot(ImodCouplerImod56)
 
     buildType(TestbenchCouplerWin64Lumbricus)
-    buildType(TestbenchCouplerWin64Release53)
-    buildType(TestbenchCouplerWin64Release54)
-    buildType(TestbenchCouplerWin64Release52)
     buildType(TestbenchCouplerWin64_2)
-    buildType(TestbenchCouplerWin64Release55)
-    buildType(TestbenchCouplerWin64Release56)
     buildType(MakeGitHubRelease)
 
     template(Linux)
