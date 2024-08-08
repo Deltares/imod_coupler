@@ -48,7 +48,7 @@ def make_mf6_simulation(gwf_model: mf6.GroundwaterFlowModel) -> mf6.Modflow6Simu
     simulation["solver"] = mf6.Solution(
         modelnames=["GWF_1"],
         print_option="summary",
-        no_ptc=True,
+        no_ptc="all",
         outer_dvclose=1.0e-4,
         outer_maximum=500,
         under_relaxation=None,
@@ -325,7 +325,7 @@ def mf6_backwater_model() -> mf6.Modflow6Simulation:
     simulation["solver"] = mf6.Solution(
         modelnames=["GWF_1"],
         print_option="summary",
-        no_ptc=True,
+        no_ptc="all",
         outer_dvclose=1.0e-4,
         outer_maximum=500,
         under_relaxation=None,
@@ -389,7 +389,7 @@ def two_basin_variation(
     simulation["solver"] = mf6.Solution(
         modelnames=["GWF_1"],
         print_option="summary",
-        no_ptc=True,
+        no_ptc="all",
         outer_dvclose=1.0e-4,
         outer_maximum=500,
         under_relaxation=None,
