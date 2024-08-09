@@ -163,6 +163,7 @@ def assert_results(
     atol: float = 1.0,  # TODO: evaluate proper value, including rtol
     do_assert: bool = True,  # could be set to False to only generate plots
 ) -> None:
+    pkgtype_cbc: str = ""
     # get n-basins
     n_basins = results.basin_df["node_id"].unique()
     basin_index = -1
@@ -252,16 +253,28 @@ def assert_results(
                         (stage - np.maximum(subset_head, bottom)) * cond
                     ).sum(axis=1)
                     # river flux from MF6 output
+                    if isinstance(mf6_model[package], imod.mf6.drn.Drainage):
+                        pkgtype_cbc = "drn"
+                    if isinstance(mf6_model[package], imod.mf6.riv.River):
+                        pkgtype_cbc = "riv"
                     riv_flux_output = (
-                        flatten(results.mf6_budgets[package].where(package_basin_mask))
+                        flatten(
+                            results.mf6_budgets[pkgtype_cbc + "_" + package].where(
+                                package_basin_mask
+                            )
+                        )
                         .reshape(ntime, nriv)
                         .sum(axis=1)
                     )
                     if isinstance(mf6_model[package], imod.mf6.River):
                         # riv correction flux from MF6 output
+                        api_name = "api_" + package
+                        # name of the api-package corresponding to (river) package
+                        # nb. in mf6_budgets api_name is prepended by 'api_'
+                        # again as the typename
                         riv_correction_flux = (
                             flatten(
-                                results.mf6_budgets["api_" + package].where(
+                                results.mf6_budgets["api_" + api_name].where(
                                     package_basin_mask
                                 )
                             )
