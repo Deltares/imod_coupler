@@ -253,15 +253,23 @@ def assert_results(
                     ).sum(axis=1)
                     # river flux from MF6 output
                     riv_flux_output = (
-                        flatten(results.mf6_budgets[package].where(package_basin_mask))
+                        flatten(
+                            results.mf6_budgets["riv_" + package].where(
+                                package_basin_mask
+                            )
+                        )
                         .reshape(ntime, nriv)
                         .sum(axis=1)
                     )
                     if isinstance(mf6_model[package], imod.mf6.River):
                         # riv correction flux from MF6 output
+                        api_name = "api_" + package
+                        # name of the api-package corresponding to (river) package
+                        # nb. in mf6_budgets api_name is prepended by 'api_'
+                        # again as the typename
                         riv_correction_flux = (
                             flatten(
-                                results.mf6_budgets["api_" + package].where(
+                                results.mf6_budgets["api_" + api_name].where(
                                     package_basin_mask
                                 )
                             )
