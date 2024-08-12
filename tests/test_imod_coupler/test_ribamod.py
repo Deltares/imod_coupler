@@ -160,10 +160,8 @@ def test_ribamod_backwater(
     # The head should follow the same pattern.
     assert (results.head.isel(layer=0, time=-1).diff("x") < 0.0).all()
 
-    drn = results.budgets["drn-1"].isel(time=-1).compute()
-    riv = results.budgets["riv-1"].isel(time=-1).compute()
-    drn0 = results.budgets["drn-1"].isel(time=-2).compute()
-    riv0 = results.budgets["riv-1"].isel(time=-2).compute()
+    drn = results.budgets["drn_drn-1"].isel(time=-1).compute()
+    riv = results.budgets["riv_riv-1"].isel(time=-1).compute()
 
     # Get the last flow between the edges
     volume_balance = results.basin_df[results.basin_df["time"] == "2020-12-31"]
@@ -176,11 +174,8 @@ def test_ribamod_backwater(
         )[:-1]
         * 86_400.0
     ).to_numpy()
-    # It seems that there is a match of integrated volumes shifted by half a timestep.
-    # the integration of flux on the Ribasim side deserves a closer look
-    modflow_budget = (
-        (0.5 * drn + 0.5 * riv + 0.5 * drn0 + 0.5 * riv0).sel(y=0).to_numpy()
-    )
+
+    modflow_budget = (drn + riv).sel(y=0).to_numpy()
     budget_diff = ribasim_budget - modflow_budget
     assert (np.abs(budget_diff) < 1.0e-4).all()
 
