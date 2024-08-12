@@ -902,7 +902,7 @@ def test_exchange_balance() -> None:
     realised = np.ones(shape=shape, dtype=np.float64) * 2
     with pytest.raises(
         ValueError,
-        match="Invalid realised values: found shortage larger than negative demand contributions",
+        match="Invalid realised volumes: found shortage larger than negative demand contributions",
     ):
         exchange.compute_realised(realised)
 
@@ -914,6 +914,6 @@ def test_exchange_balance() -> None:
     exchange.demands_negative["flux-1"] = np.ones(shape=shape, dtype=np.float64) * -4
     realised = np.ones(shape=shape, dtype=np.float64) * 8
     with pytest.raises(
-        ValueError, match="Invalid realised values: found shortage for positive demand"
+        ValueError, match="Invalid realised volumes: found shortage for positive demand"
     ):
         exchange.compute_realised(realised)

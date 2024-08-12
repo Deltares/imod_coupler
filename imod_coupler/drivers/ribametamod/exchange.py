@@ -30,14 +30,14 @@ class ExchangeBalance:
         """
         This function computes the realised (negative) volumes
         """
-        shortage = np.absolute(self.demand - realised_volume)
+        shortage = self.demand - realised_volume
         demand_negative = self.demand_negative
         self._check_valid_shortage(
             shortage
         )  # use a numpy isclose to set the max non-zero value
         # deal with zero division
         realised_fraction = np.where(
-            demand_negative < 0.0, 1.0 - (-shortage / demand_negative), 1.0
+            demand_negative < 0.0, 1.0 - (shortage / demand_negative), 1.0
         )
         for volume_label in self.volume_labels:
             self.realised_negative[volume_label] = (
@@ -54,12 +54,12 @@ class ExchangeBalance:
             self.realised_negative[volume_label][:] = 0.0
 
     def _check_valid_shortage(self, shortage: NDArray[np.float64]) -> None:
-        eps: float = 1.0e-04 * day_to_seconds
-        if np.any(np.logical_and(self.demand > 0.0, shortage > eps)):
+        eps: float = 1.0e-04
+        if np.any(np.logical_and(self.demand > 0.0, np.absolute(shortage) > eps)):
             raise ValueError(
                 "Invalid realised volumes: found shortage for positive demand"
             )
-        if np.any(shortage > np.absolute(self.demand_negative) + eps):
+        if np.any(shortage < self.demand_negative - eps):
             raise ValueError(
                 "Invalid realised volumes: found shortage larger than negative demand contributions"
             )
