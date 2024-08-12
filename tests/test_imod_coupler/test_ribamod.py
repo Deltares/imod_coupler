@@ -176,9 +176,7 @@ def test_ribamod_backwater(
     ).to_numpy()
     # It seems that there is a match of integrated volumes shifted by half a timestep.
     # the integration of flux on the Ribasim side deserves a closer look
-    modflow_budget = (
-        (drn + riv).sel(y=0).to_numpy()
-    )
+    modflow_budget = (drn + riv).sel(y=0).to_numpy()
     budget_diff = ribasim_budget - modflow_budget
     assert (np.abs(budget_diff) < 1.0e-4).all()
 
