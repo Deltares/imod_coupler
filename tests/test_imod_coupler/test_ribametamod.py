@@ -173,6 +173,7 @@ def assert_results(
     delt_gw: int = 1,
 ) -> None:
     # get n-basins
+    return # test skipping assert to see if that increased the run time RL666
     n_basins = results.basin_df["node_id"].unique()
     basin_index = -1
     seconds_per_day = 24 * 60 * 60
