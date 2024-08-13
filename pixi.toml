@@ -81,7 +81,7 @@ update-git-dependencies = """pip install --upgrade --force-reinstall --no-deps
                              git+https://github.com/Deltares/Ribasim.git/#subdirectory=python/ribasim_api
                              git+https://github.com/Deltares/Ribasim.git/#subdirectory=python/ribasim_testmodels"""
 # Tests
-test-imod-coupler = "pytest --numprocesses=auto --dist=loadgroup --basetemp=tests/temp --junitxml=report.xml tests/test_imod_coupler"
+test-imod-coupler = "pytest -v -s --numprocesses=auto --dist=loadgroup --basetemp=tests/temp --junitxml=report.xml tests/test_imod_coupler"
 tests = { depends_on = ["test-primod", "test-imod-coupler"] }
 # Lint
 mypy-imodc = "mypy --ignore-missing-imports --strict imod_coupler"
