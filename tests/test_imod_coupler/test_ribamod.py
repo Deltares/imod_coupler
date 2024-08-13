@@ -160,8 +160,8 @@ def test_ribamod_backwater(
     # The head should follow the same pattern.
     assert (results.head.isel(layer=0, time=-1).diff("x") < 0.0).all()
 
-    drn = results.budgets["drn-1"].isel(time=-1).compute()
-    riv = results.budgets["riv-1"].isel(time=-1).compute()
+    drn = results.budgets["drn_drn-1"].isel(time=-1).compute()
+    riv = results.budgets["riv_riv-1"].isel(time=-1).compute()
 
     # Get the last flow between the edges
     volume_balance = results.basin_df[results.basin_df["time"] == "2020-12-31"]
