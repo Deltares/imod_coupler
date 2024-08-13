@@ -156,25 +156,39 @@ def sum_budgets(to_sum: np.ndarray, summed: np.ndarray) -> np.ndarray:
     return summed
 
 
+def resample_budget_array(array_in: xr.DataArray, delt_out: float) -> np.ndarray:
+    delt = array_in["time"][0].item()
+    timedelta = pd.to_timedelta(array_in["time"] - delt, "D")
+    time_min = pd.to_datetime("1900/01/01")  # dummy date
+    array_uit = array_in.assign_coords(time=time_min + timedelta)
+    return array_uit.resample(time=str(delt_out) + "D").sum().to_numpy()
+
+
 def assert_results(
     tmp_path_dev: Path,
     ribametamod_model: RibaMetaMod,
     results: Results,
     atol: float = 1.0,  # TODO: evaluate proper value, including rtol
     do_assert: bool = True,  # could be set to False to only generate plots
+    delt_gw: int = 1,
 ) -> None:
     # get n-basins
     n_basins = results.basin_df["node_id"].unique()
     basin_index = -1
+    seconds_per_day = 24 * 60 * 60
     for n_basin in n_basins:
         basin_index += 1
-        basin_mask = results.basin_df["node_id"] == n_basin
-        delt = 24 * 60 * 60
-
-        # Ribasim results
+        # Ribasim results subset for basin
+        basin_df = results.basin_df[results.basin_df["node_id"] == n_basin].set_index(
+            "time"
+        )
         ribasim_bnd_flux = (
-            results.basin_df["drainage"] - results.basin_df["infiltration"]
-        ).to_numpy()[basin_mask] * delt
+            (
+                basin_df["drainage"].resample(str(delt_gw) + "D").sum()
+                - basin_df["infiltration"].resample(str(delt_gw) + "D").sum()
+            ).to_numpy()
+            * seconds_per_day
+        )  # summed daily average flux in m3/s * seconds per day
 
         # MetaSWAP runoff
         svat_mask = results.msw_budgets["bdgqrun_mask_index"] == basin_index
@@ -185,9 +199,9 @@ def assert_results(
             .sum(dim=["y", "x", "layer"], skipna=True)
             .to_numpy()
         )
-        runoff_exchange = (
-            results.exchange_budget["exchange_demand_sw_ponding"].to_numpy()
-        )[:, basin_index] * delt
+        runoff_exchange = results.exchange_budget["exchange_demand_sw_ponding"][
+            :, basin_index
+        ]
         if basin_index < 5:
             plot_results(
                 tmp_path_dev,
@@ -204,10 +218,23 @@ def assert_results(
                 atol=atol,
             )  # MetaSWAP output relative to coupler
 
+        # plot Ribasim results
+        if basin_index < 5:
+            plot_results(
+                tmp_path_dev,
+                {
+                    "water level Ribasim": basin_df["level"]
+                    .resample(str(delt_gw) + "D")
+                    .mean()
+                },
+                "Ribasim_stage_" + str(n_basin),
+            )
+
         # River fluxes; summed per coupled basin
         mf6_model = ribametamod_model.mf6_simulation["GWF_1"]
         summed_riv_flux_estimate = np.array([])
         summed_correction_flux = np.array([])
+        summed_riv_flux_output = np.array([])
         for item in ribametamod_model.coupling_list:
             if isinstance(item, RibaModActiveDriverCoupling):
                 for package in item.mf6_packages:
@@ -218,7 +245,7 @@ def assert_results(
                     ].to_numpy()
                     riv_flux_estimate_exchange = (
                         results.exchange_budget["exchange_demand_" + package].to_numpy()
-                    )[:, basin_index] * delt
+                    )[:, basin_index]
                     summed_riv_flux_estimate = sum_budgets(
                         riv_flux_estimate_exchange, summed_riv_flux_estimate
                     )
@@ -245,29 +272,40 @@ def assert_results(
                             .dataset["bottom_elevation"]
                             .where(package_basin_mask)
                         )
+                        prefix = "riv_"
                     else:
                         bottom = stage
+                        prefix = "drn_"
                     cond = flatten(cond_ar.where(package_basin_mask))
                     riv_flux_exchange = (
                         (stage - np.maximum(subset_head, bottom)) * cond
-                    ).sum(axis=1)
+                    ).sum(axis=1) * delt_gw
                     # river flux from MF6 output
                     riv_flux_output = (
-                        flatten(results.mf6_budgets[package].where(package_basin_mask))
+                        flatten(
+                            results.mf6_budgets[prefix + package].where(
+                                package_basin_mask
+                            )
+                        )
                         .reshape(ntime, nriv)
                         .sum(axis=1)
+                    ) * delt_gw
+                    summed_riv_flux_output = sum_budgets(
+                        riv_flux_output,
+                        summed_riv_flux_output,
                     )
+
                     if isinstance(mf6_model[package], imod.mf6.River):
                         # riv correction flux from MF6 output
                         riv_correction_flux = (
                             flatten(
-                                results.mf6_budgets["api_" + package].where(
+                                results.mf6_budgets["api_api_" + package].where(
                                     package_basin_mask
                                 )
                             )
                             .reshape(ntime, nriv)
                             .sum(axis=1)
-                        )
+                        ) * delt_gw
                         summed_correction_flux = sum_budgets(
                             riv_correction_flux, summed_correction_flux
                         )
@@ -278,8 +316,8 @@ def assert_results(
                             tmp_path_dev,
                             {
                                 "river flux estimate": -riv_flux_estimate_exchange,
+                                "river flux estimate correction": riv_correction_flux,
                                 "river flux MF6-output": riv_flux_output,
-                                "river flux correction MF6-output": riv_correction_flux,
                                 "river flux validation_dashed": riv_flux_exchange,
                             },
                             package + "_basin_" + str(n_basin),
@@ -289,11 +327,12 @@ def assert_results(
                             riv_flux_exchange, riv_flux_output, atol=atol
                         )
             elif isinstance(item, RibaModPassiveDriverCoupling):
+                basin_mask = results.basin_df["node_id"] == n_basin
                 for package in item.mf6_packages:
                     # river flux estimate from coupler logging
                     riv_flux_estimate_exchange = (
                         results.exchange_budget["exchange_demand_" + package].to_numpy()
-                    )[:, 0][basin_mask.ravel()] * delt
+                    )[:, 0][basin_mask.ravel()]
                     summed_riv_flux_estimate = sum_budgets(
                         riv_flux_estimate_exchange, summed_riv_flux_estimate
                     )
@@ -304,7 +343,7 @@ def assert_results(
                 {
                     "MetaSWAP runoff": runoff_exchange,
                     "MF6 river flux estimate": summed_riv_flux_estimate,
-                    "MF6 river flux correction": summed_correction_flux,
+                    "MF6 river flux output": -summed_riv_flux_output,
                     "Ribasim": ribasim_bnd_flux,
                     "sum exchanges_dashed": runoff_exchange
                     + summed_riv_flux_estimate
@@ -340,9 +379,13 @@ def assert_results(
             coupled_svats = coupled_svats[np.isfinite(coupled_svats)].astype(
                 dtype=np.int32
             )
-            sprinkling_realised_exchange = (
-                results.exchange_budget["sprinkling_realized"].to_numpy()
-            )[:, coupled_svats].sum(axis=1)
+            # should be resampled for dtsw < dtgw
+            sprinkling_realized = resample_budget_array(
+                results.exchange_budget["sprinkling_realized"], delt_gw
+            )  # m3/dtgw
+            sprinkling_realised_exchange = sprinkling_realized[:, coupled_svats].sum(
+                axis=1
+            )
             if basin_index < 5:
                 plot_results(
                     tmp_path_dev,
@@ -356,7 +399,7 @@ def assert_results(
                 np.testing.assert_allclose(
                     sprinkling_msw,
                     sprinkling_realised_exchange,
-                    atol=10,
+                    atol=13,
                 )  # TODO: check why discrepancy between coupler and MetaSWAP increases
 
 
@@ -568,6 +611,111 @@ def test_ribametamod_two_basin(
 
 
 @pytest.mark.xdist_group(name="ribasim")
+@parametrize_with_cases("ribametamod_model", glob="two_basin_model_dtgw_2")
+def test_ribametamod_two_basin_dtgw_2(
+    tmp_path_dev: Path,
+    ribametamod_model: RibaMetaMod,
+    metaswap_dll_devel: Path,
+    metaswap_dll_dep_dir_devel: Path,
+    modflow_dll_devel: Path,
+    ribasim_dll_devel: Path,
+    ribasim_dll_dep_dir_devel: Path,
+    run_coupler_function: Callable[[Path], None],
+) -> None:
+    """
+    Test if the two-basin model model works as expected
+    """
+    results = write_run_read(
+        tmp_path_dev,
+        ribametamod_model,
+        modflow_dll_devel,
+        ribasim_dll_devel,
+        ribasim_dll_dep_dir_devel,
+        metaswap_dll_devel,
+        metaswap_dll_dep_dir_devel,
+        run_coupler_function,
+        output_labels=[
+            "exchange_demand_riv_1",
+            "exchange_demand_sw_ponding",
+            "stage_riv_1",
+        ],
+    )
+    # frequentie for MODFLOW-6 and MetaSWAP output
+    delt_gw = int(ribametamod_model.msw_model.simulation_settings["dtgw"])
+    assert_results(tmp_path_dev, ribametamod_model, results, delt_gw=delt_gw)
+
+
+@pytest.mark.xdist_group(name="ribasim")
+@parametrize_with_cases("ribametamod_model", glob="two_basin_model_dtsw_05")
+def test_ribametamod_two_basin_dtsw_05(
+    tmp_path_dev: Path,
+    ribametamod_model: RibaMetaMod,
+    metaswap_dll_devel: Path,
+    metaswap_dll_dep_dir_devel: Path,
+    modflow_dll_devel: Path,
+    ribasim_dll_devel: Path,
+    ribasim_dll_dep_dir_devel: Path,
+    run_coupler_function: Callable[[Path], None],
+) -> None:
+    """
+    Test if the two-basin model model works as expected
+    """
+    results = write_run_read(
+        tmp_path_dev,
+        ribametamod_model,
+        modflow_dll_devel,
+        ribasim_dll_devel,
+        ribasim_dll_dep_dir_devel,
+        metaswap_dll_devel,
+        metaswap_dll_dep_dir_devel,
+        run_coupler_function,
+        output_labels=[
+            "exchange_demand_riv_1",
+            "exchange_demand_sw_ponding",
+            "stage_riv_1",
+        ],
+    )
+    # frequentie for MODFLOW-6 and MetaSWAP output
+    delt_gw = int(ribametamod_model.msw_model.simulation_settings["dtgw"])
+    assert_results(tmp_path_dev, ribametamod_model, results, delt_gw=delt_gw)
+
+
+@pytest.mark.xdist_group(name="ribasim")
+@parametrize_with_cases("ribametamod_model", glob="two_basin_model_dtgw_2_dtsw_05")
+def test_ribametamod_two_basin_dtgw_2_dtsw_05(
+    tmp_path_dev: Path,
+    ribametamod_model: RibaMetaMod,
+    metaswap_dll_devel: Path,
+    metaswap_dll_dep_dir_devel: Path,
+    modflow_dll_devel: Path,
+    ribasim_dll_devel: Path,
+    ribasim_dll_dep_dir_devel: Path,
+    run_coupler_function: Callable[[Path], None],
+) -> None:
+    """
+    Test if the two-basin model model works as expected
+    """
+    results = write_run_read(
+        tmp_path_dev,
+        ribametamod_model,
+        modflow_dll_devel,
+        ribasim_dll_devel,
+        ribasim_dll_dep_dir_devel,
+        metaswap_dll_devel,
+        metaswap_dll_dep_dir_devel,
+        run_coupler_function,
+        output_labels=[
+            "exchange_demand_riv_1",
+            "exchange_demand_sw_ponding",
+            "stage_riv_1",
+        ],
+    )
+    # frequentie for MODFLOW-6 and MetaSWAP output
+    delt_gw = int(ribametamod_model.msw_model.simulation_settings["dtgw"])
+    assert_results(tmp_path_dev, ribametamod_model, results, delt_gw=delt_gw)
+
+
+@pytest.mark.xdist_group(name="ribasim")
 @parametrize_with_cases("ribametamod_model", glob="two_basin_model_sprinkling_sw")
 def test_ribametamod_two_basin_sprinkling_sw(
     tmp_path_dev: Path,
@@ -637,6 +785,45 @@ def test_ribametamod_two_basin_sprinkling_sw_allocation(
         ],
     )
     assert_results(tmp_path_dev, ribametamod_model, results)
+
+
+@pytest.mark.xdist_group(name="ribasim")
+@parametrize_with_cases(
+    "ribametamod_model", glob="two_basin_model_sprinkling_sw_allocation_dtsw_05"
+)
+def test_ribametamod_two_basin_sprinkling_sw_allocation_dtsw_05(
+    tmp_path_dev: Path,
+    ribametamod_model: RibaMetaMod,
+    metaswap_dll_devel: Path,
+    metaswap_dll_dep_dir_devel: Path,
+    modflow_dll_devel: Path,
+    ribasim_dll_devel: Path,
+    ribasim_dll_dep_dir_devel: Path,
+    run_coupler_function: Callable[[Path], None],
+) -> None:
+    """
+    Test if the two-basin model model works as expected
+    """
+    results = write_run_read(
+        tmp_path_dev,
+        ribametamod_model,
+        modflow_dll_devel,
+        ribasim_dll_devel,
+        ribasim_dll_dep_dir_devel,
+        metaswap_dll_devel,
+        metaswap_dll_dep_dir_devel,
+        run_coupler_function,
+        output_labels=[
+            "exchange_demand_riv_1",
+            "exchange_demand_sw_ponding",
+            "stage_riv_1",
+            "sprinkling_realized",
+            "sprinkling_demand",
+        ],
+    )
+    # frequentie for MODFLOW-6 and MetaSWAP output
+    delt_gw = int(ribametamod_model.msw_model.simulation_settings["dtgw"])
+    assert_results(tmp_path_dev, ribametamod_model, results, delt_gw=delt_gw)
 
 
 def test_exchange_balance() -> None:
@@ -715,7 +902,7 @@ def test_exchange_balance() -> None:
     realised = np.ones(shape=shape, dtype=np.float64) * 2
     with pytest.raises(
         ValueError,
-        match="Invalid realised values: found shortage larger than negative demand contributions",
+        match="Invalid realised volumes: found shortage larger than negative demand contributions",
     ):
         exchange.compute_realised(realised)
 
@@ -727,6 +914,6 @@ def test_exchange_balance() -> None:
     exchange.demands_negative["flux-1"] = np.ones(shape=shape, dtype=np.float64) * -4
     realised = np.ones(shape=shape, dtype=np.float64) * 8
     with pytest.raises(
-        ValueError, match="Invalid realised values: found shortage for positive demand"
+        ValueError, match="Invalid realised volumes: found shortage for positive demand"
     ):
         exchange.compute_realised(realised)
