@@ -6,7 +6,11 @@ import ribasim.geometry
 import xarray as xr
 from fixtures.common import create_wells_max_layer
 from imod import msw
-from imod.mf6 import Modflow6Simulation, Recharge, StorageCoefficient
+from imod.mf6 import (
+    Modflow6Simulation,
+    Recharge,
+    StorageCoefficient,
+)
 from imod.msw import MetaSwapModel
 from primod import (
     MetaModDriverCoupling,
@@ -418,6 +422,167 @@ def case_two_basin_model(
     )
 
 
+def case_two_basin_model_dtgw_2(
+    mf6_two_basin_model: Modflow6Simulation,
+    msw_two_basin_model: MetaSwapModel,
+    ribasim_two_basin_model: ribasim.Model,
+) -> RibaMetaMod:
+    mf6_two_basin_model = set_confined_storage_formulation(mf6_two_basin_model)
+    msw_two_basin_model = remove_sprinkling_from_groundwater(
+        msw_two_basin_model, mf6_two_basin_model
+    )
+
+    # add rch-package for coupling MetaMod
+    mf6_two_basin_model = add_rch_package(mf6_two_basin_model)
+
+    # increase river resistance from 1 to 10 days to prevent oscillations
+    mf6_two_basin_model["GWF_1"]["riv_1"]["conductance"] = (
+        mf6_two_basin_model["GWF_1"]["riv_1"]["conductance"] / 10
+    )
+    # update delt-gw for MODFLOW and MetaSWAP
+    times = pd.date_range("2020-01-01", "2021-01-01", freq="2d")
+    mf6_two_basin_model.create_time_discretization(additional_times=times)
+    msw_two_basin_model.simulation_settings["dtgw"] = 2.0
+
+    # get variables
+    mf6_modelname, mf6_model = get_mf6_gwf_modelnames(mf6_two_basin_model)[0]
+    mf6_active_river_packages = get_mf6_river_packagenames(mf6_model)
+    basin_definition = create_basin_definition(
+        ribasim_two_basin_model.basin.node,
+        buffersize=250.0,
+    )
+
+    # increase recharge to induce ponding water
+    pp = msw_two_basin_model["meteo_grid"].dataset["precipitation"]
+    msw_two_basin_model["meteo_grid"].dataset["precipitation"] = pp * 10
+
+    metamod_coupling = MetaModDriverCoupling(
+        mf6_model=mf6_modelname,
+        mf6_recharge_package="rch_msw",
+    )
+    ribamod_coupling = RibaModActiveDriverCoupling(
+        mf6_model=mf6_modelname,
+        mf6_packages=mf6_active_river_packages,
+        ribasim_basin_definition=basin_definition,
+    )
+    ribameta_coupling = RibaMetaDriverCoupling(
+        ribasim_basin_definition=basin_definition,
+    )
+
+    return RibaMetaMod(
+        ribasim_model=ribasim_two_basin_model,
+        msw_model=msw_two_basin_model,
+        mf6_simulation=mf6_two_basin_model,
+        coupling_list=[metamod_coupling, ribamod_coupling, ribameta_coupling],
+    )
+
+
+def case_two_basin_model_dtgw_2_dtsw_05(
+    mf6_two_basin_model: Modflow6Simulation,
+    msw_two_basin_model: MetaSwapModel,
+    ribasim_two_basin_model: ribasim.Model,
+) -> RibaMetaMod:
+    mf6_two_basin_model = set_confined_storage_formulation(mf6_two_basin_model)
+    msw_two_basin_model = remove_sprinkling_from_groundwater(
+        msw_two_basin_model, mf6_two_basin_model
+    )
+
+    # add rch-package for coupling MetaMod
+    mf6_two_basin_model = add_rch_package(mf6_two_basin_model)
+
+    # increase river resistance from 1 to 10 days to prevent oscillations
+    mf6_two_basin_model["GWF_1"]["riv_1"]["conductance"] = (
+        mf6_two_basin_model["GWF_1"]["riv_1"]["conductance"] / 10
+    )
+    # update delt-gw for MODFLOW and MetaSWAP
+    times = pd.date_range("2020-01-01", "2021-01-01", freq="2d")
+    mf6_two_basin_model.create_time_discretization(additional_times=times)
+    msw_two_basin_model.simulation_settings["dtgw"] = 2.0
+    # update delt-sw for MetaSWAP
+    msw_two_basin_model.simulation_settings["dtsw"] = 0.5
+
+    # get variables
+    mf6_modelname, mf6_model = get_mf6_gwf_modelnames(mf6_two_basin_model)[0]
+    mf6_active_river_packages = get_mf6_river_packagenames(mf6_model)
+    basin_definition = create_basin_definition(
+        ribasim_two_basin_model.basin.node,
+        buffersize=250.0,
+    )
+
+    # increase recharge to induce ponding water
+    pp = msw_two_basin_model["meteo_grid"].dataset["precipitation"]
+    msw_two_basin_model["meteo_grid"].dataset["precipitation"] = pp * 10
+
+    metamod_coupling = MetaModDriverCoupling(
+        mf6_model=mf6_modelname,
+        mf6_recharge_package="rch_msw",
+    )
+    ribamod_coupling = RibaModActiveDriverCoupling(
+        mf6_model=mf6_modelname,
+        mf6_packages=mf6_active_river_packages,
+        ribasim_basin_definition=basin_definition,
+    )
+    ribameta_coupling = RibaMetaDriverCoupling(
+        ribasim_basin_definition=basin_definition,
+    )
+
+    return RibaMetaMod(
+        ribasim_model=ribasim_two_basin_model,
+        msw_model=msw_two_basin_model,
+        mf6_simulation=mf6_two_basin_model,
+        coupling_list=[metamod_coupling, ribamod_coupling, ribameta_coupling],
+    )
+
+
+def case_two_basin_model_dtsw_05(
+    mf6_two_basin_model: Modflow6Simulation,
+    msw_two_basin_model: MetaSwapModel,
+    ribasim_two_basin_model: ribasim.Model,
+) -> RibaMetaMod:
+    mf6_two_basin_model = set_confined_storage_formulation(mf6_two_basin_model)
+    msw_two_basin_model = remove_sprinkling_from_groundwater(
+        msw_two_basin_model, mf6_two_basin_model
+    )
+
+    # add rch-package for coupling MetaMod
+    mf6_two_basin_model = add_rch_package(mf6_two_basin_model)
+
+    # update delt-sw for MetaSWAP
+    msw_two_basin_model.simulation_settings["dtsw"] = 0.5
+
+    # get variables
+    mf6_modelname, mf6_model = get_mf6_gwf_modelnames(mf6_two_basin_model)[0]
+    mf6_active_river_packages = get_mf6_river_packagenames(mf6_model)
+    basin_definition = create_basin_definition(
+        ribasim_two_basin_model.basin.node,
+        buffersize=250.0,
+    )
+
+    # increase recharge to induce ponding water
+    pp = msw_two_basin_model["meteo_grid"].dataset["precipitation"]
+    msw_two_basin_model["meteo_grid"].dataset["precipitation"] = pp * 10
+
+    metamod_coupling = MetaModDriverCoupling(
+        mf6_model=mf6_modelname,
+        mf6_recharge_package="rch_msw",
+    )
+    ribamod_coupling = RibaModActiveDriverCoupling(
+        mf6_model=mf6_modelname,
+        mf6_packages=mf6_active_river_packages,
+        ribasim_basin_definition=basin_definition,
+    )
+    ribameta_coupling = RibaMetaDriverCoupling(
+        ribasim_basin_definition=basin_definition,
+    )
+
+    return RibaMetaMod(
+        ribasim_model=ribasim_two_basin_model,
+        msw_model=msw_two_basin_model,
+        mf6_simulation=mf6_two_basin_model,
+        coupling_list=[metamod_coupling, ribamod_coupling, ribameta_coupling],
+    )
+
+
 def case_two_basin_model_sprinkling_sw(
     mf6_two_basin_model_3layer: Modflow6Simulation,
     msw_two_basin_model_3layer: MetaSwapModel,
@@ -443,4 +608,22 @@ def case_two_basin_model_sprinkling_sw_allocation(
     ribametamod.ribasim_model.allocation = ribasim.Allocation(
         timestep=86400.0, use_allocation=True
     )
+    return ribametamod
+
+
+def case_two_basin_model_sprinkling_sw_allocation_dtsw_05(
+    mf6_two_basin_model_3layer: Modflow6Simulation,
+    msw_two_basin_model_3layer: MetaSwapModel,
+    ribasim_two_basin_model: ribasim.Model,
+) -> RibaMetaMod:
+    ribametamod = two_basin_model_sprinkling_sw_variations(
+        mf6_two_basin_model_3layer,
+        msw_two_basin_model_3layer,
+        ribasim_two_basin_model,
+    )
+    ribametamod.ribasim_model.allocation = ribasim.Allocation(
+        timestep=86400.0, use_allocation=True
+    )
+    # update delt-sw for MetaSWAP
+    ribametamod.msw_model.simulation_settings["dtsw"] = 0.5
     return ribametamod
