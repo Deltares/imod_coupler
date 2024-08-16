@@ -1,27 +1,30 @@
 from __future__ import annotations
 
+import os
+import sys
 from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import Any
-import os, sys
+
 from loguru import logger
 
 from imod_coupler.config import BaseConfig
 
-def resolve(libname):
+
+def resolve_path(libname: str) -> str:
     if os.path.isfile(os.path.abspath(libname)):
-        return (os.path.abspath(libname))
-    if 'win' in sys.platform.lower():
-        if 'PATH' in os.environ:
-            pathdef = os.environ['PATH']
-    elif 'linux' in sys.platform.lower() or 'darwin' in sys.platform.lower():
-        if 'LD_LIBRARY_PATH' in os.environ:
-            pathdef = os.environ['LD_LIBRARY_PATH']
+        return os.path.abspath(libname)
+    if "win" in sys.platform.lower():
+        if "PATH" in os.environ:
+            pathdef = os.environ["PATH"]
+    elif "linux" in sys.platform.lower() or "darwin" in sys.platform.lower():
+        if "LD_LIBRARY_PATH" in os.environ:
+            pathdef = os.environ["LD_LIBRARY_PATH"]
     for dir in pathdef.split(os.pathsep):
         full_path = Path(dir) / libname
         if os.path.isfile(full_path):
-            return (full_path)
-    return libname      # if resolution failed, give it back to the call site
+            return str(full_path)
+    return libname  # if resolution failed, give it back to the call site
 
 
 class Driver(ABC):
@@ -88,7 +91,7 @@ def get_driver(
     # resolve library locations using which
     for kernel in config_dict["driver"]["kernels"].values():
         if "dll" in kernel:
-            kernel["dll"] = resolve(kernel["dll"])
+            kernel["dll"] = resolve_path(kernel["dll"])
 
     if base_config.driver_type == "metamod":
         metamod_config = MetaModConfig(config_dir=config_dir, **config_dict["driver"])
