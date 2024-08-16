@@ -3,10 +3,25 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import Any
-
+import os, sys
 from loguru import logger
 
 from imod_coupler.config import BaseConfig
+
+def resolve(libname):
+    if os.path.isfile(os.path.abspath(libname)):
+        return (os.path.abspath(libname))
+    if 'win' in sys.platform.lower():
+        if 'PATH' in os.environ:
+            pathdef = os.environ['PATH']
+    elif 'linux' in sys.platform.lower() or 'darwin' in sys.platform.lower():
+        if 'LD_LIBRARY_PATH' in os.environ:
+            pathdef = os.environ['LD_LIBRARY_PATH']
+    for dir in pathdef.split(os.pathsep):
+        full_path = Path(dir) / libname
+        if os.path.isfile(full_path):
+            return (full_path)
+    return libname      # if resolution failed, give it back to the call site
 
 
 class Driver(ABC):
@@ -63,8 +78,6 @@ class Driver(ABC):
 def get_driver(
     config_dict: dict[str, Any], config_dir: Path, base_config: BaseConfig
 ) -> Driver:
-    import shutil as sh
-
     from imod_coupler.drivers.metamod.config import MetaModConfig
     from imod_coupler.drivers.metamod.metamod import MetaMod
     from imod_coupler.drivers.ribametamod.config import RibaMetaModConfig
@@ -75,7 +88,7 @@ def get_driver(
     # resolve library locations using which
     for kernel in config_dict["driver"]["kernels"].values():
         if "dll" in kernel:
-            kernel["dll"] = sh.which(kernel["dll"])
+            kernel["dll"] = resolve(kernel["dll"])
 
     if base_config.driver_type == "metamod":
         metamod_config = MetaModConfig(config_dir=config_dir, **config_dict["driver"])
