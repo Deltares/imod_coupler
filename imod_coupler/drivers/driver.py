@@ -26,7 +26,7 @@ def resolve_path(libname: str) -> str:
         pathdef: str = os.environ[env_var]
         for dir in pathdef.split(os.pathsep):
             full_path = Path(dir) / libname
-            if os.path.isfile(full_path):
+            if full_path.is_file():
                 return str(full_path)
     return libname  # if resolution failed, give it back to the call site
 
