@@ -12,18 +12,22 @@ from imod_coupler.config import BaseConfig
 
 
 def resolve_path(libname: str) -> str:
-    if os.path.isfile(os.path.abspath(libname)):
-        return os.path.abspath(libname)
-    if "win" in sys.platform.lower():
-        if "PATH" in os.environ:
-            pathdef = os.environ["PATH"]
-    elif "linux" in sys.platform.lower() or "darwin" in sys.platform.lower():
-        if "LD_LIBRARY_PATH" in os.environ:
-            pathdef = os.environ["LD_LIBRARY_PATH"]
-    for dir in pathdef.split(os.pathsep):
-        full_path = Path(dir) / libname
-        if os.path.isfile(full_path):
-            return str(full_path)
+    match sys.platform.lower():
+        case "win32":
+            env_var = "PATH"
+        case "linux" | "linux2" | "darwin":
+            env_var = "LD_LIBRARY_PATH"
+        case _:
+            return libname
+
+    if os.path.isfile(libname):
+        return libname
+    if env_var in os.environ:
+        pathdef: str = os.environ[env_var]
+        for dir in pathdef.split(os.pathsep):
+            full_path = Path(dir) / libname
+            if os.path.isfile(full_path):
+                return str(full_path)
     return libname  # if resolution failed, give it back to the call site
 
 
