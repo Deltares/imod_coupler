@@ -10,9 +10,9 @@ import jetbrains.buildServer.configs.kotlin.buildSteps.script
 import jetbrains.buildServer.configs.kotlin.triggers.finishBuildTrigger
 import jetbrains.buildServer.configs.kotlin.triggers.vcs
 
-object TestbenchCouplerWin64_2 : BuildType({
-    name = "Testbench Coupler Win64"
-    description = "Win64 Regression testbench for MODFLOW6/MetaSWAP coupler"
+object TestbenchCouplerWin64Release : BuildType({
+    name = "Testbench Coupler Win64 Release"
+    description = "Win64 Regression testbench for MODFLOW6/MetaSWAP coupler, released combination"
 
     artifactRules = """imod_coupler\tests\temp => test_output.zip"""
     publishArtifacts = PublishMode.ALWAYS
@@ -92,7 +92,7 @@ object TestbenchCouplerWin64_2 : BuildType({
     }
 
     dependencies {
-        dependency(IMODCollector.buildTypes.IMODCollector_X64development) {
+        dependency(IMODCollector.buildTypes.IMODCollector_X64release) {
             snapshot {
                 onDependencyFailure = FailureAction.FAIL_TO_START
             }

@@ -13,6 +13,7 @@ object Project : Project({
     vcsRoot(IMODCollector_ImodCouplerReleaseImod52)
     vcsRoot(IMODCollector_ImodCouplerReleaseImod53)
 
+    buildType(IMODCollector_X64release)
     buildType(IMODCollector_X64development)
     buildType(IMODCollector_X64developmentLnx64)
     buildType(IMODCollector_X64lumbricus)
