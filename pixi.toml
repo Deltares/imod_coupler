@@ -19,7 +19,8 @@ build-imod-coupler = "rm -rf dist && pyinstaller imod_coupler/__main__.py --name
 [dependencies]
 netCDF4 = "*"
 loguru = "*"
-numpy = "*"
+numpy = "<2.0"
+imod = "*"
 pip = "*"
 pydantic = "2.*"
 pyinstaller = "*"
@@ -28,14 +29,13 @@ scipy = "*"
 tomli = "*"
 tomli-w = "*"
 xmipy = "*"
-pandera = "<=0.19" 
 
-[pypi-dependencies]
-ribasim = {git = "https://github.com/Deltares/Ribasim.git/#subdirectory=python/ribasim"}
+#[pypi-dependencies]
+#ribasim = {git = "https://github.com/Deltares/Ribasim.git/#subdirectory=python/ribasim"}
 
 [feature.common.tasks]
 # Install
-# install-ribasim-python = "pip install git+https://github.com/Deltares/Ribasim.git/#subdirectory=python/ribasim"
+install-ribasim-python = "pip install git+https://github.com/Deltares/Ribasim.git/#subdirectory=python/ribasim"
 install-ribasim-testmodels = "pip install git+https://github.com/Deltares/Ribasim.git/#subdirectory=python/ribasim_testmodels"
 install-primod = "pip install --no-deps --editable pre-processing"
 install-metaswap-testmodels = "svn checkout https://repos.deltares.nl/repos/DSCTestbench/trunk/cases/e150_metaswap/f00_common/c00_common/LHM2016_v01vrz .imod_collector/e150_metaswap"
@@ -56,7 +56,7 @@ test-primod = "pytest --junitxml=report.xml tests/test_primod"
 build = "*"
 geopandas = "*"
 httpx = "*"
-imod = "0.15.3"
+imod = "*"
 ipython = "*"
 jupyterlab = "*"
 mypy = "*"
@@ -81,7 +81,7 @@ update-git-dependencies = """pip install --upgrade --force-reinstall --no-deps
                              git+https://github.com/Deltares/Ribasim.git/#subdirectory=python/ribasim_api
                              git+https://github.com/Deltares/Ribasim.git/#subdirectory=python/ribasim_testmodels"""
 # Tests
-test-imod-coupler = "pytest --numprocesses=auto --dist=loadgroup --basetemp=tests/temp --junitxml=report.xml tests/test_imod_coupler"
+test-imod-coupler = "pytest -v -s --numprocesses=auto --dist=loadgroup --basetemp=tests/temp --junitxml=report.xml tests/test_imod_coupler"
 tests = { depends_on = ["test-primod", "test-imod-coupler"] }
 # Lint
 mypy-imodc = "mypy --ignore-missing-imports --strict imod_coupler"

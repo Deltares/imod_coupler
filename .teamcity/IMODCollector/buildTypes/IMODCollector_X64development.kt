@@ -13,10 +13,10 @@ object IMODCollector_X64development : BuildType({
     description = "Collect all Release_x64 kernels in the iMOD6 suite"
 
     artifactRules = """
-        coupler/dist/ => imod_coupler_windows.zip!/imod_coupler/
-        modflow6/ => imod_coupler_windows.zip!/modflow6/
-        metaswap/ => imod_coupler_windows.zip!/metaswap/
-        ribasim/ => imod_coupler_windows.zip!/ribasim/
+        coupler/dist/ => imod_collector.zip!/imod_coupler/
+        modflow6/ => imod_collector.zip!/modflow6/
+        metaswap/ => imod_collector.zip!/metaswap/
+        ribasim/ribasim/ => imod_collector.zip!/ribasim/
     """.trimIndent()
 
     params {

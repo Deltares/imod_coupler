@@ -17,6 +17,7 @@ object IMODCollector_X64developmentLnx64 : BuildType({
         coupler/dist/ => imod_collector.zip!/imod_coupler/
         modflow6/ => imod_collector.zip!/modflow6/
         metaswap/ => imod_collector.zip!/metaswap/
+        ribasim/ribasim/ => imod_collector.zip!/ribasim/
     """.trimIndent()
 
     params {
@@ -97,11 +98,10 @@ object IMODCollector_X64developmentLnx64 : BuildType({
             cleanDestination = true
             artifactRules = "libmsw.so => metaswap/"
         }
-        artifacts(AbsoluteId("Ribasim_Windows_BuildRibasim")) {
+        artifacts(AbsoluteId("Ribasim_Linux_BuildRibasim")) {
             id = "ARTIFACT_DEPENDENCY_285"
             buildRule = lastSuccessful()
             artifactRules = "libribasim.zip!** => ribasim"
-            enabled = false
         }
     }
 
