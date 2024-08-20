@@ -100,7 +100,7 @@ object TestbenchCouplerWin64Release : BuildType({
             artifacts {
                 cleanDestination = true
                 artifactRules = """
-                    imod_coupler_windows.zip!** => imod_collector_devel
+                    imod_collector.zip!** => imod_collector_devel
                 """.trimIndent()
             }
 //            artifacts {
