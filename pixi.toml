@@ -29,6 +29,7 @@ scipy = "*"
 tomli = "*"
 tomli-w = "*"
 xmipy = "*"
+ribasim = ">=2024.10.0,<2024.11"
 
 #[pypi-dependencies]
 #ribasim = {git = "https://github.com/Deltares/Ribasim.git/#subdirectory=python/ribasim"}
