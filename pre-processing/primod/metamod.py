@@ -4,12 +4,13 @@ from typing import Any
 
 import tomli_w
 from imod.mf6 import Modflow6Simulation
+from imod.mf6.utilities.regrid import RegridderWeightsCache
 from imod.msw import MetaSwapModel
+from imod.typing.grid import GridDataArray
 
 from primod.coupled_model import CoupledModel
 from primod.driver_coupling.metamod import MetaModDriverCoupling
-from imod.typing.grid import GridDataArray
-from imod.mf6.utilities.regrid import RegridderWeightsCache
+
 
 class MetaMod(CoupledModel):
     """Couple MetaSWAP and MODFLOW 6.

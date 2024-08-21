@@ -7,11 +7,14 @@ from pathlib import Path
 import pytest
 import tomli
 import tomli_w
-from tests.common_scripts.mf6_water_balance.combine import create_modflow_waterbalance_file
 from imod.mf6 import open_cbc, open_hds
 from numpy.testing import assert_array_almost_equal
 from primod.metamod import MetaMod
 from pytest_cases import parametrize_with_cases
+
+from tests.common_scripts.mf6_water_balance.combine import (
+    create_modflow_waterbalance_file,
+)
 from tests.test_imod_coupler.test_utilities import numeric_csvfiles_equal
 
 

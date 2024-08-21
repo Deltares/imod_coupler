@@ -2,10 +2,11 @@
 from collections.abc import Callable
 from pathlib import Path
 
+import xarray as xr
 from primod.metamod import MetaMod
 from pytest_cases import parametrize_with_cases
-from tests.test_imod_coupler.test_metamod import mf6_output_files
-import xarray as xr
+
+
 @parametrize_with_cases("metamod_regrid")
 def test_metamod_original(
     tmp_path_dev: Path,
