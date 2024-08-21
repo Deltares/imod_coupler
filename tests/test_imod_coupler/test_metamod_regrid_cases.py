@@ -8,6 +8,7 @@ def case_regrid_no_sprinkling(
     prepared_msw_model: MetaSwapModel,
 ) -> MetaMod:
     prepared_msw_model.pop("sprinkling")
+    coupled_mf6_model["GWF_1"].pop("wells_msw")
 
     driver_coupling = MetaModDriverCoupling(
         mf6_model="GWF_1", mf6_recharge_package="rch_msw"
