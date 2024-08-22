@@ -31,15 +31,6 @@ object IMODCollector_X64development : BuildType({
 
     steps {
         script {
-            name = "Create imod_collector conda environment"
-            id = "Create_imod_collector_conda_environment"
-            enabled = false
-            scriptContent = """
-                if exist "%conda_env_path%" rd /q /s "%conda_env_path%"
-                conda env create --file coupler/environment-minimal.yml -p "%conda_env_path%"
-            """.trimIndent()
-        }
-        script {
             name = "Install iMOD Coupler"
             enabled = false
             workingDir = "coupler"
@@ -54,6 +45,7 @@ object IMODCollector_X64development : BuildType({
             scriptContent = """
                 rmdir dist /s /q
                 pixi run -e dev install-minimal
+                pixi run -e dev update-git-dependencies
                 pixi run -e dev pyinstaller --onefile imod_coupler/__main__.py --name imodc
             """.trimIndent()
         }
