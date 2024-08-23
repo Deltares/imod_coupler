@@ -40,10 +40,10 @@ def create_basin_definition(
     if "nodes" in kwargs:
         nodelist = kwargs["nodes"]
     else:
-        nodelist = list(node.df["node_id"])
-    sel = node.df["node_id"].isin(nodelist)
+        nodelist = list(node.df.index)
+    sel = node.df.index.isin(nodelist)
     basin_definition = gpd.GeoDataFrame(
-        data={"node_id": node.df.loc[sel]["node_id"].to_numpy()},
+        data={"node_id": node.df.loc[sel].index.to_numpy()},
         geometry=node.df[sel]["geometry"]
         .translate(yoff=yoff, xoff=xoff)
         .buffer(buffersize)
