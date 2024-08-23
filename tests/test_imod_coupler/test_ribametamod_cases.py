@@ -97,12 +97,8 @@ def remove_sprinkling_from_groundwater(
 
 def add_water_users(ribasim_model: ribasim.Model) -> ribasim.Model:
     # add subnetwork id to basins
-    ribasim_model.basin.node.df["subnetwork_id"].loc[
-        ribasim_model.basin.node.df["node_id"] == 2
-    ] = 2
-    ribasim_model.basin.node.df["subnetwork_id"].loc[
-        ribasim_model.basin.node.df["node_id"] == 3
-    ] = 3
+    ribasim_model.basin.node.df["subnetwork_id"][2] = 2
+    ribasim_model.basin.node.df["subnetwork_id"][3] = 3
 
     # Add waterusers to model; basin 2
     ribasim_model.user_demand.add(
@@ -198,7 +194,7 @@ def two_basin_model_sprinkling_sw_variations(
 
     # increase initial stage second basin, to be able to extract irrigation water.
     ribasim_two_basin_model.basin.state.df["level"].loc[
-        ribasim_two_basin_model.basin.node.df["node_id"] == 3
+        ribasim_two_basin_model.basin.node.df.index == 3
     ] = 8.0
     new_df = pd.DataFrame(
         {
@@ -209,6 +205,7 @@ def two_basin_model_sprinkling_sw_variations(
             "control_state": [None, None, None],
         }
     )
+    new_df.index.name="fid"
     ribasim_two_basin_model.tabulated_rating_curve.static.df = new_df
 
     # increase inflow rate first basinto be able to extract irrigation water
