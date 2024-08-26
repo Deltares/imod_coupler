@@ -18,4 +18,3 @@ def case_regrid_no_sprinkling(
         coupled_mf6_model,
         coupling_list=[driver_coupling],
     )
-

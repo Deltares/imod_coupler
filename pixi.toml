@@ -30,6 +30,8 @@ tomli = "*"
 tomli-w = "*"
 xmipy = "*"
 ribasim = ">=2024.10.0,<2024.11"
+pytest = ">=8.3.2,<8.4"
+pytest-cases = ">=3.8.5,<3.9"
 
 #[pypi-dependencies]
 #ribasim = {git = "https://github.com/Deltares/Ribasim.git/#subdirectory=python/ribasim"}

@@ -163,16 +163,18 @@ class MetaMod(CoupledModel):
         return
 
     def regrid_like(self, new_grid: GridDataArray):
-
-        regridded_mf6_simulation = self.mf6_simulation.regrid_like("regridded", new_grid, True)
+        regridded_mf6_simulation = self.mf6_simulation.regrid_like(
+            "regridded", new_grid, True
+        )
         models = regridded_mf6_simulation.get_models()
-        dis = list( models.values())[0]["dis"]
+        dis = list(models.values())[0]["dis"]
         regrid_context = RegridderWeightsCache()
         regridded_msw = self.msw_model.regrid_like(dis, True, regrid_context)
 
-        regridded_metamod = MetaMod(msw_model=regridded_msw, mf6_simulation=regridded_mf6_simulation, coupling_list=self.coupling_list)
+        regridded_metamod = MetaMod(
+            msw_model=regridded_msw,
+            mf6_simulation=regridded_mf6_simulation,
+            coupling_list=self.coupling_list,
+        )
 
         return regridded_metamod
-
-
-
