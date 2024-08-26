@@ -25,7 +25,7 @@ def _validate_node_ids(
     dataframe: pd.DataFrame, definition: gpd.GeoDataFrame
 ) -> pd.Series:
     # Validate
-    if "node_id" not in definition.columns:
+    if ("node_id" not in definition.columns) or (definition.index.name == "node_id"):
         raise ValueError(
             'Definition must contain "node_id" column.'
             f"Columns in dataframe: {definition.columns}"

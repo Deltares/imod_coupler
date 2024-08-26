@@ -205,7 +205,7 @@ def two_basin_model_sprinkling_sw_variations(
             "control_state": [None, None, None],
         }
     )
-    new_df.index.name="fid"
+    new_df.index.name = "fid"
     ribasim_two_basin_model.tabulated_rating_curve.static.df = new_df
 
     # increase inflow rate first basinto be able to extract irrigation water
