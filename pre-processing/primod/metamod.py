@@ -162,7 +162,7 @@ class MetaMod(CoupledModel):
 
         return
 
-    def regrid_like(self, new_grid: GridDataArray):
+    def regrid_like(self, new_grid: GridDataArray) -> "MetaMod":
         regridded_mf6_simulation = self.mf6_simulation.regrid_like(
             "regridded", new_grid, True
         )
