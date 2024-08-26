@@ -81,3 +81,25 @@ Try running:
 ```sh
 pixi run update-git-dependencies
 ```
+
+
+##coupling imod-coupler and imod python metsawap regridding branch:
+
+
+1) create imod_suite directory
+2) in it, create a subdirectory imod_coupler and a subdirectory imod-python.
+3) check out both projects in their own directory. For imod-python, make sure to 
+check out the metaswap_regridding_feature branch or a development branch forked from it.
+for imod_coupler check out "coupler_regrid_feature_branch" or a development branch forked from it.
+
+4) in the imod suite directory, create a batch file that will overwrite the coupler's 
+pixi install of imod with the branch we have checked out in the imod-python directory.
+This is done for each pixi environment. Assuming  we have 2, the batch file looks like this.
+
+
+xcopy  /e /k /h /i  imod-python\imod imod_coupler\.pixi\envs\default\Lib\site-packages\imod
+xcopy  /e /k /h /i imod-python\imod imod_coupler\.pixi\envs\dev\Lib\site-packages\imod 
+
+
+The batch file will overwrite the pixi install( in .pixi\envs\default\Lib\site-packages\imod) with whatever
+is checked out locally in the imod-python folder.
