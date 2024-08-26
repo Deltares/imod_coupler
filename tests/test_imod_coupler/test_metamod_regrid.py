@@ -27,6 +27,10 @@ def test_metamod_original(
 
     run_coupler_function(tmp_path_dev / metamod_regrid._toml_name)
 
+    hds = metamod_regrid.mf6_simulation.open_head()
+    print(hds.sel(layer=2).isel(time=126).values)
+    pass
+
 
 @parametrize_with_cases("metamod_regrid")
 def test_metamod_regrid(
@@ -41,7 +45,7 @@ def test_metamod_regrid(
     Test if coupled models run with the iMOD Coupler development version.
     """
 
-    x = [100.0, 150.0, 200.0, 250.0, 300.0]
+    x = [100.0, 200.0, 300.0, 400.0, 500.0]
     y = [300.0, 250.0, 200.0, 150.0, 100.0]
     dx = 50.0
     dy = -50.0
@@ -67,4 +71,6 @@ def test_metamod_regrid(
 
     run_coupler_function(tmp_path_dev / regridded_metamod._toml_name)
 
+    hds = regridded_metamod.mf6_simulation.open_head()
+    print(hds.sel(layer=2).isel(time=126).values)
     pass
