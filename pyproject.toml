@@ -49,6 +49,3 @@ lint.fixable = ["I"]
 
 [tool.mypy]
 plugins = ["pydantic.mypy", "numpy.typing.mypy_plugin"]
-
-[tool.pixi.pypi-dependencies]
-imod-0.17.1-pyhd8ed1ab = { path = "D:/dev/imod_suite/imod-python", editable = true }
