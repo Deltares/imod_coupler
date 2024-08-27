@@ -250,10 +250,13 @@ def test_nullify_on_write(
 
     # This basin definition is still a point geometry.
     # This mean it will be rasterized to just two pixels.
-    gdf = ribasim_two_basin_model.basin.node.df
+    basin_definition = ribasim_two_basin_model.basin.node.df.copy()
+    if basin_definition.index.name == "node_id":
+        basin_definition["node_id"] = basin_definition.index
+
     driver_coupling = RibaModActiveDriverCoupling(
         mf6_model=mf6_modelname,
-        ribasim_basin_definition=gdf,
+        ribasim_basin_definition=basin_definition,
         mf6_packages=mf6_river_packages,
     )
 
@@ -272,14 +275,14 @@ def test_nullify_on_write(
         ribasim_dll_dependency="c",
     )
     # check if columns will be nullified correctly
-    node_id = coupled_models.ribasim_model.basin.node.df["node_id"].to_numpy()
+    node_id = coupled_models.ribasim_model.basin.node.df.index.to_numpy()
     df = pd.DataFrame.from_dict(
         {
-            "node_id": node_id,
+            "fid": node_id,
             "drainage": np.ones_like(node_id),
             "infiltration": np.ones_like(node_id),
         }
-    )
+    ).set_index("fid")
     coupled_models.ribasim_model.basin.static.df = df
     coupled_models.write(
         directory=tmp_path,
