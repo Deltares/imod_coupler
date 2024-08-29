@@ -48,6 +48,11 @@ install = { depends_on = [
     "install-primod",
 ] }
 
+update-git-dependencies = """pip install --upgrade --force-reinstall --no-deps
+                             git+https://github.com/Deltares/Ribasim.git/#subdirectory=python/ribasim
+                             git+https://github.com/Deltares/Ribasim.git/#subdirectory=python/ribasim_api
+                             git+https://github.com/Deltares/Ribasim.git/#subdirectory=python/ribasim_testmodels"""
+
 # Tests
 test-primod = "pytest --junitxml=report.xml tests/test_primod"
 
@@ -76,10 +81,7 @@ install-test-dependencies = { depends_on = [
     "install-imod-collector-regression",
     "generate-env-file",
 ] }
-update-git-dependencies = """pip install --upgrade --force-reinstall --no-deps
-                             git+https://github.com/Deltares/Ribasim.git/#subdirectory=python/ribasim
-                             git+https://github.com/Deltares/Ribasim.git/#subdirectory=python/ribasim_api
-                             git+https://github.com/Deltares/Ribasim.git/#subdirectory=python/ribasim_testmodels"""
+
 # Tests
 test-imod-coupler = "pytest -v -s --numprocesses=auto --dist=loadgroup --basetemp=tests/temp --junitxml=report.xml tests/test_imod_coupler"
 tests = { depends_on = ["test-primod", "test-imod-coupler"] }

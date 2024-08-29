@@ -31,7 +31,7 @@ def _validate_node_ids(
             f"Columns in dataframe: {definition.columns}"
         )
 
-    basin_ids: NDArray[Int] = np.unique(dataframe["node_id"])
+    basin_ids: NDArray[Int] = np.unique(dataframe.index)
     missing = ~np.isin(definition["node_id"], basin_ids)
     if missing.any():
         missing_nodes = definition["node_id"].to_numpy()[missing]
