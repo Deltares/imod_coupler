@@ -167,12 +167,7 @@ def test_ribamod_backwater(
     volume_balance = results.basin_df[results.basin_df["time"] == "2020-12-31"]
     # Check's what lost and gained in the basins
     ribasim_budget = (
-        (
-            volume_balance["inflow_rate"]
-            - volume_balance["outflow_rate"]
-            - volume_balance["balance_error"]
-        )[:-1]
-        * 86_400.0
+        (volume_balance["infiltration"] - volume_balance["drainage"])[:-1] * 86_400.0
     ).to_numpy()
     # It seems that there is a match of integrated volumes shifted by half a timestep.
     # the integration of flux on the Ribasim side deserves a closer look
