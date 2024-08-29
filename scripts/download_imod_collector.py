@@ -22,7 +22,7 @@ def download_imod_collector(tag: str | None) -> None:
     token = os.environ["TEAMCITY_TOKEN"]
     with httpx.stream(
         "GET",
-        f"https://dpcbuild.deltares.nl/app/rest/builds/{build_id}/artifacts/content/imod_coupler_windows.zip",
+        f"https://dpcbuild.deltares.nl/app/rest/builds/{build_id}/artifacts/content/imod_collector.zip",
         headers={"Authorization": f"Bearer {token}"},
     ) as response:
         response.raise_for_status()
