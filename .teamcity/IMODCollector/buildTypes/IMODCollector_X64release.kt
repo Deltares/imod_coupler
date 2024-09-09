@@ -112,16 +112,8 @@ object IMODCollector_X64release : BuildType({
 
             artifacts {
                 cleanDestination = true
+                buildRule = tag("release")
                 artifactRules = "MetaSWAP.zip!/x64/Release => metaswap"
-            }
-        }
-        dependency(AbsoluteId("iMOD6_Modflow6buildWin64")) {
-            snapshot {
-            }
-
-            artifacts {
-                cleanDestination = true
-                artifactRules = "srcbmi/libmf6.dll => modflow6/"
             }
         }
         artifacts(AbsoluteId("Ribasim_Windows_BuildRibasim")) {
