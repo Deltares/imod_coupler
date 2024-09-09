@@ -327,6 +327,17 @@ class RibaMetaMod(Driver):
                     self.coupled_priority_indices, _ = np.nonzero(
                         self.ribasim_user_demand[:, self.coupled_user_indices]
                     )
+
+                    # check for multiple priorities per user
+                    unique, counts = np.unique(
+                        self.coupled_user_indices, return_counts=True
+                    )
+                    too_many = unique[counts > 1] + 1
+                    if np.size(too_many) > 0:
+                        raise ValueError(
+                            f"More than one priority set for sprinkling user demands {too_many}."
+                        )
+
                     # zero all coupled demand elements
                     self.ribasim_user_demand[
                         self.coupled_priority_indices, self.coupled_user_indices
