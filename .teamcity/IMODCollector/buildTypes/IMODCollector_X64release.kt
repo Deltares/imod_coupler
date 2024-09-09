@@ -106,17 +106,13 @@ object IMODCollector_X64release : BuildType({
     }
 
     dependencies {
-        dependency(AbsoluteId("MSWMOD_MetaSWAP_MetaSWAPBuildWin64trunk")) {
-            snapshot {
-            }
-
-            artifacts {
-                cleanDestination = true
-                buildRule = tag("release")
-                artifactRules = "MetaSWAP.zip!/x64/Release => metaswap"
-            }
+        artifacts(AbsoluteId("MSWMOD_MetaSWAP_MetaSWAPBuildWin64trunk")) {
+           cleanDestination = true
+           buildRule = tag("release")
+           artifactRules = "MetaSWAP.zip!/x64/Release => metaswap"
         }
         artifacts(AbsoluteId("Ribasim_Windows_BuildRibasim")) {
+            cleanDestination = true
             buildRule = lastSuccessful()
             artifactRules = "ribasim_windows.zip!** => ribasim"
         }
