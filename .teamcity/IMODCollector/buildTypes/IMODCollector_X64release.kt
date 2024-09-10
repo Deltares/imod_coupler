@@ -64,7 +64,6 @@ object IMODCollector_X64release : BuildType({
         }
         script {
             name = "Download Release MODFLOW6"
-            workingDir = "coupler"
             scriptContent = """
                 mkdir modflow6
                 curl -O https://water.usgs.gov/water-resources/software/MODFLOW-6/mf6.5.0_win64.zip
