@@ -7,6 +7,7 @@ import xarray as xr
 from fixtures.common import create_wells_max_layer
 from imod import msw
 from imod.mf6 import (
+    Drainage,
     Modflow6Simulation,
     Recharge,
     StorageCoefficient,
@@ -17,6 +18,7 @@ from primod import (
     RibaMetaDriverCoupling,
     RibaMetaMod,
     RibaModActiveDriverCoupling,
+    RibaModPassiveDriverCoupling,
 )
 from ribasim.geometry import NodeTable as RibaNodeTbl
 from ribasim.nodes import level_demand, user_demand
@@ -320,6 +322,59 @@ def case_bucket_model(
 
     return RibaMetaMod(
         ribasim_model=ribasim_bucket_model,
+        msw_model=msw_bucket_model,
+        mf6_simulation=mf6_bucket_model,
+        coupling_list=[metamod_coupling, ribamod_coupling, ribameta_coupling],
+    )
+
+
+def case_bucket_model_no_subgrid(
+    mf6_bucket_model: Modflow6Simulation,
+    msw_bucket_model: MetaSwapModel,
+    ribasim_bucket_model_no_subrgid: ribasim.Model,
+) -> RibaMetaMod:
+    mf6_bucket_model = set_confined_storage_formulation(mf6_bucket_model)
+
+    # add rch and well-package for coupling MetaMod
+    mf6_bucket_model = add_rch_package(mf6_bucket_model)
+    mf6_bucket_model = add_well_package(mf6_bucket_model)
+
+    # get variables
+    mf6_modelname, mf6_model = get_mf6_gwf_modelnames(mf6_bucket_model)[0]
+    mf6_active_river_packages = get_mf6_river_packagenames(mf6_model)
+    basin_definition = create_basin_definition(
+        ribasim_bucket_model_no_subrgid.basin.node, buffersize=100.0
+    )
+
+    # riv to drn package
+    conductance = (
+        mf6_bucket_model["GWF_1"][mf6_active_river_packages[0]].dataset["conductance"]
+        / 400
+    )
+    stage = mf6_bucket_model["GWF_1"][mf6_active_river_packages[0]].dataset[
+        "conductance"
+    ]
+    mf6_bucket_model["GWF_1"].pop(mf6_active_river_packages[0])
+    mf6_bucket_model["GWF_1"][mf6_active_river_packages[0]] = Drainage(
+        elevation=stage, conductance=conductance
+    )
+
+    metamod_coupling = MetaModDriverCoupling(
+        mf6_model=mf6_modelname,
+        mf6_recharge_package="rch_msw",
+        mf6_wel_package="well_msw",
+    )
+    ribamod_coupling = RibaModPassiveDriverCoupling(
+        mf6_model=mf6_modelname,
+        mf6_packages=mf6_active_river_packages,
+        ribasim_basin_definition=basin_definition,
+    )
+    ribameta_coupling = RibaMetaDriverCoupling(
+        ribasim_basin_definition=basin_definition,
+    )
+
+    return RibaMetaMod(
+        ribasim_model=ribasim_bucket_model_no_subrgid,
         msw_model=msw_bucket_model,
         mf6_simulation=mf6_bucket_model,
         coupling_list=[metamod_coupling, ribamod_coupling, ribameta_coupling],

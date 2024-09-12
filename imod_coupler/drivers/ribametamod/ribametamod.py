@@ -223,7 +223,9 @@ class RibaMetaMod(Driver):
                             if self.ribasim_user_realized.ndim > 0
                             else 0
                         ),
-                        "ribasim_nsubgrid": len(self.subgrid_level),
+                        "ribasim_nsubgrid": len(self.subgrid_level)
+                        if self.subgrid_level.ndim > 0
+                        else 0,
                     },
                 )
             )
