@@ -197,6 +197,8 @@ class CoupledExchangeBalance(ExchangeBalance):
     def flux_to_modflow(
         self, realised_volume: NDArray[np.float64], delt_gw: float
     ) -> None:
+        if not self.mf6_river_packages:
+            return  # no active coupling
         super().compute_realised(realised_volume)
         for key in self.mf6_active_river_api_packages.keys():
             realised_fraction = np.where(
