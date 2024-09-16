@@ -218,11 +218,9 @@ class RibaMetaMod(Driver):
                     self.mf6_drainage_packages,
                     {
                         "ribasim_nbasin": len(self.ribasim_level),
-                        "ribasim_nuser": (
-                            len(self.ribasim_user_realized)
-                            if self.ribasim_user_realized.ndim > 0
-                            else 0
-                        ),
+                        "ribasim_nuser": len(self.ribasim_user_realized)
+                        if self.ribasim_user_realized.ndim > 0
+                        else 0,
                         "ribasim_nsubgrid": len(self.subgrid_level)
                         if self.subgrid_level.ndim > 0
                         else 0,
