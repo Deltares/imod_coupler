@@ -37,7 +37,7 @@ def ribasim_bucket_model() -> ribasim.Model:
 
 
 @pytest_cases.fixture(scope="function")
-def ribasim_bucket_model_no_subrgid() -> ribasim.Model:
+def ribasim_bucket_model_no_subgrid() -> ribasim.Model:
     bucket = ribasim_testmodels.bucket_model()
     bucket.endtime = datetime(2023, 1, 1, 0, 0)
     return bucket
