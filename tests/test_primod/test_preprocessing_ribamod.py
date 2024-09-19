@@ -268,6 +268,12 @@ def test_nullify_on_write(
 
     coupled_models.write_exchanges(tmp_path)
 
+    coupled_models.write(
+        directory=tmp_path,
+        modflow6_dll="a",
+        ribasim_dll="b",
+        ribasim_dll_dependency="c",
+    )
     # check if columns will be nullified correctly
     node_id = coupled_models.ribasim_model.basin.node.df.index.to_numpy()
     df = pd.DataFrame.from_dict(
