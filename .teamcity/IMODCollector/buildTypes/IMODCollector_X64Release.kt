@@ -8,17 +8,15 @@ import jetbrains.buildServer.configs.kotlin.buildFeatures.pullRequests
 import jetbrains.buildServer.configs.kotlin.buildSteps.script
 import jetbrains.buildServer.configs.kotlin.triggers.finishBuildTrigger
 
-object IMODCollector_X64Release561 : BuildType({
-    name = "x64_Release5.6.1"
+object IMODCollector_X64Release : BuildType({
+    name = "x64_Release"
     description = "Collect all Release_x64 kernels in the iMOD6 suite"
 
     artifactRules = """
-        dist\imodc.exe => imod_coupler.zip
-        metaswap\fmpich2.dll => imod_coupler.zip
-        modflow6\libmf6.dll => imod_coupler.zip
-        metaswap\MetaSWAP.dll => imod_coupler.zip
-        metaswap\mpich2mpi.dll => imod_coupler.zip
-        metaswap\mpich2nemesis.dll => imod_coupler.zip
+        coupler/dist/ => imod_collector.zip!/
+        modflow6/ => imod_collector.zip!/modflow6/
+        metaswap/ => imod_collector.zip!/metaswap/
+        ribasim/ribasim/ => imod_collector.zip!/ribasim/
     """.trimIndent()
 
     params {
@@ -26,7 +24,7 @@ object IMODCollector_X64Release561 : BuildType({
     }
 
     vcs {
-        root(_Self.vcsRoots.ImodCouplerImod56, "+:. => ./coupler")
+        root(_Self.vcsRoots.ImodCoupler, "+:. => ./coupler")
 
         cleanCheckout = true
     }
@@ -34,13 +32,16 @@ object IMODCollector_X64Release561 : BuildType({
     steps {
         script {
             name = "Create imod_collector conda environment"
+            id = "Create_imod_collector_conda_environment"
+            enabled = false
             scriptContent = """
                 if exist "%conda_env_path%" rd /q /s "%conda_env_path%"
                 conda env create --file coupler/environment-minimal.yml -p "%conda_env_path%"
             """.trimIndent()
         }
         script {
-            name = "Install imod_coupler"
+            name = "Install iMOD Coupler"
+            enabled = false
             workingDir = "coupler"
             scriptContent = """
                 call conda activate %conda_env_path%
@@ -49,15 +50,25 @@ object IMODCollector_X64Release561 : BuildType({
         }
         script {
             name = "Create executable with pyinstaller"
+            workingDir = "coupler"
             scriptContent = """
-                call conda activate %conda_env_path%
                 rmdir dist /s /q
-                pyinstaller --onefile coupler/imod_coupler/__main__.py --name imodc
+                pixi run -e dev install-minimal
+                pixi run -e dev pyinstaller --onefile imod_coupler/__main__.py --name imodc
             """.trimIndent()
         }
         script {
             name = "Get version from imod coupler"
-            scriptContent = """call dist\imodc.exe --version"""
+            workingDir = "coupler"
+            scriptContent = """call dist\imodc --version"""
+        }
+        script {
+            name = "Download Release MODFLOW6"
+            scriptContent = """
+                mkdir modflow6
+                curl -O https://water.usgs.gov/water-resources/software/MODFLOW-6/mf6.5.0_win64.zip
+                unzip  -j "mf6.5.0_win64.zip" -d modflow6 mf6.5.0_win64/bin/libmf6.dll
+            """.trimIndent()
         }
     }
 
@@ -78,7 +89,7 @@ object IMODCollector_X64Release561 : BuildType({
             publisher = github {
                 githubUrl = "https://api.github.com"
                 authType = personalToken {
-                    token = "credentialsJSON:71420214-373c-4ccd-ba32-2ea886843f62"
+                    token = "credentialsJSON:6b37af71-1f2f-4611-8856-db07965445c0"
                 }
             }
         }
@@ -94,30 +105,15 @@ object IMODCollector_X64Release561 : BuildType({
     }
 
     dependencies {
-        dependency(AbsoluteId("MSWMOD_MetaSWAP_MetaSWAPReleaseImod561")) {
-            snapshot {
-            }
-
-            artifacts {
-                cleanDestination = true
-                artifactRules = "MetaSWAP.zip!/x64/Release => metaswap"
-            }
-        }
-        dependency(AbsoluteId("MetaSWAP_Modflow_Modflow6Release642")) {
-            snapshot {
-            }
-
-            artifacts {
-                cleanDestination = true
-                artifactRules = """
-                    MODFLOW6.zip!/* => modflow6/
-                """.trimIndent()
-            }
+        artifacts(AbsoluteId("MSWMOD_MetaSWAP_MetaSWAPBuildWin64trunk")) {
+           cleanDestination = true
+           buildRule = tag("release")
+           artifactRules = "MetaSWAP.zip!/x64/Release => metaswap"
         }
         artifacts(AbsoluteId("Ribasim_Windows_BuildRibasim")) {
+            cleanDestination = true
             buildRule = lastSuccessful()
-            artifactRules = "libribasim.zip!** => ribasim"
-            enabled = false
+            artifactRules = "ribasim_windows.zip!** => ribasim"
         }
     }
 
