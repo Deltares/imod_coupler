@@ -1,6 +1,6 @@
 package _Self.buildTypes
 
-import IMODCollector.buildTypes.IMODCollector_X64development
+import IMODCollector.buildTypes.IMODCollector_x64_development
 import _Self.vcsRoots.ImodCoupler
 import jetbrains.buildServer.configs.kotlin.*
 import jetbrains.buildServer.configs.kotlin.buildFeatures.XmlReport
@@ -66,7 +66,7 @@ object TestbenchCouplerWin64Develop : BuildType({
 
     triggers {
         finishBuildTrigger {
-            buildType = "${IMODCollector_X64development.id}"
+            buildType = "${IMODCollector_x64_development.id}"
             successfulOnly = true
         }
         vcs {
@@ -97,7 +97,7 @@ object TestbenchCouplerWin64Develop : BuildType({
     }
 
     dependencies {
-        dependency(IMODCollector.buildTypes.IMODCollector_X64development) {
+        dependency(IMODCollector.buildTypes.IMODCollector_x64_development) {
             snapshot {
                 onDependencyFailure = FailureAction.FAIL_TO_START
             }
