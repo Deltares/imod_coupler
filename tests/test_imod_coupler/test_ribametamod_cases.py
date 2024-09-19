@@ -331,7 +331,7 @@ def case_bucket_model(
 def case_bucket_model_no_subgrid(
     mf6_bucket_model: Modflow6Simulation,
     msw_bucket_model: MetaSwapModel,
-    ribasim_bucket_model_no_subrgid: ribasim.Model,
+    ribasim_bucket_model_no_subgrid: ribasim.Model,
 ) -> RibaMetaMod:
     mf6_bucket_model = set_confined_storage_formulation(mf6_bucket_model)
 
@@ -343,7 +343,7 @@ def case_bucket_model_no_subgrid(
     mf6_modelname, mf6_model = get_mf6_gwf_modelnames(mf6_bucket_model)[0]
     mf6_active_river_packages = get_mf6_river_packagenames(mf6_model)
     basin_definition = create_basin_definition(
-        ribasim_bucket_model_no_subrgid.basin.node, buffersize=100.0
+        ribasim_bucket_model_no_subgrid.basin.node, buffersize=100.0
     )
 
     # riv to drn package
@@ -374,7 +374,7 @@ def case_bucket_model_no_subgrid(
     )
 
     return RibaMetaMod(
-        ribasim_model=ribasim_bucket_model_no_subrgid,
+        ribasim_model=ribasim_bucket_model_no_subgrid,
         msw_model=msw_bucket_model,
         mf6_simulation=mf6_bucket_model,
         coupling_list=[metamod_coupling, ribamod_coupling, ribameta_coupling],
