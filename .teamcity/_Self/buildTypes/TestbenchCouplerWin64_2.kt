@@ -10,7 +10,7 @@ import jetbrains.buildServer.configs.kotlin.buildSteps.script
 import jetbrains.buildServer.configs.kotlin.triggers.finishBuildTrigger
 import jetbrains.buildServer.configs.kotlin.triggers.vcs
 
-object TestbenchCouplerWin64Develop : BuildType({
+object TestbenchCouplerWin64_2 : BuildType({
     name = "Testbench Coupler Win64"
     description = "Win64 Regression testbench for MODFLOW6/MetaSWAP coupler"
 
