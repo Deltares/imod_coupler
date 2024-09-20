@@ -8,7 +8,7 @@ import jetbrains.buildServer.configs.kotlin.buildFeatures.pullRequests
 import jetbrains.buildServer.configs.kotlin.buildSteps.script
 import jetbrains.buildServer.configs.kotlin.triggers.finishBuildTrigger
 
-object IMODCollector_x64_Release : BuildType({
+object IMODCollector_X64Release : BuildType({
     name = "x64_Release"
     description = "Collect all Release_x64 kernels in the iMOD6 suite"
 
