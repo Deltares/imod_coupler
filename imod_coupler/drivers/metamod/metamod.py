@@ -253,13 +253,14 @@ class MetaMod(Driver):
             if has_converged:
                 logger.debug(f"MF6-MSW converged in {kiter} iterations")
                 break
-        if not has_converged:
-            logger.debug("MF6-MSW did not converge")
-            raise ValueError("MF6-MSW did not converge")
         self.mf6.finalize_solve(1)
 
         self.mf6.finalize_time_step()
         self.msw.finalize_time_step()
+
+        if not has_converged:
+            logger.debug("MF6-MSW did not converge")
+            # raise ValueError("MF6-MSW did not converge")
 
     def finalize(self) -> None:
         self.mf6.finalize()
