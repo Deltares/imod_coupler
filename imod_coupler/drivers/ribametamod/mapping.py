@@ -32,10 +32,12 @@ class SetMapping:
         self.coupling = coupling
         if has_ribasim:
             self.set_ribasim_modflow_mapping(packages)
+            self.coupled_index = self.coupled_mod2rib
         if has_metaswap and mod2svat is not None:
             self.set_metaswap_modflow_mapping(packages, mod2svat)
         if has_ribasim and has_metaswap and mod2svat is not None:
             self.set_metaswap_ribasim_mapping(packages, mod2svat)
+            self.coupled_index |= self.coupled_msw2rib
 
     def set_ribasim_modflow_mapping(self, packages: ChainMap[str, Any]) -> None:
         self.map_mod2rib = {}
@@ -200,6 +202,9 @@ class SetMapping:
         self, packages: ChainMap[str, Any], mod2svat: Path
     ) -> None:
         table_node2svat: NDArray[np.int32]
+        self.coupled_msw2rib: NDArray[np.bool_] = np.full(
+            packages["ribasim_nbasin"], False
+        )
         self.msw2rib = {}
 
         # surface water ponding mapping
@@ -222,6 +227,7 @@ class SetMapping:
                 packages["ribasim_nbasin"],
                 "sum",
             )
+            self.coupled_msw2rib |= self.msw2rib["sw_ponding"].getnnz(axis=1) > 0
 
         # surface water sprinkling mapping
         if self.coupling.rib_msw_sprinkling_map_surface_water is not None:

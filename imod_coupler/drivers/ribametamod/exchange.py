@@ -187,17 +187,18 @@ class CoupledExchangeBalance(ExchangeBalance):
         demand_per_subtimestep = self.get_demand_flux_sec(delt_gw, delt_sw)
 
         # exchange to Ribasim; negative demand in exchange class means infiltration from Ribasim
-        coupled_index = self.mapping.coupled_mod2rib
-        self.ribasim_infiltration[coupled_index] = np.where(
+        self.ribasim_infiltration[self.mapping.coupled_index] = np.where(
             demand_per_subtimestep < 0, -demand_per_subtimestep, 0
-        )[coupled_index]
-        self.ribasim_drainage[coupled_index] = np.where(
+        )[self.mapping.coupled_index]
+        self.ribasim_drainage[self.mapping.coupled_index] = np.where(
             demand_per_subtimestep > 0, demand_per_subtimestep, 0
-        )[coupled_index]
+        )[self.mapping.coupled_index]
 
     def flux_to_modflow(
         self, realised_volume: NDArray[np.float64], delt_gw: float
     ) -> None:
+        if not self.mf6_river_packages:
+            return  # no active coupling
         super().compute_realised(realised_volume)
         for key in self.mf6_active_river_api_packages.keys():
             realised_fraction = np.where(
