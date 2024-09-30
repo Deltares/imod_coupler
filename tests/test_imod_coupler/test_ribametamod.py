@@ -545,7 +545,6 @@ def test_ribametamod_backwater(
 
 @pytest.mark.xdist_group(name="ribasim")
 @parametrize_with_cases("ribametamod_model", glob="bucket_model")
-# @pytest.mark.skip("potentially hangs, to be solved in model")
 def test_ribametamod_bucket(
     tmp_path_dev: Path,
     ribametamod_model: RibaMetaMod,
@@ -575,6 +574,34 @@ def test_ribametamod_bucket(
         ],
     )
     assert_results(tmp_path_dev, ribametamod_model, results)
+
+
+@pytest.mark.xdist_group(name="ribasim")
+@parametrize_with_cases("ribametamod_model", glob="bucket_model_no_subgrid")
+def test_ribametamod_bucket_no_subgrid(
+    tmp_path_dev: Path,
+    ribametamod_model: RibaMetaMod,
+    modflow_dll_devel: Path,
+    ribasim_dll_devel: Path,
+    ribasim_dll_dep_dir_devel: Path,
+    metaswap_dll_devel: Path,
+    metaswap_dll_dep_dir_devel: Path,
+    run_coupler_function: Callable[[Path], None],
+) -> None:
+    """
+    Test if the bucket model runs without a subgrid in the Ribasim model
+    """
+    ribametamod_model.write(
+        tmp_path_dev,
+        modflow6_dll=modflow_dll_devel,
+        ribasim_dll=ribasim_dll_devel,
+        ribasim_dll_dependency=ribasim_dll_dep_dir_devel,
+        metaswap_dll=metaswap_dll_devel,
+        metaswap_dll_dependency=metaswap_dll_dep_dir_devel,
+        modflow6_write_kwargs={"binary": False},
+    )
+
+    run_coupler_function(tmp_path_dev / ribametamod_model._toml_name)
 
 
 @pytest.mark.xdist_group(name="ribasim")
