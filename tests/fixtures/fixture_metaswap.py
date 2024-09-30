@@ -7,7 +7,7 @@ import xarray as xr
 from imod import mf6, msw
 from numpy import nan
 
-from .common import create_wells, get_times, grid_sizes
+from .common import create_wells, get_times, grid_sizes, grid_sizes_perched
 
 
 def metaswap_model(
@@ -157,11 +157,14 @@ def metaswap_model(
     return msw_model
 
 
-def make_msw_model(idomain: xr.DataArray) -> msw.MetaSwapModel:
+def make_msw_model(
+    idomain: xr.DataArray, grid: callable = grid_sizes
+) -> msw.MetaSwapModel:
     times = get_times()
     unsaturated_database = "./unsat_database"
 
-    x, y, layer, dx, dy, dz = grid_sizes()
+    x, y, layer, dx, dy, dz = grid()
+
     subunit = [0, 1]
 
     nrow = len(y)
@@ -212,6 +215,39 @@ def make_msw_model(idomain: xr.DataArray) -> msw.MetaSwapModel:
     return metaswap_model(times,area,active, well, dis,unsaturated_database)
 
 
+def make_msw_model_free(
+    idomain: xr.DataArray, grid: callable = grid_sizes
+) -> msw.MetaSwapModel:
+    times = get_times()
+    unsaturated_database = "./unsat_database"
+
+    x, y, layer, dx, dy, dz = grid()
+
+    nrow = len(y)
+    ncol = len(x)
+
+    top = 0.0
+    bottom = top - xr.DataArray(np.cumsum(dz), coords={"layer": layer}, dims="layer")
+
+    active = idomain.isel(layer=0, drop=True) > 0
+
+    area1 = (
+        xr.ones_like(idomain, dtype=np.float64).sel(layer=1, drop=True) * dx * -dy
+    ).expand_dims(dim={"subunit": np.array([0])})
+    area2 = (
+        xr.full_like(idomain, fill_value=nan, dtype=np.float64)
+        .sel(layer=1, drop=True)
+        .expand_dims(dim={"subunit": np.array([1])})
+    )
+    area = xr.concat([area1, area2], dim="subunit").where(active)
+
+    well = create_wells(nrow, ncol, idomain)
+
+    dis = mf6.StructuredDiscretization(idomain=idomain, top=top, bottom=bottom)
+
+    return metaswap_model(times, area, active, well, dis, unsaturated_database)
+
+
 @pytest_cases.fixture(scope="function")
 def prepared_msw_model(
     active_idomain: xr.DataArray,
@@ -246,6 +282,28 @@ def prepared_msw_model_newton(
     metaswap_lookup_table: Path,
 ) -> msw.MetaSwapModel:
     msw_model = make_msw_model(partly_inactive_idomain)
+    # increase precipitation, zero evaporation
+    msw_model["meteo_grid"].dataset["precipitation"] = (
+        msw_model["meteo_grid"].dataset["precipitation"] * 6.0
+    )
+    msw_model["meteo_grid"].dataset["evapotranspiration"] = (
+        msw_model["meteo_grid"].dataset["evapotranspiration"] * 0.0
+    )
+
+    # Override unsat_svat_path with path from environment
+    msw_model.simulation_settings["unsa_svat_path"] = (
+        msw_model._render_unsaturated_database_path(metaswap_lookup_table)
+    )
+
+    return msw_model
+
+
+@pytest_cases.fixture(scope="function")
+def prepared_msw_model_newton_perched(
+    partly_inactive_idomain_perched: xr.DataArray,
+    metaswap_lookup_table: Path,
+) -> msw.MetaSwapModel:
+    msw_model = make_msw_model_free(partly_inactive_idomain_perched, grid_sizes_perched)
     # increase precipitation, zero evaporation
     msw_model["meteo_grid"].dataset["precipitation"] = (
         msw_model["meteo_grid"].dataset["precipitation"] * 6.0

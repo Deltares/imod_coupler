@@ -1,12 +1,15 @@
 from pathlib import Path
 from typing import Any
 
+import numpy as np
+import pandas as pd
 import xarray as xr
 from imod import mf6
 from imod.mf6 import GroundwaterFlowModel, Modflow6Simulation
 from imod.msw import GridData, MetaSwapModel, Sprinkling
 
 from primod.driver_coupling.driver_coupling_base import DriverCoupling
+from primod.mapping.node_max_layer import ModMaxLayer
 from primod.mapping.node_svat_mapping import NodeSvatMapping
 from primod.mapping.rch_svat_mapping import RechargeSvatMapping
 from primod.mapping.wel_svat_mapping import WellSvatMapping
@@ -28,6 +31,7 @@ class MetaModDriverCoupling(DriverCoupling):
     mf6_model: str
     mf6_recharge_package: str
     mf6_wel_package: str | None = None
+    mf6_max_layer: xr.DataArray | None = None
 
     def has_newton_formulation(self, mf6_simulation: Modflow6Simulation) -> bool:
         has_newton = bool(mf6_simulation[self.mf6_model]._options["newton"])
@@ -106,7 +110,9 @@ class MetaModDriverCoupling(DriverCoupling):
 
     def derive_mapping(
         self, msw_model: MetaSwapModel, gwf_model: GroundwaterFlowModel
-    ) -> tuple[NodeSvatMapping, RechargeSvatMapping, WellSvatMapping | None]:
+    ) -> tuple[
+        NodeSvatMapping, RechargeSvatMapping, WellSvatMapping | None, ModMaxLayer | None
+    ]:
         if self.mf6_recharge_package not in gwf_model.keys():
             raise ValueError(
                 f"No package named {self.mf6_recharge_package} detected in Modflow 6 model. "
@@ -122,23 +128,27 @@ class MetaModDriverCoupling(DriverCoupling):
         index, svat = msw_model[grid_data_key].generate_index_array()
         grid_mapping = NodeSvatMapping(svat=svat, modflow_dis=dis, index=index)
 
+        max_layer = None
+        if self.mf6_max_layer is not None:
+            max_layer = ModMaxLayer(grid_mapping["mod_id"], self.mf6_max_layer)
+
         recharge = gwf_model[self.mf6_recharge_package]
 
         rch_mapping = RechargeSvatMapping(svat, recharge, index=index)
 
+        well_mapping = None
         if self._check_sprinkling(msw_model=msw_model, gwf_model=gwf_model):
             well = gwf_model[self.mf6_wel_package]
             well_mapping = WellSvatMapping(svat, well, index=index)
-            return grid_mapping, rch_mapping, well_mapping
-        else:
-            return grid_mapping, rch_mapping, None
+
+        return grid_mapping, rch_mapping, well_mapping, max_layer
 
     def write_exchanges(self, directory: Path, coupled_model: Any) -> dict[str, Any]:
         mf6_simulation = coupled_model.mf6_simulation
         gwf_model = mf6_simulation[self.mf6_model]
         msw_model = coupled_model.msw_model
 
-        grid_mapping, rch_mapping, well_mapping = self.derive_mapping(
+        grid_mapping, rch_mapping, well_mapping, max_layer = self.derive_mapping(
             msw_model=msw_model,
             gwf_model=gwf_model,
         )
@@ -154,6 +164,8 @@ class MetaModDriverCoupling(DriverCoupling):
             coupling_dict["mf6_msw_sprinkling_map_groundwater"] = well_mapping.write(
                 directory
             )
+        if max_layer is not None:
+            coupling_dict["mf6_node_max_layer"] = max_layer.write(directory)
 
         return coupling_dict
 

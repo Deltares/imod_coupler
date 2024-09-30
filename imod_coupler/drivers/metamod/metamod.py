@@ -151,7 +151,6 @@ class MetaMod(Driver):
                 for ii in range(len(table_node2svat))
             ]
         )
-
         self.map_msw2mod["storage"], self.mask_msw2mod["storage"] = create_mapping(
             self.msw_idx,
             self.node_idx,
@@ -376,6 +375,15 @@ class MetaModNewton(MetaMod):
         self.map_msw2mod["storage_sy"] = (
             conversion_matrix * self.map_msw2mod["storage_sy"]
         )
+        # Set max layer
+        # get max layer per MF6-node
+        self.max_layer = None
+        if self.coupling.mf6_node_max_layer is not None:
+            table_node_layer: NDArray[np.int32] = np.loadtxt(
+                self.coupling.mf6_node_max_layer, dtype=np.int64, ndmin=2, skiprows=1
+            )
+            self.max_layer = table_node_layer[:, 1]
+
         # Add Newton related phreatic exchange classes
         self.couple_phreatic(first_layer_nodes)
 
@@ -393,6 +401,7 @@ class MetaModNewton(MetaMod):
             saturation,
             self.mf6_head,
             first_layer_nodes,
+            self.max_layer,
         )
         self.sto = PhreaticStorage(
             self.mf6.get_dis_shape(self.coupling.mf6_model),
@@ -401,6 +410,7 @@ class MetaModNewton(MetaMod):
             self.sy,
             self.mf6_ss,
             first_layer_nodes,
+            self.max_layer,
         )
         self.rch = PhreaticRecharge(
             self.mf6.get_dis_shape(self.coupling.mf6_model),
@@ -408,6 +418,7 @@ class MetaModNewton(MetaMod):
             saturation,
             self.mf6_recharge,
             self.recharge_nodelist,
+            self.max_layer,
         )
 
     def exchange_msw2mod(self) -> None:

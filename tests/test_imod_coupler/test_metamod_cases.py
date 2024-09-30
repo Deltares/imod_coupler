@@ -197,12 +197,30 @@ def case_newton(
     prepared_msw_model_newton: MetaSwapModel,
 ) -> MetaMod:
     prepared_msw_model_newton.pop("sprinkling")
-
+    max_layer = coupled_mf6_model_newton["GWF_1"]["dis"]["idomain"].isel(layer=1)
     driver_coupling = MetaModDriverCoupling(
-        mf6_model="GWF_1", mf6_recharge_package="rch_msw"
+        mf6_model="GWF_1", mf6_recharge_package="rch_msw", mf6_max_layer=max_layer
     )
     return MetaMod(
         prepared_msw_model_newton,
         coupled_mf6_model_newton,
+        coupling_list=[driver_coupling],
+    )
+
+
+def case_newton_perched(
+    coupled_mf6_model_newton_perched: Modflow6Simulation,
+    prepared_msw_model_newton_perched: MetaSwapModel,
+) -> MetaMod:
+    prepared_msw_model_newton_perched.pop("sprinkling")
+    max_layer = (
+        coupled_mf6_model_newton_perched["GWF_1"]["dis"]["idomain"].isel(layer=1) * 4
+    )
+    driver_coupling = MetaModDriverCoupling(
+        mf6_model="GWF_1", mf6_recharge_package="rch_msw", mf6_max_layer=max_layer
+    )
+    return MetaMod(
+        prepared_msw_model_newton_perched,
+        coupled_mf6_model_newton_perched,
         coupling_list=[driver_coupling],
     )

@@ -23,9 +23,16 @@ class Coupling(BaseModel):
     mf6_msw_sprinkling_map_groundwater: FilePath | None = (
         None  # the path to the sprinkling map file
     )
+    mf6_node_max_layer: FilePath | None = None
+
     output_config_file: FilePath | None = None
 
-    @field_validator("mf6_msw_node_map", "mf6_msw_recharge_map", "output_config_file")
+    @field_validator(
+        "mf6_msw_node_map",
+        "mf6_msw_recharge_map",
+        "mf6_node_max_layer",
+        "output_config_file",
+    )
     @classmethod
     def resolve_file_path(cls, file_path: FilePath) -> FilePath:
         return file_path.resolve()

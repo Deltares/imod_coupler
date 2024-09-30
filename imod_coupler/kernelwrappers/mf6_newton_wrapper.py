@@ -122,12 +122,19 @@ class PhreaticModelArray:
         ptr_saturation: NDArray[Any],
         ptr_variable: NDArray[Any],
         nodes: NDArray[Any],
+        max_layer: NDArray[Any] | None = None,
     ) -> None:
         self.nlay, self.nrow, self.ncol = shape
         self.variable = ExpandArray(shape, userid, ptr_variable)
         self.saturation = ExpandArray(shape, userid, ptr_saturation)
         self.initialised = False
         self.nodes = nodes - 1
+        if max_layer is None:
+            self.max_layer = np.full_like(
+                self.nodes, fill_value=self.nlay, dtype=np.int64
+            )
+        else:
+            self.max_layer = max_layer
 
     def _set_user_indices(self) -> None:
         """
@@ -166,8 +173,12 @@ class PhreaticModelArray:
 
     @property
     def phreatic_layer_user_indices(self) -> Any:
+        # TODO: use max layer from input
         self._set_user_indices()
-        return np.argmax(self.saturation.broadcast() > 0, axis=0).flatten()[self.nodes]
+        phreatic_layer = np.argmax(self.saturation.broadcast() > 0, axis=0).flatten()[
+            self.nodes
+        ]
+        return np.minimum(phreatic_layer, self.max_layer)
 
     @property
     def phreatic_modelid(self) -> Any:
@@ -198,6 +209,7 @@ class PhreaticBCArray(PhreaticModelArray):
         ptr_saturation: NDArray[Any],
         ptr_package_variable: NDArray[Any],
         ptr_package_nodelist: NDArray[Any],
+        max_layer: NDArray[Any] | None,
     ) -> None:
         super().__init__(
             shape, userid, ptr_saturation, ptr_package_variable, ptr_package_nodelist
@@ -210,6 +222,7 @@ class PhreaticBCArray(PhreaticModelArray):
         )
         self.nodes_ptr = ptr_package_nodelist  # used for nodes after prepare_timestep
         self.initialised = False
+        self.max_layer = max_layer
 
     def _set_user_indices(self) -> None:
         # the nodelist for bc-packages is only filled after the first prepare-timestep call
@@ -224,6 +237,10 @@ class PhreaticBCArray(PhreaticModelArray):
                 userid[self.nodes]
             ]
             self.initial_nodes = np.copy(self.nodes)
+            if self.max_layer is None:
+                self.max_layer = np.full_like(
+                    self.nodes, fill_value=self.nlay, dtype=np.int64
+                )
             self.initialised = True
 
     def set_ptr(self, new_values: NDArray[Any]) -> None:
@@ -237,9 +254,10 @@ class PhreaticBCArray(PhreaticModelArray):
     def phreatic_layer_user_indices(self) -> Any:
         self._set_user_indices()
         # use initial_nodes since self.nodes is updated by set_ptr method
-        return np.argmax(self.saturation.broadcast() > 0, axis=0).flatten()[
+        phreatic_layer = np.argmax(self.saturation.broadcast() > 0, axis=0).flatten()[
             self.variable.userid[self.initial_nodes]
         ]
+        return np.minimum(phreatic_layer, self.max_layer)
 
 
 class PhreaticStorage:
@@ -264,6 +282,7 @@ class PhreaticStorage:
         ptr_storage_sy: NDArray[Any],
         ptr_storage_ss: NDArray[Any],
         active_top_layer_nodes: NDArray[Any],
+        max_layer: NDArray[Any],
     ) -> None:
         self.zeros = np.zeros(active_top_layer_nodes.size)
         self.initial_sy = np.copy(ptr_storage_sy)
@@ -274,6 +293,7 @@ class PhreaticStorage:
             ptr_saturation,
             ptr_storage_sy,
             active_top_layer_nodes,
+            max_layer,
         )
         self.ss = PhreaticModelArray(
             shape,
@@ -281,6 +301,7 @@ class PhreaticStorage:
             ptr_saturation,
             ptr_storage_ss,
             active_top_layer_nodes,
+            max_layer,
         )
 
     def reset(self) -> None:
@@ -308,9 +329,15 @@ class PhreaticRecharge:
         ptr_saturation: NDArray[Any],
         ptr_recharge: NDArray[Any],
         ptr_recharge_nodelist: NDArray[Any],
+        max_layer: NDArray[Any],
     ) -> None:
         self.recharge = PhreaticBCArray(
-            shape, userid, ptr_saturation, ptr_recharge, ptr_recharge_nodelist
+            shape,
+            userid,
+            ptr_saturation,
+            ptr_recharge,
+            ptr_recharge_nodelist,
+            max_layer,
         )
 
     def set(self, new_recharge: NDArray[Any]) -> None:
@@ -336,9 +363,10 @@ class PhreaticHeads:
         ptr_saturation: NDArray[Any],
         ptr_heads: NDArray[Any],
         active_top_layer_nodes: NDArray[Any],
+        max_layer: NDArray[Any],
     ) -> None:
         self.heads = PhreaticModelArray(
-            shape, userid, ptr_saturation, ptr_heads, active_top_layer_nodes
+            shape, userid, ptr_saturation, ptr_heads, active_top_layer_nodes, max_layer
         )
 
     def get(self) -> NDArray[Any]:

@@ -4,6 +4,7 @@ import textwrap
 from collections.abc import Callable
 from pathlib import Path
 
+import imod
 import numpy as np
 import pytest
 import tomli
@@ -155,6 +156,10 @@ def test_metamod_develop(
         metaswap_dll_dependency=metaswap_dll_dep_dir_devel,
         modflow6_write_kwargs={"binary": False},
     )
+    # write dbot inp-files
+
+    svat = np.arange(10)
+    bot = np.array([1])
 
     run_coupler_function(tmp_path_dev / metamod_model._toml_name)
 
@@ -162,7 +167,10 @@ def test_metamod_develop(
     assert len(list((tmp_path_dev / "MetaSWAP").glob("*/*.idf"))) == 1704
 
     # Test if Modflow6 output written
-    headfile, cbcfile, _, _ = mf6_output_files(tmp_path_dev)
+    headfile, cbcfile, grbfile, _ = mf6_output_files(tmp_path_dev)
+
+    budgets = imod.mf6.open_cbc(cbcfile, grbfile)
+    heads = imod.mf6.open_hds(cbcfile, grbfile)
 
     assert headfile.exists()
     assert cbcfile.exists()
