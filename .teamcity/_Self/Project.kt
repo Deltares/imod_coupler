@@ -12,7 +12,6 @@ object Project : Project({
     vcsRoot(ImodCoupler)
 
     buildType(TestbenchCouplerWin64_2)
-    buildType(MakeGitHubRelease)
 
     subProject(Primod.Project)
     subProject(IMODCollector.Project)
