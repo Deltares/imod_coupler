@@ -198,16 +198,16 @@ class RibaMetaMod(Driver):
             self.ribasim_infiltration = self.ribasim.get_value_ptr("basin.infiltration")
             self.ribasim_drainage = self.ribasim.get_value_ptr("basin.drainage")
             self.ribasim_infiltration_sum = self.ribasim.get_value_ptr(
-                "basin.infiltration_integrated"
+                "basin.cumulative_infiltration"
             )
             self.ribasim_drainage_sum = self.ribasim.get_value_ptr(
-                "basin.drainage_integrated"
+                "basin.cumulative_drainage"
             )
             self.ribasim_level = self.ribasim.get_value_ptr("basin.level")
             self.ribasim_storage = self.ribasim.get_value_ptr("basin.storage")
             self.ribasim_user_demand = self.ribasim.get_value_ptr("user_demand.demand")
             self.ribasim_user_realized = self.ribasim.get_value_ptr(
-                "user_demand.realized"
+                "user_demand.inflow"
             )
             self.subgrid_level = self.ribasim.get_value_ptr("basin.subgrid_level")
 
