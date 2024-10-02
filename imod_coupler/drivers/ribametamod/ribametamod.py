@@ -102,6 +102,7 @@ class RibaMetaMod(Driver):
         ]  # Adapt as soon as we have multimodel support
         self.enable_sprinkling_groundwater = False
         self.enable_sprinkling_surface_water = False
+        self.fdump = open("dump.txt","w")   # rl666
 
     def initialize(self) -> None:
         self.mf6 = Mf6Wrapper(
@@ -413,7 +414,8 @@ class RibaMetaMod(Driver):
 #                self.ribasim_infiltration_integrated[:]
 #                - self.ribasim_infiltration_save[:]
 #            )
-            print(self.ribasim_infiltration[0])
+            self.fdump.write("%12.4e %12.4e\n" % (self.ribasim_infiltration[0],self.ribasim_drainage[0]))
+
             self.exchange.flux_to_modflow(
                 (self.ribasim_drainage_integrated[:] - self.ribasim_drainage_save[:]) -
                 (self.ribasim_infiltration_integrated[:] - self.ribasim_infiltration_save[:]),
