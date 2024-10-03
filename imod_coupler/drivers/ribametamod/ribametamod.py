@@ -102,7 +102,6 @@ class RibaMetaMod(Driver):
         ]  # Adapt as soon as we have multimodel support
         self.enable_sprinkling_groundwater = False
         self.enable_sprinkling_surface_water = False
-        self.fdump = open("dump.txt","w")   # rl666
 
     def initialize(self) -> None:
         self.mf6 = Mf6Wrapper(
@@ -204,7 +203,9 @@ class RibaMetaMod(Driver):
             self.ribasim_infiltration_integrated = self.ribasim.get_value_ptr(
                 "basin.infiltration_integrated"
             )
-            self.ribasim_infiltration_save = np.empty_like(self.ribasim_infiltration_integrated)
+            self.ribasim_infiltration_save = np.empty_like(
+                self.ribasim_infiltration_integrated
+            )
             self.ribasim_drainage_integrated = self.ribasim.get_value_ptr(
                 "basin.drainage_integrated"
             )
@@ -406,19 +407,13 @@ class RibaMetaMod(Driver):
                 self.update_ribasim_metaswap()
             else:
                 self.update_ribasim()
-#            self.ribasim_drainage_save[:] = (
-#                self.ribasim_drainage_integrated[:]
-#                - self.ribasim_drainage_save[:]
-#            )
-#            self.ribasim_infiltration_save[:] = (
-#                self.ribasim_infiltration_integrated[:]
-#                - self.ribasim_infiltration_save[:]
-#            )
-            self.fdump.write("%12.4e %12.4e\n" % (self.ribasim_infiltration[0],self.ribasim_drainage[0]))
 
             self.exchange.flux_to_modflow(
-                (self.ribasim_drainage_integrated[:] - self.ribasim_drainage_save[:]) -
-                (self.ribasim_infiltration_integrated[:] - self.ribasim_infiltration_save[:]),
+                (self.ribasim_drainage_integrated[:] - self.ribasim_drainage_save[:])
+                - (
+                    self.ribasim_infiltration_integrated[:]
+                    - self.ribasim_infiltration_save[:]
+                ),
                 self.delt_gw,
             )
             self.exchange.log_demands(self.get_current_time())
@@ -512,7 +507,10 @@ class RibaMetaMod(Driver):
 
         self.realised_fractions_swspr[:] = 1.0  # all realized for non-coupled svats
         self.realised_fractions_swspr[nonzero_user_indices] = (
-            self.ribasim_user_realized[nonzero_user_indices]
+            (
+                self.ribasim_user_realized[nonzero_user_indices]
+                - self.ribasim_user_realized_save[nonzero_user_indices]
+            )
             / (self.delt_sw * day_to_seconds)
         ) / self.mapped_sprinkling_demand[nonzero_user_indices]
 
@@ -522,7 +520,9 @@ class RibaMetaMod(Driver):
         msw_sprinkling_realized[:] = (
             self.msw.get_surfacewater_sprinking_demand_ptr() * msw_sprfrac_realised
         )[:]
-        self.ribasim_user_realized[:] = 0.0  # reset cummulative for the next timestep
+        self.ribasim_user_realized_save[:] = self.ribasim_user_realized[
+            :
+        ]  # keep old values
         self.exchange_logger.log_exchange(
             ("sprinkling_realized"),
             msw_sprinkling_realized,

@@ -20,7 +20,6 @@ class ExchangeBalance:
     realised_negative: dict[str, NDArray[np.float64]]
     shape: int
     sum_keys: list[str]
-    
 
     def __init__(self, shape: int, labels: list[str]) -> None:
         self.shape = shape
