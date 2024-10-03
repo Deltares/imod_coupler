@@ -200,21 +200,21 @@ class RibaMetaMod(Driver):
             # Get all Ribasim pointers, relevant for coupling with MODFLOW 6
             self.ribasim_infiltration = self.ribasim.get_value_ptr("basin.infiltration")
             self.ribasim_drainage = self.ribasim.get_value_ptr("basin.drainage")
-            self.ribasim_infiltration_integrated = self.ribasim.get_value_ptr(
-                "basin.infiltration_integrated"
+            self.ribasim_cumulative_infiltration = self.ribasim.get_value_ptr(
+                "basin.cumulative_infiltration"
             )
             self.ribasim_infiltration_save = np.empty_like(
-                self.ribasim_infiltration_integrated
+                self.ribasim_cumulative_infiltration
             )
-            self.ribasim_drainage_integrated = self.ribasim.get_value_ptr(
-                "basin.drainage_integrated"
+            self.ribasim_cumulative_drainage = self.ribasim.get_value_ptr(
+                "basin.cumulative_drainage"
             )
-            self.ribasim_drainage_save = np.empty_like(self.ribasim_drainage_integrated)
+            self.ribasim_drainage_save = np.empty_like(self.ribasim_cumulative_drainage)
             self.ribasim_level = self.ribasim.get_value_ptr("basin.level")
             self.ribasim_storage = self.ribasim.get_value_ptr("basin.storage")
             self.ribasim_user_demand = self.ribasim.get_value_ptr("user_demand.demand")
             self.ribasim_user_realized = self.ribasim.get_value_ptr(
-                "user_demand.realized"
+                "user_demand.inflow"
             )
             self.ribasim_user_realized_save = np.empty_like(self.ribasim_user_realized)
             self.subgrid_level = self.ribasim.get_value_ptr("basin.subgrid_level")
@@ -409,9 +409,9 @@ class RibaMetaMod(Driver):
                 self.update_ribasim()
 
             self.exchange.flux_to_modflow(
-                (self.ribasim_drainage_integrated[:] - self.ribasim_drainage_save[:])
+                (self.ribasim_cumulative_drainage[:] - self.ribasim_drainage_save[:])
                 - (
-                    self.ribasim_infiltration_integrated[:]
+                    self.ribasim_cumulative_infiltration[:]
                     - self.ribasim_infiltration_save[:]
                 ),
                 self.delt_gw,
@@ -477,8 +477,8 @@ class RibaMetaMod(Driver):
     def exchange_mod2rib(self) -> None:
         self.exchange.add_flux_estimate_mod(self.mf6_head, self.delt_gw)
         # reset Ribasim pointers
-        self.ribasim_infiltration_save[:] = self.ribasim_infiltration_integrated[:]
-        self.ribasim_drainage_save[:] = self.ribasim_drainage_integrated[:]
+        self.ribasim_infiltration_save[:] = self.ribasim_cumulative_infiltration[:]
+        self.ribasim_drainage_save[:] = self.ribasim_cumulative_drainage[:]
 
     def exchange_sprinkling_demand_msw2rib(self) -> None:
         # flux demand from metaswap sprinkling to Ribasim (demand)
