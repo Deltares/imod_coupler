@@ -6,11 +6,13 @@ from pathlib import Path
 
 import imod
 import numpy as np
+import pandas as pd
 import pytest
 import tomli
 import tomli_w
 from common_scripts.mf6_water_balance.combine import create_modflow_waterbalance_file
 from imod.mf6 import open_cbc, open_hds
+from imod.msw.fixed_format import VariableMetaData, format_fixed_width
 from numpy.testing import assert_array_almost_equal
 from primod.metamod import MetaMod
 from pytest_cases import parametrize_with_cases
@@ -157,9 +159,31 @@ def test_metamod_develop(
         modflow6_write_kwargs={"binary": False},
     )
     # write dbot inp-files
+    _metadata_dict = {
+        "svat": VariableMetaData(10, 1, 9999999, int),
+        "bottom": VariableMetaData(10, -9999.0, 9999.0, float),
+        "sc2": VariableMetaData(10, 0.0, 1.0, float),
+    }
 
-    svat = np.arange(10)
-    bot = np.array([1])
+    mask, svat = metamod_model.msw_model["grid"].generate_index_array()
+    out = {}
+    out["svat"] = svat.to_numpy()[svat.to_numpy() > 0]
+    out["bottom"] = np.array([99.0] * out["svat"].size)
+    index = metamod_model.coupling_list[0].mf6_max_layer.to_numpy()[0, 10:40].min()
+    bottom = metamod_model.mf6_simulation["GWF_1"]["dis"]["bottom"].to_numpy()[
+        index - 1
+    ]
+    out["bottom"][10:40] = 5.0
+    out["sc2"] = np.array([0.01] * out["svat"].size)
+
+    with open(
+        tmp_path_dev / metamod_model._metaswap_model_dir / "dbot_svat.inp", "w"
+    ) as file:
+        for row in pd.DataFrame(out).itertuples():
+            for index, metadata in enumerate(_metadata_dict.values()):
+                content = format_fixed_width(row[index + 1], metadata)
+                file.write(content)
+            file.write("\n")
 
     run_coupler_function(tmp_path_dev / metamod_model._toml_name)
 

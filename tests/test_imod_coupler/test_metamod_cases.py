@@ -1,3 +1,4 @@
+import imod
 from imod.mf6 import Modflow6Simulation
 from imod.msw import MetaSwapModel
 from imod.msw.fixed_format import VariableMetaData
@@ -213,9 +214,14 @@ def case_newton_perched(
     prepared_msw_model_newton_perched: MetaSwapModel,
 ) -> MetaMod:
     prepared_msw_model_newton_perched.pop("sprinkling")
-    max_layer = (
-        coupled_mf6_model_newton_perched["GWF_1"]["dis"]["idomain"].isel(layer=1) * 4
+    prepared_msw_model_newton_perched["mod2svat"] = imod.msw.CouplerMapping(
+        coupled_mf6_model_newton_perched["GWF_1"]["dis"]
     )
+
+    idomain = coupled_mf6_model_newton_perched["GWF_1"]["dis"]["idomain"]
+    nlay = idomain.layer.size - 1
+    max_layer = idomain.isel(layer=1) * nlay
+    max_layer.values[0, 10:40] = 8
     driver_coupling = MetaModDriverCoupling(
         mf6_model="GWF_1", mf6_recharge_package="rch_msw", mf6_max_layer=max_layer
     )

@@ -145,10 +145,10 @@ def make_coupled_mf6_model_newton_perched(
     # Add GHB-package
     times = get_times()
     head = xr.full_like(idomain.astype(np.float64), np.nan)
-    head[-1, :, :] = -9.5
+    head[-1, :, :] = -7.5
     head = head.expand_dims(time=times)
     head = head.where(head.time > head.time[100])
-    conductance = (xr.ones_like(head) * 1000).where(head.notnull())
+    conductance = (xr.ones_like(head) * 1.0).where(head.notnull())
     gwf_model["ghb"] = mf6.GeneralHeadBoundary(
         head=head.where(idomain == 1),
         conductance=conductance.where(idomain == 1),
@@ -159,7 +159,7 @@ def make_coupled_mf6_model_newton_perched(
     # update dis-package
     gwf_model.pop("dis")
     top = 0.0
-    dz = np.array([1.0] * nlay)
+    dz = np.array([0.5] * nlay)
     bottom = top - xr.DataArray(
         np.cumsum(dz), coords={"layer": idomain.layer}, dims="layer"
     )
@@ -168,13 +168,13 @@ def make_coupled_mf6_model_newton_perched(
     )
     # update npf-package
     gwf_model.pop("npf")
-    k_values = np.ones(nlay)
+    k_values = np.ones(nlay) * 0.1
     k = xr.DataArray(k_values, {"layer": idomain.layer}, ("layer",)) * xr.ones_like(
         idomain
     ).where(idomain > 0)
 
     # create aquitard layer
-    k[5, 0, 10:40] = 0.01
+    k[10, 0, 10:40] = 0.003
 
     k33 = k
     icelltype = xr.full_like(bottom, 1, dtype=int)
@@ -183,7 +183,7 @@ def make_coupled_mf6_model_newton_perched(
     )
     # update ic-package
     gwf_model.pop("ic")
-    gwf_model["ic"] = mf6.InitialConditions(start=-2.5)
+    gwf_model["ic"] = mf6.InitialConditions(start=-7.5)
     # sto-package
     gwf_model["sto"].dataset["convertible"] = 1
 

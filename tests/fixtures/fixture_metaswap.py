@@ -22,7 +22,7 @@ def metaswap_model(
     msw_grid = xr.ones_like(active, dtype=float)
 
     precipitation = msw_grid.expand_dims(time=times[:-1])
-    evapotranspiration = msw_grid.expand_dims(time=times[:-1]) * 10.0
+    evapotranspiration = msw_grid.expand_dims(time=times[:-1]) * 0.0
     if "layer" in msw_grid.coords:
         precipitation = precipitation.drop_vars("layer")
         evapotranspiration = evapotranspiration.drop_vars("layer")
@@ -306,8 +306,11 @@ def prepared_msw_model_newton_perched(
     msw_model = make_msw_model_free(partly_inactive_idomain_perched, grid_sizes_perched)
     # increase precipitation, zero evaporation
     msw_model["meteo_grid"].dataset["precipitation"] = (
-        msw_model["meteo_grid"].dataset["precipitation"] * 6.0
+        msw_model["meteo_grid"].dataset["precipitation"] * 14.0
     )
+    pp = msw_model["meteo_grid"].dataset["precipitation"]
+    pp[120:140, :, :] = 0.0
+    pp[140:-1, :, :] = pp[140:-1, :, :] * 2.0
     msw_model["meteo_grid"].dataset["evapotranspiration"] = (
         msw_model["meteo_grid"].dataset["evapotranspiration"] * 0.0
     )

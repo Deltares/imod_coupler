@@ -39,10 +39,10 @@ def grid_sizes_perched() -> (
 ):
     x = np.arange(0.0, 50.0, 1.0)
     y = np.array([0.0])
-    layer = np.arange(1, 11)
+    layer = np.arange(1, 21)
     dx = 1.0
     dy = -1.0
-    dz = np.array([1.0] * layer.size)
+    dz = np.array([0.5] * layer.size)
     return x, y, layer, dx, dy, dz
 
 
