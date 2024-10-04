@@ -93,7 +93,7 @@ object TestbenchCouplerWin64_2 : BuildType({
     }
 
     failureConditions {
-        executionTimeoutMin = 90
+        executionTimeoutMin = 120
     }
 
     dependencies {
