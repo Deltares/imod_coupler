@@ -92,6 +92,10 @@ object TestbenchCouplerWin64_2 : BuildType({
         }
     }
 
+    failureConditions {
+        executionTimeoutMin = 90
+    }
+
     dependencies {
         dependency(IMODCollector.buildTypes.IMODCollector_X64development) {
             snapshot {
