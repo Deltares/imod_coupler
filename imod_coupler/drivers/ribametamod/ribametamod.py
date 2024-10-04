@@ -508,8 +508,9 @@ class RibaMetaMod(Driver):
         self.realised_fractions_swspr[:] = 1.0  # all realized for non-coupled svats
         self.realised_fractions_swspr[nonzero_user_indices] = (
             (
+#               self.ribasim_user_realized[nonzero_user_indices]
+#               - self.ribasim_user_realized_save[nonzero_user_indices]
                 self.ribasim_user_realized[nonzero_user_indices]
-                - self.ribasim_user_realized_save[nonzero_user_indices]
             )
             / (self.delt_sw * day_to_seconds)
         ) / self.mapped_sprinkling_demand[nonzero_user_indices]
