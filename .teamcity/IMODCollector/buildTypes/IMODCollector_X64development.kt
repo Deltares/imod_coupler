@@ -107,7 +107,7 @@ object IMODCollector_X64development : BuildType({
             }
         }
         artifacts(AbsoluteId("Ribasim_Windows_BuildRibasim")) {
-            buildRule = lastSuccessful()
+            buildRule = lastSuccessful(branch="reltolerance")
             artifactRules = "ribasim_windows.zip!** => ribasim"
         }
     }
