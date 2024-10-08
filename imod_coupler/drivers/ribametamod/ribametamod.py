@@ -372,9 +372,6 @@ class RibaMetaMod(Driver):
             self.exchange.add_ponding_volume_msw(self.msw_ponding_volume)
             if self.enable_sprinkling_surface_water:
                 self.exchange_sprinkling_demand_msw2rib()
-                self.ribasim_user_realized[:] = (
-                    0.0  # reset cummulative for the next timestep
-                )
             # exchange summed volumes to Ribasim
             self.exchange.flux_to_ribasim(self.delt_gw, self.delt_sw)
             # update Ribasim per delt_sw
@@ -508,9 +505,8 @@ class RibaMetaMod(Driver):
         self.realised_fractions_swspr[:] = 1.0  # all realized for non-coupled svats
         self.realised_fractions_swspr[nonzero_user_indices] = (
             (
-#               self.ribasim_user_realized[nonzero_user_indices]
-#               - self.ribasim_user_realized_save[nonzero_user_indices]
                 self.ribasim_user_realized[nonzero_user_indices]
+                - self.ribasim_user_realized_save[nonzero_user_indices]
             )
             / (self.delt_sw * day_to_seconds)
         ) / self.mapped_sprinkling_demand[nonzero_user_indices]
