@@ -24,14 +24,15 @@ class RibaModDriverCoupling(DriverCoupling, abc.ABC):
     ----------
     mf6_model: str
         The name of the GWF model
-    ribasim_basin_definition : gpd.GeoDataFrame
-        GeoDataFrame of basin polygons
+    ribasim_basin_definition : gpd.GeoDataFrame, xr.Dataset
+        * GeoDataFrame: basin polygons
+        * Dataset: mapping of mf6 package name to grid containing basin IDs.
     mf6_packages : list of str
         A list of river or drainage packages.
     """
 
     mf6_model: str
-    ribasim_basin_definition: gpd.GeoDataFrame
+    ribasim_basin_definition: gpd.GeoDataFrame | xr.Dataset  # TODO: hopefully pydantic is happy
     mf6_packages: list[str]
 
     @abc.abstractmethod
@@ -69,81 +70,30 @@ class RibaModDriverCoupling(DriverCoupling, abc.ABC):
 
         dis = gwf_model[gwf_model._get_pkgkey("dis")]
         basin_definition = self.ribasim_basin_definition
-        # Validate and fetch
-        basin_ids = _validate_node_ids(ribasim_model.basin.node.df, basin_definition)
+        if isinstance(basin_definition, gpd.GeoDataFrame):
+            # Validate and fetch
+            basin_ids = _validate_node_ids(ribasim_model.basin.node.df, basin_definition)
+            gridded_basin = imod.prepare.rasterize(
+                basin_definition,
+                like=dis["idomain"].isel(layer=0, drop=True),
+                column="node_id",
+            )
+            basin_dataset = {key: gridded_basin for key in keys}
+        elif isinstance(basin_definition, xr.Dataset):
+            basin_dataset = basin_definition
+        else:
+            raise TypeError(
+                "Expected geopandas.GeoDataFrame or xr.Dataset: "
+                f"received {type(basin_definition.__name__}"
+            )
 
-        # Spatial overlays of MF6 boundaries with basin polygons.
-        gridded_basin = imod.prepare.rasterize(
-            basin_definition,
-            like=dis["idomain"].isel(layer=0, drop=True),
-            column="node_id",
-        )
-
-        # Collect which Ribasim basins are coupled, so that we can set their
         # drainage and infiltration to NoData later on.
         coupling_dict = self._empty_coupling_dict()
         coupling_dict["mf6_model"] = self.mf6_model
         coupled_basin_indices = []
         for key in self.mf6_packages:
-            package = gwf_model[key]
-            mapping = self.derive_mapping(
-                name=key,
-                gridded_basin=gridded_basin,
-                basin_ids=basin_ids,
-                conductance=package["conductance"],
-                ribasim_model=ribasim_model,
-            )
-            if mapping.dataframe.empty:
-                raise ValueError(
-                    f"No coupling can be derived for MODFLOW 6 package: {key}. "
-                    "No spatial overlap exists between the basin_definition and this package."
-                )
-
-            if isinstance(package, imod.mf6.River):
-                # Add a MF6 API package for correction flows
-                gwf_model["api_" + key] = imod.mf6.ApiPackage(
-                    maxbound=package._max_active_n(),
-                    save_flows=True,
-                )
-                destination = "river"
-
-                #  check if not coupling passive when adding a river package
-                if isinstance(self, RibaModPassiveDriverCoupling):
-                    raise TypeError(
-                        f"Expected Drainage packages for passive coupling, received: {type(package).__name__}"
-                    )
-
-                #  check on the bottom elevation and ribasim minimal subgrid level
-                minimum_subgrid_level = (
-                    ribasim_model.basin.subgrid.df.groupby("subgrid_id")
-                    .min()["subgrid_level"]
-                    .to_numpy()
-                )
-                # in active coupling, check subgrid levels versus modflow bottom elevation
-                if isinstance(self, RibaModActiveDriverCoupling):
-                    subgrid_index = mapping.dataframe["subgrid_index"]
-                    bound_index = mapping.dataframe["bound_index"]
-                    bottom_elevation = package["bottom_elevation"].to_numpy()
-                    if np.any(
-                        bottom_elevation[np.isfinite(bottom_elevation)][bound_index]
-                        < minimum_subgrid_level[subgrid_index]
-                    ):
-                        raise ValueError(
-                            f"Found bottom elevation below minimum subgrid level of Ribasim, for MODFLOW 6 package: {key}."
-                        )
-            elif isinstance(package, imod.mf6.Drainage):
-                destination = "drainage"
-            else:
-                if isinstance(self, RibaModPassiveDriverCoupling):
-                    raise TypeError(
-                        f"Expected Drainage, received: {type(package).__name__}"
-                    )
-                else:
-                    raise TypeError(
-                        f"Expected River or Drainage, received: {type(package).__name__}"
-                    )
-
-            filename = mapping.write(directory=directory)
+            gridded_basin = basin_dataset[key]
+            filename = self._write_exchange(gwf_model, key, gridded_basin)
             coupling_dict[f"mf6_{self._prefix}_{destination}_packages"][key] = filename
             coupled_basin_indices.append(mapping.dataframe["basin_index"])
 
@@ -156,6 +106,68 @@ class RibaModDriverCoupling(DriverCoupling, abc.ABC):
             columns=["infiltration", "drainage"],
         )
         return coupling_dict
+
+    def _write_exchange(self, gwf_model: imod.mf6.GroundwaterFlowModel, key: str, gridded_basin: xr.DataArray) -> str:
+        package = gwf_model[key]
+        mapping = self.derive_mapping(
+            name=key,
+            gridded_basin=gridded_basin,
+            basin_ids=basin_ids,
+            conductance=package["conductance"],
+            ribasim_model=ribasim_model,
+        )
+        if mapping.dataframe.empty:
+            raise ValueError(
+                f"No coupling can be derived for MODFLOW 6 package: {key}. "
+                "No spatial overlap exists between the basin_definition and this package."
+            )
+
+        if isinstance(package, imod.mf6.River):
+            # Add a MF6 API package for correction flows
+            gwf_model["api_" + key] = imod.mf6.ApiPackage(
+                maxbound=package._max_active_n(),
+                save_flows=True,
+            )
+            destination = "river"
+
+            #  check if not coupling passive when adding a river package
+            if isinstance(self, RibaModPassiveDriverCoupling):
+                raise TypeError(
+                    f"Expected Drainage packages for passive coupling, received: {type(package).__name__}"
+                )
+
+            #  check on the bottom elevation and ribasim minimal subgrid level
+            minimum_subgrid_level = (
+                ribasim_model.basin.subgrid.df.groupby("subgrid_id")
+                .min()["subgrid_level"]
+                .to_numpy()
+            )
+            # in active coupling, check subgrid levels versus modflow bottom elevation
+            if isinstance(self, RibaModActiveDriverCoupling):
+                subgrid_index = mapping.dataframe["subgrid_index"]
+                bound_index = mapping.dataframe["bound_index"]
+                bottom_elevation = package["bottom_elevation"].to_numpy()
+                if np.any(
+                    bottom_elevation[np.isfinite(bottom_elevation)][bound_index]
+                    < minimum_subgrid_level[subgrid_index]
+                ):
+                    raise ValueError(
+                        f"Found bottom elevation below minimum subgrid level of Ribasim, for MODFLOW 6 package: {key}."
+                    )
+        elif isinstance(package, imod.mf6.Drainage):
+            destination = "drainage"
+        else:
+            if isinstance(self, RibaModPassiveDriverCoupling):
+                raise TypeError(
+                    f"Expected Drainage, received: {type(package).__name__}"
+                )
+            else:
+                raise TypeError(
+                    f"Expected River or Drainage, received: {type(package).__name__}"
+                )
+
+        filename = mapping.write(directory=directory)
+        return filename
 
 
 class RibaModActiveDriverCoupling(RibaModDriverCoupling):
