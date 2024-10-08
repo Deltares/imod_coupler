@@ -6,7 +6,8 @@ import pytest_cases
 import ribasim
 import ribasim_testmodels
 
-solver_algorithm: str = 'QNDF'
+solver_algorithm: str = "QNDF"
+
 
 def add_subgrid(model: ribasim.Model) -> ribasim.Model:
     """Add 1:1 subgrid levels to model"""
