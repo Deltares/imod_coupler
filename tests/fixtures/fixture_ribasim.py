@@ -6,6 +6,8 @@ import pytest_cases
 import ribasim
 import ribasim_testmodels
 
+solver_algorithm: str = "QNDF"
+
 
 def add_subgrid(model: ribasim.Model) -> ribasim.Model:
     """Add 1:1 subgrid levels to model"""
@@ -33,6 +35,7 @@ def add_subgrid(model: ribasim.Model) -> ribasim.Model:
 def ribasim_bucket_model() -> ribasim.Model:
     bucket = ribasim_testmodels.bucket_model()
     bucket.endtime = datetime(2023, 1, 1, 0, 0)
+    bucket.solver.algorithm = solver_algorithm
     return add_subgrid(bucket)
 
 
@@ -40,17 +43,22 @@ def ribasim_bucket_model() -> ribasim.Model:
 def ribasim_bucket_model_no_subgrid() -> ribasim.Model:
     bucket = ribasim_testmodels.bucket_model()
     bucket.endtime = datetime(2023, 1, 1, 0, 0)
+    bucket.solver.algorithm = solver_algorithm
     return bucket
 
 
 @pytest_cases.fixture(scope="function")
 def ribasim_backwater_model() -> ribasim.Model:
-    return add_subgrid(ribasim_testmodels.backwater_model())
+    backwater = ribasim_testmodels.backwater_model()
+    backwater.solver.algorithm = solver_algorithm
+    return add_subgrid(backwater)
 
 
 @pytest_cases.fixture(scope="function")
 def ribasim_two_basin_model() -> ribasim.Model:
-    return ribasim_testmodels.two_basin_model()
+    twobasin = ribasim_testmodels.two_basin_model()
+    twobasin.solver.algorithm = solver_algorithm
+    return twobasin
 
 
 @pytest_cases.fixture(scope="function")
@@ -58,4 +66,5 @@ def ribasim_two_basin_model_dbg() -> ribasim.Model:
     model = ribasim_testmodels.two_basin_model()
     #   model.logging.verbosity = ribasim.Verbosity("debug")
     #   model.logging.verbosity = "debug"
+    model.solver.algorithm = solver_algorithm
     return model
