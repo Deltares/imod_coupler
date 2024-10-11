@@ -386,6 +386,8 @@ def case_backwater_model(
     msw_backwater_model: MetaSwapModel,
     ribasim_backwater_model: ribasim.Model,
 ) -> RibaMetaMod:
+    ribasim_backwater_model.solver.abstol=1e-08
+    ribasim_backwater_model.solver.reltol=1e-08
     mf6_backwater_model = set_confined_storage_formulation(mf6_backwater_model)
     msw_backwater_model = remove_sprinkling_from_groundwater(
         msw_backwater_model, mf6_backwater_model
