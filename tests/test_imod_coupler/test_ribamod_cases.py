@@ -46,6 +46,8 @@ def case_backwater_model(
     mf6_backwater_model: Modflow6Simulation,
     ribasim_backwater_model: ribasim.Model,
 ) -> RibaMod:
+    ribasim_backwater_model.solver.abstol = 1e-08
+    ribasim_backwater_model.solver.reltol = 1e-08
     mf6_modelname, mf6_model = get_mf6_gwf_modelnames(mf6_backwater_model)[0]
     mf6_active_river_packages = get_mf6_river_packagenames(mf6_model)
     mf6_active_drainage_packages = get_mf6_drainage_packagenames(mf6_model)

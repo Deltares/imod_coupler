@@ -73,9 +73,12 @@ class RibaMetaMod(Driver):
     ribasim_level: NDArray[Any]
     ribasim_infiltration: NDArray[Any]
     ribasim_drainage: NDArray[Any]
+    ribasim_infiltration_save: NDArray[Any]
+    ribasim_drainage_save: NDArray[Any]
     ribasim_volume: NDArray[Any]
     ribasim_user_demand: NDArray[Any]
     ribasim_user_realized: NDArray[Any]
+    ribasim_user_realized_save: NDArray[Any]
 
     # MetaSWAP variables
     mf6_sprinkling_wells: NDArray[Any]  # the well data for coupled extractions
@@ -197,18 +200,23 @@ class RibaMetaMod(Driver):
             # Get all Ribasim pointers, relevant for coupling with MODFLOW 6
             self.ribasim_infiltration = self.ribasim.get_value_ptr("basin.infiltration")
             self.ribasim_drainage = self.ribasim.get_value_ptr("basin.drainage")
-            self.ribasim_infiltration_sum = self.ribasim.get_value_ptr(
-                "basin.infiltration_integrated"
+            self.ribasim_cumulative_infiltration = self.ribasim.get_value_ptr(
+                "basin.cumulative_infiltration"
             )
-            self.ribasim_drainage_sum = self.ribasim.get_value_ptr(
-                "basin.drainage_integrated"
+            self.ribasim_infiltration_save = np.empty_like(
+                self.ribasim_cumulative_infiltration
             )
+            self.ribasim_cumulative_drainage = self.ribasim.get_value_ptr(
+                "basin.cumulative_drainage"
+            )
+            self.ribasim_drainage_save = np.empty_like(self.ribasim_cumulative_drainage)
             self.ribasim_level = self.ribasim.get_value_ptr("basin.level")
             self.ribasim_storage = self.ribasim.get_value_ptr("basin.storage")
             self.ribasim_user_demand = self.ribasim.get_value_ptr("user_demand.demand")
             self.ribasim_user_realized = self.ribasim.get_value_ptr(
-                "user_demand.realized"
+                "user_demand.cumulative_inflow"
             )
+            self.ribasim_user_realized_save = np.empty_like(self.ribasim_user_realized)
             self.subgrid_level = self.ribasim.get_value_ptr("basin.subgrid_level")
 
             # add to return ChainMap
@@ -364,9 +372,6 @@ class RibaMetaMod(Driver):
             self.exchange.add_ponding_volume_msw(self.msw_ponding_volume)
             if self.enable_sprinkling_surface_water:
                 self.exchange_sprinkling_demand_msw2rib()
-                self.ribasim_user_realized[:] = (
-                    0.0  # reset cummulative for the next timestep
-                )
             # exchange summed volumes to Ribasim
             self.exchange.flux_to_ribasim(self.delt_gw, self.delt_sw)
             # update Ribasim per delt_sw
@@ -399,8 +404,13 @@ class RibaMetaMod(Driver):
                 self.update_ribasim_metaswap()
             else:
                 self.update_ribasim()
+
             self.exchange.flux_to_modflow(
-                (self.ribasim_drainage_sum - self.ribasim_infiltration_sum),
+                (self.ribasim_cumulative_drainage[:] - self.ribasim_drainage_save[:])
+                - (
+                    self.ribasim_cumulative_infiltration[:]
+                    - self.ribasim_infiltration_save[:]
+                ),
                 self.delt_gw,
             )
             self.exchange.log_demands(self.get_current_time())
@@ -464,8 +474,8 @@ class RibaMetaMod(Driver):
     def exchange_mod2rib(self) -> None:
         self.exchange.add_flux_estimate_mod(self.mf6_head, self.delt_gw)
         # reset Ribasim pointers
-        self.ribasim_infiltration_sum[:] = 0.0
-        self.ribasim_drainage_sum[:] = 0.0
+        self.ribasim_infiltration_save[:] = self.ribasim_cumulative_infiltration[:]
+        self.ribasim_drainage_save[:] = self.ribasim_cumulative_drainage[:]
 
     def exchange_sprinkling_demand_msw2rib(self) -> None:
         # flux demand from metaswap sprinkling to Ribasim (demand)
@@ -494,7 +504,10 @@ class RibaMetaMod(Driver):
 
         self.realised_fractions_swspr[:] = 1.0  # all realized for non-coupled svats
         self.realised_fractions_swspr[nonzero_user_indices] = (
-            self.ribasim_user_realized[nonzero_user_indices]
+            (
+                self.ribasim_user_realized[nonzero_user_indices]
+                - self.ribasim_user_realized_save[nonzero_user_indices]
+            )
             / (self.delt_sw * day_to_seconds)
         ) / self.mapped_sprinkling_demand[nonzero_user_indices]
 
@@ -504,7 +517,9 @@ class RibaMetaMod(Driver):
         msw_sprinkling_realized[:] = (
             self.msw.get_surfacewater_sprinking_demand_ptr() * msw_sprfrac_realised
         )[:]
-        self.ribasim_user_realized[:] = 0.0  # reset cummulative for the next timestep
+        self.ribasim_user_realized_save[:] = self.ribasim_user_realized[
+            :
+        ]  # keep old values
         self.exchange_logger.log_exchange(
             ("sprinkling_realized"),
             msw_sprinkling_realized,
