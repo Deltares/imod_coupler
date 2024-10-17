@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<build-type xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" uuid="" xsi:noNamespaceSchemaLocation="https://www.jetbrains.com/teamcity/schemas/2021.1/project-config.xsd">
+  <name>x64_Release</name>
+  <description>Collect all Release_x64 kernels in the iMOD6 suite</description>
+  <settings>
+    <options>
+      <option name="artifactRules" value="coupler/dist/ =&gt; imod_collector.zip!/&#xA;modflow6/ =&gt; imod_collector.zip!/modflow6/&#xA;metaswap/ =&gt; imod_collector.zip!/metaswap/&#xA;ribasim/ribasim/ =&gt; imod_collector.zip!/ribasim/" />
+      <option name="cleanBuild" value="true" />
+    </options>
+    <disabled-settings>
+      <setting-ref ref="Create_imod_collector_conda_environment" />
+      <setting-ref ref="RUNNER_1" />
+    </disabled-settings>
+    <parameters>
+      <param name="conda_env_path" value="%system.teamcity.build.checkoutDir%/imod_collector_env" />
+    </parameters>
+    <build-runners>
+      <runner id="Create_imod_collector_conda_environment" name="Create imod_collector conda environment" type="simpleRunner">
+        <parameters>
+          <param name="script.content"><![CDATA[if exist "%conda_env_path%" rd /q /s "%conda_env_path%"
+conda env create --file coupler/environment-minimal.yml -p "%conda_env_path%"]]></param>
+          <param name="teamcity.step.mode" value="default" />
+          <param name="use.custom.script" value="true" />
+        </parameters>
+      </runner>
+      <runner id="RUNNER_1" name="Install iMOD Coupler" type="simpleRunner">
+        <parameters>
+          <param name="script.content"><![CDATA[call conda activate %conda_env_path%
+call pip install -e .]]></param>
+          <param name="teamcity.build.workingDir" value="coupler" />
+          <param name="teamcity.step.mode" value="default" />
+          <param name="use.custom.script" value="true" />
+        </parameters>
+      </runner>
+      <runner id="RUNNER_2" name="Create executable with pyinstaller" type="simpleRunner">
+        <parameters>
+          <param name="script.content"><![CDATA[rmdir dist /s /q
+pixi run -e dev install-minimal
+pixi run -e dev pyinstaller --onefile imod_coupler/__main__.py --name imodc]]></param>
+          <param name="teamcity.build.workingDir" value="coupler" />
+          <param name="teamcity.step.mode" value="default" />
+          <param name="use.custom.script" value="true" />
+        </parameters>
+      </runner>
+      <runner id="RUNNER_3" name="Get version from imod coupler" type="simpleRunner">
+        <parameters>
+          <param name="script.content" value="call dist\imodc --version" />
+          <param name="teamcity.build.workingDir" value="coupler" />
+          <param name="teamcity.step.mode" value="default" />
+          <param name="use.custom.script" value="true" />
+        </parameters>
+      </runner>
+      <runner id="RUNNER_4" name="Download Release MODFLOW6" type="simpleRunner">
+        <parameters>
+          <param name="script.content"><![CDATA[mkdir modflow6
+curl -O https://water.usgs.gov/water-resources/software/MODFLOW-6/mf6.5.0_win64.zip
+unzip  -j "mf6.5.0_win64.zip" -d modflow6 mf6.5.0_win64/bin/libmf6.dll]]></param>
+          <param name="teamcity.step.mode" value="default" />
+          <param name="use.custom.script" value="true" />
+        </parameters>
+      </runner>
+    </build-runners>
+    <vcs-settings>
+      <vcs-entry-ref root-id="iMOD6_ImodCouplerRelease_ImodCoupler">
+        <checkout-rule rule="+:. =&gt; ./coupler" />
+      </vcs-entry-ref>
+    </vcs-settings>
+    <requirements>
+      <equals id="RQ_1" name="env.OS" value="Windows_NT" />
+    </requirements>
+    <build-triggers>
+      <build-trigger id="TRIGGER_1" type="buildDependencyTrigger">
+        <parameters>
+          <param name="afterSuccessfulBuildOnly" value="true" />
+          <param name="branchFilter" value="+:&lt;default&gt;" />
+          <param name="dependsOn" value="MSWMOD_MetaSWAP_MetaSWAPBuildWin64trunk" />
+        </parameters>
+      </build-trigger>
+      <build-trigger id="TRIGGER_2" type="buildDependencyTrigger">
+        <parameters>
+          <param name="afterSuccessfulBuildOnly" value="true" />
+          <param name="branchFilter" value="+:&lt;default&gt;" />
+          <param name="dependsOn" value="iMOD6_Modflow6buildWin64" />
+        </parameters>
+      </build-trigger>
+    </build-triggers>
+    <build-extensions>
+      <extension id="BUILD_EXT_1" type="commit-status-publisher">
+        <parameters>
+          <param name="github_authentication_type" value="token" />
+          <param name="github_host" value="https://api.github.com" />
+          <param name="publisherId" value="githubStatusPublisher" />
+          <param name="secure:github_access_token" value="credentialsJSON:6b37af71-1f2f-4611-8856-db07965445c0" />
+          <param name="vcsRootId" value="iMOD6_ImodCouplerRelease_ImodCoupler" />
+        </parameters>
+      </extension>
+      <extension id="BUILD_EXT_2" type="pullRequests">
+        <parameters>
+          <param name="authenticationType" value="token" />
+          <param name="filterAuthorRole" value="MEMBER" />
+          <param name="filterTargetBranch" value="" />
+          <param name="providerType" value="github" />
+          <param name="secure:accessToken" value="credentialsJSON:71420214-373c-4ccd-ba32-2ea886843f62" />
+          <param name="vcsRootId" value="iMOD6_ImodCouplerRelease_ImodCoupler" />
+        </parameters>
+      </extension>
+    </build-extensions>
+    <artifact-dependencies>
+      <dependency id="ARTIFACT_DEPENDENCY_1" sourceBuildTypeId="MSWMOD_MetaSWAP_MetaSWAPBuildWin64trunk" cleanDestination="true">
+        <revisionRule name="buildTag" revision="release.tcbuildtag" />
+        <artifact sourcePath="MetaSWAP.zip!/x64/Release =&gt; metaswap" />
+      </dependency>
+      <dependency id="ARTIFACT_DEPENDENCY_2" sourceBuildTypeId="Ribasim_Windows_BuildRibasim" cleanDestination="true">
+        <revisionRule name="lastSuccessful" revision="latest.lastSuccessful" />
+        <artifact sourcePath="ribasim_windows.zip!** =&gt; ribasim" />
+      </dependency>
+    </artifact-dependencies>
+    <cleanup />
+  </settings>
+</build-type>
+
