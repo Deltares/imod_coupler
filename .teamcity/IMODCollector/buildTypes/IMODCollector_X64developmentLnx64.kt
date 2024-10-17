@@ -9,7 +9,6 @@ import jetbrains.buildServer.configs.kotlin.buildSteps.script
 import jetbrains.buildServer.configs.kotlin.triggers.finishBuildTrigger
 
 object IMODCollector_X64developmentLnx64 : BuildType({
-    templates(_Self.buildTypes.Linux)
     name = "x64_development_lnx64"
     description = "Collect all Release_x64 kernels in the iMOD6 suite"
 
