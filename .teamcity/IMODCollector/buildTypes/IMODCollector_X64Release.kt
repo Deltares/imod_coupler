@@ -63,57 +63,28 @@ object IMODCollector_X64Release : BuildType({
             scriptContent = """call dist\imodc --version"""
         }
         script {
-            name = "Download Release MODFLOW6"
+            name = "Download Release MODFLOW 6.5.0"
             scriptContent = """
                 mkdir modflow6
                 curl -O https://water.usgs.gov/water-resources/software/MODFLOW-6/mf6.5.0_win64.zip
                 unzip  -j "mf6.5.0_win64.zip" -d modflow6 mf6.5.0_win64/bin/libmf6.dll
             """.trimIndent()
         }
-    }
-
-    triggers {
-        finishBuildTrigger {
-            buildType = "MSWMOD_MetaSWAP_MetaSWAPBuildWin64trunk"
-            successfulOnly = true
-        }
-        finishBuildTrigger {
-            buildType = "iMOD6_Modflow6buildWin64"
-            successfulOnly = true
-        }
-    }
-
-    features {
-        commitStatusPublisher {
-            vcsRootExtId = "${ImodCoupler.id}"
-            publisher = github {
-                githubUrl = "https://api.github.com"
-                authType = personalToken {
-                    token = "credentialsJSON:6b37af71-1f2f-4611-8856-db07965445c0"
-                }
-            }
-        }
-        pullRequests {
-            vcsRootExtId = "${ImodCoupler.id}"
-            provider = github {
-                authType = token {
-                    token = "credentialsJSON:71420214-373c-4ccd-ba32-2ea886843f62"
-                }
-                filterAuthorRole = PullRequests.GitHubRoleFilter.MEMBER
-            }
+        script {
+            name = "Download Release Ribasim v2024.11.0"
+            scriptContent = """
+                mkdir modflow6
+                curl -L -o ribasim_windows.zip https://github.com/Deltares/Ribasim/releases/download/v2024.11.0/ribasim_windows.zip
+                unzip  "ribasim_windows.zip"
+            """.trimIndent()
         }
     }
 
     dependencies {
         artifacts(AbsoluteId("MSWMOD_MetaSWAP_MetaSWAPBuildWin64trunk")) {
            cleanDestination = true
-           buildRule = tag("release")
+           buildRule = tag("release_2410")
            artifactRules = "MetaSWAP.zip!/x64/Release => metaswap"
-        }
-        artifacts(AbsoluteId("Ribasim_Windows_BuildRibasim")) {
-            cleanDestination = true
-            buildRule = lastSuccessful()
-            artifactRules = "ribasim_windows.zip!** => ribasim"
         }
     }
 
