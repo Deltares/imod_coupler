@@ -104,11 +104,6 @@ object TestbenchCouplerWin64Release : BuildType({
                     imod_collector.zip!** => imod_collector_devel
                 """.trimIndent()
             }
-//            artifacts {
-//                buildRule = tag("regression")
-//                cleanDestination = true
-//                artifactRules = "imod_coupler_windows.zip!** => imod_collector_regression"
-//            }
         }
         artifacts(AbsoluteId("iMOD6_Coupler_IMODCollector_X64development")){
             buildRule = tag("regression")
