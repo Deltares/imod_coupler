@@ -63,11 +63,19 @@ object IMODCollector_X64Release : BuildType({
             scriptContent = """call dist\imodc --version"""
         }
         script {
-            name = "Download Release MODFLOW6"
+            name = "Download Release MODFLOW 6.5.0"
             scriptContent = """
                 mkdir modflow6
                 curl -O https://water.usgs.gov/water-resources/software/MODFLOW-6/mf6.5.0_win64.zip
                 unzip  -j "mf6.5.0_win64.zip" -d modflow6 mf6.5.0_win64/bin/libmf6.dll
+            """.trimIndent()
+        }
+        script {
+            name = "Download Release Ribasim v2024.11.0"
+            scriptContent = """
+                mkdir modflow6
+                curl -O https://github.com/Deltares/Ribasim/releases/download/v2024.11.0/ribasim_windows.zip
+                unzip  "ribasim_windows.zip"
             """.trimIndent()
         }
     }
@@ -77,11 +85,6 @@ object IMODCollector_X64Release : BuildType({
            cleanDestination = true
            buildRule = tag("release_2410")
            artifactRules = "MetaSWAP.zip!/x64/Release => metaswap"
-        }
-        artifacts(AbsoluteId("Ribasim_Windows_BuildRibasim")) {
-            cleanDestination = true
-            buildRule = tag("v2024.11.0")
-            artifactRules = "ribasim_windows.zip!** => ribasim"
         }
     }
 
