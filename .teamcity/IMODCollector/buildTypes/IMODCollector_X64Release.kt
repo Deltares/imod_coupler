@@ -72,47 +72,15 @@ object IMODCollector_X64Release : BuildType({
         }
     }
 
-    triggers {
-        finishBuildTrigger {
-            buildType = "MSWMOD_MetaSWAP_MetaSWAPBuildWin64trunk"
-            successfulOnly = true
-        }
-        finishBuildTrigger {
-            buildType = "iMOD6_Modflow6buildWin64"
-            successfulOnly = true
-        }
-    }
-
-    features {
-        commitStatusPublisher {
-            vcsRootExtId = "${ImodCoupler.id}"
-            publisher = github {
-                githubUrl = "https://api.github.com"
-                authType = personalToken {
-                    token = "credentialsJSON:6b37af71-1f2f-4611-8856-db07965445c0"
-                }
-            }
-        }
-        pullRequests {
-            vcsRootExtId = "${ImodCoupler.id}"
-            provider = github {
-                authType = token {
-                    token = "credentialsJSON:71420214-373c-4ccd-ba32-2ea886843f62"
-                }
-                filterAuthorRole = PullRequests.GitHubRoleFilter.MEMBER
-            }
-        }
-    }
-
     dependencies {
         artifacts(AbsoluteId("MSWMOD_MetaSWAP_MetaSWAPBuildWin64trunk")) {
            cleanDestination = true
-           buildRule = tag("release")
+           buildRule = tag("release_2410")
            artifactRules = "MetaSWAP.zip!/x64/Release => metaswap"
         }
         artifacts(AbsoluteId("Ribasim_Windows_BuildRibasim")) {
             cleanDestination = true
-            buildRule = lastSuccessful()
+            buildRule = tag("v2024.11.0")
             artifactRules = "ribasim_windows.zip!** => ribasim"
         }
     }
