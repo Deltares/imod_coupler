@@ -74,7 +74,7 @@ object IMODCollector_X64Release : BuildType({
             name = "Download Release Ribasim v2024.11.0"
             scriptContent = """
                 mkdir modflow6
-                curl -O https://github.com/Deltares/Ribasim/releases/download/v2024.11.0/ribasim_windows.zip
+                curl -L -o ribasim_windows.zip https://github.com/Deltares/Ribasim/releases/download/v2024.11.0/ribasim_windows.zip
                 unzip  "ribasim_windows.zip"
             """.trimIndent()
         }
