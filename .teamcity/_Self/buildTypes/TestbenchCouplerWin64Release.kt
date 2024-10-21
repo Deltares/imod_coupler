@@ -1,6 +1,6 @@
 package _Self.buildTypes
 
-import IMODCollector.buildTypes.IMODCollector_X64development
+import IMODCollector.buildTypes.IMODCollector_X64Release
 import _Self.vcsRoots.ImodCoupler
 import jetbrains.buildServer.configs.kotlin.*
 import jetbrains.buildServer.configs.kotlin.buildFeatures.XmlReport
@@ -66,7 +66,7 @@ object TestbenchCouplerWin64Release : BuildType({
 
     triggers {
         finishBuildTrigger {
-            buildType = "${IMODCollector_X64development.id}"
+            buildType = "${IMODCollector_X64Release.id}"
             successfulOnly = true
         }
         vcs {
@@ -106,13 +106,9 @@ object TestbenchCouplerWin64Release : BuildType({
                 cleanDestination = true
                 artifactRules = """
                     imod_collector.zip!** => imod_collector_devel
+                    imod_collector.zip!** => imod_collector_regression
                 """.trimIndent()
             }
-        }
-        artifacts(AbsoluteId("iMOD6_Coupler_IMODCollector_X64development")){
-            buildRule = tag("regression")
-            cleanDestination = true
-            artifactRules = "imod_coupler_windows.zip!** => imod_collector_regression"
         }
     }
 
