@@ -15,6 +15,7 @@ from primod.driver_coupling.util import (
 )
 from primod.mapping.svat_basin_mapping import SvatBasinMapping
 from primod.mapping.svat_user_demand_mapping import SvatUserDemandMapping
+import xarray as xr
 
 
 class RibaMetaDriverCoupling(DriverCoupling):
@@ -28,8 +29,8 @@ class RibaMetaDriverCoupling(DriverCoupling):
         GeoDataFrame of user demand polygons
     """
 
-    ribasim_basin_definition: gpd.GeoDataFrame
-    ribasim_user_demand_definition: gpd.GeoDataFrame | None = None
+    ribasim_basin_definition: gpd.GeoDataFrame | xr.DataArray
+    ribasim_user_demand_definition: gpd.GeoDataFrame | xr.DataArray | None = None
 
     def _check_sprinkling(self, msw_model: MetaSwapModel) -> bool:
         sprinkling_key = msw_model._get_pkg_key(Sprinkling, optional_package=True)
@@ -60,11 +61,19 @@ class RibaMetaDriverCoupling(DriverCoupling):
         basin_ids = _validate_node_ids(
             ribasim_model.basin.node.df, self.ribasim_basin_definition
         )
-        gridded_basin = imod.prepare.rasterize(
-            self.ribasim_basin_definition,
-            like=svat.isel(subunit=0, drop=True),
-            column="node_id",
-        )
+        if isinstance(self.ribasim_basin_definition, gpd.GeoDataFrame):
+            gridded_basin = imod.prepare.rasterize(
+                self.ribasim_basin_definition,
+                like=svat.isel(subunit=0, drop=True),
+                column="node_id",
+            )
+        elif isinstance(self.ribasim_basin_definition, xr.DataArray):
+            gridded_basin = self.ribasim_basin_definition
+        else:
+            raise TypeError(
+                "Expected geopandas.GeoDataFrame or xr.Dataset: "
+                f"received {type(self.ribasim_basin_definition.__name__)}"
+            )
         svat_basin_mapping = SvatBasinMapping(
             name="msw_ponding",
             gridded_basin=gridded_basin,
@@ -77,11 +86,19 @@ class RibaMetaDriverCoupling(DriverCoupling):
             user_demand_ids = _validate_node_ids(
                 ribasim_model.user_demand.node.df, self.ribasim_user_demand_definition
             )
-            gridded_user_demand = imod.prepare.rasterize(
-                self.ribasim_user_demand_definition,
-                like=svat.isel(subunit=0, drop=True),
-                column="node_id",
-            )
+            if isinstance(self.ribasim_user_demand_definition, gpd.GeoDataFrame):
+                gridded_user_demand = imod.prepare.rasterize(
+                    self.ribasim_user_demand_definition,
+                    like=svat.isel(subunit=0, drop=True),
+                    column="node_id",
+                )
+            elif isinstance(self.ribasim_user_demand_definition, xr.DataArray):
+                gridded_user_demand = self.ribasim_user_demand_definition
+            else:
+                raise TypeError(
+                    "Expected geopandas.GeoDataFrame or xr.Dataset: "
+                    f"received {type(self.ribasim_user_demand_definition.__name__)}"
+                )
             # sprinkling surface water for subsection of svats determined in 'sprinkling'
             swspr_grid_data = copy.deepcopy(msw_model[grid_data_key])
             nsu = swspr_grid_data.dataset["area"].sizes["subunit"]
