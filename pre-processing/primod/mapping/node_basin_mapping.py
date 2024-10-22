@@ -1,3 +1,5 @@
+from typing import Union
+
 import geopandas as gpd
 import numpy as np
 import pandas as pd
@@ -7,7 +9,6 @@ from scipy.spatial import KDTree
 
 from primod.mapping.mappingbase import GenericMapping
 from primod.typing import Bool, Float, Int
-from typing import Union
 
 
 class NodeBasinMapping(GenericMapping):
@@ -116,7 +117,6 @@ class ActiveNodeBasinMapping(NodeBasinMapping):
         gridded_basin: gpd.GeoDataFrame,
         basin_ids: pd.Series,
         subgrid_df: pd.DataFrame,
-        subgrid_id_range: pd.DataFrame | None,
     ):
         # Use xarray.where() to force the dimension order of conductance, rather than
         # using gridded_basin.where() (which prioritizes the gridded_basin dims)
@@ -126,7 +126,9 @@ class ActiveNodeBasinMapping(NodeBasinMapping):
         )
         boundary_index = self._derive_boundary_index(conductance, include)
         # Match the cells to the subgrid based on xy location.
-        subgrid_xy, subgrid_id = self._get_subgrid_xy(subgrid_df, subgrid_id_range)
+        if "meta_label" in subgrid_df.columns:
+            subgrid_df = subgrid_df[subgrid_df["meta_label"] == name]
+        subgrid_xy, subgrid_id = self._get_subgrid_xy(subgrid_df)
         conductance_xy = self._get_conductance_xy(conductance, include)
         xy_index = self._find_nearest_subgrid_elements(subgrid_xy, conductance_xy)
         self.name = name
@@ -139,9 +141,7 @@ class ActiveNodeBasinMapping(NodeBasinMapping):
         )
 
     @staticmethod
-    def _get_subgrid_xy(
-        subgrid: pd.DataFrame, subgrid_id_range: pd.DataFrame | None
-    ) -> Union[NDArray[Float], NDArray[Float]]:
+    def _get_subgrid_xy(subgrid: pd.DataFrame) -> Union[NDArray[Float], NDArray[Float]]:
         # Check whether columns (optional to Ribasim) are present.
         if "meta_x" not in subgrid or "meta_y" not in subgrid:
             raise ValueError(
@@ -149,13 +149,6 @@ class ActiveNodeBasinMapping(NodeBasinMapping):
                 "ribasim.Model.basin.subgrid dataframe for actively coupled river "
                 f"and drainage packages. Found columns: {subgrid.columns}"
             )
-        # Update for optional subgrid id-range
-        if subgrid_id_range is not None:
-            min_id = subgrid_id_range["min_id"]
-            max_id = subgrid_id_range["max_id"]
-            subgrid = subgrid[subgrid["subgrid_id"].ge(min_id)]
-            subgrid = subgrid[subgrid["subgrid_id"].lt(max_id)]
-
         # Check x and y coordinates for uniqueness
         grouped = subgrid.groupby("subgrid_id")
         multiple_x = grouped["meta_x"].nunique().ne(1)
@@ -166,7 +159,7 @@ class ActiveNodeBasinMapping(NodeBasinMapping):
             raise ValueError(
                 "Subgrid data contains multiple values for meta_x or meta_y "
                 f"for subgrid_id(s):\n   meta_x: {x_ids}\n   meta_y: {y_ids} \n"
-                "try using the 'subgrid_id_range' argument"
+                "try using a 'meta_label' column to deal with stacked elements"
             )
         x = grouped["meta_x"].first().to_numpy()
         y = grouped["meta_y"].first().to_numpy()

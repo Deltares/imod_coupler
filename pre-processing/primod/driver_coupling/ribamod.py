@@ -226,16 +226,12 @@ class RibaModActiveDriverCoupling(RibaModDriverCoupling):
         ribasim_model: ribasim.Model,
     ) -> ActiveNodeBasinMapping:
         subgrid_df = self._validate_subgrid_df(ribasim_model)
-        subgrid_id_range = self.subgrid_id_range
-        if self.subgrid_id_range is not None:
-            subgrid_id_range = self.subgrid_id_range.loc[name]
         return ActiveNodeBasinMapping(
             name=name,
             conductance=conductance,
             gridded_basin=gridded_basin,
             basin_ids=basin_ids,
             subgrid_df=subgrid_df,
-            subgrid_id_range=subgrid_id_range,
         )
 
 
