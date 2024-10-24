@@ -162,15 +162,14 @@ class RibaModDriverCoupling(DriverCoupling, abc.ABC):
                 raise TypeError(
                     f"Expected Drainage packages for passive coupling, received: {type(package).__name__}"
                 )
-
-            #  check on the bottom elevation and ribasim minimal subgrid level
-            minimum_subgrid_level = (
-                ribasim_model.basin.subgrid.df.groupby("subgrid_id")
-                .min()["subgrid_level"]
-                .to_numpy()
-            )
             # in active coupling, check subgrid levels versus modflow bottom elevation
             if isinstance(self, RibaModActiveDriverCoupling):
+                #  check on the bottom elevation and ribasim minimal subgrid level
+                minimum_subgrid_level = (
+                    ribasim_model.basin.subgrid.df.groupby("subgrid_id")  # type: ignore
+                    .min()["subgrid_level"]
+                    .to_numpy()
+                )
                 subgrid_index = mapping.dataframe["subgrid_index"]
                 bound_index = mapping.dataframe["bound_index"]
                 bottom_elevation = package["bottom_elevation"].to_numpy()

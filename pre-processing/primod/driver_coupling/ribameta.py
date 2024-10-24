@@ -97,7 +97,7 @@ class RibaMetaDriverCoupling(DriverCoupling):
             else:
                 raise TypeError(
                     "Expected geopandas.GeoDataFrame or xr.Dataset: "
-                    f"received {type(self.ribasim_user_demand_definition.__name__)}"
+                    f"received {type(self.ribasim_user_demand_definition.__name__)}"  # type: ignore
                 )
             # sprinkling surface water for subsection of svats determined in 'sprinkling'
             swspr_grid_data = copy.deepcopy(msw_model[grid_data_key])
