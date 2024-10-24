@@ -23,10 +23,10 @@ class RibaMetaDriverCoupling(DriverCoupling):
 
     Attributes
     ----------
-    basin_definition: gpd.GeoDataFrame
-        GeoDataFrame of basin polygons
-    user_demand_definition: gpd.GeoDataFrame
-        GeoDataFrame of user demand polygons
+    basin_definition: gpd.GeoDataFrame | xr.DataArray
+        GeoDataFrame of basin polygons or xr.DataArray with gridded basin nodes
+    user_demand_definition: gpd.GeoDataFrame| xr.DataArray
+        GeoDataFrame of user demand polygons or xr.DataArray with gridded demand nodes
     """
 
     ribasim_basin_definition: gpd.GeoDataFrame | xr.DataArray

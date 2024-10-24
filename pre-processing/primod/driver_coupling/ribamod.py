@@ -24,18 +24,15 @@ class RibaModDriverCoupling(DriverCoupling, abc.ABC):
     ----------
     mf6_model: str
         The name of the GWF model
-    ribasim_basin_definition : gpd.GeoDataFrame, xr.Dataset
+    ribasim_basin_definition : gpd.GeoDataFrame | xr.Dataset
         * GeoDataFrame: basin polygons
         * Dataset: mapping of mf6 package name to grid containing basin IDs.
     mf6_packages : list of str
         A list of river or drainage packages.
-    subgrid_id_range: optional DataFrame containing min and max subgrid_id per mf6_package
     """
 
     mf6_model: str
-    ribasim_basin_definition: (
-        gpd.GeoDataFrame | xr.Dataset
-    )  # TODO: hopefully pydantic is happy
+    ribasim_basin_definition: gpd.GeoDataFrame | xr.Dataset
     mf6_packages: list[str]
     subgrid_id_range: pd.DataFrame | None = None
 
