@@ -1,5 +1,3 @@
-from typing import Union
-
 import geopandas as gpd
 import numpy as np
 import pandas as pd
@@ -118,6 +116,7 @@ class ActiveNodeBasinMapping(NodeBasinMapping):
         basin_ids: pd.Series,
         subgrid_df: pd.DataFrame,
     ):
+        validate_meta_label_column(name, subgrid_df)
         # Use xarray.where() to force the dimension order of conductance, rather than
         # using gridded_basin.where() (which prioritizes the gridded_basin dims)
         conductance = self._ensure_time_invariant_conductance(conductance)
@@ -141,7 +140,7 @@ class ActiveNodeBasinMapping(NodeBasinMapping):
         )
 
     @staticmethod
-    def _get_subgrid_xy(subgrid: pd.DataFrame) -> Union[NDArray[Float], NDArray[Float]]:
+    def _get_subgrid_xy(subgrid: pd.DataFrame) -> tuple[NDArray[Float], NDArray[Float]]:
         # Check whether columns (optional to Ribasim) are present.
         if "meta_x" not in subgrid or "meta_y" not in subgrid:
             raise ValueError(
@@ -163,6 +162,7 @@ class ActiveNodeBasinMapping(NodeBasinMapping):
             )
         x = grouped["meta_x"].first().to_numpy()
         y = grouped["meta_y"].first().to_numpy()
+        # At this level the subgrid-df could be a subset of the Ribasim one
         subgrid_id = grouped["subgrid_id"].first().to_numpy()
         return np.column_stack((x, y)), subgrid_id
 
@@ -192,3 +192,11 @@ class ActiveNodeBasinMapping(NodeBasinMapping):
         # FUTURE: maybe do something with the distances returned by query?
         indices: NDArray[Int] = kdtree.query(conductance_xy)[1]
         return indices
+
+
+def validate_meta_label_column(name: str, subgrid_df: pd.DataFrame) -> None:
+    if "meta_label" in subgrid_df.columns:
+        if (subgrid_df["meta_label"] != name).any():
+            raise ValueError(
+                "if column 'meta_label' is defined in subgrid dataframe, all actively coupled packages should be included"
+            )

@@ -6,6 +6,7 @@ import geopandas as gpd
 import imod
 import numpy as np
 import ribasim
+import xarray as xr
 from imod.msw import GridData, MetaSwapModel, Sprinkling
 
 from primod.driver_coupling.driver_coupling_base import DriverCoupling
@@ -15,7 +16,6 @@ from primod.driver_coupling.util import (
 )
 from primod.mapping.svat_basin_mapping import SvatBasinMapping
 from primod.mapping.svat_user_demand_mapping import SvatUserDemandMapping
-import xarray as xr
 
 
 class RibaMetaDriverCoupling(DriverCoupling):
