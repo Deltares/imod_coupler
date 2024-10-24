@@ -22,19 +22,29 @@ def _get_gwf_modelnames(mf6_simulation: Modflow6Simulation) -> list[str]:
 
 
 def _validate_node_ids(
-    dataframe: pd.DataFrame, definition: gpd.GeoDataFrame
+    dataframe: pd.DataFrame, definition: gpd.GeoDataFrame | xr.Dataset | xr.DataArray
 ) -> pd.Series:
     # Validate
-    if "node_id" not in definition.columns:
-        raise ValueError(
-            'Definition must contain "node_id" column.'
-            f"Columns in dataframe: {definition.columns}"
-        )
+    if isinstance(definition, xr.Dataset):
+        data_vars = list(definition.data_vars.keys())
+        nodes = np.unique(definition.to_dataframe()[data_vars])
+        node_id = nodes[np.isfinite(nodes)]
+    elif isinstance(definition, xr.DataArray):
+        definition.name = "basin_definition"
+        nodes = definition.to_dataset().to_dataframe()["basin_definition"]
+        node_id = nodes[np.isfinite(nodes)]
+    else:
+        if "node_id" not in definition.columns:
+            raise ValueError(
+                'Definition must contain "node_id" column.'
+                f"Columns in dataframe: {definition.columns}"
+            )
+        node_id = definition["node_id"].to_numpy()
 
     basin_ids: NDArray[Int] = np.unique(dataframe.index)
-    missing = ~np.isin(definition["node_id"], basin_ids)
+    missing = ~np.isin(node_id, basin_ids)
     if missing.any():
-        missing_nodes = definition["node_id"].to_numpy()[missing]
+        missing_nodes = node_id[missing]
         raise ValueError(
             "The node IDs of these nodes in definition do not "
             f"occur in the Ribasim model: {missing_nodes}"

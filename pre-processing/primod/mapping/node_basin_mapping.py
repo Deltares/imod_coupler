@@ -116,6 +116,7 @@ class ActiveNodeBasinMapping(NodeBasinMapping):
         basin_ids: pd.Series,
         subgrid_df: pd.DataFrame,
     ):
+        validate_meta_label_column(name, subgrid_df)
         # Use xarray.where() to force the dimension order of conductance, rather than
         # using gridded_basin.where() (which prioritizes the gridded_basin dims)
         conductance = self._ensure_time_invariant_conductance(conductance)
@@ -124,20 +125,22 @@ class ActiveNodeBasinMapping(NodeBasinMapping):
         )
         boundary_index = self._derive_boundary_index(conductance, include)
         # Match the cells to the subgrid based on xy location.
-        subgrid_xy = self._get_subgrid_xy(subgrid_df)
+        if "meta_label" in subgrid_df.columns:
+            subgrid_df = subgrid_df[subgrid_df["meta_label"] == name]
+        subgrid_xy, subgrid_id = self._get_subgrid_xy(subgrid_df)
         conductance_xy = self._get_conductance_xy(conductance, include)
-        subgrid_index = self._find_nearest_subgrid_elements(subgrid_xy, conductance_xy)
+        xy_index = self._find_nearest_subgrid_elements(subgrid_xy, conductance_xy)
         self.name = name
         self.dataframe = pd.DataFrame(
             data={
                 "basin_index": basin_index,
                 "bound_index": boundary_index,
-                "subgrid_index": subgrid_index,
+                "subgrid_index": subgrid_id[xy_index],
             }
         )
 
     @staticmethod
-    def _get_subgrid_xy(subgrid: pd.DataFrame) -> NDArray[Float]:
+    def _get_subgrid_xy(subgrid: pd.DataFrame) -> tuple[NDArray[Float], NDArray[Float]]:
         # Check whether columns (optional to Ribasim) are present.
         if "meta_x" not in subgrid or "meta_y" not in subgrid:
             raise ValueError(
@@ -145,7 +148,6 @@ class ActiveNodeBasinMapping(NodeBasinMapping):
                 "ribasim.Model.basin.subgrid dataframe for actively coupled river "
                 f"and drainage packages. Found columns: {subgrid.columns}"
             )
-
         # Check x and y coordinates for uniqueness
         grouped = subgrid.groupby("subgrid_id")
         multiple_x = grouped["meta_x"].nunique().ne(1)
@@ -155,12 +157,14 @@ class ActiveNodeBasinMapping(NodeBasinMapping):
             y_ids = multiple_y.index[multiple_y].to_numpy()
             raise ValueError(
                 "Subgrid data contains multiple values for meta_x or meta_y "
-                f"for subgrid_id(s):\n   meta_x: {x_ids}\n   meta_y: {y_ids}"
+                f"for subgrid_id(s):\n   meta_x: {x_ids}\n   meta_y: {y_ids} \n"
+                "try using a 'meta_label' column to deal with stacked elements"
             )
-
         x = grouped["meta_x"].first().to_numpy()
         y = grouped["meta_y"].first().to_numpy()
-        return np.column_stack((x, y))
+        # At this level the subgrid-df could be a subset of the Ribasim one
+        subgrid_id = grouped["subgrid_id"].first().to_numpy()
+        return np.column_stack((x, y)), subgrid_id
 
     @staticmethod
     def _get_conductance_xy(
@@ -188,3 +192,11 @@ class ActiveNodeBasinMapping(NodeBasinMapping):
         # FUTURE: maybe do something with the distances returned by query?
         indices: NDArray[Int] = kdtree.query(conductance_xy)[1]
         return indices
+
+
+def validate_meta_label_column(name: str, subgrid_df: pd.DataFrame) -> None:
+    if "meta_label" in subgrid_df.columns:
+        if (subgrid_df["meta_label"] != name).all():
+            raise ValueError(
+                "if column 'meta_label' is defined in subgrid dataframe, all actively coupled packages should be included"
+            )
