@@ -196,7 +196,7 @@ class ActiveNodeBasinMapping(NodeBasinMapping):
 
 def validate_meta_label_column(name: str, subgrid_df: pd.DataFrame) -> None:
     if "meta_label" in subgrid_df.columns:
-        if (subgrid_df["meta_label"] != name).any():
+        if (subgrid_df["meta_label"] != name).all():
             raise ValueError(
                 "if column 'meta_label' is defined in subgrid dataframe, all actively coupled packages should be included"
             )
