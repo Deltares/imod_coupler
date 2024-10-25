@@ -384,6 +384,7 @@ class RibaMetaMod(Driver):
 
     def update_ribasim(self) -> None:
         # exchange summed volumes to Ribasim
+        # no metaswap, delt_sw doesn't exist
         self.exchange.flux_to_ribasim(self.delt_gw, self.delt_gw)
         # update Ribasim per delt_gw
         self.ribasim.update_until(day_to_seconds * self.get_current_time())
