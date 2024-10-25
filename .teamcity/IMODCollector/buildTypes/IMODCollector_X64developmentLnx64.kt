@@ -100,7 +100,7 @@ object IMODCollector_X64developmentLnx64 : BuildType({
         artifacts(AbsoluteId("Ribasim_Linux_BuildRibasim")) {
             id = "ARTIFACT_DEPENDENCY_285"
             buildRule = lastSuccessful()
-            artifactRules = "libribasim.zip!** => ribasim"
+            artifactRules = "ribasim_linux.zip!** => ."
         }
     }
 
