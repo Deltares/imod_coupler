@@ -168,11 +168,12 @@ def test_get_subgrid_xy():
     df = pd.DataFrame(
         data={
             "subgrid_id": [1, 1, 2, 2],
+            "subgrid_index": [0, 0, 1, 1],
             "meta_x": [1.0, 1.0, 2.0, 2.0],
             "meta_y": [1.0, 1.0, 2.0, 2.0],
         }
     )
-    xy, subgrid_id = ActiveNodeBasinMapping._get_subgrid_xy(df)
+    xy, subgrid_index = ActiveNodeBasinMapping._get_subgrid_xy(df)
     assert np.allclose(
         xy,
         [
@@ -180,7 +181,7 @@ def test_get_subgrid_xy():
             [2.0, 2.0],
         ],
     )
-    assert np.allclose(subgrid_id, [1, 2])
+    assert np.allclose(subgrid_index, [0, 1])
 
 
 def test_get_conductance_xy():
@@ -260,7 +261,7 @@ def test_node_basin_mapping_stacked() -> None:
 
     #        subgrid id:  |   |   |   |   |   |
     #                     |   |   |   |   |   |
-    #                     |0,1|2,3|4,5|6,7|8,9|
+    #                     |1,2|3,4|5,6|7,8|9,10|
     #                     |   |   |   |   |   |
 
     #
@@ -290,7 +291,7 @@ def test_node_basin_mapping_stacked() -> None:
     subgrid_df = pd.DataFrame(
         data={
             "node_id": np.array([1, 1, 2, 2, 2, 1, 1, 2, 2, 2]),
-            "subgrid_id": np.arange(10),
+            "subgrid_id": np.arange(10) + 1,
             "subgrid_level": np.array(
                 [1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
             ),
@@ -360,7 +361,7 @@ def test_node_basin_mapping_stacked_no_label() -> None:
         data={
             "node_id": np.array([1] * 10),
             "subgrid_id": np.arange(10),
-            "subgrid_level": np.array([1.0] * 10),
+            "subgrid_level": np.array([1.0] * 10) + 1,
             "meta_x": np.array([0.5, 0.5, 1.5, 1.5, 2.5, 2.5, 3.5, 3.5, 4.5, 4.5]),
             "meta_y": np.array([11.5] * 10),
             "meta_label": np.array(["sys1"] * 10),

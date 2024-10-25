@@ -117,6 +117,7 @@ class ActiveNodeBasinMapping(NodeBasinMapping):
         subgrid_df: pd.DataFrame,
     ):
         validate_meta_label_column(name, subgrid_df)
+        subgrid_df = add_subgrid_index(subgrid_df)
         # Use xarray.where() to force the dimension order of conductance, rather than
         # using gridded_basin.where() (which prioritizes the gridded_basin dims)
         conductance = self._ensure_time_invariant_conductance(conductance)
@@ -127,15 +128,17 @@ class ActiveNodeBasinMapping(NodeBasinMapping):
         # Match the cells to the subgrid based on xy location.
         if "meta_label" in subgrid_df.columns:
             subgrid_df = subgrid_df[subgrid_df["meta_label"] == name]
-        subgrid_xy, subgrid_id = self._get_subgrid_xy(subgrid_df)
+        subgrid_xy, subgrid_xy_index = self._get_subgrid_xy(subgrid_df)
         conductance_xy = self._get_conductance_xy(conductance, include)
-        xy_index = self._find_nearest_subgrid_elements(subgrid_xy, conductance_xy)
+        index = self._find_nearest_subgrid_elements(
+            subgrid_xy, conductance_xy
+        )  # index on potential subset of subgrid_df
         self.name = name
         self.dataframe = pd.DataFrame(
             data={
                 "basin_index": basin_index,
                 "bound_index": boundary_index,
-                "subgrid_index": subgrid_id[xy_index],
+                "subgrid_index": subgrid_xy_index[index],
             }
         )
 
@@ -163,8 +166,8 @@ class ActiveNodeBasinMapping(NodeBasinMapping):
         x = grouped["meta_x"].first().to_numpy()
         y = grouped["meta_y"].first().to_numpy()
         # At this level the subgrid-df could be a subset of the Ribasim one
-        subgrid_id = grouped["subgrid_id"].first().to_numpy()
-        return np.column_stack((x, y)), subgrid_id
+        subgrid_index = grouped["subgrid_index"].first().to_numpy()
+        return np.column_stack((x, y)), subgrid_index
 
     @staticmethod
     def _get_conductance_xy(
@@ -200,3 +203,13 @@ def validate_meta_label_column(name: str, subgrid_df: pd.DataFrame) -> None:
             raise ValueError(
                 "if column 'meta_label' is defined in subgrid dataframe, all actively coupled packages should be included"
             )
+
+
+def add_subgrid_index(subgrid_df: pd.DataFrame) -> pd.DataFrame:
+    # subgrid_id is an ordered label; the index is the zero based position in the ordered array
+    subgrid_df = subgrid_df.copy()
+    _, unique_index = np.unique(subgrid_df["subgrid_id"], return_index=True)
+    subgrid_index = np.argsort(subgrid_df["subgrid_id"][unique_index])
+    subgrid_df["subgrid_index"] = np.full_like(subgrid_df["subgrid_id"], -1)
+    subgrid_df["subgrid_index"][unique_index] = subgrid_index
+    return subgrid_df
