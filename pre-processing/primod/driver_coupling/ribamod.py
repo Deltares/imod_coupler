@@ -77,6 +77,7 @@ class RibaModDriverCoupling(DriverCoupling, abc.ABC):
             basin_definition,
             like=dis["idomain"].isel(layer=0, drop=True),
             column="node_id",
+            fill=-1,
         )
 
         # Collect which Ribasim basins are coupled, so that we can set their

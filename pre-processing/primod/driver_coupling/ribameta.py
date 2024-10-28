@@ -64,6 +64,7 @@ class RibaMetaDriverCoupling(DriverCoupling):
             self.ribasim_basin_definition,
             like=svat.isel(subunit=0, drop=True),
             column="node_id",
+            fill=-1,
         )
         svat_basin_mapping = SvatBasinMapping(
             name="msw_ponding",
@@ -81,6 +82,7 @@ class RibaMetaDriverCoupling(DriverCoupling):
                 self.ribasim_user_demand_definition,
                 like=svat.isel(subunit=0, drop=True),
                 column="node_id",
+                fill=-1,
             )
             # sprinkling surface water for subsection of svats determined in 'sprinkling'
             swspr_grid_data = copy.deepcopy(msw_model[grid_data_key])
