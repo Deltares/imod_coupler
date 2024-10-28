@@ -209,7 +209,6 @@ def test_metamod_regression(
     subprocess.run(
         [imod_coupler_exec_regression, tmp_path_reg / metamod_model._toml_name],
         check=True,
-        capture_output=True,
     )
 
     # Read Modflow 6 output

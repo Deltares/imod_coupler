@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 import xarray as xr
-from imod.mf6.mf6_wel_adapter import Mf6Wel, cellid_from_arrays__structured
+from imod import mf6
 from numpy import float64, int_
 from numpy.typing import NDArray
 
@@ -34,7 +34,7 @@ def get_times() -> pd.DatetimeIndex:
 
 def create_wells(
     nrow: int, ncol: int, idomain: xr.DataArray, wel_layer: int | None = None
-) -> Mf6Wel:
+) -> mf6.WellDisStructured:
     """
     Create wells, deactivate inactive cells. This function wouldn't be necessary
     if iMOD Python had a package to specify wells based on grids.
@@ -59,17 +59,15 @@ def create_wells(
 
     rate = np.zeros(ix_active.shape)
     layer = np.full_like(ix_active, wel_layer)
-    index = np.arange(ncol * nrow)[~to_deactivate]
 
-    cellid = cellid_from_arrays__structured(
-        layer=layer, row=iy_active, column=ix_active
+    return mf6.WellDisStructured(
+        layer=layer, row=iy_active, column=ix_active, rate=rate
     )
-    rate_da = xr.DataArray(rate, coords={"index": index}, dims=("index",))
-
-    return Mf6Wel(cellid=cellid, rate=rate_da)
 
 
-def create_wells_max_layer(nrow: int, ncol: int, idomain: xr.DataArray) -> Mf6Wel:
+def create_wells_max_layer(
+    nrow: int, ncol: int, idomain: xr.DataArray
+) -> mf6.WellDisStructured:
     """
     Create wells in deepest layer of MODFLOW 6 model
     """

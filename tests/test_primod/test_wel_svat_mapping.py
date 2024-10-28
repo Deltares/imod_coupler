@@ -3,7 +3,7 @@ from pathlib import Path
 
 import numpy as np
 import xarray as xr
-from imod.mf6.mf6_wel_adapter import Mf6Wel, cellid_from_arrays__structured
+from imod import mf6
 from numpy.testing import assert_equal
 from primod.mapping.wel_svat_mapping import WellSvatMapping
 
@@ -34,12 +34,14 @@ def test_simple_model(fixed_format_parser):
     index = (svat != 0).to_numpy().ravel()
 
     # Well
-    cellid = cellid_from_arrays__structured(
-        layer=[3, 2, 1], row=[1, 2, 3], column=[2, 2, 2]
-    )
-    well_rate = xr.DataArray([-5.0] * 3, coords={"index": [0, 1, 2]}, dims=("index",))
-    well = Mf6Wel(
-        cellid=cellid,
+    well_layer = [3, 2, 1]
+    well_row = [1, 2, 3]
+    well_column = [2, 2, 2]
+    well_rate = [-5.0] * 3
+    well = mf6.WellDisStructured(
+        layer=well_layer,
+        row=well_row,
+        column=well_column,
         rate=well_rate,
     )
 
@@ -81,10 +83,14 @@ def test_simple_model_1_subunit(fixed_format_parser):
     index = (svat != 0).to_numpy().ravel()
 
     # Well
-    cellid = cellid_from_arrays__structured(layer=[3, 2], row=[1, 3], column=[2, 2])
-    well_rate = xr.DataArray([-5.0] * 2, coords={"index": [0, 1]}, dims=("index",))
-    well = Mf6Wel(
-        cellid=cellid,
+    well_layer = [3, 2]
+    well_row = [1, 3]
+    well_column = [2, 2]
+    well_rate = [-5.0] * 2
+    well = mf6.WellDisStructured(
+        layer=well_layer,
+        row=well_row,
+        column=well_column,
         rate=well_rate,
     )
 
@@ -135,14 +141,14 @@ def test_simple_model_inactive(fixed_format_parser):
     index = (svat != 0).to_numpy().ravel()
 
     # Well
-    cellid = cellid_from_arrays__structured(
-        layer=[1, 3, 2, 1], row=[1, 1, 2, 3], column=[1, 2, 2, 2]
-    )
-    well_rate = xr.DataArray(
-        [-5.0] * 4, coords={"index": [0, 1, 2, 3]}, dims=("index",)
-    )
-    well = Mf6Wel(
-        cellid=cellid,
+    well_layer = [1, 3, 2, 1]
+    well_row = [1, 1, 2, 3]
+    well_column = [1, 2, 2, 2]
+    well_rate = [-5.0] * 4
+    well = mf6.WellDisStructured(
+        layer=well_layer,
+        row=well_row,
+        column=well_column,
         rate=well_rate,
     )
 

@@ -66,7 +66,6 @@ class RibaMetaDriverCoupling(DriverCoupling):
                 self.ribasim_basin_definition,
                 like=svat.isel(subunit=0, drop=True),
                 column="node_id",
-                fill=-1,
             )
         elif isinstance(self.ribasim_basin_definition, xr.DataArray):
             gridded_basin = self.ribasim_basin_definition
@@ -92,7 +91,6 @@ class RibaMetaDriverCoupling(DriverCoupling):
                     self.ribasim_user_demand_definition,
                     like=svat.isel(subunit=0, drop=True),
                     column="node_id",
-                    fill=-1,
                 )
             elif isinstance(self.ribasim_user_demand_definition, xr.DataArray):
                 gridded_user_demand = self.ribasim_user_demand_definition

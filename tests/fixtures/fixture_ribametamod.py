@@ -17,7 +17,7 @@ def make_msw_model(
 
     idomain = gwf["GWF_1"]["dis"]["idomain"]
     if "layer" in idomain.dims:
-        idomain_layer1 = idomain.sel(layer=1, drop=True)
+        idomain_layer1 = idomain.sel(layer=1)
     if nsubunits is None:
         nsubunits = xr.ones_like(idomain)
 

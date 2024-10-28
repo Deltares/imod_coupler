@@ -4,7 +4,7 @@ from typing import Any
 import numpy as np
 import pandas as pd
 import xarray as xr
-from imod.mf6.mf6_wel_adapter import Mf6Wel
+from imod import mf6
 from imod.msw.fixed_format import VariableMetaData
 from numpy.typing import NDArray
 
@@ -38,7 +38,9 @@ class WellSvatMapping(MetaModMapping):
     _with_subunit = ("wel_id", "svat", "layer")
     _to_fill = ("free",)
 
-    def __init__(self, svat: xr.DataArray, well: Mf6Wel, index: NDArray[Int]):
+    def __init__(
+        self, svat: xr.DataArray, well: mf6.WellDisStructured, index: NDArray[Int]
+    ):
         super().__init__()
         self.index = index
         self.well = well
@@ -53,14 +55,10 @@ class WellSvatMapping(MetaModMapping):
         """
         Get modflow indices, svats, and layer number for the wells
         """
-        well_cellid = self.well["cellid"]
-        if len(well_cellid.coords["dim_cellid"]) != 3:
-            raise TypeError("Coupling to unstructured grids is not supported.")
-
         # Convert to Python's 0-based index
-        well_layer = well_cellid.sel(dim_cellid="layer").data
-        well_row = well_cellid.sel(dim_cellid="row").data - 1
-        well_column = well_cellid.sel(dim_cellid="column").data - 1
+        well_row = self.well["row"] - 1
+        well_column = self.well["column"] - 1
+        well_layer = self.well["layer"]
 
         n_subunit = svat["subunit"].size
 
@@ -73,7 +71,7 @@ class WellSvatMapping(MetaModMapping):
         layer = np.tile(well_layer, (n_subunit, 1))
         layer_1d = layer[well_active]
 
-        well_id = well_cellid.coords["ncellid"] + 1
+        well_id = self.well.dataset.coords["index"] + 1
         well_id_1d = np.tile(well_id, (n_subunit, 1))[well_active]
 
         return (well_id_1d, well_svat_1d, layer_1d)
