@@ -5,6 +5,7 @@ import pandas as pd
 import pytest_cases
 import xarray as xr
 from imod import mf6, msw
+from imod.mf6.mf6_wel_adapter import Mf6Wel
 from numpy import nan
 
 from .common import create_wells, get_times, grid_sizes
@@ -14,7 +15,7 @@ def metaswap_model(
     times: list[pd.date_range],
     area: xr.DataArray,
     active: xr.DataArray,
-    well: mf6.WellDisStructured,
+    well: Mf6Wel,
     dis: mf6.StructuredDiscretization,
     unsaturated_database: str,
 ) -> msw.MetaSwapModel:
