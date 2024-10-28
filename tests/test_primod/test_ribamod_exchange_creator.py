@@ -168,11 +168,12 @@ def test_get_subgrid_xy():
     df = pd.DataFrame(
         data={
             "subgrid_id": [1, 1, 2, 2],
+            "subgrid_index": [0, 0, 1, 1],
             "meta_x": [1.0, 1.0, 2.0, 2.0],
             "meta_y": [1.0, 1.0, 2.0, 2.0],
         }
     )
-    xy = ActiveNodeBasinMapping._get_subgrid_xy(df)
+    xy, subgrid_index = ActiveNodeBasinMapping._get_subgrid_xy(df)
     assert np.allclose(
         xy,
         [
@@ -180,6 +181,7 @@ def test_get_subgrid_xy():
             [2.0, 2.0],
         ],
     )
+    assert np.allclose(subgrid_index, [0, 1])
 
 
 def test_get_conductance_xy():
@@ -249,3 +251,125 @@ def test_derive_active_coupling():
         ),
         check_dtype=False,  # int32 versus int64 ...
     )
+
+
+def test_node_basin_mapping_stacked() -> None:
+    #  basin definition:  | 1 | 1 | 2 | 2 | 2 |
+    #                     | 1 | 1 | 2 | 2 | 2 |
+    #                     | 1 | 1 | 2 | 2 | 2 |
+    #                     | 1 | 1 | 2 | 2 | 2 |
+
+    #        subgrid id:  |   |   |   |   |   |
+    #                     |   |   |   |   |   |
+    #                     |1,2|3,4|5,6|7,8|9,10|
+    #                     |   |   |   |   |   |
+
+    #
+    #        cond sys 1:  |   |   |   |   |   |
+    #                     |   |   |   |   |   |
+    #                     | x | x | x | x | x |
+    #                     |   |   |   |   |   |
+
+    #        cond sys 2:  |   |   |   |   |   |
+    #                     |   |   |   |   |   |
+    #                     |   |   | x | x | x |
+    #                     |   |   |   |   |   |
+
+    # sys1: subgrid elements 0, 2, 4, 6, 8 should be coupled
+    # sys2: subgrid elements 5, 7, 9 should be coupled
+
+    cond1 = xr.full_like(conductance().isel(layer=0, drop=True), 1.0)
+    cond1[0:2, :] = np.nan
+    cond1[3, :] = np.nan
+
+    cond2 = cond1.copy()
+    cond2[2, 0:2] = np.nan
+
+    gridded_basin = xr.full_like(cond1, 1)
+    gridded_basin[:, 2:5] = 2
+    basin_ids = pd.Series([1, 2])
+    subgrid_df = pd.DataFrame(
+        data={
+            "node_id": np.array([1, 1, 2, 2, 2, 1, 1, 2, 2, 2]),
+            "subgrid_id": np.arange(10) + 1,
+            "subgrid_level": np.array(
+                [1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+            ),
+            "meta_x": np.array([0.5, 0.5, 1.5, 1.5, 2.5, 2.5, 3.5, 3.5, 4.5, 4.5]),
+            "meta_y": np.array([11.5] * 10),
+            "meta_label": np.array(
+                [
+                    "sys1",
+                    "sys2",
+                    "sys1",
+                    "sys2",
+                    "sys1",
+                    "sys2",
+                    "sys1",
+                    "sys2",
+                    "sys1",
+                    "sys2",
+                ]
+            ),
+        }
+    )
+    # check results for sys1
+    mapping = ActiveNodeBasinMapping(
+        "sys1", cond1, gridded_basin, basin_ids, subgrid_df
+    )
+    assert mapping.name == "sys1"
+    table = mapping.dataframe
+    assert isinstance(table, pd.DataFrame)
+    assert table.shape == (5, 3)
+    pd.testing.assert_frame_equal(
+        table,
+        pd.DataFrame(
+            data={
+                "basin_index": [0, 0, 1, 1, 1],
+                "bound_index": [0, 1, 2, 3, 4],
+                "subgrid_index": [0, 2, 4, 6, 8],
+            }
+        ),
+        check_dtype=False,  # int32 versus int64 ...
+    )
+    # and sys2
+    mapping = ActiveNodeBasinMapping(
+        "sys2", cond2, gridded_basin, basin_ids, subgrid_df
+    )
+    assert mapping.name == "sys2"
+    table = mapping.dataframe
+    assert isinstance(table, pd.DataFrame)
+    assert table.shape == (3, 3)
+    pd.testing.assert_frame_equal(
+        table,
+        pd.DataFrame(
+            data={
+                "basin_index": [1, 1, 1],
+                "bound_index": [0, 1, 2],
+                "subgrid_index": [5, 7, 9],
+            }
+        ),
+        check_dtype=False,  # int32 versus int64 ...
+    )
+
+
+def test_node_basin_mapping_stacked_no_label() -> None:
+    cond = xr.full_like(conductance().isel(layer=0, drop=True), 1.0)
+    gridded_basin = xr.full_like(cond, 1)
+    basin_ids = pd.Series([1])
+    subgrid_df = pd.DataFrame(
+        data={
+            "node_id": np.array([1] * 10),
+            "subgrid_id": np.arange(10),
+            "subgrid_level": np.array([1.0] * 10) + 1,
+            "meta_x": np.array([0.5, 0.5, 1.5, 1.5, 2.5, 2.5, 3.5, 3.5, 4.5, 4.5]),
+            "meta_y": np.array([11.5] * 10),
+            "meta_label": np.array(["sys1"] * 10),
+        }
+    )
+    _ = ActiveNodeBasinMapping("sys1", cond, gridded_basin, basin_ids, subgrid_df)
+    with pytest.raises(
+        ValueError,
+        match="if column 'meta_label' is defined in subgrid dataframe, all actively coupled packages should be included",
+    ):
+        ActiveNodeBasinMapping("sys2", cond, gridded_basin, basin_ids, subgrid_df)
