@@ -20,7 +20,6 @@ build-imod-coupler = "rm -rf dist && pyinstaller imod_coupler/__main__.py --name
 netCDF4 = "*"
 loguru = "*"
 numpy = "<2.0"
-imod = "*"
 pip = "*"
 pydantic = "2.*"
 pyinstaller = "*"
@@ -29,6 +28,13 @@ scipy = "*"
 tomli = "*"
 tomli-w = "*"
 xmipy = "*"
+filelock = "*"
+gdal = "3.9.1"
+geopandas = "*"
+pandamesh = "*"
+rasterio = "1.3.10"
+rioxarray = "*"
+xugrid = ">=0.11.0"
 
 #[pypi-dependencies]
 #ribasim = {git = "https://github.com/Deltares/Ribasim.git/#subdirectory=python/ribasim"}
@@ -39,10 +45,12 @@ install-ribasim-python = "pip install git+https://github.com/Deltares/Ribasim.gi
 install-ribasim-testmodels = "pip install git+https://github.com/Deltares/Ribasim.git/#subdirectory=python/ribasim_testmodels"
 install-primod = "pip install --no-deps --editable pre-processing"
 install-metaswap-testmodels = "svn checkout https://repos.deltares.nl/repos/DSCTestbench/trunk/cases/e150_metaswap/f00_common/c00_common/LHM2016_v01vrz .imod_collector/e150_metaswap"
+install-imod = "pip install git+https://github.com/Deltares/imod-python.git@msw_refactoring_feature_branch"
 install-imod-collector = "python scripts/download_imod_collector.py"
 install-imod-collector-regression = "python scripts/download_imod_collector.py regression"
 generate-env-file = "python scripts/generate_env_file.py"
 install = { depends_on = [
+    "install-imod",
     "install-minimal",
     "install-ribasim-testmodels",
     "install-primod",

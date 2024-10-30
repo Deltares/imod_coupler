@@ -80,6 +80,7 @@ class RibaModDriverCoupling(DriverCoupling, abc.ABC):
                 basin_definition,
                 like=dis["idomain"].isel(layer=0, drop=True),
                 column="node_id",
+                dtype=np.float64,
             )
             basin_dataset = xr.Dataset(
                 {key: gridded_basin for key in self.mf6_packages}
