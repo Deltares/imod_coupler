@@ -69,7 +69,7 @@ class RibaModDriverCoupling(DriverCoupling, abc.ABC):
         gwf_model = mf6_simulation[self.mf6_model]
         ribasim_model = coupled_model.ribasim_model
 
-        dis = gwf_model[gwf_model._get_pkgkey("dis")]
+        dis = gwf_model[gwf_model._get_diskey()]
         basin_definition = self.ribasim_basin_definition
         if isinstance(basin_definition, gpd.GeoDataFrame):
             # Validate and fetch
