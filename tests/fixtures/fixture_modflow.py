@@ -84,7 +84,7 @@ def make_coupled_mf6_model(idomain: xr.DataArray) -> mf6.Modflow6Simulation:
         head, print_input=True, print_flows=True, save_flows=True
     )
     gwf_model["rch_msw"] = make_recharge_pkg(idomain)
-    gwf_model["wells_msw"] = create_wells(nrow, ncol, idomain)
+    gwf_model["wells_msw"] = create_wells(idomain)
 
     simulation = make_mf6_simulation(gwf_model)
     return simulation

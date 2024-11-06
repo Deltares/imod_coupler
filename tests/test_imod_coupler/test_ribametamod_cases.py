@@ -71,8 +71,7 @@ def add_well_package(
     mf6_model: Modflow6Simulation,
 ) -> Modflow6Simulation:
     idomain = mf6_model["GWF_1"]["dis"]["idomain"]
-    _, nrow, ncol = idomain.shape
-    mf6_model["GWF_1"]["well_msw"] = create_wells_max_layer(nrow, ncol, idomain)
+    mf6_model["GWF_1"]["well_msw"] = create_wells_max_layer(idomain)
     return mf6_model
 
 

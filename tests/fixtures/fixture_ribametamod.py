@@ -54,7 +54,7 @@ def make_msw_model(
     # Well
     ncol = idomain.x.size
     nrow = idomain.y.size
-    well = create_wells_max_layer(nrow, ncol, idomain.where(active))
+    well = create_wells_max_layer(idomain.where(active))
     msw_model = metaswap_model(
         times, area, active, well, gwf["GWF_1"]["dis"], unsaturated_database
     )
