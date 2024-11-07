@@ -6,11 +6,12 @@ import tomli_w
 from imod.mf6 import Modflow6Simulation
 from imod.msw import MetaSwapModel
 
-from primod.coupled_model import CoupledModel, get_mf6_pkgs_with_coupling_dict
+from primod.coupled_model import CoupledModel
 from primod.driver_coupling.metamod import MetaModDriverCoupling
+from primod.mixin import ModflowMixin
 
 
-class MetaMod(CoupledModel):
+class MetaMod(CoupledModel, ModflowMixin):
     """Couple MetaSWAP and MODFLOW 6.
 
     Parameters
@@ -19,6 +20,8 @@ class MetaMod(CoupledModel):
         The MetaSWAP model that should be coupled.
     mf6_simulation : Modflow6Simulation
         The Modflow6 simulation that should be coupled.
+    coupling_list: list of DriverCoupling
+        One entry per MODFLOW 6 model that should be coupled
     """
 
     _toml_name = "imod_coupler.toml"
@@ -97,7 +100,7 @@ class MetaMod(CoupledModel):
             **modflow6_write_kwargs,
         )
 
-        mf6_dis_pkg, mf6_wel_pkg = get_mf6_pkgs_with_coupling_dict(
+        mf6_dis_pkg, mf6_wel_pkg = self.get_mf6_pkgs_with_coupling_dict(
             coupling_dict, self.mf6_simulation
         )
 
