@@ -5,7 +5,6 @@ import pytest_cases
 import xarray as xr
 from imod import mf6, msw
 
-from .common import create_wells_max_layer
 from .fixture_metaswap import metaswap_model
 
 
@@ -51,12 +50,8 @@ def make_msw_model(
     area = area.where(modflow_active)
     active = active & modflow_active
 
-    # Well
-    ncol = idomain.x.size
-    nrow = idomain.y.size
-    well = create_wells_max_layer(idomain.where(active))
     msw_model = metaswap_model(
-        times, area, active, well, gwf["GWF_1"]["dis"], unsaturated_database
+        times, area, active, gwf["GWF_1"]["dis"], unsaturated_database
     )
     # remove bizar large et-flux
     evaporation = msw_model["meteo_grid"].dataset["evapotranspiration"]
