@@ -1,4 +1,4 @@
-"""Module containing mixins for specific codes, for example MODFLOW."""
+"""Module containing mixins for specific kernels, for example MODFLOW."""
 
 from imod.mf6 import Modflow6Simulation, StructuredDiscretization
 from imod.mf6.mf6_wel_adapter import Mf6Wel
