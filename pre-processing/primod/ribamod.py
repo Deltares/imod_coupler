@@ -11,7 +11,7 @@ from primod.driver_coupling.ribamod import RibaModDriverCoupling
 from primod.driver_coupling.util import (
     _validate_time_window,
 )
-from primod.mixin import ModflowMixin
+from primod.model_mixin import ModflowMixin
 
 
 class RibaMod(CoupledModel, ModflowMixin):

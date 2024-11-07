@@ -9,7 +9,7 @@ from imod.msw import MetaSwapModel
 
 from primod.coupled_model import CoupledModel
 from primod.driver_coupling.driver_coupling_base import DriverCoupling
-from primod.mixin import ModflowMixin
+from primod.model_mixin import ModflowMixin
 
 
 class RibaMetaMod(CoupledModel, ModflowMixin):

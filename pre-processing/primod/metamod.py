@@ -8,7 +8,7 @@ from imod.msw import MetaSwapModel
 
 from primod.coupled_model import CoupledModel
 from primod.driver_coupling.metamod import MetaModDriverCoupling
-from primod.mixin import ModflowMixin
+from primod.model_mixin import ModflowMixin
 
 
 class MetaMod(CoupledModel, ModflowMixin):

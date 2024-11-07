@@ -1,6 +1,6 @@
 from imod.mf6 import Modflow6Simulation, StructuredDiscretization
 from imod.mf6.mf6_wel_adapter import Mf6Wel
-from primod.mixin import ModflowMixin
+from primod.model_mixin import ModflowMixin
 from pytest import fixture
 
 
