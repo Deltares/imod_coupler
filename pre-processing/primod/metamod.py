@@ -6,7 +6,7 @@ import tomli_w
 from imod.mf6 import Modflow6Simulation
 from imod.msw import MetaSwapModel
 
-from primod.coupled_model import CoupledModel, get_mf6_pkgs_from_coupling_dict
+from primod.coupled_model import CoupledModel, get_mf6_pkgs_with_coupling_dict
 from primod.driver_coupling.metamod import MetaModDriverCoupling
 
 
@@ -97,7 +97,7 @@ class MetaMod(CoupledModel):
             **modflow6_write_kwargs,
         )
 
-        mf6_dis_pkg, mf6_wel_pkg = get_mf6_pkgs_from_coupling_dict(
+        mf6_dis_pkg, mf6_wel_pkg = get_mf6_pkgs_with_coupling_dict(
             coupling_dict, self.mf6_simulation
         )
 

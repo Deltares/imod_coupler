@@ -9,20 +9,22 @@ from imod.mf6.mf6_wel_adapter import Mf6Wel
 from primod.driver_coupling.driver_coupling_base import DriverCoupling
 
 
-def get_mf6_pkgs_from_coupling_dict(
+def get_mf6_pkgs_with_coupling_dict(
     coupling_dict: dict[str, Any], mf6_simulation: Modflow6Simulation
-) -> tuple[StructuredDiscretization, Mf6Wel]:
+) -> tuple[StructuredDiscretization, Mf6Wel | None]:
     """
-    Get MODFLOW 6 packages names from coupling_dict then fetch MODFLOW 6
-    packages from simulation.
+    Get names of DIS and possibly WEL packages from coupling_dict then fetch
+    these MODFLOW 6 packages from simulation.
     """
     mf6_model_key = coupling_dict["mf6_model"]
     gwf_model = mf6_simulation[mf6_model_key]
     mf6_dis_key = gwf_model._get_diskey()
-    mf6_well_key = coupling_dict["mf6_msw_well_pkg"]
-
     mf6_dis_pkg = gwf_model[mf6_dis_key]
-    mf6_wel_pkg = gwf_model.prepare_wel_for_mf6(mf6_well_key, True, True)
+
+    mf6_wel_pkg = None
+    if "mf6_msw_well_pkg" in coupling_dict.keys():
+        mf6_well_key = coupling_dict["mf6_msw_well_pkg"]
+        mf6_wel_pkg = gwf_model.prepare_wel_for_mf6(mf6_well_key, True, True)
     return mf6_dis_pkg, mf6_wel_pkg
 
 
