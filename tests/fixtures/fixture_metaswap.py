@@ -5,17 +5,15 @@ import pandas as pd
 import pytest_cases
 import xarray as xr
 from imod import mf6, msw
-from imod.mf6.mf6_wel_adapter import Mf6Wel
 from numpy import nan
 
-from .common import create_wells, get_times, grid_sizes
+from .common import get_times, grid_sizes
 
 
 def metaswap_model(
     times: list[pd.date_range],
     area: xr.DataArray,
     active: xr.DataArray,
-    well: Mf6Wel,
     dis: mf6.StructuredDiscretization,
     unsaturated_database: str,
 ) -> msw.MetaSwapModel:
@@ -86,7 +84,6 @@ def metaswap_model(
         max_abstraction_surfacewater=xr.full_like(
             msw_grid, 0.02 * (20 * 20)
         ),  # 20 mm/d
-        well=well,
     )
 
     # Ponding
@@ -150,7 +147,7 @@ def metaswap_model(
     )
 
     # Metaswap Mappings
-    msw_model["mod2svat"] = msw.CouplerMapping(modflow_dis=dis, well=well)
+    msw_model["mod2svat"] = msw.CouplerMapping()
 
     # Output Control
     msw_model["oc_idf"] = msw.IdfMapping(area, -9999.0)
@@ -166,9 +163,6 @@ def make_msw_model(idomain: xr.DataArray) -> msw.MetaSwapModel:
 
     x, y, layer, dx, dy, dz = grid_sizes()
     subunit = [0, 1]
-
-    nrow = len(y)
-    ncol = len(x)
 
     top = 0.0
     bottom = top - xr.DataArray(np.cumsum(dz), coords={"layer": layer}, dims="layer")
@@ -207,12 +201,9 @@ def make_msw_model(idomain: xr.DataArray) -> msw.MetaSwapModel:
     area = area.where(modflow_active)
     active = active & modflow_active
 
-    # Well
-    well = create_wells(nrow, ncol, idomain)
-
     dis = mf6.StructuredDiscretization(idomain=idomain, top=top, bottom=bottom)
 
-    return metaswap_model(times,area,active, well, dis,unsaturated_database)
+    return metaswap_model(times,area,active,dis,unsaturated_database)
 
 
 @pytest_cases.fixture(scope="function")

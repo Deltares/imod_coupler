@@ -106,7 +106,7 @@ class RibaMetaDriverCoupling(DriverCoupling):
             nsu = swspr_grid_data.dataset["area"].sizes["subunit"]
             swsprmax = msw_model["sprinkling"]
             swspr_grid_data.dataset["area"].values = np.tile(
-                swsprmax["max_abstraction_surfacewater_m3_d"].values,
+                swsprmax["max_abstraction_surfacewater"].values,
                 (nsu, 1, 1),
             )
             index_swspr, svat_swspr = swspr_grid_data.generate_index_array()
