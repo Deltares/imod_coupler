@@ -1,6 +1,6 @@
 from imod.mf6 import Modflow6Simulation, StructuredDiscretization
 from imod.mf6.mf6_wel_adapter import Mf6Wel
-from primod.model_mixin import ModflowMixin
+from primod.model_mixin import MetaModMixin
 from pytest import fixture
 
 
@@ -13,10 +13,10 @@ def coupling_dict() -> dict[str, str]:
     }
 
 
-def test_get_mf6_pkgs_with_coupling_dict__sprinkling(
+def test_get_mf6_pkgs_for_metaswap__sprinkling(
     coupling_dict: dict[str, str], coupled_mf6_model: Modflow6Simulation
 ):
-    mf6_dis, mf6_wel = ModflowMixin.get_mf6_pkgs_with_coupling_dict(
+    mf6_dis, mf6_wel = MetaModMixin.get_mf6_pkgs_for_metaswap(
         coupling_dict, coupled_mf6_model
     )
 
@@ -24,11 +24,11 @@ def test_get_mf6_pkgs_with_coupling_dict__sprinkling(
     assert isinstance(mf6_wel, Mf6Wel)
 
 
-def test_get_mf6_pkgs_with_coupling_dict__no_sprinkling(
+def test_get_mf6_pkgs_for_metaswap__no_sprinkling(
     coupling_dict: dict[str, str], coupled_mf6_model: Modflow6Simulation
 ):
     coupling_dict.pop("mf6_msw_well_pkg")
-    mf6_dis, mf6_wel = ModflowMixin.get_mf6_pkgs_with_coupling_dict(
+    mf6_dis, mf6_wel = MetaModMixin.get_mf6_pkgs_for_metaswap(
         coupling_dict, coupled_mf6_model
     )
 

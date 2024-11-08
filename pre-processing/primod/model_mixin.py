@@ -4,11 +4,11 @@ from imod.mf6 import Modflow6Simulation, StructuredDiscretization
 from imod.mf6.mf6_wel_adapter import Mf6Wel
 
 
-class ModflowMixin:
-    """Modflow specific methods to add to coupling objects."""
+class MetaModMixin:
+    """MetaSWAP-Modflow coupling specific methods."""
 
     @staticmethod
-    def get_mf6_pkgs_with_coupling_dict(
+    def get_mf6_pkgs_for_metaswap(
         coupling_dict: dict[str, str], mf6_simulation: Modflow6Simulation
     ) -> tuple[StructuredDiscretization, Mf6Wel | None]:
         """

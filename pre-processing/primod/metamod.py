@@ -8,10 +8,10 @@ from imod.msw import MetaSwapModel
 
 from primod.coupled_model import CoupledModel
 from primod.driver_coupling.metamod import MetaModDriverCoupling
-from primod.model_mixin import ModflowMixin
+from primod.model_mixin import MetaModMixin
 
 
-class MetaMod(CoupledModel, ModflowMixin):
+class MetaMod(CoupledModel, MetaModMixin):
     """Couple MetaSWAP and MODFLOW 6.
 
     Parameters
@@ -100,7 +100,7 @@ class MetaMod(CoupledModel, ModflowMixin):
             **modflow6_write_kwargs,
         )
 
-        mf6_dis_pkg, mf6_wel_pkg = self.get_mf6_pkgs_with_coupling_dict(
+        mf6_dis_pkg, mf6_wel_pkg = self.get_mf6_pkgs_for_metaswap(
             coupling_dict, self.mf6_simulation
         )
 
