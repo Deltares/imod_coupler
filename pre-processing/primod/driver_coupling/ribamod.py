@@ -164,7 +164,7 @@ class RibaModDriverCoupling(DriverCoupling, abc.ABC):
             if isinstance(self, RibaModActiveDriverCoupling):
                 #  check on the bottom elevation and ribasim minimal subgrid level
                 minimum_subgrid_level = (
-                    ribasim_model.basin.subgrid.df.groupby("subgrid_id")  # type: ignore
+                    ribasim_model.basin.subgrid.df.groupby("subgrid_id")
                     .min()["subgrid_level"]
                     .to_numpy()
                 )
