@@ -29,7 +29,6 @@ scipy = "*"
 tomli = "*"
 tomli-w = "*"
 xmipy = "*"
-pandera = ">=0.20.4,<0.21"
 
 #[pypi-dependencies]
 #ribasim = {git = "https://github.com/Deltares/Ribasim.git/#subdirectory=python/ribasim"}
@@ -60,6 +59,7 @@ test-primod = "pytest --junitxml=report.xml tests/test_primod"
 
 [feature.common.dependencies]
 python-build = "*"
+pandera = "*"
 pandas = ">=2"
 geopandas = "*"
 httpx = "*"
