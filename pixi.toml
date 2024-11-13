@@ -20,7 +20,7 @@ build-imod-coupler = "rm -rf dist && pyinstaller imod_coupler/__main__.py --name
 netCDF4 = "*"
 loguru = "*"
 numpy = "<2.0"
-imod = "<0.18.0"
+imod = ">=0.18.0"
 pip = "*"
 pydantic = "2.*"
 pyinstaller = "*"
@@ -58,10 +58,12 @@ test-primod = "pytest --junitxml=report.xml tests/test_primod"
 
 
 [feature.common.dependencies]
-build = "*"
+python-build = "*"
+pandera = "*"
+pandas = ">=2"
 geopandas = "*"
 httpx = "*"
-imod = "<0.18.0"
+imod = ">=0.18.0"
 ipython = "*"
 jupyterlab = "*"
 mypy = "*"

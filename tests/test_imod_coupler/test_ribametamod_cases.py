@@ -71,8 +71,7 @@ def add_well_package(
     mf6_model: Modflow6Simulation,
 ) -> Modflow6Simulation:
     idomain = mf6_model["GWF_1"]["dis"]["idomain"]
-    _, nrow, ncol = idomain.shape
-    mf6_model["GWF_1"]["well_msw"] = create_wells_max_layer(nrow, ncol, idomain)
+    mf6_model["GWF_1"]["well_msw"] = create_wells_max_layer(idomain)
     return mf6_model
 
 
@@ -88,12 +87,8 @@ def set_confined_storage_formulation(
     return mf6_model
 
 
-def remove_sprinkling_from_groundwater(
-    msw_model: MetaSwapModel, mf6_model: Modflow6Simulation
-) -> MetaSwapModel:
+def remove_sprinkling_from_groundwater(msw_model: MetaSwapModel) -> MetaSwapModel:
     msw_model.pop("sprinkling")
-    msw_model.pop("mod2svat")
-    msw_model["mod2svat"] = msw.CouplerMapping(modflow_dis=mf6_model["GWF_1"]["dis"])
     return msw_model
 
 
@@ -387,9 +382,7 @@ def case_backwater_model(
     ribasim_backwater_model: ribasim.Model,
 ) -> RibaMetaMod:
     mf6_backwater_model = set_confined_storage_formulation(mf6_backwater_model)
-    msw_backwater_model = remove_sprinkling_from_groundwater(
-        msw_backwater_model, mf6_backwater_model
-    )
+    msw_backwater_model = remove_sprinkling_from_groundwater(msw_backwater_model)
 
     # add rch-package for coupling MetaMod
     mf6_backwater_model = add_rch_package(mf6_backwater_model)
@@ -434,9 +427,7 @@ def case_two_basin_model(
     ribasim_two_basin_model: ribasim.Model,
 ) -> RibaMetaMod:
     mf6_two_basin_model = set_confined_storage_formulation(mf6_two_basin_model)
-    msw_two_basin_model = remove_sprinkling_from_groundwater(
-        msw_two_basin_model, mf6_two_basin_model
-    )
+    msw_two_basin_model = remove_sprinkling_from_groundwater(msw_two_basin_model)
 
     # add rch-package for coupling MetaMod
     mf6_two_basin_model = add_rch_package(mf6_two_basin_model)
@@ -480,9 +471,7 @@ def case_two_basin_model_dtgw_2(
     ribasim_two_basin_model: ribasim.Model,
 ) -> RibaMetaMod:
     mf6_two_basin_model = set_confined_storage_formulation(mf6_two_basin_model)
-    msw_two_basin_model = remove_sprinkling_from_groundwater(
-        msw_two_basin_model, mf6_two_basin_model
-    )
+    msw_two_basin_model = remove_sprinkling_from_groundwater(msw_two_basin_model)
 
     # add rch-package for coupling MetaMod
     mf6_two_basin_model = add_rch_package(mf6_two_basin_model)
@@ -535,9 +524,7 @@ def case_two_basin_model_dtgw_2_dtsw_05(
     ribasim_two_basin_model: ribasim.Model,
 ) -> RibaMetaMod:
     mf6_two_basin_model = set_confined_storage_formulation(mf6_two_basin_model)
-    msw_two_basin_model = remove_sprinkling_from_groundwater(
-        msw_two_basin_model, mf6_two_basin_model
-    )
+    msw_two_basin_model = remove_sprinkling_from_groundwater(msw_two_basin_model)
 
     # add rch-package for coupling MetaMod
     mf6_two_basin_model = add_rch_package(mf6_two_basin_model)
@@ -592,9 +579,7 @@ def case_two_basin_model_dtsw_05(
     ribasim_two_basin_model: ribasim.Model,
 ) -> RibaMetaMod:
     mf6_two_basin_model = set_confined_storage_formulation(mf6_two_basin_model)
-    msw_two_basin_model = remove_sprinkling_from_groundwater(
-        msw_two_basin_model, mf6_two_basin_model
-    )
+    msw_two_basin_model = remove_sprinkling_from_groundwater(msw_two_basin_model)
 
     # add rch-package for coupling MetaMod
     mf6_two_basin_model = add_rch_package(mf6_two_basin_model)

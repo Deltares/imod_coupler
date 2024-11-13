@@ -68,7 +68,7 @@ class MetaModDriverCoupling(DriverCoupling):
             pkgname for pkgname, pkg in msw_model.items() if isinstance(pkg, GridData)
         ][0]
 
-        dis = gwf_model[gwf_model._get_pkgkey("dis")]
+        dis = gwf_model[gwf_model._get_diskey()]
 
         index, svat = msw_model[grid_data_key].generate_index_array()
         grid_mapping = NodeSvatMapping(svat=svat, modflow_dis=dis, index=index)
@@ -78,7 +78,7 @@ class MetaModDriverCoupling(DriverCoupling):
         rch_mapping = RechargeSvatMapping(svat, recharge, index=index)
 
         if self._check_sprinkling(msw_model=msw_model, gwf_model=gwf_model):
-            well = gwf_model[self.mf6_wel_package]
+            well = gwf_model.prepare_wel_for_mf6(self.mf6_wel_package, True, True)
             well_mapping = WellSvatMapping(svat, well, index=index)
             return grid_mapping, rch_mapping, well_mapping
         else:

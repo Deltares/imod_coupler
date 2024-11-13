@@ -66,6 +66,7 @@ class RibaMetaDriverCoupling(DriverCoupling):
                 self.ribasim_basin_definition,
                 like=svat.isel(subunit=0, drop=True),
                 column="node_id",
+                dtype=np.float64,
             )
         elif isinstance(self.ribasim_basin_definition, xr.DataArray):
             gridded_basin = self.ribasim_basin_definition
@@ -91,6 +92,7 @@ class RibaMetaDriverCoupling(DriverCoupling):
                     self.ribasim_user_demand_definition,
                     like=svat.isel(subunit=0, drop=True),
                     column="node_id",
+                    dtype=np.float64,
                 )
             elif isinstance(self.ribasim_user_demand_definition, xr.DataArray):
                 gridded_user_demand = self.ribasim_user_demand_definition
@@ -104,7 +106,7 @@ class RibaMetaDriverCoupling(DriverCoupling):
             nsu = swspr_grid_data.dataset["area"].sizes["subunit"]
             swsprmax = msw_model["sprinkling"]
             swspr_grid_data.dataset["area"].values = np.tile(
-                swsprmax["max_abstraction_surfacewater_m3_d"].values,
+                swsprmax["max_abstraction_surfacewater"].values,
                 (nsu, 1, 1),
             )
             index_swspr, svat_swspr = swspr_grid_data.generate_index_array()

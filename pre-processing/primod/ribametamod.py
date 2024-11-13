@@ -9,9 +9,10 @@ from imod.msw import MetaSwapModel
 
 from primod.coupled_model import CoupledModel
 from primod.driver_coupling.driver_coupling_base import DriverCoupling
+from primod.model_mixin import MetaModMixin
 
 
-class RibaMetaMod(CoupledModel):
+class RibaMetaMod(CoupledModel, MetaModMixin):
     """Couple Ribasim, MetaSWAP and MODFLOW 6.
     Parameters
     ----------
@@ -112,7 +113,12 @@ class RibaMetaMod(CoupledModel):
             directory / self._modflow6_model_dir,
             **modflow6_write_kwargs,
         )
-        self.msw_model.write(directory / self._metaswap_model_dir)
+        mf6_dis_pkg, mf6_wel_pkg = self.get_mf6_pkgs_for_metaswap(
+            coupling_dict, self.mf6_simulation
+        )
+        self.msw_model.write(
+            directory / self._metaswap_model_dir, mf6_dis_pkg, mf6_wel_pkg
+        )
         self.ribasim_model.write(directory / self._ribasim_model_dir / "ribasim.toml")
 
     def write_toml(
