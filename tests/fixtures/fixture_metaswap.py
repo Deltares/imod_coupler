@@ -7,7 +7,13 @@ import xarray as xr
 from imod import mf6, msw
 from numpy import nan
 
-from .common import create_wells, get_times, grid_sizes, grid_sizes_perched
+from .common import (
+    create_wells,
+    get_extendet_times,
+    get_times,
+    grid_sizes,
+    grid_sizes_perched,
+)
 
 
 def metaswap_model(
@@ -160,7 +166,7 @@ def metaswap_model(
 def make_msw_model(
     idomain: xr.DataArray, grid: callable = grid_sizes
 ) -> msw.MetaSwapModel:
-    times = get_times()
+    times = get_extendet_times()
     unsaturated_database = "./unsat_database"
 
     x, y, layer, dx, dy, dz = grid()
@@ -218,7 +224,7 @@ def make_msw_model(
 def make_msw_model_free(
     idomain: xr.DataArray, grid: callable = grid_sizes
 ) -> msw.MetaSwapModel:
-    times = get_times()
+    times = get_extendet_times()
     unsaturated_database = "./unsat_database"
 
     x, y, layer, dx, dy, dz = grid()
@@ -311,6 +317,7 @@ def prepared_msw_model_newton_perched(
     pp = msw_model["meteo_grid"].dataset["precipitation"]
     pp[120:140, :, :] = 0.0
     pp[140:-1, :, :] = pp[140:-1, :, :] * 2.0
+    pp[211:] = 0.0
     msw_model["meteo_grid"].dataset["evapotranspiration"] = (
         msw_model["meteo_grid"].dataset["evapotranspiration"] * 0.0
     )

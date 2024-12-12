@@ -51,6 +51,11 @@ def get_times() -> pd.DatetimeIndex:
     return pd.date_range(start="1/1/1971", end="8/1/1971", freq=freq)
 
 
+def get_extendet_times() -> pd.DatetimeIndex:
+    freq = "D"
+    return pd.date_range(start="1/1/1971", end="1/1/1972", freq=freq)
+
+
 def create_wells(
     nrow: int, ncol: int, idomain: xr.DataArray, wel_layer: int | None = None
 ) -> mf6.WellDisStructured:

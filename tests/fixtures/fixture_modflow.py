@@ -4,7 +4,13 @@ import pytest_cases
 import xarray as xr
 from imod import mf6
 
-from .common import create_wells, get_times, grid_sizes, grid_sizes_perched
+from .common import (
+    create_wells,
+    get_extendet_times,
+    get_times,
+    grid_sizes,
+    grid_sizes_perched,
+)
 
 
 def make_mf6_model(
@@ -143,7 +149,7 @@ def make_coupled_mf6_model_newton_perched(
     # Add coupling package
     gwf_model["rch_msw"] = make_recharge_pkg(idomain)
     # Add GHB-package
-    times = get_times()
+    times = get_extendet_times()
     head = xr.full_like(idomain.astype(np.float64), np.nan)
     head[-1, :, :] = -7.5
     head = head.expand_dims(time=times)
@@ -188,6 +194,7 @@ def make_coupled_mf6_model_newton_perched(
     gwf_model["sto"].dataset["convertible"] = 1
 
     simulation = make_mf6_simulation(gwf_model)
+    simulation.create_time_discretization(additional_times=times)
     simulation.pop("solver")
     simulation["solver"] = mf6.SolutionPresetComplex(["GWF_1"])
     simulation["solver"].dataset["outer_dvclose"] = 1e-6
