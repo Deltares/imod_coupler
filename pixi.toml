@@ -12,7 +12,7 @@ linux = "4.4.0"
 # Install
 install-ribasim-api = "pip install git+https://github.com/Deltares/Ribasim.git/#subdirectory=python/ribasim_api"
 install-imodc = "pip install --no-deps --editable ."
-install-minimal = { depends_on = ["install-ribasim-api", "install-imodc"] }
+install-minimal = { depends-on = ["install-ribasim-api", "install-imodc"] }
 # Build
 build-imod-coupler = "rm -rf dist && pyinstaller imod_coupler/__main__.py --name imodc"
 
@@ -42,7 +42,7 @@ install-metaswap-testmodels = "svn checkout https://repos.deltares.nl/repos/DSCT
 install-imod-collector = "python scripts/download_imod_collector.py"
 install-imod-collector-regression = "python scripts/download_imod_collector.py regression"
 generate-env-file = "python scripts/generate_env_file.py"
-install = { depends_on = [
+install = { depends-on = [
     "install-minimal",
     "install-ribasim-testmodels",
     "install-primod",
@@ -77,7 +77,7 @@ twine = "*"
 
 [feature.dev.tasks]
 # Install
-install-test-dependencies = { depends_on = [
+install-test-dependencies = { depends-on = [
     "install-metaswap-testmodels",
     "install-imod-collector",
     "install-imod-collector-regression",
@@ -86,7 +86,7 @@ install-test-dependencies = { depends_on = [
 
 # Tests
 test-imod-coupler = "pytest -v -s --numprocesses=auto --dist=loadgroup --basetemp=tests/temp --junitxml=report.xml tests/test_imod_coupler"
-tests = { depends_on = ["test-primod", "test-imod-coupler"] }
+tests = { depends-on = ["test-primod", "test-imod-coupler"] }
 # Lint
 mypy-imodc = "mypy --ignore-missing-imports --strict imod_coupler"
 mypy-primod = "mypy --ignore-missing-imports pre-processing/primod"
@@ -94,7 +94,7 @@ format = "ruff format ."
 format-check = "ruff format --check ."
 ruff = "ruff check ."
 check-package-primod = { cmd = "rm --recursive --force dist && python -m build && twine check --strict dist/*", cwd = "pre-processing" }
-lint = { depends_on = ["format", "ruff", "mypy-imodc", "mypy-primod"] }
+lint = { depends-on = ["format", "ruff", "mypy-imodc", "mypy-primod"] }
 # Publish primod
 publish-primod = { cmd = "rm --recursive --force dist && python -m build && twine check dist/* && twine upload dist/*", cwd = "pre-processing" }
 
