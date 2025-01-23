@@ -10,7 +10,7 @@ accordingly, and delete the patch script.
 */
 changeBuildType(RelativeId("IMODCollector_X64development")) {
     dependencies {
-        expect(AbsoluteId("MSWMOD_MetaSWAP_MetaSWAPBuildWin64trunk")) {
+        remove(AbsoluteId("MSWMOD_MetaSWAP_MetaSWAPBuildWin64trunk")) {
             snapshot {
             }
 
@@ -19,12 +19,11 @@ changeBuildType(RelativeId("IMODCollector_X64development")) {
                 artifactRules = "MetaSWAP.zip!/x64/Release => metaswap"
             }
         }
-        update(AbsoluteId("MSWMOD_MetaSWAP_MetaSWAPBuildWin64trunk")) {
-            snapshot {
-            }
-        }
 
         add(AbsoluteId("MSWMOD_MetaSWAP_MetaSWAPDevelopWin64test")) {
+            snapshot {
+            }
+
             artifacts {
                 cleanDestination = true
                 artifactRules = "MetaSWAP.zip!/x64/Release => metaswap"
