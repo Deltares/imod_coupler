@@ -20,6 +20,9 @@ changeBuildType(RelativeId("IMODCollector_X64development")) {
             }
         }
         update(AbsoluteId("MSWMOD_MetaSWAP_MetaSWAPBuildWin64trunk")) {
+            snapshot {
+            }
+
             artifacts {
                 buildRule = lastSuccessful()
                 artifactRules = "MetaSWAP.zip!/x64/Release => metaswap"
@@ -27,9 +30,6 @@ changeBuildType(RelativeId("IMODCollector_X64development")) {
         }
 
         add(AbsoluteId("MSWMOD_MetaSWAP_MetaSWAPDevelopWin64test")) {
-            snapshot {
-            }
-
             artifacts {
                 cleanDestination = true
                 artifactRules = "MetaSWAP.zip!/x64/Release => metaswap"
