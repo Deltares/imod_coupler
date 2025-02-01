@@ -15,6 +15,7 @@ changeBuildType(RelativeId("IMODCollector_X64development")) {
                 buildRule = lastSuccessful()
                 cleanDestination = true
                 artifactRules = "MetaSWAP.zip => metaswap"
+                enabled = false
             }
         }
 
