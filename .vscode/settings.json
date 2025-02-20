@@ -15,5 +15,9 @@
     "files.associations": {
         ".env.jinja": "jinja-properties"
     },
-    "cSpell.diagnosticLevel": "Hint"
+    "cSpell.diagnosticLevel": "Hint",
+    "sonarlint.connectedMode.project": {
+        "connectionId": "deltares",
+        "projectKey": "Deltares_imod_coupler"
+    }
 }
