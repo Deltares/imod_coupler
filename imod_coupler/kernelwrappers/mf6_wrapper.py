@@ -22,6 +22,11 @@ class Mf6Wrapper(XmiWrapper):
         mf6_head_tag = self.get_var_address("X", mf6_flowmodel_key)
         mf6_head = self.get_value_ptr(mf6_head_tag)
         return mf6_head
+    
+    def get_head_old(self, mf6_flowmodel_key: str) -> NDArray[np.float64]:
+        mf6_head_tag = self.get_var_address("XOLD", mf6_flowmodel_key)
+        mf6_head = self.get_value_ptr(mf6_head_tag)
+        return mf6_head
 
     def get_api_packages(
         self, mf6_flowmodel_key: str, mf6_api_keys: Sequence[str]

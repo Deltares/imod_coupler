@@ -87,6 +87,8 @@ def get_driver(
 ) -> Driver:
     from imod_coupler.drivers.metamod.config import MetaModConfig
     from imod_coupler.drivers.metamod.metamod import MetaMod
+    from imod_coupler.drivers.megamod.config import MegaModConfig
+    from imod_coupler.drivers.megamod.megamod import MegaMod
     from imod_coupler.drivers.ribametamod.config import RibaMetaModConfig
     from imod_coupler.drivers.ribametamod.ribametamod import RibaMetaMod
     from imod_coupler.drivers.ribamod.config import RibaModConfig
@@ -100,6 +102,9 @@ def get_driver(
     if base_config.driver_type == "metamod":
         metamod_config = MetaModConfig(config_dir=config_dir, **config_dict["driver"])
         return MetaMod(base_config, metamod_config)
+    elif base_config.driver_type == "megamod":
+        megamod_config = MegaModConfig(config_dir=config_dir, **config_dict["driver"])
+        return MegaMod(base_config, megamod_config)
     elif base_config.driver_type == "ribamod":
         ribamod_config = RibaModConfig(config_dir=config_dir, **config_dict["driver"])
         return RibaMod(base_config, ribamod_config)
