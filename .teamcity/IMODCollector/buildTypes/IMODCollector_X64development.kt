@@ -13,10 +13,10 @@ object IMODCollector_X64development : BuildType({
     description = "Collect all Release_x64 kernels in the iMOD6 suite"
 
     artifactRules = """
-        coupler/dist/ => imod_collector.zip!/imod_coupler/
+        coupler/dist/ => imod_collector.zip!/
         modflow6/ => imod_collector.zip!/modflow6/
         metaswap/ => imod_collector.zip!/metaswap/
-        ribasim/ribasim/ => imod_collector.zip!/ribasim/
+        ribasim/  => imod_collector.zip!/ribasim/
     """.trimIndent()
 
     params {
@@ -108,7 +108,7 @@ object IMODCollector_X64development : BuildType({
         }
         artifacts(AbsoluteId("Ribasim_Windows_BuildRibasim")) {
             buildRule = lastSuccessful()
-            artifactRules = "ribasim_windows.zip!** => ribasim"
+            artifactRules = "ribasim_windows.zip!** => ."
         }
     }
 
