@@ -21,6 +21,7 @@ from imod_coupler.kernelwrappers.mf6_wrapper import Mf6Wrapper
 from imod_coupler.logging.exchange_collector import ExchangeCollector
 from imod_coupler.utils import create_mapping
 from xmipy import XmiWrapper
+from imod_coupler.drivers.megamod.logging import Logging
 
 class MegaMod(Driver):
     """The driver coupling MegaSWAP and MODFLOW 6"""
@@ -29,6 +30,7 @@ class MegaMod(Driver):
     coupling: Coupling  # the coupling information
 
     timing: bool  # true, when timing is enabled
+    logging: Logging
     mf6: Mf6Wrapper  # the MODFLOW 6 XMI kernel
     msw: XmiWrapper  # the MegaSWAP XMI kernel
 
@@ -65,12 +67,13 @@ class MegaMod(Driver):
         self.coupling = megamod_config.coupling[
             0
         ]  # Adapt as soon as we have multimodel support
+        self.logging = Logging()
 
     def initialize(self) -> None:
         self.mf6 = Mf6Wrapper(
-            lib_path=self.metamod_config.kernels.modflow6.dll,
-            lib_dependency=self.metamod_config.kernels.modflow6.dll_dep_dir,
-            working_directory=self.metamod_config.kernels.modflow6.work_dir,
+            lib_path=self.megamod_config.kernels.modflow6.dll,
+            lib_dependency=self.megamod_config.kernels.modflow6.dll_dep_dir,
+            working_directory=self.megamod_config.kernels.modflow6.work_dir,
             timing=self.base_config.timing,
         )
         self.msw = XmiWrapper(
@@ -114,11 +117,16 @@ class MegaMod(Driver):
         self.mf6_bot = self.mf6.get_bot(self.coupling.mf6_model)
         self.max_iter = self.mf6.max_iter()
 
+        self.msw_nbox = self.msw.get_value_ptr('nbox')
         self.msw_head = self.msw.get_value_ptr('lvgwmodf')
+        self.msw_phead = self.msw.get_value_ptr('phead')
         self.msw_volume = self.msw.get_value_ptr('vsim')
         self.msw_storage = self.msw.get_value_ptr('sc1sim')
         self.msw_qmodf = self.msw.get_value_ptr('qmodf')
-
+        self.msw_qrun = self.msw.get_value_ptr('qrun')
+        self.msw_evsoil = self.msw.get_value_ptr('evsoil')
+        self.msw_evpond = self.msw.get_value_ptr('evpond')
+        self.msw_dtgw = self.msw.get_value_ptr('dtgw')
 
         # create mappings
         table_node2svat: NDArray[np.int32] = np.loadtxt(
@@ -136,9 +144,9 @@ class MegaMod(Driver):
         )
 
         if self.mf6_has_sc1:
-            conversion_terms = 1.0 
+            conversion_terms = np.ones_like(self.mf6_bot)*1.0 
         else:
-            conversion_terms = 1.0 / (self.mf6_top - self.mf6_bot)
+            conversion_terms = np.ones_like(self.mf6_bot) * 1.0 / (self.mf6_top - self.mf6_bot)
 
         conversion_matrix = dia_matrix(
             (conversion_terms, [0]),
@@ -168,6 +176,17 @@ class MegaMod(Driver):
             "sum",
         )
 
+    def log_exchange_vars(self, svat, node) -> None:
+        self.logging.phead_list.append(list(self.msw_phead[svat,:]))
+        self.logging.head_list.append(self.mf6_head[node])
+        self.logging.vsim_list.append(self.mf6_recharge[node])
+        self.logging.qmodf_list.append(self.msw_qmodf[node])
+        self.logging.qrun_list.append(self.msw_qrun[node])
+        self.logging.sc1_list.append(self.msw_storage[svat])
+        self.logging.nbox_list.append(self.msw_nbox[svat])
+        self.logging.evsoil_list.append(self.msw_evsoil[node])
+        self.logging.evpond_list.append(self.msw_evpond[node])
+
     def update(self) -> None:
         self.mf6.prepare_time_step(0.0)
         self.delt = self.mf6.get_time_step()
@@ -185,9 +204,13 @@ class MegaMod(Driver):
             if has_converged:
                 logger.debug(f"MF6-MSW converged in {kiter} iterations")
                 break
+        self.fdump.write("%8.3f %15.5e\n"%(self.get_current_time(), self.msw_storage[0]))
         self.mf6.finalize_solve(1)
         self.mf6.finalize_time_step()
         self.exchange_qmodf()
+        self.log_exchange_vars(0,0)
+        
+
         self.msw.finalize_time_step() # should compute qmodf intenal?
 
     def finalize(self) -> None:
@@ -218,12 +241,12 @@ class MegaMod(Driver):
         logger.info(f"Total elapsed time in numerical kernels: {total:0.4f} seconds")
 
     def exchange_qmodf(self) -> None:
-        nodes = self.mf6_recharge_nodelist - 1
-        self.mf6_qmodf = ((self.mf6_head[nodes] - self.ms6_head_old[nodes]) * self.mf6_storage[nodes]) - self.mf6_recharge[:]
+        self.mf6_qmodf = ((self.mf6_head[:] - self.ms6_head_old[:]) * self.mf6_storage[:]) - self.mf6_recharge[:]
         self.msw_qmodf[:] = (
-            self.mask_mod2msw["head"][:] * self.msw_head[:]
+            self.mask_mod2msw["head"][:] * self.msw_qmodf[:]
             + self.map_mod2msw["head"].dot(self.mf6_qmodf)[:]
         )
+        return
 
     def exchange_sc1_msw2mf(self) -> None:
         self.mf6_storage[:] = (

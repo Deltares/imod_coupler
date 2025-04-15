@@ -47,13 +47,18 @@ def run_coupler(config_path: Path) -> None:
         start = time.perf_counter()
 
     driver = get_driver(config_dict, config_dir, base_config)
+    driver.fdump = open("dump_megamod.txt", "w")	
     driver.execute()
+    driver.fdump.close()
 
     # Report timing
     if base_config.timing:
         driver.report_timing_totals()
         end = time.perf_counter()
         logger.info(f"Total elapsed time: {end-start:0.4f} seconds")
+
+    return driver.logging
+
 
 
 if __name__ == "__main__":
