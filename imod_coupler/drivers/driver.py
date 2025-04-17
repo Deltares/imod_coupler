@@ -5,11 +5,13 @@ import sys
 from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import Any
+import __main__
 
 from loguru import logger
-
 from imod_coupler.config import BaseConfig
-
+from imod_coupler.drivers.metamod.metamod import MetaMod
+from imod_coupler.drivers.ribametamod.ribametamod import RibaMetaMod
+from imod_coupler.drivers.ribamod.ribamod import RibaMod
 
 def resolve_path(libname: str) -> str:
     match sys.platform.lower():
@@ -85,28 +87,20 @@ class Driver(ABC):
 def get_driver(
     config_dict: dict[str, Any], config_dir: Path, base_config: BaseConfig
 ) -> Driver:
-    from imod_coupler.drivers.metamod.config import MetaModConfig
-    from imod_coupler.drivers.metamod.metamod import MetaMod
-    from imod_coupler.drivers.ribametamod.config import RibaMetaModConfig
-    from imod_coupler.drivers.ribametamod.ribametamod import RibaMetaMod
-    from imod_coupler.drivers.ribamod.config import RibaModConfig
-    from imod_coupler.drivers.ribamod.ribamod import RibaMod
 
     # resolve library locations using which
     for kernel in config_dict["driver"]["kernels"].values():
         if "dll" in kernel:
             kernel["dll"] = resolve_path(kernel["dll"])
 
-    if base_config.driver_type == "metamod":
-        metamod_config = MetaModConfig(config_dir=config_dir, **config_dict["driver"])
-        return MetaMod(base_config, metamod_config)
-    elif base_config.driver_type == "ribamod":
-        ribamod_config = RibaModConfig(config_dir=config_dir, **config_dict["driver"])
-        return RibaMod(base_config, ribamod_config)
-    elif base_config.driver_type == "ribametamod":
-        ribametamod_config = RibaMetaModConfig(
-            config_dir=config_dir, **config_dict["driver"]
+    # construct a driver instance for the driver type specified in the config
+    obj={s.lower():s for s in dir(__main__)}
+    drv=base_config.driver_type.lower()
+    if drv in obj:
+        return getattr(__main__,obj[drv])(
+            base_config=base_config,
+            driver_config=config_dict,
+            config_dir=config_dir,
         )
-        return RibaMetaMod(base_config, ribametamod_config)
     else:
         raise ValueError(f"Driver type {base_config.driver_type} is not supported.")

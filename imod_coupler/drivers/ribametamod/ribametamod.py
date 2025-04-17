@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from collections import ChainMap
 from collections.abc import Sequence
+from pathlib import Path
 from typing import Any
 
 import numpy as np
@@ -93,11 +94,17 @@ class RibaMetaMod(Driver):
     # Mapping tables
     mapping: SetMapping  # TODO: Ribasim: allow more than 1:N
 
-    def __init__(self, base_config: BaseConfig, ribametamod_config: RibaMetaModConfig):
+    def __init__(self, base_config: BaseConfig, 
+                 driver_config: dict[str, Any],
+                 config_dir: Path):
+
         """Constructs the `RibaMetaMod` object"""
         self.base_config = base_config
-        self.ribametamod_config = ribametamod_config
-        self.coupling = ribametamod_config.coupling[
+        self.ribametamod_config = RibaMetaModConfig(
+            config_dir=config_dir,
+            data=driver_config
+            )
+        self.coupling = self.ribametamod_config.coupling[
             0
         ]  # Adapt as soon as we have multimodel support
         self.enable_sprinkling_groundwater = False

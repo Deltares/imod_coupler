@@ -60,11 +60,17 @@ class MetaMod(Driver):
     # dict. with mask arrays for msw=>mod coupling
     mask_msw2mod: dict[str, NDArray[Any]] = {}
 
-    def __init__(self, base_config: BaseConfig, metamod_config: MetaModConfig):
+    def __init__(self, base_config: BaseConfig, 
+                 driver_config: dict[str, Any],
+                 config_dir: Path):
         """Constructs the `MetaMod` object"""
+ 
         self.base_config = base_config
-        self.metamod_config = metamod_config
-        self.coupling = metamod_config.coupling[
+        self.metamod_config = MetaModConfig(
+            config_dir=config_dir,
+            data=driver_config
+        )
+        self.coupling = self.metamod_config.coupling[
             0
         ]  # Adapt as soon as we have multimodel support
 

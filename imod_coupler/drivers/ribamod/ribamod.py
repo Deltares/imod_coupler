@@ -71,11 +71,18 @@ class RibaMod(Driver):
     map_rib2mod: dict[str, csr_matrix]
     mask_rib2mod: dict[str, NDArray[Any]]
 
-    def __init__(self, base_config: BaseConfig, ribamod_config: RibaModConfig):
+    def __init__(self, base_config: BaseConfig, 
+                 driver_config: dict[str, Any],
+                 config_dir: Path):
+
         """Constructs the `Ribamod` object"""
         self.base_config = base_config
-        self.ribamod_config = ribamod_config
-        self.coupling = ribamod_config.coupling[
+        self.ribamod_config = RibaModConfig(
+            config_dir=config_dir,
+            data=driver_config
+        )
+
+        self.coupling = self.ribamod_config.coupling[
             0
         ]  # Adapt as soon as we have multimodel support
 
