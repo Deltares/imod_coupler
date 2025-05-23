@@ -45,7 +45,7 @@ class NetcdfExchangeLogger(AbstractExchange):
         self.pos = 0
 
     def write_exchange(
-        self, exchange: NDArray[Any], time: float, sync: bool = False
+        self, exchange: NDArray[Any], time: float, sync: bool = True
     ) -> None:
         if len(self.ds.dimensions) == 0:
             self.initfile(len(exchange))
