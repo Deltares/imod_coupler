@@ -399,6 +399,7 @@ class RibaMetaMod(Driver):
         if self.has_ribasim:
             self.exchange_rib2mod()
             self.exchange_mod2rib()
+            self.exchange.log_demands(self.get_current_time())
 
         if self.has_ribasim:
             if self.has_metaswap:
