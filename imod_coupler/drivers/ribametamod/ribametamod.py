@@ -370,6 +370,7 @@ class RibaMetaMod(Driver):
         for timestep_sw in range(1, int(nsubtimesteps) + 1):
             self.msw.prepare_surface_water_time_step(timestep_sw)
             self.exchange.add_ponding_volume_msw(self.msw_ponding_volume)
+            self.exchange.log_demands(self.get_current_time())  #debug!
             if self.enable_sprinkling_surface_water:
                 self.exchange_sprinkling_demand_msw2rib()
             # exchange summed volumes to Ribasim
@@ -399,8 +400,8 @@ class RibaMetaMod(Driver):
         if self.has_ribasim:
             self.exchange_rib2mod()
             self.exchange_mod2rib()
-            self.exchange.log_demands(self.get_current_time())
-
+            self.exchange.log_demands(self.get_current_time())  #debug!
+            
         if self.has_ribasim:
             if self.has_metaswap:
                 self.update_ribasim_metaswap()
