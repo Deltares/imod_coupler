@@ -88,7 +88,7 @@ object IMODCollector_X64development : BuildType({
     }
 
     dependencies {
-        dependency(AbsoluteId("MSWMOD_MetaSWAP_MetaSWAPDevelopWin64test")) {
+        dependency(AbsoluteId("MSWMOD_MetaSWAP_MetaSWAPBuildWin64trunk")) {
             snapshot {
             }
 
