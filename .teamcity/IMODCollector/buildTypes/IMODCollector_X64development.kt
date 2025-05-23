@@ -88,13 +88,13 @@ object IMODCollector_X64development : BuildType({
     }
 
     dependencies {
-        dependency(AbsoluteId("MSWMOD_MetaSWAP_MetaSWAPBuildWin64trunk")) {
+        dependency(AbsoluteId("MSWMOD_MetaSWAP_MetaSWAPDevelopWin64test")) {
             snapshot {
             }
 
             artifacts {
                 cleanDestination = true
-                artifactRules = "MetaSWAP.zip!/x64/Release => metaswap"
+                artifactRules = "MetaSWAP.zip => metaswap"
             }
         }
         dependency(AbsoluteId("iMOD6_Modflow6buildWin64")) {
