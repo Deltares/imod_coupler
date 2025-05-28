@@ -25,13 +25,21 @@ changeBuildType(RelativeId("IMODCollector_X64development")) {
     }
 
     dependencies {
-        remove(AbsoluteId("MSWMOD_MetaSWAP_MetaSWAPBuildWin64trunk")) {
+        expect(AbsoluteId("MSWMOD_MetaSWAP_MetaSWAPBuildWin64trunk")) {
             snapshot {
             }
 
             artifacts {
                 cleanDestination = true
                 artifactRules = "MetaSWAP.zip!/x64/Release => metaswap"
+            }
+        }
+        update(AbsoluteId("MSWMOD_MetaSWAP_MetaSWAPBuildWin64trunk")) {
+            artifacts {
+                buildRule = lastSuccessful()
+                cleanDestination = true
+                artifactRules = "MetaSWAP.zip => metaswap"
+                enabled = false
             }
         }
 
@@ -42,15 +50,6 @@ changeBuildType(RelativeId("IMODCollector_X64development")) {
             artifacts {
                 cleanDestination = true
                 artifactRules = "MetaSWAP.zip!/x64/Release => metaswap"
-            }
-        }
-
-        add(AbsoluteId("MSWMOD_MetaSWAP_MetaSWAPDevelopWin64test")) {
-            artifacts {
-                buildRule = lastSuccessful()
-                cleanDestination = true
-                artifactRules = "MetaSWAP.zip => metaswap"
-                enabled = false
             }
         }
 
