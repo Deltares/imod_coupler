@@ -1,6 +1,8 @@
 package patches.buildTypes
 
 import jetbrains.buildServer.configs.kotlin.*
+import jetbrains.buildServer.configs.kotlin.triggers.FinishBuildTrigger
+import jetbrains.buildServer.configs.kotlin.triggers.finishBuildTrigger
 import jetbrains.buildServer.configs.kotlin.ui.*
 
 /*
@@ -9,7 +11,40 @@ To apply the patch, change the buildType with id = 'IMODCollector_X64development
 accordingly, and delete the patch script.
 */
 changeBuildType(RelativeId("IMODCollector_X64development")) {
+    triggers {
+        val trigger1 = find<FinishBuildTrigger> {
+            finishBuildTrigger {
+                buildType = "MSWMOD_MetaSWAP_MetaSWAPBuildWin64trunk"
+                successfulOnly = true
+            }
+        }
+        trigger1.apply {
+            buildType = "MSWMOD_MetaSWAP_MetaSWAPBuildWin64_vs"
+
+        }
+    }
+
     dependencies {
+        remove(AbsoluteId("MSWMOD_MetaSWAP_MetaSWAPBuildWin64trunk")) {
+            snapshot {
+            }
+
+            artifacts {
+                cleanDestination = true
+                artifactRules = "MetaSWAP.zip!/x64/Release => metaswap"
+            }
+        }
+
+        add(AbsoluteId("MSWMOD_MetaSWAP_MetaSWAPBuildWin64_vs")) {
+            snapshot {
+            }
+
+            artifacts {
+                cleanDestination = true
+                artifactRules = "MetaSWAP.zip!/x64/Release => metaswap"
+            }
+        }
+
         add(AbsoluteId("MSWMOD_MetaSWAP_MetaSWAPDevelopWin64test")) {
             artifacts {
                 buildRule = lastSuccessful()
