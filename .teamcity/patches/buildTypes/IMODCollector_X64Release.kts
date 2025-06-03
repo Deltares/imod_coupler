@@ -18,7 +18,7 @@ changeBuildType(RelativeId("IMODCollector_X64Release")) {
             }
         }
 
-        add(AbsoluteId("MSWMOD_MetaSWAP_MetaSWAPBuildWin64_vs")) {
+        add(AbsoluteId("MSWMOD_MetaSWAP_MetaSWAPBuildWin64")) {
             artifacts {
                 buildRule = tag("release_2410")
                 cleanDestination = true

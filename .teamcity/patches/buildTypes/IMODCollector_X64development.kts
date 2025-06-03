@@ -19,7 +19,7 @@ changeBuildType(RelativeId("IMODCollector_X64development")) {
             }
         }
         trigger1.apply {
-            buildType = "MSWMOD_MetaSWAP_MetaSWAPBuildWin64_vs"
+            buildType = "MSWMOD_MetaSWAP_MetaSWAPBuildWin64"
 
         }
     }
@@ -35,7 +35,7 @@ changeBuildType(RelativeId("IMODCollector_X64development")) {
             }
         }
 
-        add(AbsoluteId("MSWMOD_MetaSWAP_MetaSWAPBuildWin64_vs")) {
+        add(AbsoluteId("MSWMOD_MetaSWAP_MetaSWAPBuildWin64")) {
             snapshot {
             }
 
