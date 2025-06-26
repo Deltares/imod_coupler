@@ -84,7 +84,7 @@ install-test-dependencies = { depends-on = [
 ] }
 
 # Tests
-test-imod-coupler = "pytest -v -s --numprocesses=auto --dist=loadgroup --basetemp=tests/temp --junitxml=report.xml tests/test_imod_coupler"
+test-imod-coupler = "pytest -vvv -s --numprocesses=auto --dist=loadgroup --basetemp=tests/temp --junitxml=report.xml tests/test_imod_coupler"
 tests = { depends-on = ["test-primod", "test-imod-coupler"] }
 # Lint
 mypy-imodc = "mypy --ignore-missing-imports --strict imod_coupler"
