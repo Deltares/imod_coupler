@@ -58,7 +58,7 @@ def ribasim_backwater_model() -> ribasim.Model:
 def ribasim_two_basin_model() -> ribasim.Model:
     twobasin = ribasim_testmodels.two_basin_model()
     twobasin.solver.algorithm = solver_algorithm
-    return twobasin
+    return add_subgrid(twobasin)
 
 
 @pytest_cases.fixture(scope="function")
