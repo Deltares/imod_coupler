@@ -31,6 +31,22 @@ object IMODCollector_X64development : BuildType({
 
     steps {
         script {
+            name = "Download Release MODFLOW 6.5.0"
+            scriptContent = """
+                mkdir modflow6
+                curl -O https://water.usgs.gov/water-resources/software/MODFLOW-6/mf6.5.0_win64.zip
+                unzip  -j "mf6.5.0_win64.zip" -d modflow6 mf6.5.0_win64/bin/libmf6.dll
+            """.trimIndent()
+        }
+        script {
+            name = "Download Release Ribasim v2024.11.0"
+            scriptContent = """
+                mkdir modflow6
+                curl -L -o ribasim_windows.zip https://github.com/Deltares/Ribasim/releases/download/v2024.11.0/ribasim_windows.zip
+                unzip  "ribasim_windows.zip"
+            """.trimIndent()
+        }
+        script {
             name = "Install iMOD Coupler"
             enabled = false
             workingDir = "coupler"
@@ -53,9 +69,6 @@ object IMODCollector_X64development : BuildType({
             workingDir = "coupler"
             scriptContent = """call dist\imodc --version"""
         }
-    }
-
-    triggers {
     }
 
     features {
