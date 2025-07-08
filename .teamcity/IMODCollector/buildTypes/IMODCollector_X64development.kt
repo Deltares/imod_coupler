@@ -55,17 +55,6 @@ object IMODCollector_X64development : BuildType({
         }
     }
 
-    triggers {
-        finishBuildTrigger {
-            buildType = "MSWMOD_MetaSWAP_MetaSWAPBuildWin64trunk"
-            successfulOnly = true
-        }
-        finishBuildTrigger {
-            buildType = "iMOD6_Modflow6buildWin64"
-            successfulOnly = true
-        }
-    }
-
     features {
         commitStatusPublisher {
             vcsRootExtId = "${ImodCoupler.id}"
