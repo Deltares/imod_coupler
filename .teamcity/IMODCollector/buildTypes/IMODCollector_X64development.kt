@@ -6,6 +6,7 @@ import jetbrains.buildServer.configs.kotlin.buildFeatures.PullRequests
 import jetbrains.buildServer.configs.kotlin.buildFeatures.commitStatusPublisher
 import jetbrains.buildServer.configs.kotlin.buildFeatures.pullRequests
 import jetbrains.buildServer.configs.kotlin.buildSteps.script
+import jetbrains.buildServer.configs.kotlin.triggers.finishBuildTrigger
 
 object IMODCollector_X64development : BuildType({
     name = "x64_development"
@@ -52,21 +53,16 @@ object IMODCollector_X64development : BuildType({
             workingDir = "coupler"
             scriptContent = """call dist\imodc --version"""
         }
-        script {
-            name = "Download Release MODFLOW 6.5.0"
-            scriptContent = """
-                mkdir modflow6
-                curl -O https://water.usgs.gov/water-resources/software/MODFLOW-6/mf6.5.0_win64.zip
-                unzip  -j "mf6.5.0_win64.zip" -d modflow6 mf6.5.0_win64/bin/libmf6.dll
-            """.trimIndent()
+    }
+
+    triggers {
+        finishBuildTrigger {
+            buildType = "MSWMOD_MetaSWAP_MetaSWAPBuildWin64trunk"
+            successfulOnly = true
         }
-        script {
-            name = "Download Release Ribasim v2024.11.0"
-            scriptContent = """
-                mkdir modflow6
-                curl -L -o ribasim_windows.zip https://github.com/Deltares/Ribasim/releases/download/v2024.11.0/ribasim_windows.zip
-                unzip  "ribasim_windows.zip"
-            """.trimIndent()
+        finishBuildTrigger {
+            buildType = "iMOD6_Modflow6buildWin64"
+            successfulOnly = true
         }
     }
 
@@ -92,10 +88,27 @@ object IMODCollector_X64development : BuildType({
     }
 
     dependencies {
-        artifacts(AbsoluteId("MSWMOD_MetaSWAP_MetaSWAPBuildWin64trunk")) {
-           cleanDestination = true
-           buildRule = tag("release_2410")
-           artifactRules = "MetaSWAP.zip!/x64/Release => metaswap"
+        dependency(AbsoluteId("MSWMOD_MetaSWAP_MetaSWAPBuildWin64trunk")) {
+            snapshot {
+            }
+
+            artifacts {
+                cleanDestination = true
+                artifactRules = "MetaSWAP.zip!/x64/Release => metaswap"
+            }
+        }
+        dependency(AbsoluteId("iMOD6_Modflow6buildWin64")) {
+            snapshot {
+            }
+
+            artifacts {
+                cleanDestination = true
+                artifactRules = "srcbmi/libmf6.dll => modflow6/"
+            }
+        }
+        artifacts(AbsoluteId("Ribasim_Windows_BuildRibasim")) {
+            buildRule = lastSuccessful()
+            artifactRules = "ribasim_windows.zip!** => ribasim"
         }
     }
 
