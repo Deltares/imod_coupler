@@ -55,6 +55,9 @@ object IMODCollector_X64development : BuildType({
         }
     }
 
+    triggers {
+    }
+
     features {
         commitStatusPublisher {
             vcsRootExtId = "${ImodCoupler.id}"
