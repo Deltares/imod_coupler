@@ -93,23 +93,10 @@ object IMODCollector_X64development : BuildType({
     }
 
     dependencies {
-        dependency(AbsoluteId("MSWMOD_MetaSWAP_MetaSWAPBuildWin64trunk")) {
-            snapshot {
-            }
-
-            artifacts {
-                cleanDestination = true
-                artifactRules = "MetaSWAP.zip!/x64/Release => metaswap"
-            }
-        }
-        dependency(AbsoluteId("iMOD6_Modflow6buildWin64")) {
-            snapshot {
-            }
-
-            artifacts {
-                cleanDestination = true
-                artifactRules = "srcbmi/libmf6.dll => modflow6/"
-            }
+        artifacts(AbsoluteId("MSWMOD_MetaSWAP_MetaSWAPBuildWin64")) {
+           cleanDestination = true
+           buildRule = tag("release_2410")
+           artifactRules = "MetaSWAP.zip!/x64/Release => metaswap"
         }
         artifacts(AbsoluteId("Ribasim_Windows_BuildRibasim")) {
             buildRule = lastSuccessful()
