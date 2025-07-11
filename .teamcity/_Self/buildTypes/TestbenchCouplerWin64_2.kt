@@ -54,6 +54,7 @@ object TestbenchCouplerWin64_2 : BuildType({
                 pixi run -e dev install
                 pixi run -e dev update-git-dependencies
                 pixi run -e dev install-ribasim-latest-release
+                pixi run -e dev install-ribasim-testmodels-latest-release
             """.trimIndent()
         }
         script {
