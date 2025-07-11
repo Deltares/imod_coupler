@@ -53,6 +53,7 @@ object TestbenchCouplerWin64_2 : BuildType({
                 pixi --version
                 pixi run -e dev install
                 pixi run -e dev update-git-dependencies
+                pixi run -e dev install-ribasim-latest-release
             """.trimIndent()
         }
         script {
