@@ -10,9 +10,12 @@ linux = "4.4.0"
 
 [tasks]
 # Install
+install-ribasim = "pip install git+https://github.com/Deltares/Ribasim.git/#subdirectory=python/ribasim"
 install-ribasim-api = "pip install git+https://github.com/Deltares/Ribasim.git/#subdirectory=python/ribasim_api"
+install-ribasim-testmodels = "pip install git+https://github.com/Deltares/Ribasim.git/#subdirectory=python/ribasim_testmodels"
 install-imodc = "pip install --no-deps --editable ."
-install-minimal = { depends-on = ["install-ribasim-api", "install-imodc"] }
+install-ribasim-all = { depends-on = ["install-ribasim","install-ribasim-api","install-ribasim-testmodels"] }
+install-minimal = { depends-on = ["install-imodc"] }
 # Build
 build-imod-coupler = "rm -rf dist && pyinstaller imod_coupler/__main__.py --name imodc"
 
@@ -30,15 +33,13 @@ tomli = "*"
 tomli-w = "*"
 xmipy = "*"
 
-#[pypi-dependencies]
-#ribasim = {git = "https://github.com/Deltares/Ribasim.git/#subdirectory=python/ribasim"}
+[pypi-dependencies]
+ribasim = { git = "https://github.com/Deltares/Ribasim.git", tag = "v2024.11.0", subdirectory= "python/ribasim"}
+ribasim_api = { git = "https://github.com/Deltares/Ribasim.git", tag = "v2024.11.0", subdirectory= "python/ribasim_api"}
+ribasim_testmodels = { git = "https://github.com/Deltares/Ribasim.git", tag = "v2024.11.0", subdirectory= "python/ribasim_testmodels"}
 
 [feature.common.tasks]
 # Install
-install-ribasim-python = "pip install git+https://github.com/Deltares/Ribasim.git/#subdirectory=python/ribasim"
-install-ribasim-latest-release = """pip install --upgrade --force-reinstall --no-deps ribasim==2024.11.0 ribasim-api==2024.11.0""" 
-install-ribasim-testmodels = "pip install git+https://github.com/Deltares/Ribasim.git/#subdirectory=python/ribasim_testmodels"
-install-ribasim-testmodels-latest-release = "pip install git+https://github.com/Deltares/Ribasim.git@v2024.11.0#subdirectory=python/ribasim_testmodels"
 install-primod = "pip install --no-deps --editable pre-processing"
 install-metaswap-testmodels = "svn checkout https://repos.deltares.nl/repos/DSCTestbench/trunk/cases/e150_metaswap/f00_common/c00_common/LHM2016_v01vrz .imod_collector/e150_metaswap"
 install-imod-collector = "python scripts/download_imod_collector.py"
@@ -46,15 +47,9 @@ install-imod-collector-regression = "python scripts/download_imod_collector.py r
 generate-env-file = "python scripts/generate_env_file.py"
 install = { depends-on = [
     "install-minimal",
-    "install-ribasim-testmodels",
     "install-primod",
 ] }
 
-
-update-git-dependencies = """pip install --upgrade --force-reinstall --no-deps
-                             git+https://github.com/Deltares/Ribasim.git/#subdirectory=python/ribasim
-                             git+https://github.com/Deltares/Ribasim.git/#subdirectory=python/ribasim_api
-                             git+https://github.com/Deltares/Ribasim.git/#subdirectory=python/ribasim_testmodels"""
 
 # Tests
 test-primod = "pytest --junitxml=report.xml tests/test_primod"
