@@ -15,7 +15,7 @@ object IMODCollector_X64development : BuildType({
         coupler/dist/ => imod_collector.zip!/imod_coupler/
         modflow6/ => imod_collector.zip!/modflow6/
         metaswap/ => imod_collector.zip!/metaswap/
-        ribasim/ribasim/ => imod_collector.zip!/ribasim/
+        ribasim/bin/ => imod_collector.zip!/ribasim/
     """.trimIndent()
 
     params {
