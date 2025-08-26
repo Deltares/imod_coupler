@@ -16,6 +16,7 @@ install-minimal = { depends-on = ["install-imodc"] }
 build-imod-coupler = "rm -rf dist && pyinstaller imod_coupler/__main__.py --name imodc"
 
 [dependencies]
+geopandas = "1.0.*"
 netCDF4 = "*"
 loguru = "*"
 numpy = "<2.0"
@@ -54,7 +55,6 @@ test-primod = "pytest --junitxml=report.xml tests/test_primod"
 
 [feature.common.dependencies]
 python-build = "*"
-geopandas = "*"
 httpx = "*"
 imod = "*"
 ipython = "*"
