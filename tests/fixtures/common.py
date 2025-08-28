@@ -6,16 +6,14 @@ from numpy import float64, int_
 from numpy.typing import NDArray
 
 
-def grid_sizes() -> (
-    tuple[
-        list[float],
-        list[float],
-        NDArray[int_],
-        float,
-        float,
-        NDArray[float64],
-    ]
-):
+def grid_sizes() -> tuple[
+    list[float],
+    list[float],
+    NDArray[int_],
+    float,
+    float,
+    NDArray[float64],
+]:
     x = [100.0, 200.0, 300.0, 400.0, 500.0]
     y = [300.0, 200.0, 100.0]
     dz = np.array([0.2, 10.0, 100.0])

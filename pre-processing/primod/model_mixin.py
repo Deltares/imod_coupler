@@ -17,7 +17,7 @@ class MetaModMixin:
         """
         mf6_model_key = coupling_dict["mf6_model"]
         gwf_model = mf6_simulation[mf6_model_key]
-        mf6_dis_key = gwf_model._get_diskey()
+        mf6_dis_key = gwf_model.get_diskey()
         mf6_dis_pkg = gwf_model[mf6_dis_key]
 
         mf6_wel_pkg = None

@@ -30,7 +30,7 @@ class MetaModDriverCoupling(DriverCoupling):
     def _check_sprinkling(
         self, msw_model: MetaSwapModel, gwf_model: GroundwaterFlowModel
     ) -> bool:
-        sprinkling_key = msw_model._get_pkg_key(Sprinkling, optional_package=True)
+        sprinkling_key = msw_model.get_pkgkey(Sprinkling, optional_package=True)
         sprinkling_in_msw = sprinkling_key is not None
         sprinkling_in_mf6 = self.mf6_wel_package in gwf_model.keys()
 
@@ -68,7 +68,7 @@ class MetaModDriverCoupling(DriverCoupling):
             pkgname for pkgname, pkg in msw_model.items() if isinstance(pkg, GridData)
         ][0]
 
-        dis = gwf_model[gwf_model._get_diskey()]
+        dis = gwf_model[gwf_model.get_diskey()]
 
         index, svat = msw_model[grid_data_key].generate_index_array()
         grid_mapping = NodeSvatMapping(svat=svat, modflow_dis=dis, index=index)
