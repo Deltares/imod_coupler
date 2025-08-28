@@ -80,11 +80,8 @@ def metaswap_model(
 
     # Sprinkling
     msw_model["sprinkling"] = msw.Sprinkling(
-
         max_abstraction_groundwater=xr.full_like(area, 0.0),
-        max_abstraction_surfacewater=xr.full_like(
-            area, 0.02 * (20 * 20)
-        ),  # 20 mm/d
+        max_abstraction_surfacewater=xr.full_like(area, 0.02 * (20 * 20)),  # 20 mm/d
     )
 
     # Ponding

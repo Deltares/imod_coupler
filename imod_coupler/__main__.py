@@ -53,7 +53,7 @@ def run_coupler(config_path: Path) -> None:
     if base_config.timing:
         driver.report_timing_totals()
         end = time.perf_counter()
-        logger.info(f"Total elapsed time: {end-start:0.4f} seconds")
+        logger.info(f"Total elapsed time: {end - start:0.4f} seconds")
 
 
 if __name__ == "__main__":
