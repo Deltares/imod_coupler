@@ -56,7 +56,6 @@ test-primod = "pytest --junitxml=report.xml tests/test_primod"
 [feature.common.dependencies]
 python-build = "*"
 httpx = "*"
-imod = "*"
 ipython = "*"
 jupyterlab = "*"
 mypy = "*"
@@ -78,7 +77,7 @@ install-test-dependencies = { depends-on = [
 ] }
 
 # Tests
-test-imod-coupler = "pytest -v -s --numprocesses=auto --dist=loadgroup --basetemp=tests/temp --junitxml=report.xml tests/test_imod_coupler"
+test-imod-coupler = "pytest -vvv -s --numprocesses=auto --dist=loadgroup --basetemp=tests/temp --junitxml=report.xml tests/test_imod_coupler"
 tests = { depends-on = ["test-primod", "test-imod-coupler"] }
 # Lint
 mypy-imodc = "mypy --ignore-missing-imports --strict imod_coupler"
@@ -93,9 +92,11 @@ publish-primod = { cmd = "rm --recursive --force dist && python -m build && twin
 
 
 [feature.py312.dependencies]
+imod = ">=1.0.0rc5"
 python = "3.12.*"
 
 [feature.py311.dependencies]
+imod = ">=1.0.0rc5"
 python = "3.11.*"
 
 [feature.py310.dependencies]
