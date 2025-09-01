@@ -13,7 +13,7 @@ from typing import Any
 import numpy as np
 from loguru import logger
 from numpy.typing import NDArray
-from ribasim_api import RibasimApi
+from imod_coupler.kernelwrappers.ribasim_wrapper import RibasimWrapper
 
 from imod_coupler.config import BaseConfig
 from imod_coupler.drivers.driver import Driver
@@ -39,7 +39,7 @@ class RibaMetaMod(Driver):
 
     timing: bool  # true, when timing is enabled
     mf6: Mf6Wrapper  # the MODFLOW 6 kernel
-    ribasim: RibasimApi  # the Ribasim kernel
+    ribasim: RibasimWrapper  # the Ribasim kernel
     msw: MswWrapper  # the MetaSWAP kernel
     has_metaswap: bool  # configured with or without metaswap
     exchange: CoupledExchangeBalance  # deals with exchanges to Ribasim
@@ -111,7 +111,7 @@ class RibaMetaMod(Driver):
             timing=self.base_config.timing,
         )
         if self.ribametamod_config.kernels.ribasim is not None:
-            self.ribasim = RibasimApi(
+            self.ribasim = RibasimWrapper(
                 lib_path=self.ribametamod_config.kernels.ribasim.dll,
                 lib_dependency=self.ribametamod_config.kernels.ribasim.dll_dep_dir,
                 timing=self.base_config.timing,
