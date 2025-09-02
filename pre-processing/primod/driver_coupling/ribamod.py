@@ -83,7 +83,7 @@ class RibaModDriverCoupling(DriverCoupling, abc.ABC):
                 dtype=np.float64,
             )
             basin_dataset = xr.Dataset(
-                {key: gridded_basin for key in self.mf6_packages}
+                dict.fromkeys(self.mf6_packages, gridded_basin)
             )
         elif isinstance(basin_definition, xr.Dataset):
             basin_ids = _validate_node_ids(
