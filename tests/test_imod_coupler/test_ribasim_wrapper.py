@@ -1,13 +1,10 @@
 import re
-from pathlib import Path
 
 import numpy as np
 import pytest
 import tomli
 from numpy.testing import assert_array_almost_equal
 from xmipy.errors import XMIError
-
-
 
 
 def test_initialize(libribasim, ribasim_basic_model, tmp_path_dev):
@@ -37,7 +34,9 @@ def test_get_end_time(libribasim, ribasim_basic_model, tmp_path_dev):
     config_file = str(tmp_path_dev / "ribasim.toml")
     libribasim.initialize(config_file)
     actual_end_time = libribasim.get_end_time()
-    excepted_end_time = (ribasim_basic_model.endtime - ribasim_basic_model.starttime).total_seconds()
+    excepted_end_time = (
+        ribasim_basic_model.endtime - ribasim_basic_model.starttime
+    ).total_seconds()
     assert actual_end_time == pytest.approx(excepted_end_time)
 
 
@@ -129,7 +128,9 @@ def test_get_value_ptr_subgrid(libribasim, ribasim_two_basin_model, tmp_path_dev
     assert np.any(np.not_equal(initial_subgrid_level, updated_subgrid_level))
 
 
-def test_get_value_ptr_basin_forcing(libribasim, ribasim_leaky_bucket_model, tmp_path_dev):
+def test_get_value_ptr_basin_forcing(
+    libribasim, ribasim_leaky_bucket_model, tmp_path_dev
+):
     ribasim_leaky_bucket_model.write(tmp_path_dev / "ribasim.toml")
     config_file = str(tmp_path_dev / "ribasim.toml")
     libribasim.initialize(config_file)

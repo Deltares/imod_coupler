@@ -13,13 +13,13 @@ from typing import Any
 import numpy as np
 from loguru import logger
 from numpy.typing import NDArray
-from imod_coupler.kernelwrappers.ribasim_wrapper import RibasimWrapper
 from scipy.sparse import csr_matrix
 
 from imod_coupler.config import BaseConfig
 from imod_coupler.drivers.driver import Driver
 from imod_coupler.drivers.ribamod.config import Coupling, RibaModConfig
 from imod_coupler.kernelwrappers.mf6_wrapper import Mf6Drainage, Mf6River, Mf6Wrapper
+from imod_coupler.kernelwrappers.ribasim_wrapper import RibasimWrapper
 from imod_coupler.logging.exchange_collector import ExchangeCollector
 
 # iMOD Python sets MODFLOW 6's time unit to days

@@ -2,10 +2,10 @@ import shutil
 from pathlib import Path
 
 import pytest
-from imod import mf6
 from test_modstrip import fill_para_sim_template
 
 from imod_coupler.kernelwrappers.msw_wrapper import MswWrapper
+
 
 @pytest.mark.skip("metaswap can't be initialized and finalized more than once")
 def test_msw_wrapper_can_be_initialized_and_finalized_multiple_times(

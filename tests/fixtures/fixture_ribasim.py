@@ -2,24 +2,12 @@ from datetime import datetime
 
 import numpy as np
 import pandas as pd
+import pytest
 import pytest_cases
 import ribasim
 import ribasim_testmodels
 
-
-import platform
-from pathlib import Path
-
-import pytest
-import ribasim
 from imod_coupler.kernelwrappers.ribasim_wrapper import RibasimWrapper
-from ribasim_testmodels import (
-    basic_model,
-    basic_transient_model,
-    leaky_bucket_model,
-    two_basin_model,
-    user_demand_model,
-)
 
 solver_algorithm: str = "QNDF"
 
@@ -84,28 +72,32 @@ def ribasim_two_basin_model_dbg() -> ribasim.Model:
     model.solver.algorithm = solver_algorithm
     return model
 
+
 @pytest.fixture(scope="session")
 def ribasim_basic_model() -> ribasim.Model:
-    return basic_model()
+    return ribasim_testmodels.basic_model()
 
 
 @pytest.fixture(scope="session")
 def ribasim_basic_transient_model(ribasim_basic_model) -> ribasim.Model:
-    return basic_transient_model(ribasim_basic_model)
+    return ribasim_testmodels.basic_transient_model(ribasim_basic_model)
 
 
 @pytest.fixture(scope="session")
 def ribasim_leaky_bucket_model() -> ribasim.Model:
-    return leaky_bucket_model()
+    return ribasim_testmodels.leaky_bucket_model()
 
 
 @pytest.fixture(scope="session")
 def ribasim_user_demand_model() -> ribasim.Model:
-    return user_demand_model()
+    return ribasim_testmodels.user_demand_model()
 
 
 @pytest.fixture(scope="session", autouse=True)
-def load_julia(ribasim_dll_devel, ribasim_dll_dep_dir_devel,) -> None:
+def load_julia(
+    ribasim_dll_devel,
+    ribasim_dll_dep_dir_devel,
+) -> None:
     libribasim = RibasimWrapper(ribasim_dll_devel, ribasim_dll_dep_dir_devel)
     libribasim.init_julia()
 

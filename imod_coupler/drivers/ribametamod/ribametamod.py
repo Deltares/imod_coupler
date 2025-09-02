@@ -13,7 +13,6 @@ from typing import Any
 import numpy as np
 from loguru import logger
 from numpy.typing import NDArray
-from imod_coupler.kernelwrappers.ribasim_wrapper import RibasimWrapper
 
 from imod_coupler.config import BaseConfig
 from imod_coupler.drivers.driver import Driver
@@ -27,6 +26,7 @@ from imod_coupler.kernelwrappers.mf6_wrapper import (
     Mf6Wrapper,
 )
 from imod_coupler.kernelwrappers.msw_wrapper import MswWrapper
+from imod_coupler.kernelwrappers.ribasim_wrapper import RibasimWrapper
 from imod_coupler.logging.exchange_collector import ExchangeCollector
 
 
