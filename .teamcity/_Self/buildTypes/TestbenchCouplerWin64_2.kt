@@ -18,6 +18,7 @@ object TestbenchCouplerWin64_2 : BuildType({
     publishArtifacts = PublishMode.ALWAYS
 
     params {
+        param("env.PIXI_FROZEN", "true")
         param("env.METASWAP_DLL_REGRESSION", "%system.teamcity.build.checkoutDir%/imod_collector_regression/metaswap/MetaSWAP.dll")
         param("env.IMOD_COUPLER_EXEC_REGRESSION", "%system.teamcity.build.checkoutDir%/imod_collector_regression/imod_coupler/imodc.exe")
         param("env.MODFLOW_DLL_DEVEL", "%system.teamcity.build.checkoutDir%/imod_collector_devel/modflow6/libmf6.dll")
@@ -52,7 +53,7 @@ object TestbenchCouplerWin64_2 : BuildType({
             scriptContent = """
                 pixi --version
                 pixi run -e dev install
-                pixi run -e dev update-git-dependencies
+                pixi run -e dev pip list
             """.trimIndent()
         }
         script {
