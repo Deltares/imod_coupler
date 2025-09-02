@@ -69,7 +69,7 @@ class RibaModDriverCoupling(DriverCoupling, abc.ABC):
         gwf_model = mf6_simulation[self.mf6_model]
         ribasim_model = coupled_model.ribasim_model
 
-        dis = gwf_model[gwf_model._get_diskey()]
+        dis = gwf_model[gwf_model.get_diskey()]
         basin_definition = self.ribasim_basin_definition
         if isinstance(basin_definition, gpd.GeoDataFrame):
             # Validate and fetch
@@ -82,9 +82,7 @@ class RibaModDriverCoupling(DriverCoupling, abc.ABC):
                 column="node_id",
                 dtype=np.float64,
             )
-            basin_dataset = xr.Dataset(
-                {key: gridded_basin for key in self.mf6_packages}
-            )
+            basin_dataset = xr.Dataset(dict.fromkeys(self.mf6_packages, gridded_basin))
         elif isinstance(basin_definition, xr.Dataset):
             basin_ids = _validate_node_ids(
                 ribasim_model.basin.node.df, basin_definition[self.mf6_packages]

@@ -52,7 +52,7 @@ object TestbenchCouplerWin64Release : BuildType({
             scriptContent = """
                 pixi --version
                 pixi run -e dev install
-                pixi run -e dev update-git-dependencies
+                pixi run -e dev pip list
             """.trimIndent()
         }
         script {

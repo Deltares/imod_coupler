@@ -80,10 +80,8 @@ def metaswap_model(
 
     # Sprinkling
     msw_model["sprinkling"] = msw.Sprinkling(
-        max_abstraction_groundwater=xr.full_like(msw_grid, 0.0),
-        max_abstraction_surfacewater=xr.full_like(
-            msw_grid, 0.02 * (20 * 20)
-        ),  # 20 mm/d
+        max_abstraction_groundwater=xr.full_like(area, 0.0),
+        max_abstraction_surfacewater=xr.full_like(area, 0.02 * (20 * 20)),  # 20 mm/d
     )
 
     # Ponding
@@ -104,8 +102,8 @@ def metaswap_model(
     # Infiltration
     msw_model["infiltration"] = msw.Infiltration(
         infiltration_capacity=xr.full_like(area, 1.0),
-        downward_resistance=xr.full_like(msw_grid, -9999.0),
-        upward_resistance=xr.full_like(msw_grid, -9999.0),
+        downward_resistance=xr.full_like(area, -9999.0),
+        upward_resistance=xr.full_like(area, -9999.0),
         bottom_resistance=xr.full_like(msw_grid, -9999.0),
         extra_storage_coefficient=xr.full_like(msw_grid, 0.1),
     )

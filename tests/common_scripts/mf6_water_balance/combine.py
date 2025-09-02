@@ -61,7 +61,7 @@ def writeNC(ncname: Path, df: pd.DataFrame, singlevar: bool):
         for ivar in range(nvar):
             varname = df.columns[ivar]
             if singlevar:
-                namevar[ivar] = nc.stringtochar(np.array([varname], "S%d" % namelen))
+                namevar[ivar] = nc.stringtochar(np.array([varname], f"S{namelen:d}"))
             else:
                 xchgvar = ds.createVariable(varname, "f8", ("time",))
                 xchgvar[:] = df[varname].to_numpy()

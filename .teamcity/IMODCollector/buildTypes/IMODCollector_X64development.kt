@@ -6,7 +6,6 @@ import jetbrains.buildServer.configs.kotlin.buildFeatures.PullRequests
 import jetbrains.buildServer.configs.kotlin.buildFeatures.commitStatusPublisher
 import jetbrains.buildServer.configs.kotlin.buildFeatures.pullRequests
 import jetbrains.buildServer.configs.kotlin.buildSteps.script
-import jetbrains.buildServer.configs.kotlin.triggers.finishBuildTrigger
 
 object IMODCollector_X64development : BuildType({
     name = "x64_development"
@@ -16,7 +15,7 @@ object IMODCollector_X64development : BuildType({
         coupler/dist/ => imod_collector.zip!/imod_coupler/
         modflow6/ => imod_collector.zip!/modflow6/
         metaswap/ => imod_collector.zip!/metaswap/
-        ribasim/ribasim/ => imod_collector.zip!/ribasim/
+        ribasim/bin/ => imod_collector.zip!/ribasim/
     """.trimIndent()
 
     params {
@@ -30,6 +29,22 @@ object IMODCollector_X64development : BuildType({
     }
 
     steps {
+        script {
+            name = "Download Release MODFLOW 6.5.0"
+            scriptContent = """
+                mkdir modflow6
+                curl -O https://water.usgs.gov/water-resources/software/MODFLOW-6/mf6.5.0_win64.zip
+                unzip  -j "mf6.5.0_win64.zip" -d modflow6 mf6.5.0_win64/bin/libmf6.dll
+            """.trimIndent()
+        }
+        script {
+            name = "Download Release Ribasim v2024.11.0"
+            scriptContent = """
+                mkdir modflow6
+                curl -L -o ribasim_windows.zip https://github.com/Deltares/Ribasim/releases/download/v2024.11.0/ribasim_windows.zip
+                unzip  "ribasim_windows.zip"
+            """.trimIndent()
+        }
         script {
             name = "Install iMOD Coupler"
             enabled = false
@@ -55,17 +70,6 @@ object IMODCollector_X64development : BuildType({
         }
     }
 
-    triggers {
-        finishBuildTrigger {
-            buildType = "MSWMOD_MetaSWAP_MetaSWAPBuildWin64trunk"
-            successfulOnly = true
-        }
-        finishBuildTrigger {
-            buildType = "iMOD6_Modflow6buildWin64"
-            successfulOnly = true
-        }
-    }
-
     features {
         commitStatusPublisher {
             vcsRootExtId = "${ImodCoupler.id}"
@@ -88,27 +92,10 @@ object IMODCollector_X64development : BuildType({
     }
 
     dependencies {
-        dependency(AbsoluteId("MSWMOD_MetaSWAP_MetaSWAPBuildWin64trunk")) {
-            snapshot {
-            }
-
-            artifacts {
-                cleanDestination = true
-                artifactRules = "MetaSWAP.zip!/x64/Release => metaswap"
-            }
-        }
-        dependency(AbsoluteId("iMOD6_Modflow6buildWin64")) {
-            snapshot {
-            }
-
-            artifacts {
-                cleanDestination = true
-                artifactRules = "srcbmi/libmf6.dll => modflow6/"
-            }
-        }
-        artifacts(AbsoluteId("Ribasim_Windows_BuildRibasim")) {
-            buildRule = lastSuccessful()
-            artifactRules = "ribasim_windows.zip!** => ribasim"
+        artifacts(AbsoluteId("MSWMOD_MetaSWAP_MetaSWAPBuildWin64")) {
+           cleanDestination = true
+           buildRule = tag("release_2410")
+           artifactRules = "MetaSWAP.zip!/x64/Release => metaswap"
         }
     }
 

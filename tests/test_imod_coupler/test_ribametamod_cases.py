@@ -148,7 +148,11 @@ def add_water_users(ribasim_model: ribasim.Model) -> ribasim.Model:
     # add default level-control to basins
     ribasim_model.level_demand.add(
         ribasim.Node(10, Point(240.0, 10.0), subnetwork_id=2),
-        [level_demand.Static(demand_priority=[1], min_level=[-1.0e6], max_level=[-1.0e6])],
+        [
+            level_demand.Static(
+                demand_priority=[1], min_level=[-1.0e6], max_level=[-1.0e6]
+            )
+        ],
     )
     ribasim_model.edge.add(
         ribasim_model.level_demand[10],
@@ -156,7 +160,11 @@ def add_water_users(ribasim_model: ribasim.Model) -> ribasim.Model:
     )
     ribasim_model.level_demand.add(
         ribasim.Node(11, Point(740.0, 10.0), subnetwork_id=3),
-        [level_demand.Static(demand_priority=[1], min_level=[-1.0e6], max_level=[-1.0e6])],
+        [
+            level_demand.Static(
+                demand_priority=[1], min_level=[-1.0e6], max_level=[-1.0e6]
+            )
+        ],
     )
     ribasim_model.edge.add(
         ribasim_model.level_demand[11],
