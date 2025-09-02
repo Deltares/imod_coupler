@@ -409,7 +409,7 @@ class Mf6Wrapper(XmiWrapper):
         subset_head = head[package_nodelist - 1]
 
         q = NDArray[np.float64](len(package_nodelist))
-        q = package_hcof * subset_head - package_rhs
+        q[:] = package_hcof * subset_head - package_rhs
 
         return q
 
