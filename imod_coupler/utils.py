@@ -16,7 +16,12 @@ from imod_coupler.config import LogLevel
 
 
 def create_mapping(
-    src_idx: Any, tgt_idx: Any, nsrc: int, ntgt: int, operator: str
+    src_idx: Any,
+    tgt_idx: Any,
+    nsrc: int,
+    ntgt: int,
+    operator: str | None = None,
+    weights: NDArray[np.float_] | None = None,
 ) -> tuple[csr_matrix, NDArray[np.int_]]:
     """
     Create a mapping from source indexes to target indexes by constructing
@@ -37,25 +42,32 @@ def create_mapping(
         The number of entries in the source array
     ntgt : int
         The number of entries in the target array
-    operator : str
+    operator : str, optional
        Indicating how n-1 mappings should be dealt
        with: "avg" for average, "sum" for sum.
        Operator does not affect 1-n couplings.
+    weights : NDArray[np.float_], optional
+        User defined weights used in the sparse matrix
 
     Returns
     -------
     Tuple
         containing the mapping (csr_matrix) and a mask (numpy array)
     """
-    if operator == "avg":
-        cnt = np.zeros(max(tgt_idx) + 1)
-        for i in range(len(tgt_idx)):
-            cnt[tgt_idx[i]] += 1
-        dat = np.array([1.0 / cnt[xx] for xx in tgt_idx])
-    elif operator == "sum":
-        dat = np.ones(tgt_idx.shape)
+    if operator is None and weights is not None:
+        dat = weights
+    elif operator is not None and weights is None:
+        if operator == "avg" and weights is None:
+            cnt = np.zeros(max(tgt_idx) + 1)
+            for i in range(len(tgt_idx)):
+                cnt[tgt_idx[i]] += 1
+            dat = np.array([1.0 / cnt[xx] for xx in tgt_idx])
+        elif operator == "sum" and weights is None:
+            dat = np.ones(tgt_idx.shape)
+        else:
+            raise ValueError("`operator` should be either 'sum' or 'avg'")
     else:
-        raise ValueError("`operator` should be either 'sum' or 'avg'")
+        raise ValueError("either `operator` or 'weights' should be defined")
     map_out = csr_matrix((dat, (tgt_idx, src_idx)), shape=(ntgt, nsrc))
     mask = np.array([0 if i > 0 else 1 for i in map_out.getnnz(axis=1)])
     return map_out, mask
