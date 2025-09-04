@@ -15,8 +15,8 @@ class Couple:
         ptr_a_index: NDArray[np.int32],
         ptr_b_index: NDArray[np.int32],
         exchange_logger: ExchangeCollector,
-        ptr_a_conversion: NDArray[np.float64] | float | None = None,
-        ptr_b_conversion: NDArray[np.float64] | float | None = None,
+        ptr_a_conversion: NDArray[np.float64] | None = None,
+        ptr_b_conversion: NDArray[np.float64] | None = None,
         exchange_operator: str | None = None,
     ) -> None:
         self.ptr_a = ptr_a
@@ -37,25 +37,33 @@ class Couple:
 
     def _set_conversion_terms(
         self,
-        ptr_a_conversion: NDArray[np.float64] | float | None = None,
-        ptr_b_conversion: NDArray[np.float64] | float | None = None,
+        ptr_a_conversion: NDArray[np.float64] | None = None,
+        ptr_b_conversion: NDArray[np.float64] | None = None,
     ) -> None:
         if ptr_a_conversion is None and ptr_b_conversion is None:
             self.conversion_term = None
         else:
-            conversion_term = np.ones_like(self.ptr_b, dtype=np.float64)
+            conversion_term = np.ones_like(self.ptr_a_index, dtype=np.float64)
             if ptr_a_conversion is not None:
-                conversion_term = ptr_a_conversion * conversion_term  # force to array
+                self._raise_if_not_compatible(ptr_a_conversion, self.ptr_a)
+                conversion_term = ptr_a_conversion[self.ptr_a_index]
             if ptr_b_conversion is not None:
-                conversion_term = conversion_term / ptr_b_conversion
+                self._raise_if_not_compatible(ptr_b_conversion, self.ptr_b)
+                conversion_term = conversion_term * ptr_b_conversion[self.ptr_b_index]
             self.exchange_operator = (
                 None  # effect of operator should be in conversion term
             )
             self.conversion_term = conversion_term
 
-    def exchange(self) -> None:
+    def _raise_if_not_compatible(self, array1:NDArray[np.float64], array2:NDArray[np.float64]) -> None:
+        if array1.shape != array2.shape:
+            raise ValueError(
+                "conversion array should have the same shape as corresponding ptr"
+            )
+        
+    def exchange(self, delt: np.float64 = 1.0) -> None:
         """Exchange Kernel a to Kernel b"""
-        self.ptr_b[:] = self.mask[:] * self.ptr_b[:] + self.mapping.dot(self.ptr_a)[:]
+        self.ptr_b[:] = self.mask[:] * self.ptr_b[:] + self.mapping.dot(self.ptr_a)[:] / delt
 
     def log(self, label: str, time: float) -> None:
         """Log the exchange for receiving side; array b"""
