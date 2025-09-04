@@ -21,7 +21,7 @@ def create_mapping(
     nsrc: int,
     ntgt: int,
     operator: str | None = None,
-    weights: NDArray[np.float_] | None = None,
+    weights: NDArray[np.float64] | None = None,
 ) -> tuple[csr_matrix, NDArray[np.int_]]:
     """
     Create a mapping from source indexes to target indexes by constructing
@@ -46,7 +46,7 @@ def create_mapping(
        Indicating how n-1 mappings should be dealt
        with: "avg" for average, "sum" for sum.
        Operator does not affect 1-n couplings.
-    weights : NDArray[np.float_], optional
+    weights : NDArray[np.float64], optional
         User defined weights used in the sparse matrix
 
     Returns

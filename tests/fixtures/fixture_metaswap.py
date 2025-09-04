@@ -224,5 +224,4 @@ def prepared_msw_model_inactive(
     msw_model = make_msw_model(inactive_idomain)
     # Override unsat_svat_path with path from environment
     msw_model.simulation_settings["unsa_svat_path"] = metaswap_lookup_table
-
     return msw_model

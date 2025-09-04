@@ -8,18 +8,16 @@ from __future__ import annotations
 
 from typing import Any
 
+import numpy as np
 from loguru import logger
 from numpy.typing import NDArray
 
 from imod_coupler.config import BaseConfig
 from imod_coupler.drivers.driver import Driver
 from imod_coupler.drivers.metamod.config import MetaModConfig
+from imod_coupler.drivers.metamod.couple import Couple
 from imod_coupler.kernelwrappers.mf6_wrapper import Mf6Wrapper
 from imod_coupler.kernelwrappers.msw_wrapper import MswWrapper
-
-from imod_coupler.utils import create_mapping
-from imod_coupler.drivers.metamod.couple import Couple
-import numpy as np
 from imod_coupler.logging.exchange_collector import ExchangeCollector
 
 
@@ -66,7 +64,7 @@ class MetaMod(Driver):
         self.log_version()
         self.set_coupling()
 
-    def get_exchange_logger(self) -> None:
+    def get_exchange_logger(self) -> ExchangeCollector:
         if self.coupling_config.output_config_file is not None:
             exchange_logger = ExchangeCollector.from_file(
                 self.coupling_config.output_config_file
@@ -93,24 +91,29 @@ class MetaMod(Driver):
         coupling_table = np.loadtxt(
             self.msw.working_directory / "mod2svat.inp", dtype=np.int32, ndmin=2
         )
-        mf6_nodes = coupling_table[:, 0] - 1  # mf6 nodes are onbe based
-        msw_nodes = [
-            svat_lookup[coupling_table[ii, 1], coupling_table[ii, 2]]
-            for ii in range(len(coupling_table))
-        ]
+        mf6_nodes = coupling_table[:, 0] - 1  # mf6 nodes are one based
+        msw_nodes = np.array(
+            [
+                svat_lookup[coupling_table[ii, 1], coupling_table[ii, 2]]
+                for ii in range(len(coupling_table))
+            ],
+            dtype=np.int32,
+        )
         return mf6_nodes, msw_nodes
 
     def set_coupling(self) -> None:
         # conversion terms:
         # storage: MetaSWAP provides sc1*area, MODFLOW expects sc1 or ss
         mf6_area = self.mf6.get_area(self.coupling_config.mf6_model)
-        if self.mf6_has_sc1:
+        if self.mf6.has_sc1(self.coupling_config.mf6_model):
             # mf6 expects sc1, MetaSWAP provides sc1*area
             conversion_terms_storage = 1.0 / mf6_area
         else:
             # mf6 expects ss, MetaSWAP provides sc1*area
             # sc1 = ss * layer thickness
-            conversion_terms_storage = 1.0 / (mf6_area * (self.mf6_top - self.mf6_bot))
+            mf6_top = self.mf6.get_top(self.coupling_config.mf6_model)
+            mf6_bot = self.mf6.get_bot(self.coupling_config.mf6_model)
+            conversion_terms_storage = 1.0 / (mf6_area * (mf6_top - mf6_bot))
         # recharge: MetaSWAP provides volume, MODFLOW expects flux lentgh/time
         recharge_nodes = (
             self.mf6.get_recharge_nodes(
@@ -151,17 +154,6 @@ class MetaMod(Driver):
                 ptr_a_conversion=conversion_terms_recharge_area,
                 ptr_b_conversion=conversion_terms_time,
             ),
-            "sprinkling": Couple(
-                self.msw.get_volume_ptr(),
-                self.mf6.get_well(
-                    self.coupling_config.mf6_model,
-                    self.coupling_config.mf6_msw_well_pkg,
-                ),
-                msw_nodes,
-                mf6_nodes,
-                exchange_logger,
-                ptr_b_conversion=conversion_terms_time,
-            ),
             "head": Couple(
                 self.mf6.get_head(self.coupling_config.mf6_model),
                 self.msw.get_head_ptr(),
@@ -171,6 +163,20 @@ class MetaMod(Driver):
                 exchange_operator="avg",
             ),
         }
+        if self.coupling_config.mf6_msw_sprinkling_map_groundwater is not None:
+            assert isinstance(self.coupling_config.mf6_msw_well_pkg, str)
+            # assert isinstance(self.coupling.mf6_msw_sprinkling_map_groundwater, Path)
+            self.couplings["sprinkling"] = Couple(
+                self.msw.get_volume_ptr(),
+                self.mf6.get_well(
+                    self.coupling_config.mf6_model,
+                    self.coupling_config.mf6_msw_well_pkg,
+                ),
+                msw_nodes,
+                mf6_nodes,
+                exchange_logger,
+                ptr_b_conversion=conversion_terms_time,
+            )
 
     def log_version(self) -> None:
         logger.info(f"MODFLOW version: {self.mf6.get_version()}")
@@ -209,7 +215,8 @@ class MetaMod(Driver):
     def finalize(self) -> None:
         self.mf6.finalize()
         self.msw.finalize()
-        self.exchange_logger.finalize()
+        for coupling in self.couplings.values():
+            coupling.finalize_log()
 
     def get_current_time(self) -> float:
         return self.mf6.get_current_time()

@@ -1,7 +1,8 @@
-from numpy.typing import NDArray
 import numpy as np
-from imod_coupler.utils import create_mapping
+from numpy.typing import NDArray
+
 from imod_coupler.logging.exchange_collector import ExchangeCollector
+from imod_coupler.utils import create_mapping
 
 
 class Couple:
@@ -9,13 +10,13 @@ class Couple:
 
     def __init__(
         self,
-        ptr_a: NDArray[any],
-        ptr_b: NDArray[any],
+        ptr_a: NDArray[np.float64 | np.int32],
+        ptr_b: NDArray[np.float64 | np.int32],
         ptr_a_index: NDArray[np.int32],
         ptr_b_index: NDArray[np.int32],
         exchange_logger: ExchangeCollector,
-        ptr_a_conversion: NDArray[np.int32] | float | None = None,
-        ptr_b_conversion: NDArray[np.int32] | float | None = None,
+        ptr_a_conversion: NDArray[np.float64] | float | None = None,
+        ptr_b_conversion: NDArray[np.float64] | float | None = None,
         exchange_operator: str | None = None,
     ) -> None:
         self.ptr_a = ptr_a
@@ -36,15 +37,15 @@ class Couple:
 
     def _set_conversion_terms(
         self,
-        ptr_a_conversion: NDArray[np.int32] | float | None = None,
-        ptr_b_conversion: NDArray[np.int32] | float | None = None,
-    ) -> NDArray[np.int32] | float | None:
+        ptr_a_conversion: NDArray[np.float64] | float | None = None,
+        ptr_b_conversion: NDArray[np.float64] | float | None = None,
+    ) -> None:
         if ptr_a_conversion is None and ptr_b_conversion is None:
             self.conversion_term = None
         else:
-            conversion_term = 1.0
+            conversion_term = np.ones_like(self.ptr_b, dtype=np.float64)
             if ptr_a_conversion is not None:
-                conversion_term = ptr_a_conversion
+                conversion_term = ptr_a_conversion * conversion_term  # force to array
             if ptr_b_conversion is not None:
                 conversion_term = conversion_term / ptr_b_conversion
             self.exchange_operator = (
@@ -57,5 +58,8 @@ class Couple:
         self.ptr_b[:] = self.mask[:] * self.ptr_b[:] + self.mapping.dot(self.ptr_a)[:]
 
     def log(self, label: str, time: float) -> None:
-        """Log the exchange for array b"""
+        """Log the exchange for receiving side; array b"""
         self.exchange_logger.log_exchange(label, self.ptr_b[:], time)
+
+    def finalize_log(self) -> None:
+        self.exchange_logger.finalize()
