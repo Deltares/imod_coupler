@@ -318,7 +318,7 @@ def test_metamodel_storage_options(
         metaswap_dll=metaswap_dll_devel,
         metaswap_dll_dependency=metaswap_dll_dep_dir_devel,
     )
-
+ 
     run_coupler_function(tmp_path_ss / metamod_ss._toml_name)
 
     # Read Modflow 6 output
@@ -400,10 +400,10 @@ def add_logging_request_to_toml_file(toml_dir: Path, toml_filename: str) -> None
     [general]
     output_dir = "{workdir}"
 
-    [exchanges.mf6_storage]
+    [exchanges.storage]
     type = "netcdf"
 
-    [exchanges.msw_storage]
+    [exchanges.head]
     type = "netcdf"
     """
     )
