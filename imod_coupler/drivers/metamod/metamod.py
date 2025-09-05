@@ -134,6 +134,7 @@ class MetaMod(Driver):
         else:
             # mf6 expects ss, MetaSWAP provides sc1*area
             # sc1 = ss * layer thickness
+            mf6_area = self.mf6.get_area(self.coupling_config.mf6_model)
             mf6_top = self.mf6.get_top(self.coupling_config.mf6_model)
             mf6_bot = self.mf6.get_bot(self.coupling_config.mf6_model)
             conversion_terms_storage = 1.0 / (mf6_area * (mf6_top - mf6_bot))
@@ -162,6 +163,7 @@ class MetaMod(Driver):
                 coupled_nodes['msw_gwf_nodes'],
                 coupled_nodes['mf6_gwf_nodes'],
                 exchange_logger,
+                "storage",
                 ptr_b_conversion=conversion_terms_storage,
             ),
             "recharge": MemoryExchange(
@@ -173,14 +175,16 @@ class MetaMod(Driver):
                 coupled_nodes['msw_rch_nodes'],
                 coupled_nodes['mf6_rch_nodes'],
                 exchange_logger,
+                "recharge",
                 ptr_b_conversion=conversion_terms_recharge_area,
             ),
             "head": MemoryExchange(
                 self.mf6.get_head(self.coupling_config.mf6_model),
                 self.msw.get_head_ptr(),
-                coupled_nodes['msw_gwf_nodes'],
                 coupled_nodes['mf6_gwf_nodes'],
+                coupled_nodes['msw_gwf_nodes'],
                 exchange_logger,
+                "head",
                 exchange_operator="avg",
             ),
         }
@@ -196,6 +200,7 @@ class MetaMod(Driver):
                 coupled_nodes['msw_well_nodes'],
                 coupled_nodes['mf6_well_nodes'],
                 exchange_logger,
+                "sprinkling",
                 exchange_operator="sum"
             )
             self.enable_sprinkling_groundwater = True
@@ -228,9 +233,8 @@ class MetaMod(Driver):
         self.log_exchanges()
 
     def log_exchanges(self) -> None:
-        for label, coupling in self.couplings.items():
+        for coupling in self.couplings.values():
             coupling.log(
-                label,
                 self.get_current_time(),
             )
 
