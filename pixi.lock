@@ -432,7 +432,6 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/linux-64/zstandard-0.23.0-py312h66e93f0_2.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/zstd-1.5.7-hb8e6e7a_2.conda
       - pypi: git+https://github.com/Deltares/Ribasim.git?subdirectory=python%2Fribasim&tag=v2024.11.0#e09eeb5b9ad46b9715a3aa5ba47fc69b03b48789
-      - pypi: git+https://github.com/Deltares/Ribasim.git?subdirectory=python%2Fribasim_api&tag=v2024.11.0#e09eeb5b9ad46b9715a3aa5ba47fc69b03b48789
       - pypi: git+https://github.com/Deltares/Ribasim.git?subdirectory=python%2Fribasim_testmodels&tag=v2024.11.0#e09eeb5b9ad46b9715a3aa5ba47fc69b03b48789
       win-64:
       - conda: https://conda.anaconda.org/conda-forge/win-64/_openmp_mutex-4.5-2_gnu.conda
@@ -759,7 +758,6 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/win-64/zstandard-0.23.0-py312h4389bb4_2.conda
       - conda: https://conda.anaconda.org/conda-forge/win-64/zstd-1.5.7-hbeecb71_2.conda
       - pypi: git+https://github.com/Deltares/Ribasim.git?subdirectory=python%2Fribasim&tag=v2024.11.0#e09eeb5b9ad46b9715a3aa5ba47fc69b03b48789
-      - pypi: git+https://github.com/Deltares/Ribasim.git?subdirectory=python%2Fribasim_api&tag=v2024.11.0#e09eeb5b9ad46b9715a3aa5ba47fc69b03b48789
       - pypi: git+https://github.com/Deltares/Ribasim.git?subdirectory=python%2Fribasim_testmodels&tag=v2024.11.0#e09eeb5b9ad46b9715a3aa5ba47fc69b03b48789
   dev:
     channels:
@@ -1311,7 +1309,6 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/linux-64/zstandard-0.23.0-py312h66e93f0_2.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/zstd-1.5.7-hb8e6e7a_2.conda
       - pypi: git+https://github.com/Deltares/Ribasim.git?subdirectory=python%2Fribasim&tag=v2024.11.0#e09eeb5b9ad46b9715a3aa5ba47fc69b03b48789
-      - pypi: git+https://github.com/Deltares/Ribasim.git?subdirectory=python%2Fribasim_api&tag=v2024.11.0#e09eeb5b9ad46b9715a3aa5ba47fc69b03b48789
       - pypi: git+https://github.com/Deltares/Ribasim.git?subdirectory=python%2Fribasim_testmodels&tag=v2024.11.0#e09eeb5b9ad46b9715a3aa5ba47fc69b03b48789
       win-64:
       - conda: https://conda.anaconda.org/conda-forge/win-64/_openmp_mutex-4.5-2_gnu.conda
@@ -1753,7 +1750,6 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/win-64/zstandard-0.23.0-py312h4389bb4_2.conda
       - conda: https://conda.anaconda.org/conda-forge/win-64/zstd-1.5.7-hbeecb71_2.conda
       - pypi: git+https://github.com/Deltares/Ribasim.git?subdirectory=python%2Fribasim&tag=v2024.11.0#e09eeb5b9ad46b9715a3aa5ba47fc69b03b48789
-      - pypi: git+https://github.com/Deltares/Ribasim.git?subdirectory=python%2Fribasim_api&tag=v2024.11.0#e09eeb5b9ad46b9715a3aa5ba47fc69b03b48789
       - pypi: git+https://github.com/Deltares/Ribasim.git?subdirectory=python%2Fribasim_testmodels&tag=v2024.11.0#e09eeb5b9ad46b9715a3aa5ba47fc69b03b48789
   py310:
     channels:
@@ -2304,7 +2300,6 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/linux-64/zstandard-0.23.0-py310ha75aee5_2.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/zstd-1.5.7-hb8e6e7a_2.conda
       - pypi: git+https://github.com/Deltares/Ribasim.git?subdirectory=python%2Fribasim&tag=v2024.11.0#e09eeb5b9ad46b9715a3aa5ba47fc69b03b48789
-      - pypi: git+https://github.com/Deltares/Ribasim.git?subdirectory=python%2Fribasim_api&tag=v2024.11.0#e09eeb5b9ad46b9715a3aa5ba47fc69b03b48789
       - pypi: git+https://github.com/Deltares/Ribasim.git?subdirectory=python%2Fribasim_testmodels&tag=v2024.11.0#e09eeb5b9ad46b9715a3aa5ba47fc69b03b48789
       win-64:
       - conda: https://conda.anaconda.org/conda-forge/win-64/_openmp_mutex-4.5-2_gnu.conda
@@ -2745,7 +2740,6 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/win-64/zstandard-0.23.0-py310ha8f682b_2.conda
       - conda: https://conda.anaconda.org/conda-forge/win-64/zstd-1.5.7-hbeecb71_2.conda
       - pypi: git+https://github.com/Deltares/Ribasim.git?subdirectory=python%2Fribasim&tag=v2024.11.0#e09eeb5b9ad46b9715a3aa5ba47fc69b03b48789
-      - pypi: git+https://github.com/Deltares/Ribasim.git?subdirectory=python%2Fribasim_api&tag=v2024.11.0#e09eeb5b9ad46b9715a3aa5ba47fc69b03b48789
       - pypi: git+https://github.com/Deltares/Ribasim.git?subdirectory=python%2Fribasim_testmodels&tag=v2024.11.0#e09eeb5b9ad46b9715a3aa5ba47fc69b03b48789
   py311:
     channels:
@@ -3297,7 +3291,6 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/linux-64/zstandard-0.23.0-py311h9ecbd09_2.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/zstd-1.5.7-hb8e6e7a_2.conda
       - pypi: git+https://github.com/Deltares/Ribasim.git?subdirectory=python%2Fribasim&tag=v2024.11.0#e09eeb5b9ad46b9715a3aa5ba47fc69b03b48789
-      - pypi: git+https://github.com/Deltares/Ribasim.git?subdirectory=python%2Fribasim_api&tag=v2024.11.0#e09eeb5b9ad46b9715a3aa5ba47fc69b03b48789
       - pypi: git+https://github.com/Deltares/Ribasim.git?subdirectory=python%2Fribasim_testmodels&tag=v2024.11.0#e09eeb5b9ad46b9715a3aa5ba47fc69b03b48789
       win-64:
       - conda: https://conda.anaconda.org/conda-forge/win-64/_openmp_mutex-4.5-2_gnu.conda
@@ -3739,7 +3732,6 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/win-64/zstandard-0.23.0-py311he736701_2.conda
       - conda: https://conda.anaconda.org/conda-forge/win-64/zstd-1.5.7-hbeecb71_2.conda
       - pypi: git+https://github.com/Deltares/Ribasim.git?subdirectory=python%2Fribasim&tag=v2024.11.0#e09eeb5b9ad46b9715a3aa5ba47fc69b03b48789
-      - pypi: git+https://github.com/Deltares/Ribasim.git?subdirectory=python%2Fribasim_api&tag=v2024.11.0#e09eeb5b9ad46b9715a3aa5ba47fc69b03b48789
       - pypi: git+https://github.com/Deltares/Ribasim.git?subdirectory=python%2Fribasim_testmodels&tag=v2024.11.0#e09eeb5b9ad46b9715a3aa5ba47fc69b03b48789
   py312:
     channels:
@@ -4291,7 +4283,6 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/linux-64/zstandard-0.23.0-py312h66e93f0_2.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/zstd-1.5.7-hb8e6e7a_2.conda
       - pypi: git+https://github.com/Deltares/Ribasim.git?subdirectory=python%2Fribasim&tag=v2024.11.0#e09eeb5b9ad46b9715a3aa5ba47fc69b03b48789
-      - pypi: git+https://github.com/Deltares/Ribasim.git?subdirectory=python%2Fribasim_api&tag=v2024.11.0#e09eeb5b9ad46b9715a3aa5ba47fc69b03b48789
       - pypi: git+https://github.com/Deltares/Ribasim.git?subdirectory=python%2Fribasim_testmodels&tag=v2024.11.0#e09eeb5b9ad46b9715a3aa5ba47fc69b03b48789
       win-64:
       - conda: https://conda.anaconda.org/conda-forge/win-64/_openmp_mutex-4.5-2_gnu.conda
@@ -4733,7 +4724,6 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/win-64/zstandard-0.23.0-py312h4389bb4_2.conda
       - conda: https://conda.anaconda.org/conda-forge/win-64/zstd-1.5.7-hbeecb71_2.conda
       - pypi: git+https://github.com/Deltares/Ribasim.git?subdirectory=python%2Fribasim&tag=v2024.11.0#e09eeb5b9ad46b9715a3aa5ba47fc69b03b48789
-      - pypi: git+https://github.com/Deltares/Ribasim.git?subdirectory=python%2Fribasim_api&tag=v2024.11.0#e09eeb5b9ad46b9715a3aa5ba47fc69b03b48789
       - pypi: git+https://github.com/Deltares/Ribasim.git?subdirectory=python%2Fribasim_testmodels&tag=v2024.11.0#e09eeb5b9ad46b9715a3aa5ba47fc69b03b48789
 packages:
 - conda: https://conda.anaconda.org/conda-forge/linux-64/_libgcc_mutex-0.1-conda_forge.tar.bz2
@@ -17536,15 +17526,6 @@ packages:
   - pytest ; extra == 'tests'
   - pytest-cov ; extra == 'tests'
   - pytest-xdist ; extra == 'tests'
-  - ribasim-testmodels ; extra == 'tests'
-  requires_python: '>=3.10'
-- pypi: git+https://github.com/Deltares/Ribasim.git?subdirectory=python%2Fribasim_api&tag=v2024.11.0#e09eeb5b9ad46b9715a3aa5ba47fc69b03b48789
-  name: ribasim-api
-  version: 2024.11.0
-  requires_dist:
-  - xmipy
-  - pytest ; extra == 'tests'
-  - ribasim ; extra == 'tests'
   - ribasim-testmodels ; extra == 'tests'
   requires_python: '>=3.10'
 - pypi: git+https://github.com/Deltares/Ribasim.git?subdirectory=python%2Fribasim_testmodels&tag=v2024.11.0#e09eeb5b9ad46b9715a3aa5ba47fc69b03b48789

@@ -13,13 +13,13 @@ from typing import Any
 import numpy as np
 from loguru import logger
 from numpy.typing import NDArray
-from ribasim_api import RibasimApi
 from scipy.sparse import csr_matrix
 
 from imod_coupler.config import BaseConfig
 from imod_coupler.drivers.driver import Driver
 from imod_coupler.drivers.ribamod.config import Coupling, RibaModConfig
 from imod_coupler.kernelwrappers.mf6_wrapper import Mf6Drainage, Mf6River, Mf6Wrapper
+from imod_coupler.kernelwrappers.ribasim_wrapper import RibasimWrapper
 from imod_coupler.logging.exchange_collector import ExchangeCollector
 
 # iMOD Python sets MODFLOW 6's time unit to days
@@ -36,7 +36,7 @@ class RibaMod(Driver):
 
     timing: bool  # true, when timing is enabled
     mf6: Mf6Wrapper  # the MODFLOW 6 kernel
-    ribasim: RibasimApi  # the Ribasim kernel
+    ribasim: RibasimWrapper  # the Ribasim kernel
 
     max_iter: NDArray[Any]  # max. nr outer iterations in MODFLOW kernel
     delt: float  # time step from MODFLOW 6 (leading)
@@ -86,7 +86,7 @@ class RibaMod(Driver):
             working_directory=self.ribamod_config.kernels.modflow6.work_dir,
             timing=self.base_config.timing,
         )
-        self.ribasim = RibasimApi(
+        self.ribasim = RibasimWrapper(
             lib_path=self.ribamod_config.kernels.ribasim.dll,
             lib_dependency=self.ribamod_config.kernels.ribasim.dll_dep_dir,
             timing=self.base_config.timing,

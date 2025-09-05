@@ -33,7 +33,6 @@ xmipy = "*"
 
 [pypi-dependencies]
 ribasim = { git = "https://github.com/Deltares/Ribasim.git", tag = "v2024.11.0", subdirectory= "python/ribasim"}
-ribasim_api = { git = "https://github.com/Deltares/Ribasim.git", tag = "v2024.11.0", subdirectory= "python/ribasim_api"}
 ribasim_testmodels = { git = "https://github.com/Deltares/Ribasim.git", tag = "v2024.11.0", subdirectory= "python/ribasim_testmodels"}
 
 

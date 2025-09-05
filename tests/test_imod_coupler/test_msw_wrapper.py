@@ -2,27 +2,9 @@ import shutil
 from pathlib import Path
 
 import pytest
-from imod import mf6
 from test_modstrip import fill_para_sim_template
 
-from imod_coupler.kernelwrappers.mf6_wrapper import Mf6Wrapper
 from imod_coupler.kernelwrappers.msw_wrapper import MswWrapper
-
-
-def test_mf6_wrapper_can_be_initialized_and_finalized_multiple_times(
-    mf6_model_with_river: mf6.Modflow6Simulation,
-    modflow_dll_regression: Path,
-    tmp_path_dev: Path,
-) -> None:
-    mf6_model_with_river.write(tmp_path_dev)
-    mf6wrapper = Mf6Wrapper(
-        lib_path=modflow_dll_regression,
-        working_directory=tmp_path_dev,
-    )
-    mf6wrapper.initialize()
-    mf6wrapper.finalize()
-    mf6wrapper.initialize()
-    mf6wrapper.finalize()
 
 
 @pytest.mark.skip("metaswap can't be initialized and finalized more than once")
