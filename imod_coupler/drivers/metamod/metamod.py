@@ -15,7 +15,7 @@ from numpy.typing import NDArray
 from imod_coupler.config import BaseConfig
 from imod_coupler.drivers.driver import Driver
 from imod_coupler.drivers.metamod.config import MetaModConfig
-from imod_coupler.drivers.metamod.couple import Couple
+from imod_coupler.utils import MemoryExchange
 from imod_coupler.kernelwrappers.mf6_wrapper import Mf6Wrapper
 from imod_coupler.kernelwrappers.msw_wrapper import MswWrapper
 from imod_coupler.logging.exchange_collector import ExchangeCollector
@@ -34,7 +34,7 @@ class MetaMod(Driver):
     max_iter: NDArray[Any]  # max. nr outer iterations in MODFLOW kernel
     delt: float  # time step from MODFLOW 6 (leading)
 
-    enable_sprinkling_groundwater: bool
+    enable_sprinkling_groundwater: bool = False
 
     def __init__(self, base_config: BaseConfig, metamod_config: MetaModConfig):
         """Constructs the `MetaMod` object"""
@@ -108,16 +108,18 @@ class MetaMod(Driver):
             svat_lookup[rch_table[ii, 1], rch_table[ii, 2]]
             for ii in range(len(rch_table))
         ]
-        well_table: NDArray[np.int32] = np.loadtxt(
-            self.coupling_config.mf6_msw_sprinkling_map_groundwater,
-            dtype=np.int32,
-            ndmin=2,
-        )
-        coupling_tables['mf6_well_nodes'] = well_table[:, 0] - 1
-        coupling_tables['msw_well_nodes'] = [
-            svat_lookup[well_table[ii, 1], well_table[ii, 2]]
-            for ii in range(len(well_table))
-        ]
+        if self.coupling_config.mf6_msw_sprinkling_map_groundwater is not None:
+            well_table: NDArray[np.int32] = np.loadtxt(
+                self.coupling_config.mf6_msw_sprinkling_map_groundwater,
+                dtype=np.int32,
+                ndmin=2,
+            )
+            coupling_tables['mf6_well_nodes'] = well_table[:, 0] - 1
+            coupling_tables['msw_well_nodes'] = [
+                svat_lookup[well_table[ii, 1], well_table[ii, 2]]
+                for ii in range(len(well_table))
+            ]
+            self.enable_sprinkling_groundwater = True
         return coupling_tables
 
 
@@ -153,8 +155,8 @@ class MetaMod(Driver):
         # get exchange logger
         exchange_logger = self.get_exchange_logger()
         # set couplings
-        self.couplings: dict[str, Couple] = {
-            "storage": Couple(
+        self.couplings: dict[str, MemoryExchange] = {
+            "storage": MemoryExchange(
                 self.msw.get_storage_ptr(),
                 self.mf6.get_storage(self.coupling_config.mf6_model),
                 coupled_nodes['msw_gwf_nodes'],
@@ -162,7 +164,7 @@ class MetaMod(Driver):
                 exchange_logger,
                 ptr_b_conversion=conversion_terms_storage,
             ),
-            "recharge": Couple(
+            "recharge": MemoryExchange(
                 self.msw.get_volume_ptr(),
                 self.mf6.get_recharge(
                     self.coupling_config.mf6_model,
@@ -173,7 +175,7 @@ class MetaMod(Driver):
                 exchange_logger,
                 ptr_b_conversion=conversion_terms_recharge_area,
             ),
-            "head": Couple(
+            "head": MemoryExchange(
                 self.mf6.get_head(self.coupling_config.mf6_model),
                 self.msw.get_head_ptr(),
                 coupled_nodes['msw_gwf_nodes'],
@@ -182,11 +184,10 @@ class MetaMod(Driver):
                 exchange_operator="avg",
             ),
         }
-        self.enable_sprinkling_groundwater = False
-        if self.coupling_config.mf6_msw_sprinkling_map_groundwater is not None:
+        if self.enable_sprinkling_groundwater:
             assert isinstance(self.coupling_config.mf6_msw_well_pkg, str)
             # assert isinstance(self.coupling.mf6_msw_sprinkling_map_groundwater, Path)
-            self.couplings["sprinkling"] = Couple(
+            self.couplings["sprinkling"] = MemoryExchange(
                 self.msw.get_volume_ptr(),
                 self.mf6.get_well(
                     self.coupling_config.mf6_model,
