@@ -100,6 +100,7 @@ class MemoryExchange:
         ptr_a_index: NDArray[np.int32],
         ptr_b_index: NDArray[np.int32],
         exchange_logger: ExchangeCollector,
+        label: str,
         ptr_a_conversion: NDArray[np.float64] | None = None,
         ptr_b_conversion: NDArray[np.float64] | None = None,
         exchange_operator: str | None = None,
@@ -119,6 +120,7 @@ class MemoryExchange:
             self.exchange_operator,
             self.conversion_term,
         )
+        self.label = label
 
     def _set_conversion_terms(
         self,
@@ -150,10 +152,9 @@ class MemoryExchange:
         """Exchange Kernel a to Kernel b"""
         self.ptr_b[:] = self.mask[:] * self.ptr_b[:] + self.mapping.dot(self.ptr_a)[:] / delt
 
-    def log(self, label: str, time: float) -> None:
+    def log(self, time: float) -> None:
         """Log the exchange for receiving side; array b"""
-        self.exchange_logger.log_exchange(label, self.ptr_b[:], time)
-        self.label = label
+        self.exchange_logger.log_exchange(self.label, self.ptr_b[:], time)
 
     def finalize_log(self) -> None:
         """finalizes the exchange within the logger, if present"""

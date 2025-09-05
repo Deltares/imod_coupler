@@ -166,6 +166,7 @@ class MetaMod(Driver):
                 coupled_nodes['msw_gwf_nodes'],
                 coupled_nodes['mf6_gwf_nodes'],
                 exchange_logger,
+                "storage",
                 ptr_b_conversion=conversion_terms_storage,
             ),
             "recharge": MemoryExchange(
@@ -177,14 +178,16 @@ class MetaMod(Driver):
                 coupled_nodes['msw_rch_nodes'],
                 coupled_nodes['mf6_rch_nodes'],
                 exchange_logger,
+                "recharge",
                 ptr_b_conversion=conversion_terms_recharge_area,
             ),
             "head": MemoryExchange(
                 self.mf6.get_head(mf6_model),
                 self.msw.get_head_ptr(),
-                coupled_nodes['msw_gwf_nodes'],
                 coupled_nodes['mf6_gwf_nodes'],
+                coupled_nodes['msw_gwf_nodes'],
                 exchange_logger,
+                "head",
                 exchange_operator="avg",
             ),
         }
@@ -200,6 +203,7 @@ class MetaMod(Driver):
                 coupled_nodes['msw_well_nodes'],
                 coupled_nodes['mf6_well_nodes'],
                 exchange_logger,
+                "sprinkling",
                 exchange_operator="sum"
             )
         return couplings
@@ -261,14 +265,14 @@ class MetaMod(Driver):
 
     def log_exchanges(self) -> None:
         # log per exchange type, per underlying gw-models 
-        for exchange_key, exchange_loggers in self.couplings.items():
-            [exchange_logger.log(exchange_key, self.get_current_time()) for exchange_logger in exchange_loggers]
+        for exchange_loggers in self.couplings.values():
+            [exchange_logger.log(self.get_current_time()) for exchange_logger in exchange_loggers if exchange_logger is not None]
 
     def finalize(self) -> None:
         self.mf6.finalize()
         self.msw.finalize()
         for exchange_loggers in self.couplings.values():
-            [exchange_logger.finalize_log() for exchange_logger in exchange_loggers]
+            [exchange_logger.finalize_log() for exchange_logger in exchange_loggers if exchange_logger is not None]
 
     def get_current_time(self) -> float:
         return self.mf6.get_current_time()
