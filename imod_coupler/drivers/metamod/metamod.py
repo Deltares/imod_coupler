@@ -20,6 +20,7 @@ from imod_coupler.kernelwrappers.mf6_wrapper import Mf6Wrapper
 from imod_coupler.kernelwrappers.msw_wrapper import MswWrapper
 from imod_coupler.logging.exchange_collector import ExchangeCollector
 
+from pathlib import Path
 
 class MetaMod(Driver):
     """The driver coupling MetaSWAP and MODFLOW 6"""
@@ -34,15 +35,11 @@ class MetaMod(Driver):
     max_iter: NDArray[Any]  # max. nr outer iterations in MODFLOW kernel
     delt: float  # time step from MODFLOW 6 (leading)
 
-    enable_sprinkling_groundwater: bool = False
-
     def __init__(self, base_config: BaseConfig, metamod_config: MetaModConfig):
         """Constructs the `MetaMod` object"""
         self.base_config = base_config
         self.metamod_config = metamod_config
-        self.coupling_config = metamod_config.coupling[
-            0
-        ]  # Adapt as soon as we have multimodel support
+        self.coupling_configs = metamod_config.coupling
 
     def initialize(self) -> None:
         self.mf6 = Mf6Wrapper(
@@ -61,19 +58,24 @@ class MetaMod(Driver):
         self.mf6.set_int("ISTDOUTTOFILE", 0)
         self.mf6.initialize()
         self.msw.initialize()
+        self.initialize_couplings()
         self.log_version()
-        self.set_coupling()
 
-    def get_exchange_logger(self) -> ExchangeCollector:
-        if self.coupling_config.output_config_file is not None:
+    def initialize_exchange_logger_per_gwf_model(self, output_config_file: Path | None) -> ExchangeCollector:
+        if output_config_file is not None:
             exchange_logger = ExchangeCollector.from_file(
-                self.coupling_config.output_config_file
+                output_config_file
             )
         else:
             exchange_logger = ExchangeCollector()
         return exchange_logger
 
-    def get_coupled_nodes(self) -> dict[str,tuple[NDArray[np.int32], NDArray[np.int32]]]:
+    def get_coupling_tables_per_gwf_model(
+            self, 
+            mf6_msw_node_map: Path, 
+            mf6_msw_recharge_map: Path, 
+            mf6_msw_sprinkling_map_groundwater: Path | None
+            ) -> dict[str,tuple[NDArray[np.int32], NDArray[np.int32]]]:
         # create a lookup, with the svat tuples (id, lay) as keys and the
         # metaswap internal indexes as values
         svat_lookup = {}
@@ -89,7 +91,7 @@ class MetaMod(Driver):
         else:
             raise ValueError(f"Can't find {msw_mod2svat_file}.")
         coupling_tables = {}
-        gwf_table = np.loadtxt(self.coupling_config.mf6_msw_node_map,
+        gwf_table = np.loadtxt(mf6_msw_node_map,
              dtype=np.int32, ndmin=2
         )
         coupling_tables['mf6_gwf_nodes'] = gwf_table[:, 0] - 1  # mf6 nodes are one based
@@ -101,16 +103,16 @@ class MetaMod(Driver):
             dtype=np.int32,
         )
         rch_table: NDArray[np.int32] = np.loadtxt(
-            self.coupling_config.mf6_msw_recharge_map, dtype=np.int32, ndmin=2
+            mf6_msw_recharge_map, dtype=np.int32, ndmin=2
         )
         coupling_tables['mf6_rch_nodes'] = rch_table[:, 0] - 1
         coupling_tables['msw_rch_nodes'] = [
             svat_lookup[rch_table[ii, 1], rch_table[ii, 2]]
             for ii in range(len(rch_table))
         ]
-        if self.coupling_config.mf6_msw_sprinkling_map_groundwater is not None:
+        if mf6_msw_sprinkling_map_groundwater is not None:
             well_table: NDArray[np.int32] = np.loadtxt(
-                self.coupling_config.mf6_msw_sprinkling_map_groundwater,
+                mf6_msw_sprinkling_map_groundwater,
                 dtype=np.int32,
                 ndmin=2,
             )
@@ -122,26 +124,32 @@ class MetaMod(Driver):
             self.enable_sprinkling_groundwater = True
         return coupling_tables
 
-
-    def set_coupling(self) -> None:
+    def initialize_couplings_per_gwf_model(
+            self, 
+            coupled_nodes: dict[str,tuple[NDArray[np.int32], NDArray[np.int32]]], 
+            exchange_logger: dict[str,ExchangeCollector], 
+            mf6_model: str, 
+            mf6_msw_recharge_pkg: str, 
+            mf6_msw_well_pkg: str | None
+        ) -> None:
         # conversion terms:
         # by using 1.0 as numerator we assume a summmation for 1:n couplings
         # storage: MetaSWAP provides sc1*area, MODFLOW expects sc1 or ss
-        mf6_area = self.mf6.get_area(self.coupling_config.mf6_model)
-        if self.mf6.has_sc1(self.coupling_config.mf6_model):
+        mf6_area = self.mf6.get_area(mf6_model)
+        if self.mf6.has_sc1(mf6_model):
             # mf6 expects sc1, MetaSWAP provides sc1*area
             conversion_terms_storage = 1.0 / mf6_area
         else:
             # mf6 expects ss, MetaSWAP provides sc1*area
             # sc1 = ss * layer thickness
-            mf6_top = self.mf6.get_top(self.coupling_config.mf6_model)
-            mf6_bot = self.mf6.get_bot(self.coupling_config.mf6_model)
+            mf6_top = self.mf6.get_top(mf6_model)
+            mf6_bot = self.mf6.get_bot(mf6_model)
             conversion_terms_storage = 1.0 / (mf6_area * (mf6_top - mf6_bot))
         # recharge: MetaSWAP provides volume, MODFLOW expects flux lentgh/time
         recharge_nodes = (
             self.mf6.get_recharge_nodes(
-                self.coupling_config.mf6_model,
-                self.coupling_config.mf6_msw_recharge_pkg,
+                mf6_model,
+                mf6_msw_recharge_pkg,
             )
             - 1
         )
@@ -149,16 +157,12 @@ class MetaMod(Driver):
             1.0 / mf6_area[recharge_nodes]
         )  # volume to length
 
-        # get coupled indexes
-        coupled_nodes = self.get_coupled_nodes()
-
-        # get exchange logger
-        exchange_logger = self.get_exchange_logger()
         # set couplings
-        self.couplings: dict[str, MemoryExchange] = {
+        couplings = {}
+        couplings: dict[str, MemoryExchange] = {
             "storage": MemoryExchange(
                 self.msw.get_storage_ptr(),
-                self.mf6.get_storage(self.coupling_config.mf6_model),
+                self.mf6.get_storage(mf6_model),
                 coupled_nodes['msw_gwf_nodes'],
                 coupled_nodes['mf6_gwf_nodes'],
                 exchange_logger,
@@ -167,8 +171,8 @@ class MetaMod(Driver):
             "recharge": MemoryExchange(
                 self.msw.get_volume_ptr(),
                 self.mf6.get_recharge(
-                    self.coupling_config.mf6_model,
-                    self.coupling_config.mf6_msw_recharge_pkg,
+                    mf6_model,
+                    mf6_msw_recharge_pkg,
                 ),
                 coupled_nodes['msw_rch_nodes'],
                 coupled_nodes['mf6_rch_nodes'],
@@ -176,7 +180,7 @@ class MetaMod(Driver):
                 ptr_b_conversion=conversion_terms_recharge_area,
             ),
             "head": MemoryExchange(
-                self.mf6.get_head(self.coupling_config.mf6_model),
+                self.mf6.get_head(mf6_model),
                 self.msw.get_head_ptr(),
                 coupled_nodes['msw_gwf_nodes'],
                 coupled_nodes['mf6_gwf_nodes'],
@@ -184,29 +188,57 @@ class MetaMod(Driver):
                 exchange_operator="avg",
             ),
         }
-        if self.enable_sprinkling_groundwater:
-            assert isinstance(self.coupling_config.mf6_msw_well_pkg, str)
-            # assert isinstance(self.coupling.mf6_msw_sprinkling_map_groundwater, Path)
-            self.couplings["sprinkling"] = MemoryExchange(
+        couplings["sprinkling"] = None
+        if mf6_msw_well_pkg is not None:
+            assert isinstance(mf6_msw_well_pkg, str)
+            couplings["sprinkling"] = MemoryExchange(
                 self.msw.get_volume_ptr(),
                 self.mf6.get_well(
-                    self.coupling_config.mf6_model,
-                    self.coupling_config.mf6_msw_well_pkg,
+                    mf6_model,
+                    mf6_msw_well_pkg,
                 ),
                 coupled_nodes['msw_well_nodes'],
                 coupled_nodes['mf6_well_nodes'],
                 exchange_logger,
                 exchange_operator="sum"
             )
-            self.enable_sprinkling_groundwater = True
+        return couplings
+
+
+    def initialize_couplings(self) -> None:
+        self.couplings: dict[str, list] = {
+        "storage": [],
+        "recharge": [],
+        "head": [],
+        "sprinkling": [],
+        }
+        # initialize couplings for all gwf-models
+        for coupling_config in self.coupling_configs:
+            gwf_model = coupling_config.mf6_model
+            coupled_nodes = self.get_coupling_tables_per_gwf_model(
+                coupling_config.mf6_msw_node_map,
+                coupling_config.mf6_msw_recharge_map,
+                coupling_config.mf6_msw_sprinkling_map_groundwater
+            )
+            exchange_logger = self.initialize_exchange_logger_per_gwf_model(coupling_config.output_config_file)
+            couplings = self.initialize_couplings_per_gwf_model(
+                coupled_nodes,
+                exchange_logger,
+                gwf_model,
+                coupling_config.mf6_msw_recharge_pkg, 
+                coupling_config.mf6_msw_well_pkg
+            )
+            # append as to list of gwf-model exchanges per exchange type
+            [self.couplings[coupling].append(couplings[coupling]) for coupling in  self.couplings.keys()]
 
     def log_version(self) -> None:
         logger.info(f"MODFLOW version: {self.mf6.get_version()}")
         logger.info(f"MetaSWAP version: {self.msw.get_version()}")
 
     def update(self) -> None:
-        # heads to MetaSWAP
-        self.couplings["head"].exchange()
+        # heads to MetaSWAP for all coupled gwf-models
+        [head.exchange() for head in self.couplings["head"]]
+        # self.couplings["head"].exchange()
 
         # we cannot set the timestep (yet) in Modflow
         # -> set to the (dummy) value 0.0 for now
@@ -228,17 +260,15 @@ class MetaMod(Driver):
         self.log_exchanges()
 
     def log_exchanges(self) -> None:
-        for label, coupling in self.couplings.items():
-            coupling.log(
-                label,
-                self.get_current_time(),
-            )
+        # log per exchange type, per underlying gw-models 
+        for exchange_key, exchange_loggers in self.couplings.items():
+            [exchange_logger.log(exchange_key, self.get_current_time()) for exchange_logger in exchange_loggers]
 
     def finalize(self) -> None:
         self.mf6.finalize()
         self.msw.finalize()
-        for coupling in self.couplings.values():
-            coupling.finalize_log()
+        for exchange_loggers in self.couplings.values():
+            [exchange_logger.finalize_log() for exchange_logger in exchange_loggers]
 
     def get_current_time(self) -> float:
         return self.mf6.get_current_time()
@@ -250,12 +280,11 @@ class MetaMod(Driver):
         """Execute a single iteration"""
         self.msw.prepare_solve(0)
         self.msw.solve(0)
-        self.couplings["storage"].exchange()
-        self.couplings["recharge"].exchange(self.delt)
-        if self.enable_sprinkling_groundwater:
-            self.couplings["sprinkling"].exchange(self.delt)
+        [storage.exchange() for storage in self.couplings["storage"]]
+        [recharge.exchange(self.delt) for recharge in self.couplings["recharge"]]
+        [sprinkling.exchange(self.delt) for sprinkling in self.couplings["sprinkling"] if sprinkling is not None ]
         has_converged = self.mf6.solve(sol_id)
-        self.couplings["head"].exchange()
+        [head.exchange() for head in self.couplings["head"]]
         self.msw.finalize_solve(0)
         return has_converged
 
