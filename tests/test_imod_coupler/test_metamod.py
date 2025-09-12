@@ -8,23 +8,42 @@ import pytest
 import tomli
 import tomli_w
 from common_scripts.mf6_water_balance.combine import create_modflow_waterbalance_file
-from imod.mf6 import open_cbc, open_hds
+from imod.mf6 import GroundwaterFlowModel, Modflow6Simulation, open_cbc, open_hds
 from numpy.testing import assert_array_almost_equal
 from primod.metamod import MetaMod
 from pytest_cases import parametrize_with_cases
 from test_utilities import numeric_csvfiles_equal
 
 
-def mf6_output_files(path: Path) -> tuple[Path, Path, Path, Path]:
+def mf6_output_files(
+    path: Path, simulation: Modflow6Simulation
+) -> tuple[list[Path], list[Path], list[Path], list[Path]]:
     """return paths to Modflow 6 output files"""
-    path_mf6 = path / "Modflow6" / "GWF_1"
-
-    return (
-        path_mf6 / "GWF_1.hds",
-        path_mf6 / "GWF_1.cbc",
-        path_mf6 / "dis.dis.grb",
-        path_mf6 / "GWF_1.lst",
-    )
+    gwf_heads = []
+    gwf_budgets = []
+    gwf_grbs = []
+    gwf_lsts = []
+    path_mf6 = path / "Modflow6"
+    for name, item in simulation.items():
+        if isinstance(item, GroundwaterFlowModel):
+            gwf_heads.append(path_mf6 / name / f"{name}.hds")
+            gwf_budgets.append(path_mf6 / name / f"{name}.cbc")
+            gwf_grbs.append(path_mf6 / name / "dis.dis.grb")
+            gwf_lsts.append(path_mf6 / name / f"{name}.lst")
+    if len(gwf_heads) > 1:
+        return (
+            gwf_heads,
+            gwf_budgets,
+            gwf_grbs,
+            gwf_lsts,
+        )
+    else:
+        return (
+            path_mf6 / "GWF_1.hds",
+            path_mf6 / "GWF_1.cbc",
+            path_mf6 / "dis.dis.grb",
+            path_mf6 / "GWF_1.lst",
+        )
 
 
 def msw_output_files(path: Path) -> Path:
@@ -154,14 +173,16 @@ def test_metamod_develop(
     assert len(list((tmp_path_dev / "MetaSWAP").glob("*/*.idf"))) == 1704
 
     # Test if Modflow6 output written
-    headfile, cbcfile, _, _ = mf6_output_files(tmp_path_dev)
-
-    assert headfile.exists()
-    assert cbcfile.exists()
-    # If computation failed, Modflow6 usually writes a headfile and cbcfile of 0
-    # bytes.
-    assert headfile.stat().st_size > 0
-    assert cbcfile.stat().st_size > 0
+    headfiles, cbcfiles, _, _ = mf6_output_files(
+        tmp_path_dev, metamod_model.mf6_simulation
+    )
+    for headfile, cbcfile in zip(headfiles, cbcfiles):
+        assert headfile.exists()
+        assert cbcfile.exists()
+        # If computation failed, Modflow6 usually writes a headfile and cbcfile of 0
+        # bytes.
+        assert headfile.stat().st_size > 0
+        assert cbcfile.stat().st_size > 0
 
 
 @parametrize_with_cases("metamod_model")
@@ -193,10 +214,16 @@ def test_metamod_regression(
     run_coupler_function(tmp_path_dev / metamod_model._toml_name)
 
     # Read Modflow 6 output
-    headfile_dev, cbcfile_dev, grbfile_dev, _ = mf6_output_files(tmp_path_dev)
+    headfile_dev, cbcfile_dev, grbfile_dev, _ = mf6_output_files(
+        tmp_path_dev, metamod_model.mf6_simulation
+    )
 
-    heads_dev = open_hds(headfile_dev, grbfile_dev)
-    budgets_dev = open_cbc(cbcfile_dev, grbfile_dev)
+    if isinstance(headfile_dev, list):
+        heads_dev = metamod_model.mf6_simulation.open_head()
+        budgets_dev = metamod_model.mf6_simulation.open_flow_budget()
+    else:
+        heads_dev = open_hds(headfile_dev, grbfile_dev)
+        budgets_dev = open_cbc(cbcfile_dev, grbfile_dev)
 
     # Write model again, but now with paths to regression dll
     metamod_model.write(
@@ -213,7 +240,9 @@ def test_metamod_regression(
     )
 
     # Read Modflow 6 output
-    headfile_reg, cbcfile_reg, grbfile_reg, _ = mf6_output_files(tmp_path_reg)
+    headfile_reg, cbcfile_reg, grbfile_reg, _ = mf6_output_files(
+        tmp_path_reg, metamod_model.mf6_simulation
+    )
 
     heads_reg = open_hds(headfile_reg, grbfile_reg)
     budgets_reg = open_cbc(cbcfile_reg, grbfile_reg)
@@ -252,8 +281,8 @@ def test_metamod_regression_balance_output(
 
     run_coupler_function(tmp_path_dev / metamod_model._toml_name)
 
-    _, _, _, mf6_lst_file = mf6_output_files(tmp_path_dev)
-    msw_balance_results = msw_output_files(tmp_path_dev)
+    _, _, _, mf6_lst_file = mf6_output_files(tmp_path_dev, metamod_model.mf6_simulation)
+    msw_balance_results = msw_output_files(tmp_path_dev, metamod_model.mf6_simulation)
 
     # create modflow balance csv
     mf6_balance_output_file = tmp_path_dev / "waterbalance_output.csv"
@@ -318,11 +347,13 @@ def test_metamodel_storage_options(
         metaswap_dll=metaswap_dll_devel,
         metaswap_dll_dependency=metaswap_dll_dep_dir_devel,
     )
- 
+
     run_coupler_function(tmp_path_ss / metamod_ss._toml_name)
 
     # Read Modflow 6 output
-    headfile_ss, cbcfile_ss, grbfile_ss, _ = mf6_output_files(tmp_path_ss)
+    headfile_ss, cbcfile_ss, grbfile_ss, _ = mf6_output_files(
+        tmp_path_ss, metamod_ss.mf6_simulation
+    )
 
     heads_ss = open_hds(headfile_ss, grbfile_ss)
     budgets_ss = open_cbc(cbcfile_ss, grbfile_ss)
@@ -337,7 +368,7 @@ def test_metamodel_storage_options(
     run_coupler_function(tmp_path_sc / metamod_sc._toml_name)
 
     # Read Modflow 6 output
-    headfile_sc, cbcfile_sc, grbfile_sc, _ = mf6_output_files(tmp_path_sc)
+    headfile_sc, cbcfile_sc, grbfile_sc, _ = mf6_output_files(tmp_path_sc, metamod_sc)
 
     heads_sc = open_hds(headfile_sc, grbfile_sc)
     budgets_sc = open_cbc(cbcfile_sc, grbfile_sc)

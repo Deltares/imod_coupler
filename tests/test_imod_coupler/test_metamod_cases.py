@@ -1,3 +1,4 @@
+import pytest
 from imod.mf6 import Modflow6Simulation
 from imod.msw import MetaSwapModel
 from imod.msw.fixed_format import VariableMetaData
@@ -75,6 +76,52 @@ def case_inactive_cell(
         prepared_msw_model_inactive,
         coupled_mf6_model_inactive,
         coupling_list=[driver_coupling],
+    )
+
+
+@pytest.mark.skip("for now we cant deal with multiple well packages")
+def case_multi_model_sprinkling(
+    coupled_mf6_model: Modflow6Simulation,
+    prepared_msw_model: MetaSwapModel,
+) -> MetaMod:
+    partitions_array = coupled_mf6_model["GWF_1"]["dis"]["idomain"].isel(
+        layer=0, drop=True
+    )
+    partitions_array = partitions_array.where(partitions_array.x > 300, 0)
+    simulation = coupled_mf6_model.split(partitions_array)
+    driver_coupling0 = MetaModDriverCoupling(
+        mf6_model="GWF_1_0", mf6_recharge_package="rch_msw", mf6_wel_package="wells_msw"
+    )
+    driver_coupling1 = MetaModDriverCoupling(
+        mf6_model="GWF_1_1", mf6_recharge_package="rch_msw", mf6_wel_package="wells_msw"
+    )
+    return MetaMod(
+        prepared_msw_model,
+        simulation,
+        coupling_list=[driver_coupling0, driver_coupling1],
+    )
+
+
+def case_multi_model_no_sprinkling(
+    coupled_mf6_model: Modflow6Simulation,
+    prepared_msw_model: MetaSwapModel,
+) -> MetaMod:
+    prepared_msw_model.pop("sprinkling")
+    partitions_array = coupled_mf6_model["GWF_1"]["dis"]["idomain"].isel(
+        layer=0, drop=True
+    )
+    partitions_array = partitions_array.where(partitions_array.x > 300, 0)
+    simulation = coupled_mf6_model.split(partitions_array)
+    driver_coupling0 = MetaModDriverCoupling(
+        mf6_model="GWF_1_0", mf6_recharge_package="rch_msw"
+    )
+    driver_coupling1 = MetaModDriverCoupling(
+        mf6_model="GWF_1_1", mf6_recharge_package="rch_msw"
+    )
+    return MetaMod(
+        prepared_msw_model,
+        simulation,
+        coupling_list=[driver_coupling0, driver_coupling1],
     )
 
 

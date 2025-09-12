@@ -99,11 +99,9 @@ class MetaMod(CoupledModel, MetaModMixin):
             directory / self._modflow6_model_dir,
             **modflow6_write_kwargs,
         )
-
         mf6_dis_pkg, mf6_wel_pkg = self.get_mf6_pkgs_for_metaswap(
             coupling_dict, self.mf6_simulation
         )
-
         self.msw_model.write(
             directory / self._metaswap_model_dir,
             mf6_dis_pkg,
@@ -116,7 +114,7 @@ class MetaMod(CoupledModel, MetaModMixin):
         modflow6_dll: str | Path,
         metaswap_dll: str | Path,
         metaswap_dll_dependency: str | Path,
-        coupling_dict: dict[str, Any],
+        coupling_dicts: list[dict[str, Any]],
     ) -> None:
         """
         Write .toml file which configures the imod coupler run.
@@ -163,7 +161,7 @@ class MetaMod(CoupledModel, MetaModMixin):
                         "dll_dep_dir": str(metaswap_dll_dependency),
                     },
                 },
-                "coupling": [coupling_dict],
+                "coupling": coupling_dicts,
             },
         }
 

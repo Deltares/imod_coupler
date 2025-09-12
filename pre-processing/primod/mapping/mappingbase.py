@@ -73,8 +73,12 @@ class MetaModMapping(abc.ABC):
             if (dataframe[varname] < min_value).any() or (
                 dataframe[varname] > max_value
             ).any():
+                min_oob = dataframe[varname][dataframe[varname] < min_value].min()
+                max_oob = dataframe[varname][dataframe[varname] > min_value].max()
                 raise ValueError(
-                    f"{varname}: not all values are within range ({min_value}-{max_value})."
+                    f"Invalid values for '{varname}': "
+                    f"observed range [{min_oob}, {max_oob}], "
+                    f"expected range [{min_value}, {max_value}]."
                 )
 
     def write_dataframe_fixed_width(
@@ -125,4 +129,4 @@ class MetaModMapping(abc.ABC):
 
         with open(directory / self._file_name, "w") as f:
             self._render(f, index=index, svat=self.dataset["svat"])
-        return f"./{directory.name}/{self._file_name}"
+        return f"./{directory.parents[0].name}/{directory.name}/{self._file_name}"

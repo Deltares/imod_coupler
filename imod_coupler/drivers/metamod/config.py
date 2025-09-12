@@ -14,6 +14,7 @@ class Kernels(BaseModel):
 
 class Coupling(BaseModel):
     mf6_model: str  # the MODFLOW 6 model that will be coupled
+    msw_model: str
     mf6_msw_recharge_pkg: str  # the recharge package that will be used for coupling
     mf6_msw_well_pkg: str | None = (
         None  # the well package that will be used for coupling when sprinkling is active
@@ -79,6 +80,4 @@ class MetaModConfig(BaseModel):
     def restrict_coupling_count(cls, coupling: list[Coupling]) -> list[Coupling]:
         if len(coupling) == 0:
             raise ValueError("At least one coupling has to be defined.")
-        if len(coupling) > 1:
-            raise ValueError("Multi-model coupling is not yet supported.")
         return coupling

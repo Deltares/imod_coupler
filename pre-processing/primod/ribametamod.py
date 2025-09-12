@@ -124,7 +124,7 @@ class RibaMetaMod(CoupledModel, MetaModMixin):
     def write_toml(
         self,
         directory: str | Path,
-        coupling_dict: dict[str, Any],
+        coupling_dict: list[dict[str, Any]],
         modflow6_dll: str | Path,
         metaswap_dll: str | Path,
         metaswap_dll_dependency: str | Path,

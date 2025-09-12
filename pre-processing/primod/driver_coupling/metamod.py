@@ -1,6 +1,7 @@
 from pathlib import Path
 from typing import Any
 
+import xarray as xr
 from imod.mf6 import GroundwaterFlowModel
 from imod.msw import GridData, MetaSwapModel, Sprinkling
 
@@ -71,15 +72,26 @@ class MetaModDriverCoupling(DriverCoupling):
         dis = gwf_model[gwf_model.get_diskey()]
 
         index, svat = msw_model[grid_data_key].generate_index_array()
-        grid_mapping = NodeSvatMapping(svat=svat, modflow_dis=dis, index=index)
+        gwf_model_active = xr.ones_like(dis["idomain"].isel(layer=0, drop=True)) == 1
+        msw_model_active = (
+            msw_model[grid_data_key]["area"]
+            .where(msw_model[grid_data_key]["active"])
+            .notnull()
+        )
+        svat_gwf_model = svat * gwf_model_active  # clip to gwf model domain
+        index_gwf_model = (msw_model_active & gwf_model_active).to_numpy().ravel()
 
+        grid_mapping = NodeSvatMapping(
+            svat=svat_gwf_model, modflow_dis=dis, index=index_gwf_model
+        )
         recharge = gwf_model[self.mf6_recharge_package]
-
-        rch_mapping = RechargeSvatMapping(svat, recharge, index=index)
+        rch_mapping = RechargeSvatMapping(
+            svat_gwf_model, recharge, index=index_gwf_model
+        )
 
         if self._check_sprinkling(msw_model=msw_model, gwf_model=gwf_model):
             well = gwf_model.prepare_wel_for_mf6(self.mf6_wel_package, True, True)
-            well_mapping = WellSvatMapping(svat, well, index=index)
+            well_mapping = WellSvatMapping(svat_gwf_model, well, index=index_gwf_model)
             return grid_mapping, rch_mapping, well_mapping
         else:
             return grid_mapping, rch_mapping, None
