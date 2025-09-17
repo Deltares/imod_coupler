@@ -6,7 +6,7 @@ import pytest_cases
 import xarray as xr
 from imod import mf6, msw
 from numpy import nan
-import pandas as pd
+
 from .common import get_times, grid_sizes
 
 
