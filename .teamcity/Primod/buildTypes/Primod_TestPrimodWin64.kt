@@ -49,7 +49,6 @@ object Primod_TestPrimodWin64 : Template({
             scriptContent = """
                 pixi --version
                 pixi run --environment %pixi-environment% install
-                pixi run --environment %pixi-environment% update-git-dependencies
             """.trimIndent()
         }
         script {

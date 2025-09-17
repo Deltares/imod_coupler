@@ -20,8 +20,8 @@ def metaswap_model(
     # fmt: on
     msw_grid = xr.ones_like(active, dtype=float)
 
-    precipitation = msw_grid.expand_dims(time=times[:-1])
-    evapotranspiration = msw_grid.expand_dims(time=times[:-1]) * 10.0
+    precipitation = msw_grid.expand_dims(time=times)
+    evapotranspiration = msw_grid.expand_dims(time=times) * 10.0
     if "layer" in msw_grid.coords:
         precipitation = precipitation.drop_vars("layer")
         evapotranspiration = evapotranspiration.drop_vars("layer")
@@ -211,9 +211,7 @@ def prepared_msw_model(
 ) -> msw.MetaSwapModel:
     msw_model = make_msw_model(active_idomain)
     # Override unsat_svat_path with path from environment
-    msw_model.simulation_settings["unsa_svat_path"] = (
-        msw_model._render_unsaturated_database_path(metaswap_lookup_table)
-    )
+    msw_model.simulation_settings["unsa_svat_path"] = metaswap_lookup_table
 
     return msw_model
 
@@ -225,8 +223,6 @@ def prepared_msw_model_inactive(
 ) -> msw.MetaSwapModel:
     msw_model = make_msw_model(inactive_idomain)
     # Override unsat_svat_path with path from environment
-    msw_model.simulation_settings["unsa_svat_path"] = (
-        msw_model._render_unsaturated_database_path(metaswap_lookup_table)
-    )
+    msw_model.simulation_settings["unsa_svat_path"] = metaswap_lookup_table
 
     return msw_model

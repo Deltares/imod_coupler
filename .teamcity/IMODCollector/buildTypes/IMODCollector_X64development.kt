@@ -12,10 +12,10 @@ object IMODCollector_X64development : BuildType({
     description = "Collect all Release_x64 kernels in the iMOD6 suite"
 
     artifactRules = """
-        coupler/dist/ => imod_collector.zip!/imod_coupler/
+        coupler/dist/ => imod_collector.zip!/
         modflow6/ => imod_collector.zip!/modflow6/
         metaswap/ => imod_collector.zip!/metaswap/
-        ribasim/bin/ => imod_collector.zip!/ribasim/
+        ribasim/ => imod_collector.zip!/ribasim/
     """.trimIndent()
 
     params {
@@ -40,7 +40,6 @@ object IMODCollector_X64development : BuildType({
         script {
             name = "Download Release Ribasim v2024.11.0"
             scriptContent = """
-                mkdir modflow6
                 curl -L -o ribasim_windows.zip https://github.com/Deltares/Ribasim/releases/download/v2024.11.0/ribasim_windows.zip
                 unzip  "ribasim_windows.zip"
             """.trimIndent()

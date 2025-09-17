@@ -54,6 +54,8 @@ def ribasim_bucket_model_no_subgrid() -> ribasim.Model:
 def ribasim_backwater_model() -> ribasim.Model:
     backwater = ribasim_testmodels.backwater_model()
     backwater.solver.algorithm = solver_algorithm
+    backwater.solver.reltol = 1e-08
+    backwater.solver.abstol = 1e-08
     return add_subgrid(backwater)
 
 
@@ -67,8 +69,6 @@ def ribasim_two_basin_model() -> ribasim.Model:
 @pytest_cases.fixture(scope="function")
 def ribasim_two_basin_model_dbg() -> ribasim.Model:
     model = ribasim_testmodels.two_basin_model()
-    #   model.logging.verbosity = ribasim.Verbosity("debug")
-    #   model.logging.verbosity = "debug"
     model.solver.algorithm = solver_algorithm
     return model
 
