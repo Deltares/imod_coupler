@@ -6,7 +6,7 @@ import pytest_cases
 import xarray as xr
 from imod import mf6, msw
 from numpy import nan
-
+import pandas as pd
 from .common import get_times, grid_sizes
 
 
@@ -150,7 +150,7 @@ def metaswap_model(
     # Output Control
     msw_model["oc_idf"] = msw.IdfMapping(area, -9999.0)
     msw_model["oc_var"] = msw.VariableOutputControl()
-    msw_model["oc_time"] = msw.TimeOutputControl(time=times)
+    msw_model["oc_time"] = msw.TimeOutputControl(time=times + pd.Timedelta(days=1))
 
     return msw_model
 
