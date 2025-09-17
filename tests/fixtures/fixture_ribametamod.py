@@ -9,7 +9,7 @@ from .fixture_metaswap import metaswap_model
 
 
 def make_msw_model(
-    gwf: mf6.GroundwaterFlowModel, nsubunits: xr.DataArray(np.int32) | None = None
+    gwf: mf6.GroundwaterFlowModel, nsubunits: xr.DataArray | None = None
 ) -> msw.MetaSwapModel:
     times = gwf["time_discretization"]["time"]
     unsaturated_database = "./unsat_database"
@@ -70,9 +70,7 @@ def ad_msw_model(
     )
     msw_model = make_msw_model(mf6_model, nsubunits)
     # Override unsat_svat_path with path from environment
-    msw_model.simulation_settings["unsa_svat_path"] = (
-        msw_model._render_unsaturated_database_path(metaswap_lookup_table)
-    )
+    msw_model.simulation_settings["unsa_svat_path"] = metaswap_lookup_table
     return msw_model
 
 

@@ -20,8 +20,8 @@ def metaswap_model(
     # fmt: on
     msw_grid = xr.ones_like(active, dtype=float)
 
-    precipitation = msw_grid.expand_dims(time=times[:-1])
-    evapotranspiration = msw_grid.expand_dims(time=times[:-1]) * 10.0
+    precipitation = msw_grid.expand_dims(time=times)
+    evapotranspiration = msw_grid.expand_dims(time=times) * 10.0
     if "layer" in msw_grid.coords:
         precipitation = precipitation.drop_vars("layer")
         evapotranspiration = evapotranspiration.drop_vars("layer")

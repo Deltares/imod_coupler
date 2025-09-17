@@ -14,6 +14,7 @@ from primod.metamod import MetaMod
 from pytest_cases import parametrize_with_cases
 from test_utilities import numeric_csvfiles_equal
 
+decimal_tolerance = 8
 
 def mf6_output_files(path: Path) -> tuple[Path, Path, Path, Path]:
     """return paths to Modflow 6 output files"""
@@ -218,13 +219,13 @@ def test_metamod_regression(
     heads_reg = open_hds(headfile_reg, grbfile_reg)
     budgets_reg = open_cbc(cbcfile_reg, grbfile_reg)
 
-    assert_array_almost_equal(heads_dev.compute(), heads_reg.compute(), decimal=8)
+    assert_array_almost_equal(heads_dev.compute(), heads_reg.compute(), decimal=decimal_tolerance)
 
     assert budgets_dev.keys() == budgets_reg.keys()
 
     for varname in budgets_dev.keys():
         assert_array_almost_equal(
-            budgets_dev[varname].compute(), budgets_reg[varname].compute(), decimal=8
+            budgets_dev[varname].compute(), budgets_reg[varname].compute(), decimal=decimal_tolerance
         )
 
 
@@ -342,13 +343,13 @@ def test_metamodel_storage_options(
     heads_sc = open_hds(headfile_sc, grbfile_sc)
     budgets_sc = open_cbc(cbcfile_sc, grbfile_sc)
 
-    assert_array_almost_equal(heads_sc.compute(), heads_ss.compute(), decimal=8)
+    assert_array_almost_equal(heads_sc.compute(), heads_ss.compute(), decimal=decimal_tolerance)
 
     assert budgets_sc.keys() == budgets_ss.keys()
 
     for varname in budgets_sc.keys():
         assert_array_almost_equal(
-            budgets_sc[varname].compute(), budgets_ss[varname].compute(), decimal=8
+            budgets_sc[varname].compute(), budgets_ss[varname].compute(), decimal=decimal_tolerance
         )
 
 
