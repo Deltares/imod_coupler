@@ -20,13 +20,20 @@ def download_imod_collector(tag: str | None) -> None:
         return
 
     token = os.environ["TEAMCITY_TOKEN"]
+    # check for the old naming convention
+    if tag == "regression":
+        _stream(build_id, token, "imod_coupler_windows", target_folder)
+    else:
+        _stream(build_id, token, "imod_collector", target_folder)
+
+
+def _stream(build_id: int, token: int, name: str, target_folder: str):
     with httpx.stream(
         "GET",
-        f"https://dpcbuild.deltares.nl/app/rest/builds/{build_id}/artifacts/content/imod_collector.zip",
+        f"https://dpcbuild.deltares.nl/app/rest/builds/{build_id}/artifacts/content/{name}.zip",
         headers={"Authorization": f"Bearer {token}"},
     ) as response:
         response.raise_for_status()
-
         zip_path = Path(".pixi/imod_coupler_windows.zip")
         _download_to_file(response, zip_path)
         _unzip_to_target(target_folder, zip_path)
