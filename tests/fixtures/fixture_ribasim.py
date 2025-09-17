@@ -69,9 +69,7 @@ def ribasim_two_basin_model() -> ribasim.Model:
 @pytest_cases.fixture(scope="function")
 def ribasim_two_basin_model_dbg() -> ribasim.Model:
     model = ribasim_testmodels.two_basin_model()
-    #   model.logging.verbosity = ribasim.Verbosity("debug")
-    #   model.logging.verbosity = "debug"
-    #model.solver.algorithm = solver_algorithm
+    model.solver.algorithm = solver_algorithm
     return model
 
 
