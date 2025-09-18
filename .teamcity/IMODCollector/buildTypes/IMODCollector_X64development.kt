@@ -49,7 +49,7 @@ object IMODCollector_X64development : BuildType({
             scriptContent = """
                 mkdir metaswap
                 curl -L -o ribasim_windows.zip https://github.com/Deltares/imod_coupler/releases/download/v2024.4.0/imod_collector_2024.4.0.zip
-                unzip unzip  -j "imod_collector_2024.4.0.zip" -d imod_collector_2024.4.0.zip/metaswap
+                unzip -j "imod_collector_2024.4.0.zip" -d imod_collector_2024.4.0.zip/metaswap
             """.trimIndent()
         }
         script {
