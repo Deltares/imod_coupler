@@ -45,6 +45,14 @@ object IMODCollector_X64development : BuildType({
             """.trimIndent()
         }
         script {
+            name = "Download Release MetaSWAP release for v2024.4.0"
+            scriptContent = """
+                mkdir metaswap
+                curl -L -o ribasim_windows.zip https://github.com/Deltares/imod_coupler/releases/download/v2024.4.0/imod_collector_2024.4.0.zip
+                unzip unzip  -j "imod_collector_2024.4.0.zip" -d imod_collector_2024.4.0.zip/metaswap
+            """.trimIndent()
+        }
+        script {
             name = "Install iMOD Coupler"
             enabled = false
             workingDir = "coupler"
@@ -87,14 +95,6 @@ object IMODCollector_X64development : BuildType({
                 }
                 filterAuthorRole = PullRequests.GitHubRoleFilter.MEMBER
             }
-        }
-    }
-
-    dependencies {
-        artifacts(AbsoluteId("MSWMOD_MetaSWAP_MetaSWAPBuildWin64")) {
-           cleanDestination = true
-           buildRule = tag("release_2410")
-           artifactRules = "MetaSWAP.zip!/x64/Release => metaswap"
         }
     }
 
