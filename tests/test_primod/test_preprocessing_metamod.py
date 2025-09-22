@@ -31,7 +31,7 @@ def test_metamod_write(prepared_msw_model, coupled_mf6_model, tmp_path):
 
     # Test metaswap files written
     assert len(list(output_dir.rglob(r"*.inp"))) == 16
-    assert len(list(output_dir.rglob(r"*.asc"))) == 424
+    assert len(list(output_dir.rglob(r"*.asc"))) == 426
     # Test exchanges written
     assert len(list(output_dir.rglob(r"*.dxc"))) == 3
     assert len(list(output_dir.rglob(r"*.toml"))) == 1
