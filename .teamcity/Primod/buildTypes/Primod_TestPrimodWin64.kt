@@ -86,6 +86,26 @@ object Primod_TestPrimodWin64 : Template({
         }
     }
 
+    dependencies {
+        dependency(IMODCollector.buildTypes.IMODCollector_X64development) {
+            snapshot {
+                onDependencyFailure = FailureAction.FAIL_TO_START
+            }
+
+            artifacts {
+                cleanDestination = true
+                artifactRules = """
+                    imod_collector.zip!** => imod_collector_devel
+                """.trimIndent()
+            }
+            artifacts {
+                buildRule = tag("regression")
+                cleanDestination = true
+                artifactRules = "imod_coupler_windows.zip!** => imod_collector_regression"
+            }
+        }
+    }
+
     requirements {
         equals("env.OS", "Windows_NT", "RQ_195")
     }
