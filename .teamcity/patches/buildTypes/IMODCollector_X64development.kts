@@ -19,7 +19,7 @@ changeBuildType(RelativeId("IMODCollector_X64development")) {
         }
         update(AbsoluteId("MSWMOD_MetaSWAP_MetaSWAPBuildWin64")) {
             artifacts {
-                buildRule = tag("release_2410", "+:branches/update_4210")
+                buildRule = tag("release_2410", "+::branches/update_4210")
                 cleanDestination = true
                 artifactRules = "MetaSWAP.zip!/x64/Release => metaswap"
             }
