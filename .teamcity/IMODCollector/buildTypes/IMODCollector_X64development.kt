@@ -93,7 +93,7 @@ object IMODCollector_X64development : BuildType({
     dependencies {
         artifacts(AbsoluteId("MSWMOD_MetaSWAP_MetaSWAPBuildWin64")) {
            cleanDestination = true
-           buildRule = lastSuccessful("+:branches/update_4210")
+           buildRule = lastSuccessful("+::branches/update_4210")
            artifactRules = "MetaSWAP.zip!/x64/Release => metaswap"
         }
     }
