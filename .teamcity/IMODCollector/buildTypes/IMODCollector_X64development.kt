@@ -95,6 +95,7 @@ object IMODCollector_X64development : BuildType({
            cleanDestination = true
            buildRule = tag("release_2410")
            artifactRules = "MetaSWAP.zip!/x64/Release => metaswap"
+           branch = "branches/update_4210"
         }
     }
 
