@@ -47,6 +47,9 @@ install = { depends-on = [
     "install-primod",
 ] }
 
+# Tests
+test-primod = "pytest --junitxml=report.xml tests/test_primod"
+
 [feature.common.dependencies]
 python-build = "*"
 httpx = "*"
@@ -70,8 +73,6 @@ install-test-dependencies = { depends-on = [
     "generate-env-file",
 ] }
 
-# Tests
-test-primod = "pytest --junitxml=report.xml tests/test_primod"
 test-imod-coupler = "pytest -vvv -s --numprocesses=auto --dist=loadgroup --basetemp=tests/temp --junitxml=report.xml tests/test_imod_coupler"
 tests = { depends-on = ["test-primod", "test-imod-coupler"] }
 # Lint
