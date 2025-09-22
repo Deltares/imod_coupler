@@ -1,7 +1,6 @@
 [project]
 name = "imod_coupler"
 version = "0.1.0"
-authors = ["Hofer-Julian <julianhofer@gnome.org>"]
 channels = ["conda-forge"]
 platforms = ["win-64", "linux-64"]
 
@@ -48,10 +47,6 @@ install = { depends-on = [
     "install-primod",
 ] }
 
-# Tests
-test-primod = "pytest --junitxml=report.xml tests/test_primod"
-
-
 [feature.common.dependencies]
 python-build = "*"
 httpx = "*"
@@ -76,6 +71,7 @@ install-test-dependencies = { depends-on = [
 ] }
 
 # Tests
+test-primod = "pytest --junitxml=report.xml tests/test_primod"
 test-imod-coupler = "pytest -vvv -s --numprocesses=auto --dist=loadgroup --basetemp=tests/temp --junitxml=report.xml tests/test_imod_coupler"
 tests = { depends-on = ["test-primod", "test-imod-coupler"] }
 # Lint
