@@ -48,6 +48,7 @@ object Primod_TestPrimodWin64 : Template({
             workingDir = "imod_coupler"
             scriptContent = """
                 pixi --version
+                pixi install --environment %pixi-environment%
                 pixi run --environment %pixi-environment% install
             """.trimIndent()
         }
