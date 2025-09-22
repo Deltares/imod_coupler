@@ -19,7 +19,7 @@ geopandas = "1.0.*"
 netCDF4 = "*"
 loguru = "*"
 numpy = "<2.0"
-imod = "*"
+imod = ">=1.0.0rc5"
 pip = "*"
 pandera = "0.20.*"
 pydantic = "2.*"
@@ -88,11 +88,9 @@ publish-primod = { cmd = "rm --recursive --force dist && python -m build && twin
 
 
 [feature.py312.dependencies]
-imod = ">=1.0.0rc5"
 python = "3.12.*"
 
 [feature.py311.dependencies]
-imod = ">=1.0.0rc5"
 python = "3.11.*"
 
 [feature.py310.dependencies]
