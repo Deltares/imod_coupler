@@ -9,7 +9,6 @@ object Project : Project({
     name = "Primod"
 
     buildType(Primod_TestPrimodPython311Win64)
-    buildType(Primod_TestPrimodPython310Win64)
     buildType(Primod_TestPrimodPython312Win64)
 
     template(Primod_TestPrimodWin64)
