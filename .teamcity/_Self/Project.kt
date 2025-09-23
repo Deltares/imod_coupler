@@ -11,7 +11,7 @@ object Project : Project({
     vcsRoot(MetaSwapLookupTable)
     vcsRoot(ImodCoupler)
 
-    buildType(TestbenchCouplerWin64_2)
+    buildType(TestbenchCouplerWin64)
 
     subProject(Primod.Project)
     subProject(IMODCollector.Project)
