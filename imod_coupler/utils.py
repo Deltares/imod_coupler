@@ -162,7 +162,6 @@ class MemoryExchange:
     def log(self, time: float) -> None:
         """Log the exchange for receiving side; array b"""
         self.exchange_logger.log_exchange(self.label, self.ptr_b[:], time)
-        self.label = self.label
 
     def finalize_log(self) -> None:
         """finalizes the exchange within the logger, if present"""
