@@ -6,6 +6,7 @@ description:
 
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Any
 
 import numpy as np
@@ -75,10 +76,21 @@ class MetaMod(Driver):
 
     def get_coupled_nodes(
         self,
-    ) -> dict[str, tuple[NDArray[np.int32], NDArray[np.int32]]]:
+        mf6_msw_node_map: Path,
+        mf6_msw_recharge_map: Path,
+        mf6_msw_sprinkling_map_groundwater: Path | None,
+    ) -> dict[str, NDArray[np.int32]]:
+        def svats2index(
+            svat: NDArray[np.int32], svat_layer: NDArray[np.int32]
+        ) -> NDArray[np.int32]:
+            return np.array(
+                [svat_lookup[svat[ii], svat_layer[ii]] for ii in range(len(svat))],
+                dtype=np.int32,
+            )
+
         # create a lookup, with the svat tuples (id, lay) as keys and the
         # metaswap internal indexes as values
-        svat_lookup = {}
+        svat_lookup: dict[tuple[np.int32, np.int32], int] = {}
         msw_mod2svat_file = self.msw.working_directory / "mod2svat.inp"
         if msw_mod2svat_file.is_file():
             svat_data: NDArray[np.int32] = np.loadtxt(
@@ -90,39 +102,29 @@ class MetaMod(Driver):
                 svat_lookup[(svat_id[vi], svat_lay[vi])] = vi
         else:
             raise ValueError(f"Can't find {msw_mod2svat_file}.")
-        coupling_tables = {}
-        gwf_table = np.loadtxt(
-            self.coupling_config.mf6_msw_node_map, dtype=np.int32, ndmin=2
-        )
+
+        coupling_tables: dict[str, NDArray[np.int32]] = {}
+        gwf_table = np.loadtxt(mf6_msw_node_map, dtype=np.int32, ndmin=2)
         coupling_tables["mf6_gwf_nodes"] = (
             gwf_table[:, 0] - 1
         )  # mf6 nodes are one based
-        coupling_tables["msw_gwf_nodes"] = np.array(
-            [
-                svat_lookup[gwf_table[ii, 1], gwf_table[ii, 2]]
-                for ii in range(len(gwf_table))
-            ],
-            dtype=np.int32,
-        )
+        coupling_tables["msw_gwf_nodes"] = svats2index(gwf_table[:, 1], gwf_table[:, 2])
+
         rch_table: NDArray[np.int32] = np.loadtxt(
-            self.coupling_config.mf6_msw_recharge_map, dtype=np.int32, ndmin=2
+            mf6_msw_recharge_map, dtype=np.int32, ndmin=2
         )
         coupling_tables["mf6_rch_nodes"] = rch_table[:, 0] - 1
-        coupling_tables["msw_rch_nodes"] = [
-            svat_lookup[rch_table[ii, 1], rch_table[ii, 2]]
-            for ii in range(len(rch_table))
-        ]
-        if self.coupling_config.mf6_msw_sprinkling_map_groundwater is not None:
+        coupling_tables["msw_rch_nodes"] = svats2index(rch_table[:, 1], rch_table[:, 2])
+        if mf6_msw_sprinkling_map_groundwater is not None:
             well_table: NDArray[np.int32] = np.loadtxt(
-                self.coupling_config.mf6_msw_sprinkling_map_groundwater,
+                mf6_msw_sprinkling_map_groundwater,
                 dtype=np.int32,
                 ndmin=2,
             )
             coupling_tables["mf6_well_nodes"] = well_table[:, 0] - 1
-            coupling_tables["msw_well_nodes"] = [
-                svat_lookup[well_table[ii, 1], well_table[ii, 2]]
-                for ii in range(len(well_table))
-            ]
+            coupling_tables["msw_well_nodes"] = svats2index(
+                well_table[:, 1], well_table[:, 2]
+            )
             self.enable_sprinkling_groundwater = True
         return coupling_tables
 
@@ -154,7 +156,11 @@ class MetaMod(Driver):
         )  # volume to length
 
         # get coupled indexes
-        coupled_nodes = self.get_coupled_nodes()
+        coupled_nodes = self.get_coupled_nodes(
+            self.coupling_config.mf6_msw_node_map,
+            self.coupling_config.mf6_msw_recharge_map,
+            self.coupling_config.mf6_msw_sprinkling_map_groundwater,
+        )
 
         # get exchange logger
         exchange_logger = self.get_exchange_logger()
