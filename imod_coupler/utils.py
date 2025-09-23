@@ -15,6 +15,7 @@ from scipy.sparse import csr_matrix
 from imod_coupler.config import LogLevel
 from imod_coupler.logging.exchange_collector import ExchangeCollector
 
+
 def create_mapping(
     src_idx: Any,
     tgt_idx: Any,
@@ -142,16 +143,19 @@ class MemoryExchange:
             )
             self.conversion_term = conversion_term
 
-    def _raise_if_not_compatible(self, array1:NDArray[np.float64], array2:NDArray[np.float64]) -> None:
+    def _raise_if_not_compatible(
+        self, array1: NDArray[np.float64], array2: NDArray[np.float64]
+    ) -> None:
         if array1.shape != array2.shape:
             raise ValueError(
                 "conversion array should have the same shape as corresponding ptr"
             )
-        
-    def exchange(self, delt: np.float64 = 1.0) -> None:
+
+    def exchange(self, delt: float = 1.0) -> None:
         """Exchange Kernel a to Kernel b"""
-        self.ptr_b[:] = self.mask[:] * self.ptr_b[:] + self.mapping.dot(self.ptr_a)[:] / delt
-        pass
+        self.ptr_b[:] = (
+            self.mask[:] * self.ptr_b[:] + self.mapping.dot(self.ptr_a)[:] / delt
+        )
 
     def log(self, time: float) -> None:
         """Log the exchange for receiving side; array b"""
