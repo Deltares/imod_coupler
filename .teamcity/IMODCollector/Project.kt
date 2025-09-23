@@ -10,5 +10,4 @@ object Project : Project({
     name = "iMOD_Collector"
     description = "Collect iMOD6 coupled components + coupler into a single package"
     buildType(IMODCollector_X64development)
-    buildType(IMODCollector_X64developmentLnx64)
 })
