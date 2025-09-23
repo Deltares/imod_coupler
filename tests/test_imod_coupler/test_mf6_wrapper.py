@@ -2,7 +2,6 @@ from pathlib import Path
 
 import numpy as np
 from imod import mf6
-from numpy.typing import NDArray
 
 from imod_coupler.kernelwrappers.mf6_wrapper import Mf6Drainage, Mf6River, Mf6Wrapper
 

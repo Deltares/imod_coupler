@@ -144,7 +144,9 @@ class MemoryExchange:
             self.conversion_term = conversion_term
 
     def _raise_if_not_compatible(
-        self, array1: NDArray[np.float64], array2: NDArray[np.float64]
+        self,
+        array1: NDArray[np.float64 | np.int32],
+        array2: NDArray[np.float64 | np.int32],
     ) -> None:
         if array1.shape != array2.shape:
             raise ValueError(
