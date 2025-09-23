@@ -86,7 +86,6 @@ lint = { depends-on = ["format", "ruff", "mypy-imodc", "mypy-primod"] }
 # Publish primod
 publish-primod = { cmd = "rm --recursive --force dist && python -m build && twine check dist/* && twine upload dist/*", cwd = "pre-processing" }
 
-
 [feature.py312.dependencies]
 python = "3.12.*"
 imod = ">=1.0.0rc5"
@@ -95,12 +94,8 @@ imod = ">=1.0.0rc5"
 python = "3.11.*"
 imod = ">=1.0.0rc5"
 
-[feature.py310.dependencies]
-python = "3.10.*"
-
 [environments]
 default = { features = ["py312"], solve-group = "py312" }
 dev = { features = ["py312", "dev", "common"], solve-group = "py312" }
 py312 = { features = ["py312", "common"], solve-group = "py312" }
 py311 = ["py311", "common"]
-py310 = ["py310", "common"]
