@@ -1,7 +1,6 @@
 [project]
 name = "imod_coupler"
 version = "0.1.0"
-authors = ["Hofer-Julian <julianhofer@gnome.org>"]
 channels = ["conda-forge"]
 platforms = ["win-64", "linux-64"]
 
@@ -51,7 +50,6 @@ install = { depends-on = [
 # Tests
 test-primod = "pytest --junitxml=report.xml tests/test_primod"
 
-
 [feature.common.dependencies]
 python-build = "*"
 httpx = "*"
@@ -75,7 +73,6 @@ install-test-dependencies = { depends-on = [
     "generate-env-file",
 ] }
 
-# Tests
 test-imod-coupler = "pytest -vvv -s --numprocesses=auto --dist=loadgroup --basetemp=tests/temp --junitxml=report.xml tests/test_imod_coupler"
 tests = { depends-on = ["test-primod", "test-imod-coupler"] }
 # Lint
@@ -89,21 +86,16 @@ lint = { depends-on = ["format", "ruff", "mypy-imodc", "mypy-primod"] }
 # Publish primod
 publish-primod = { cmd = "rm --recursive --force dist && python -m build && twine check dist/* && twine upload dist/*", cwd = "pre-processing" }
 
-
 [feature.py312.dependencies]
-imod = ">=1.0.0rc5"
 python = "3.12.*"
+imod = ">=1.0.0rc5"
 
 [feature.py311.dependencies]
-imod = ">=1.0.0rc5"
 python = "3.11.*"
-
-[feature.py310.dependencies]
-python = "3.10.*"
+imod = ">=1.0.0rc5"
 
 [environments]
 default = { features = ["py312"], solve-group = "py312" }
 dev = { features = ["py312", "dev", "common"], solve-group = "py312" }
 py312 = { features = ["py312", "common"], solve-group = "py312" }
 py311 = ["py311", "common"]
-py310 = ["py310", "common"]

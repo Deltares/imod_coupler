@@ -24,7 +24,7 @@ object Primod_TestPrimodWin64 : Template({
         param("env.METASWAP_DLL_DEP_DIR_REGRESSION", "%system.teamcity.build.checkoutDir%/imod_collector_regression/metaswap")
         param("env.METASWAP_DLL_DEVEL", "%system.teamcity.build.checkoutDir%/imod_collector_devel/metaswap/MetaSWAP.dll")
         param("env.METASWAP_DLL_DEP_DIR_DEVEL", "%system.teamcity.build.checkoutDir%/imod_collector_devel/metaswap")
-        param("env.IMOD_COUPLER_EXEC_DEVEL", "%system.teamcity.build.checkoutDir%/imod_collector_devel/imod_coupler/imodc.exe")
+        param("env.IMOD_COUPLER_EXEC_DEVEL", "%system.teamcity.build.checkoutDir%/imod_collector_devel/imodc.exe")
         param("env.RIBASIM_DLL_DEP_DIR_REGRESSION", "%system.teamcity.build.checkoutDir%/imod_collector_regression/ribasim/bin")
         param("env.METASWAP_LOOKUP_TABLE", "%system.teamcity.build.checkoutDir%/lookup_table")
         param("env.RIBASIM_DLL_REGRESSION", "%system.teamcity.build.checkoutDir%/imod_collector_regression/ribasim/bin/libribasim.dll")
@@ -49,7 +49,6 @@ object Primod_TestPrimodWin64 : Template({
             scriptContent = """
                 pixi --version
                 pixi run --environment %pixi-environment% install
-                pixi run --environment %pixi-environment% update-git-dependencies
             """.trimIndent()
         }
         script {
@@ -84,6 +83,26 @@ object Primod_TestPrimodWin64 : Template({
             reportType = XmlReport.XmlReportType.JUNIT
             rules = "imod_coupler/report.xml"
             verbose = true
+        }
+    }
+
+    dependencies {
+        dependency(IMODCollector.buildTypes.IMODCollector_X64development) {
+            snapshot {
+                onDependencyFailure = FailureAction.FAIL_TO_START
+            }
+
+            artifacts {
+                cleanDestination = true
+                artifactRules = """
+                    imod_collector.zip!** => imod_collector_devel
+                """.trimIndent()
+            }
+            artifacts {
+                buildRule = tag("regression")
+                cleanDestination = true
+                artifactRules = "imod_coupler_windows.zip!** => imod_collector_regression"
+            }
         }
     }
 
