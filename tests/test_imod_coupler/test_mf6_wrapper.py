@@ -94,6 +94,12 @@ def test_mf6_get_river_flux(
         working_directory=tmp_path_dev,
     )
     mf6wrapper.initialize()
+    mf6_river = Mf6River(
+        mf6_wrapper=mf6wrapper,
+        mf6_flowmodel_key="GWF_1",
+        mf6_pkg_key="Oosterschelde",
+    )
+
     mf6wrapper.prepare_time_step(0.0)
     mf6wrapper.prepare_solve(1)
 
@@ -103,7 +109,8 @@ def test_mf6_get_river_flux(
         has_converged = mf6wrapper.solve(1)
         if has_converged:
             break
-    q = mf6wrapper.get_river_drain_flux("GWF_1", "Oosterschelde")
+    heads = mf6wrapper.get_head("GWF_1")
+    q = mf6_river.get_flux(heads)
     q_expected = np.array(
         [
             -0.0,
