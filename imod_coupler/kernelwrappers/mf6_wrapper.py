@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from abc import ABC
 from collections.abc import Sequence
 from pathlib import Path
@@ -9,6 +11,8 @@ from xmipy import XmiWrapper
 
 
 class Mf6Wrapper(XmiWrapper):
+    packages: dict[str, Mf6River | Mf6Drainage | Mf6Api] = {}
+
     def __init__(
         self,
         lib_path: str | Path,
@@ -23,22 +27,27 @@ class Mf6Wrapper(XmiWrapper):
         mf6_head = self.get_value_ptr(mf6_head_tag)
         return mf6_head
 
-    def get_api_packages(
+    def set_api_packages(
         self, mf6_flowmodel_key: str, mf6_api_keys: Sequence[str]
-    ) -> dict[str, "Mf6Api"]:
-        return {key: Mf6Api(self, mf6_flowmodel_key, key) for key in mf6_api_keys}
+    ) -> None:
+        for mf6_api_key in mf6_api_keys:
+            self.packages[mf6_api_key] = Mf6Api(self, mf6_flowmodel_key, mf6_api_key)
 
-    def get_rivers_packages(
+    def set_rivers_packages(
         self, mf6_flowmodel_key: str, mf6_river_keys: Sequence[str]
-    ) -> dict[str, "Mf6River"]:
-        return {key: Mf6River(self, mf6_flowmodel_key, key) for key in mf6_river_keys}
+    ) -> None:
+        for mf6_river_key in mf6_river_keys:
+            self.packages[mf6_river_key] = Mf6River(
+                self, mf6_flowmodel_key, mf6_river_key
+            )
 
-    def get_drainage_packages(
+    def set_drainage_packages(
         self, mf6_flowmodel_key: str, mf6_drainage_keys: Sequence[str]
-    ) -> dict[str, "Mf6Drainage"]:
-        return {
-            key: Mf6Drainage(self, mf6_flowmodel_key, key) for key in mf6_drainage_keys
-        }
+    ) -> None:
+        for mf6_drainage_key in mf6_drainage_keys:
+            self.packages[mf6_drainage_key] = Mf6Drainage(
+                self, mf6_flowmodel_key, mf6_drainage_key
+            )
 
     def get_well(
         self,
@@ -153,6 +162,22 @@ class Mf6Api(Mf6Boundary):
         self, mf6_wrapper: Mf6Wrapper, mf6_flowmodel_key: str, mf6_pkg_key: str
     ):
         super().__init__(mf6_wrapper, mf6_flowmodel_key, mf6_pkg_key)
+
+    def get_flux_estimate(
+        self,
+        head: NDArray[np.float64],
+    ) -> NDArray[np.float64]:
+        raise NotImplementedError('API package does not support "get_flux_estimate"')
+
+    def get_flux(
+        self,
+        head: NDArray[np.float64],
+    ) -> NDArray[np.float64]:
+        raise NotImplementedError('API package does not support "get_flux"')
+
+    @property
+    def n_bound(self) -> int:
+        return len(self.rhs)
 
 
 class Mf6HeadBoundary(Mf6Boundary):

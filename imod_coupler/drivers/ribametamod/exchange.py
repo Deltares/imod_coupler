@@ -1,15 +1,10 @@
-from collections import ChainMap
 from typing import Any
 
 import numpy as np
 from numpy.typing import NDArray
 
 from imod_coupler.drivers.ribametamod.mapping import SetMapping
-from imod_coupler.kernelwrappers.mf6_wrapper import (
-    Mf6Api,
-    Mf6Drainage,
-    Mf6River,
-)
+from imod_coupler.kernelwrappers.mf6_wrapper import Mf6Wrapper
 from imod_coupler.logging.exchange_collector import ExchangeCollector
 
 
@@ -107,18 +102,20 @@ class CoupledExchangeBalance(ExchangeBalance):
         self,
         shape: int,
         labels: list[str],
-        mf6_river_packages: ChainMap[str, Mf6River],
-        mf6_drainage_packages: ChainMap[str, Mf6Drainage],
-        mf6_active_river_api_packages: dict[str, Mf6Api],
+        mf6_kernel: Mf6Wrapper,
+        mf6_active_packages: list[str],
+        mf6_passive_packages: list[str],
+        mf6_api_packages: list[str],
         mapping: SetMapping,
         ribasim_infiltration: NDArray[Any],
         ribasim_drainage: NDArray[Any],
         exchange_logger: ExchangeCollector,
     ) -> None:
         super().__init__(shape, labels)
-        self.mf6_river_packages = mf6_river_packages
-        self.mf6_active_river_api_packages = mf6_active_river_api_packages
-        self.mf6_drainage_packages = mf6_drainage_packages
+        self.mf6 = mf6_kernel
+        self.mf6_active_packages = mf6_active_packages
+        self.mf6_api_packages = mf6_api_packages
+        self.mf6_passive_packages = mf6_passive_packages
         self.mapping = mapping
         self.ribasim_infiltration = ribasim_infiltration
         self.ribasim_drainage = ribasim_drainage
@@ -138,14 +135,12 @@ class CoupledExchangeBalance(ExchangeBalance):
         read in the riv package.
 
         """
-        for key in self.mf6_active_river_api_packages.keys():
-            self.mf6_active_river_api_packages[key].hcof[:] = 0.0
-            self.mf6_active_river_api_packages[key].nodelist[:] = (
-                self.mf6_river_packages[key].nodelist[:]
-            )
-            self.mf6_active_river_api_packages[key].nbound[:] = self.mf6_river_packages[
-                key
-            ].nbound[:]
+        for api_key, riv_key in zip(self.mf6_api_packages, self.mf6_active_packages):
+            self.mf6.packages[api_key].hcof[:] = 0.0
+            self.mf6.packages[api_key].nodelist[:] = self.mf6.packages[
+                riv_key
+            ].nodelist[:]
+            self.mf6.packages[api_key].nbound[:] = self.mf6.packages[riv_key].nbound[:]
 
     def reset(self) -> None:
         self.ribasim_infiltration[:] = 0.0
@@ -159,20 +154,20 @@ class CoupledExchangeBalance(ExchangeBalance):
         self, mf6_head: NDArray[np.float64], delt_gw: float
     ) -> None:
         # Compute MODFLOW 6 river and drain flux extimates
-        for key, river in self.mf6_river_packages.items():
+        for package_name in self.mf6_active_packages + self.mf6_passive_packages:
             # Swap sign since a negative RIV flux means a positive contribution to Ribasim
             # Flux estimation is always in m3/d; add to demands as volume per delt_gw
-            river_flux = -river.get_flux_estimate(mf6_head) * delt_gw
-            river_flux_negative = np.where(river_flux < 0, river_flux, 0)
-            self.demands_mf6[key] = river_flux[:]
-            self.demands[key] = self.mapping.map_mod2rib[key].dot(self.demands_mf6[key])
-            self.demands_negative[key] = self.mapping.map_mod2rib[key].dot(
-                river_flux_negative
+            river_flux = (
+                -self.mf6.packages[package_name].get_flux_estimate(mf6_head) * delt_gw
             )
-        for key, drainage in self.mf6_drainage_packages.items():
-            # Swap sign since a negative RIV flux means a positive contribution to Ribasim
-            drain_flux = -drainage.get_flux_estimate(mf6_head) * delt_gw
-            self.demands[key] = self.mapping.map_mod2rib[key].dot(drain_flux)
+            river_flux_negative = np.where(river_flux < 0, river_flux, 0)
+            self.demands_mf6[package_name] = river_flux[:]
+            self.demands[package_name] = self.mapping.map_mod2rib[package_name].dot(
+                self.demands_mf6[package_name]
+            )
+            self.demands_negative[package_name] = self.mapping.map_mod2rib[
+                package_name
+            ].dot(river_flux_negative)
 
     def add_ponding_volume_msw(self, allocated_volume: NDArray[np.float64]) -> None:
         if self.mapping.msw2rib is not None:
@@ -197,21 +192,21 @@ class CoupledExchangeBalance(ExchangeBalance):
     def flux_to_modflow(
         self, realised_volume: NDArray[np.float64], delt_gw: float
     ) -> None:
-        if not self.mf6_river_packages:
+        if not self.mf6_active_packages:
             return  # no active coupling
         super().compute_realised(realised_volume)
-        for key in self.mf6_active_river_api_packages.keys():
+        for api_key, riv_key in zip(self.mf6_api_packages, self.mf6_active_packages):
             realised_fraction = np.where(
-                np.isclose(self.demands_negative[key], 0.0),
+                np.isclose(self.demands_negative[riv_key], 0.0),
                 1.0,
-                self.realised_negative[key] / self.demands_negative[key],
+                self.realised_negative[riv_key] / self.demands_negative[riv_key],
             )
             # correction only applies to MF6 cells which negatively contribute to the Ribasim volumes
             # correction as extraction from MF6 model.
             # demands in exchange class are volumes per delt_gw, RHS needs a flux in m3/day
-            self.mf6_active_river_api_packages[key].rhs[:] = -(
-                np.minimum(self.demands_mf6[key] / delt_gw, 0.0)
-            ) * (1 - self.mapping.map_rib2mod_flux[key].dot(realised_fraction))
+            self.mf6.packages[api_key].rhs[:] = -(
+                np.minimum(self.demands_mf6[riv_key] / delt_gw, 0.0)
+            ) * (1 - self.mapping.map_rib2mod_flux[riv_key].dot(realised_fraction))
 
     def get_demand_flux_sec(self, delt_gw: float, delt_sw: float) -> Any:
         # returns the MODFLOW6 demands and MetaSWAP demands as a flux in m3/s
@@ -234,12 +229,11 @@ class CoupledExchangeBalance(ExchangeBalance):
                 self.exchange_logger.log_exchange(
                     ("exchange_demand_" + key), array, current_time
                 )
-        for key in self.mf6_active_river_api_packages.keys():
-            if "sw_ponding" not in key:
-                self.mf6_active_river_api_packages[key].rhs[:]
-                self.exchange_logger.log_exchange(
-                    ("exchange_correction_" + key), array, current_time
-                )
+        for key in self.mf6_api_packages:
+            self.mf6.packages[key].rhs[:]
+            self.exchange_logger.log_exchange(
+                ("exchange_correction_" + key), array, current_time
+            )
         self.exchange_logger.log_exchange(
             ("exchange_demand_sw_ponding"),
             self.demands["sw_ponding"],

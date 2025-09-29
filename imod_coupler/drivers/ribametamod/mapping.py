@@ -24,24 +24,24 @@ class SetMapping:
     def __init__(
         self,
         coupling: Coupling,
-        packages: ChainMap[str, Any],
+        array_info: ChainMap[str, Any],
         has_metaswap: bool,
         has_ribasim: bool,
         mod2svat: Path | None,
     ):
         self.coupling = coupling
         if has_ribasim:
-            self.set_ribasim_modflow_mapping(packages)
+            self.set_ribasim_modflow_mapping(array_info)
             self.coupled_index = self.coupled_mod2rib
         if has_metaswap and mod2svat is not None:
-            self.set_metaswap_modflow_mapping(packages, mod2svat)
+            self.set_metaswap_modflow_mapping(array_info, mod2svat)
         if has_ribasim and has_metaswap and mod2svat is not None:
-            self.set_metaswap_ribasim_mapping(packages, mod2svat)
+            self.set_metaswap_ribasim_mapping(array_info, mod2svat)
             self.coupled_index |= self.coupled_msw2rib
 
-    def set_ribasim_modflow_mapping(self, packages: ChainMap[str, Any]) -> None:
+    def set_ribasim_modflow_mapping(self, array_info: ChainMap[str, Any]) -> None:
         self.map_mod2rib = {}
-        self.coupled_mod2rib = np.full(packages["ribasim_nbasin"], False)
+        self.coupled_mod2rib = np.full(array_info["ribasim_nbasin"], False)
         self.map_rib2mod_stage = {}
         self.map_rib2mod_flux = {}
         self.mask_rib2mod = {}
@@ -51,17 +51,16 @@ class SetMapping:
         )
         for key, path in active_tables.items():
             table = np.loadtxt(path, delimiter="\t", dtype=int, skiprows=1, ndmin=2)
-            package = packages[key]
             basin_index, bound_index, subgrid_index = table.T
             data = np.ones_like(basin_index, dtype=np.float64)
 
             mod2rib = csr_matrix(
                 (data, (basin_index, bound_index)),
-                shape=(packages["ribasim_nbasin"], package.n_bound),
+                shape=(array_info["ribasim_nbasin"], array_info[key]),
             )
             rib2mod = csr_matrix(
                 (data, (bound_index, subgrid_index)),
-                shape=(package.n_bound, packages["ribasim_nsubgrid"]),
+                shape=(array_info[key], array_info["ribasim_nsubgrid"]),
             )
 
             # check rib2mod for multiple subgrid per modflow node (should not occur)
@@ -90,19 +89,18 @@ class SetMapping:
         )
         for key, path in passive_tables.items():
             table = np.loadtxt(path, delimiter="\t", dtype=int, skiprows=1, ndmin=2)
-            package = packages[key]
             basin_index, bound_index = table.T
             data = np.ones_like(basin_index, dtype=np.float64)
             mod2rib = csr_matrix(
                 (data, (basin_index, bound_index)),
-                shape=(packages["ribasim_nbasin"], package.n_bound),
+                shape=(array_info["ribasim_nbasin"], array_info[key]),
             )
             self.map_mod2rib[key] = mod2rib
             # In-place bitwise or
             self.coupled_mod2rib |= mod2rib.getnnz(axis=1) > 0
 
     def set_metaswap_modflow_mapping(
-        self, packages: ChainMap[str, Any], mod2svat: Path
+        self, array_info: ChainMap[str, Any], mod2svat: Path
     ) -> None:
         if self.coupling.mf6_msw_node_map is None:
             return
@@ -125,33 +123,33 @@ class SetMapping:
         self.msw2mod["storage"], self.msw2mod["storage_mask"] = create_mapping(
             msw_idx,
             node_idx,
-            packages["msw_storage"].size,
-            packages["mf6_storage"].size,
+            array_info["msw_storage"].size,
+            array_info["mf6_storage"].size,
             "sum",
         )
         # MetaSWAP gives SC1*area, MODFLOW by default needs SS, convert here.
         # When MODFLOW is configured to use SC1 explicitly via the
         # STORAGECOEFFICIENT option in the STO package, only the multiplication
         # by area needs to be undone
-        if packages["mf6_has_sc1"]:
-            conversion_terms = 1.0 / packages["mf6_area"]
+        if array_info["mf6_has_sc1"]:
+            conversion_terms = 1.0 / array_info["mf6_area"]
         else:
             conversion_terms = 1.0 / (
-                packages["mf6_area"] * (packages["mf6_top"] - packages["mf6_bot"])
+                array_info["mf6_area"] * (array_info["mf6_top"] - array_info["mf6_bot"])
             )
 
         conversion_matrix = dia_matrix(
             (conversion_terms, [0]),
-            shape=(packages["mf6_area"].size, packages["mf6_area"].size),
-            dtype=packages["mf6_area"].dtype,
+            shape=(array_info["mf6_area"].size, array_info["mf6_area"].size),
+            dtype=array_info["mf6_area"].dtype,
         )
         self.msw2mod["storage"] = conversion_matrix * self.msw2mod["storage"]
 
         self.mod2msw["head"], self.mod2msw["head_mask"] = create_mapping(
             node_idx,
             msw_idx,
-            packages["mf6_head"].size,
-            packages["msw_head"].size,
+            array_info["mf6_head"].size,
+            array_info["msw_head"].size,
             "avg",
         )
         table_rch2svat: NDArray[np.int32] = np.loadtxt(
@@ -166,8 +164,8 @@ class SetMapping:
         self.msw2mod["recharge"], self.msw2mod["recharge_mask"] = create_mapping(
             msw_idx,
             rch_idx,
-            packages["msw_volume"].size,
-            packages["mf6_recharge"].size,
+            array_info["msw_volume"].size,
+            array_info["mf6_recharge"].size,
             "sum",
         )
 
@@ -193,17 +191,17 @@ class SetMapping:
             ) = create_mapping(
                 msw_idx,
                 well_idx,
-                packages["msw_volume"].size,
-                packages["mf6_sprinkling_wells"].size,
+                array_info["msw_volume"].size,
+                array_info["mf6_sprinkling_wells"].size,
                 "sum",
             )
 
     def set_metaswap_ribasim_mapping(
-        self, packages: ChainMap[str, Any], mod2svat: Path
+        self, array_info: ChainMap[str, Any], mod2svat: Path
     ) -> None:
         table_node2svat: NDArray[np.int32]
         self.coupled_msw2rib: NDArray[np.bool_] = np.full(
-            packages["ribasim_nbasin"], False
+            array_info["ribasim_nbasin"], False
         )
         self.msw2rib = {}
 
@@ -223,8 +221,8 @@ class SetMapping:
             ) = create_mapping(
                 msw_idx,
                 rib_idx,
-                packages["ribmsw_nbound"],
-                packages["ribasim_nbasin"],
+                array_info["ribmsw_nbound"],
+                array_info["ribasim_nbasin"],
                 "sum",
             )
             self.coupled_msw2rib |= self.msw2rib["sw_ponding"].getnnz(axis=1) > 0
@@ -245,8 +243,8 @@ class SetMapping:
             ) = create_mapping(
                 msw_idx,
                 rib_idx,
-                packages["ribmsw_nbound"],
-                packages["ribasim_nuser"],
+                array_info["ribmsw_nbound"],
+                array_info["ribasim_nuser"],
                 "sum",
             )
             # should become shape of 'users'-array in Ribasim
