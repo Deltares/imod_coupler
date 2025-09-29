@@ -93,15 +93,6 @@ def ribasim_user_demand_model() -> ribasim.Model:
     return ribasim_testmodels.user_demand_model()
 
 
-@pytest.fixture(scope="session", autouse=True)
-def load_julia(
-    ribasim_dll_devel,
-    ribasim_dll_dep_dir_devel,
-) -> None:
-    libribasim = RibasimWrapper(ribasim_dll_devel, ribasim_dll_dep_dir_devel)
-    libribasim.init_julia()
-
-
 @pytest.fixture(scope="function")
 def libribasim(ribasim_dll_devel, ribasim_dll_dep_dir_devel, request) -> RibasimWrapper:
     # lib_path, lib_folder = libribasim_paths
