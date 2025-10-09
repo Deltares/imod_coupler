@@ -258,7 +258,7 @@ def mf6_model_with_river(
 ) -> mf6.Modflow6Simulation:
     flow_model = coupled_mf6_model["GWF_1"]
     idomain = flow_model["dis"].dataset["idomain"]
-    stage = xr.full_like(idomain.sel({"layer": 1}), dtype=np.floating, fill_value=3.1)
+    stage = xr.full_like(idomain.sel({"layer": 1}), dtype=float, fill_value=3.1)
     conductance = xr.full_like(stage, 4.2)
     bottom_elevation = xr.full_like(stage, 0.3)
     bottom_elevation[{"x": 2}] = -0.1

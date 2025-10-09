@@ -18,7 +18,7 @@ build-imod-coupler = "rm -rf dist && pyinstaller imod_coupler/__main__.py --name
 geopandas = "1.0.*"
 netCDF4 = "*"
 loguru = "*"
-numpy = "<2.0"
+numpy = ">=2.0"
 imod = "*"
 pip = "*"
 pandera = "0.20.*"
