@@ -21,19 +21,18 @@ loguru = "*"
 numpy = ">=2.0"
 imod = "*"
 pip = "*"
-pandera = "0.20.*"
-pydantic = "2.*"
+pydantic = "2.11.*"
 pyinstaller = "*"
 python = ">=3.10"
+xarray = ">=2025.8.0"
 scipy = "*"
 tomli = "*"
 tomli-w = "*"
 xmipy = "*"
 
 [pypi-dependencies]
-ribasim = { git = "https://github.com/Deltares/Ribasim.git", tag = "v2024.11.0", subdirectory= "python/ribasim"}
-ribasim_testmodels = { git = "https://github.com/Deltares/Ribasim.git", tag = "v2024.11.0", subdirectory= "python/ribasim_testmodels"}
-
+ribasim = { git = "https://github.com/Deltares/Ribasim.git", tag = "v2025.5.0", subdirectory= "python/ribasim"}
+ribasim_testmodels = { git = "https://github.com/Deltares/Ribasim.git", tag = "v2025.5.0", subdirectory= "python/ribasim_testmodels"}
 
 [feature.common.tasks]
 # Install
