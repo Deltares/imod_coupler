@@ -102,11 +102,6 @@ class Mf6Wrapper(XmiWrapper):
         mf6_bot = self.get_value_ptr(mf6_bot_tag)
         return mf6_bot
 
-    def max_iter(self) -> Any:
-        mf6_max_iter_tag = self.get_var_address("MXITER", "SLN_1")
-        mf6_max_iter = self.get_value_ptr(mf6_max_iter_tag)[0]
-        return mf6_max_iter
-
     def get_sprinkling(
         self,
         mf6_flowmodel_key: str,
@@ -117,6 +112,16 @@ class Mf6Wrapper(XmiWrapper):
         )
         mf6_sprinkling_wells = self.get_value_ptr(mf6_sprinkling_tag)[:, 0]
         return mf6_sprinkling_wells
+
+    @property
+    def delt(self) -> Any:
+        return self.get_time_step()
+
+    @property
+    def max_iter(self) -> Any:
+        mf6_max_iter_tag = self.get_var_address("MXITER", "SLN_1")
+        mf6_max_iter = self.get_value_ptr(mf6_max_iter_tag)[0]
+        return mf6_max_iter
 
 
 class Mf6Boundary(ABC):
@@ -175,9 +180,23 @@ class Mf6Api(Mf6Boundary):
     ) -> NDArray[np.float64]:
         raise NotImplementedError('API package does not support "get_flux"')
 
+    def set_flux_estimate(
+        self,
+        head: NDArray[np.float64],
+    ) -> None:
+        raise NotImplementedError('API package does not support "set_flux_extimate"')
+
     @property
     def n_bound(self) -> int:
         return len(self.rhs)
+
+    @property
+    def water_level(self) -> NDArray[np.float64]:
+        return np.nan * np.ones(self.n_bound)
+
+    @property
+    def q_estimate(self) -> NDArray[np.float64]:
+        return np.nan * np.ones(self.n_bound)
 
 
 class Mf6HeadBoundary(Mf6Boundary):
@@ -298,13 +317,16 @@ class Mf6River(Mf6HeadBoundary):
     def water_level(self) -> NDArray[np.float64]:
         return self.stage
 
+    def set_stage(self) -> None:
+        np.maximum(self.bottom_minimum, self.stage, out=self.stage)
+
     def set_water_level(self, new_water_level: NDArray[np.float64]) -> None:
         np.maximum(self.bottom_minimum, new_water_level, out=self.stage)
 
-    def get_flux_estimate(
+    def set_flux_estimate(
         self,
         head: NDArray[np.float64],
-    ) -> NDArray[np.float64]:
+    ) -> None:
         """
         Returns the river fluxes consistent with current head, river stage and conductance.
         a simple linear model is used: flux[m3/d] = conductance[m2/d] * (stage[m] - max(head[m], bottom[m]))
@@ -332,7 +354,6 @@ class Mf6River(Mf6HeadBoundary):
         max_head = np.maximum(self.head, self.bottom_elevation)
         np.subtract(self.stage, max_head, out=self.q_estimate)
         np.multiply(self.conductance, self.q_estimate, out=self.q_estimate)
-        return self.q_estimate
 
 
 class Mf6Drainage(Mf6HeadBoundary):
@@ -361,13 +382,16 @@ class Mf6Drainage(Mf6HeadBoundary):
     def water_level(self) -> NDArray[np.float64]:
         return self.elevation
 
+    def set_stage(self) -> None:
+        np.maximum(self.elevation_minimum, self.water_level, out=self.elevation)
+
     def set_water_level(self, new_water_level: NDArray[np.float64]) -> None:
         np.maximum(self.elevation_minimum, new_water_level, out=self.elevation)
 
-    def get_flux_estimate(
+    def set_flux_estimate(
         self,
         head: NDArray[np.float64],
-    ) -> NDArray[np.float64]:
+    ) -> None:
         """
         Returns the drn fluxes consistent with current head, stage and conductance.
         a simple linear model is used: flux = conductance * (stage - head)
@@ -393,4 +417,3 @@ class Mf6Drainage(Mf6HeadBoundary):
         max_head = np.maximum(self.head, self.elevation)
         np.subtract(self.elevation, max_head, out=self.q_estimate)
         np.multiply(self.conductance, self.q_estimate, out=self.q_estimate)
-        return self.q_estimate

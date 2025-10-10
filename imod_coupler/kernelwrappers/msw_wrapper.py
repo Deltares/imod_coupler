@@ -36,22 +36,6 @@ class MswWrapper(XmiWrapper):
         with cd(self.working_directory):
             self._execute_function(self.lib.prepare_time_step_noSW, byref(dt_c))
 
-    def get_sw_time_step(self) -> float:
-        """
-        Returns the time step length for fast (surfacewater) processes from metaswap
-
-        Parameters
-        ----------
-        none
-
-        Returns
-        -------
-         NDArray[np.float64]:
-            surface water timestep length in days
-        """
-        dtsw = self.get_value("dtsw")
-        return float(dtsw[0])
-
     def get_surfacewater_sprinking_demand_ptr(self) -> NDArray[np.float64]:
         """
         Returns the sprinkling volume demand from metaswap
@@ -193,3 +177,20 @@ class MswWrapper(XmiWrapper):
             array of storage used by metaswap. Array as pointer to the MetaSWAP intenal array
         """
         return self.get_value_ptr("dsc1sim")
+
+    @property
+    def delt_sw(self) -> float:
+        """
+        Returns the time step length for fast (surfacewater) processes from metaswap
+
+        Parameters
+        ----------
+        none
+
+        Returns
+        -------
+         float:
+            surface water timestep length in days
+        """
+        dtsw = self.get_value("dtsw")
+        return float(dtsw[0])
