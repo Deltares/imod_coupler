@@ -198,6 +198,7 @@ class Mf6Api(Mf6Boundary):
     def q_estimate(self) -> NDArray[np.float64]:
         return np.nan * np.ones(self.n_bound)
 
+
 class Mf6HeadBoundary(Mf6Boundary):
     head: NDArray[np.float64]
     private_nodelist: NDArray[np.int32]

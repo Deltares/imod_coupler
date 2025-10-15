@@ -17,6 +17,8 @@ def get_coupled_modflow_metaswap_nodes(
         return np.array(
             [svat_lookup[svat[ii], svat_layer[ii]] for ii in range(len(svat))],
             dtype=np.int32,
+        )
+
     # create a lookup, with the svat tuples (id, lay) as keys and the
     # metaswap internal indexes as values
     svat_lookup: dict[tuple[np.int32, np.int32], int] = {}
