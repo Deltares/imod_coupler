@@ -20,7 +20,7 @@ def create_mapping(
     ntgt: int,
     operator: str | None = None,
     weights: NDArray[np.float64] | None = None,
-) -> tuple[csr_matrix, NDArray[np.int_]]:
+) -> tuple[csr_matrix, NDArray[np.int32]]:
     """
     Create a mapping from source indexes to target indexes by constructing
     a sparse matrix of size (ntgt x nsrc) and creates a mask array with 0
