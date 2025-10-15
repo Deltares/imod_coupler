@@ -229,7 +229,7 @@ class MetaMod(Driver):
 
         # convergence loop
         self.mf6.prepare_solve(1)
-        for kiter in range(1, self.mf6.max_iter() + 1):
+        for kiter in range(1, self.mf6.max_iter + 1):
             has_converged = self.do_iter(1)
             if has_converged:
                 logger.debug(f"MF6-MSW converged in {kiter} iterations")

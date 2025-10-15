@@ -86,6 +86,7 @@ class RibaMetaMod(Driver):
                 lib_dependency=self.ribametamod_config.kernels.ribasim.dll_dep_dir,
                 timing=self.base_config.timing,
             )
+            self.ribasim.initialize_julia()  # only once per session
             self.has_ribasim = True
         else:
             self.has_ribasim = False
@@ -489,7 +490,6 @@ class RibaMetaMod(Driver):
         self.mf6.finalize()
         if self.has_ribasim:
             self.ribasim.finalize()
-            self.ribasim.shutdown_julia()
         for coupling in self.couplings.values():
             coupling.finalize_log()
 

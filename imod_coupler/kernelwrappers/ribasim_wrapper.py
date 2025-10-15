@@ -10,11 +10,26 @@ class RibasimWrapper(XmiWrapper):
     drainage_infiltration: NDArray[np.float64]
     drainage: NDArray[np.float64]
     infiltration: NDArray[np.float64]
+    _julia_initialised: bool = False
 
     def initialize(self, config_file: str = "") -> None:
-        self.init_julia()
         super().initialize(config_file)
         self.set_infiltration_drainage_array()
+
+    def finalize(self) -> None:
+        super().finalize()
+        self.finalize_julia()
+
+    def initialize_julia(self) -> None:
+        if not RibasimWrapper._julia_initialised:
+            argument = create_string_buffer(0)
+            self.lib.init_julia(c_int(0), byref(argument))
+            RibasimWrapper._julia_initialised = True
+
+    def finalize_julia(self) -> None:
+        if RibasimWrapper._julia_initialised:
+            self.lib.shutdown_julia(c_int(0))
+            RibasimWrapper._julia_initialised = False
 
     def get_constant_int(self, name: str) -> int:
         match name:
@@ -31,13 +46,6 @@ class RibasimWrapper(XmiWrapper):
             case "BMI_LENERRMESSAGE":
                 return 1025
         raise ValueError(f"{name} does not map to an integer exposed by Ribasim")
-
-    def init_julia(self) -> None:
-        argument = create_string_buffer(0)
-        self.lib.init_julia(c_int(0), byref(argument))
-
-    def shutdown_julia(self) -> None:
-        self.lib.shutdown_julia(c_int(0))
 
     def update_subgrid_level(self) -> None:
         self.lib.update_subgrid_level()
