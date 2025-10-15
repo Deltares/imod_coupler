@@ -191,6 +191,7 @@ class RibaMetaMod(Driver):
                 exchange_logger=self.exchange_logger,
                 label="exchange_demand_" + package_name,
                 exchange_operator="sum",
+
             )
             # q mf6 -> exchange balance for negative contributions only
             # use PositiveFraction since positive mf6 drainage == infiltration from Ribasim
@@ -259,6 +260,7 @@ class RibaMetaMod(Driver):
             self.mf6.get_recharge_nodes(
                 self.coupling_config.mf6_model,
                 self.coupling_config.mf6_msw_recharge_pkg,
+
             )
             - 1
         )
@@ -353,6 +355,7 @@ class RibaMetaMod(Driver):
                         -1.0,
                     ),  # reverse sign convention metaswap + m3/d -> m3/s
                     exchange_operator="sum",
+
                 )
                 self.couplings["sw_sprinkling_realised"] = MemoryExchangeFractions(
                     self.ribasim.user_realized_fraction,
@@ -385,7 +388,6 @@ class RibaMetaMod(Driver):
                 mf6_active_packages=self.active_packages,
                 mf6_passive_packages=self.passive_packages,
                 mf6_api_packages=self.api_packages,
-            )
             self.couple_ribasim()
             if self.has_metaswap:
                 self.couple_metaswap()
@@ -557,6 +559,5 @@ class RibaMetaMod(Driver):
         for key, coupling in self.couplings.items():
             if "sprinkling" in key:
                 coupling.log(self.current_time)
-
-
+              
 day_to_seconds = 86400.0

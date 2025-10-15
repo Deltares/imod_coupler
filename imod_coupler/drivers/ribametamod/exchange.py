@@ -8,6 +8,7 @@ from imod_coupler.kernelwrappers.ribasim_wrapper import RibasimWrapper
 from imod_coupler.utils import MemoryExchange
 
 
+
 class ExchangeBalance:
     demands: dict[str, NDArray[np.float64]]
     demands_negative: dict[str, NDArray[np.float64]]
@@ -219,6 +220,7 @@ class CoupledExchangeBalance(ExchangeBalance):
             self.couplings["sw_ponding"].log(itime)
         for key in self.mf6_api_packages:
             self.couplings[key].log(itime)
+
 
 
 day_to_seconds = 86400
