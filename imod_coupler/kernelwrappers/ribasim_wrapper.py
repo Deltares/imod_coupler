@@ -37,7 +37,7 @@ class RibasimWrapper(XmiWrapper):
     def __del__(self) -> None:
         # this will call finalize without the Julia shutdown
         self._in_del = True
-        super().__del__()
+        super().__del__()  # type: ignore[no-untyped-call]
 
     def get_constant_int(self, name: str) -> int:
         match name:
