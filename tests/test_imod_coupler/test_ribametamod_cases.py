@@ -96,6 +96,8 @@ def add_water_users(ribasim_model: ribasim.Model) -> ribasim.Model:
     # add subnetwork id to basins
     ribasim_model.basin.node.df["subnetwork_id"][2] = 2
     ribasim_model.basin.node.df["subnetwork_id"][3] = 3
+    ribasim_model.terminal.node.df["subnetwork_id"][1] = 3
+    ribasim_model.flow_boundary.node.df["subnetwork_id"][1] = 2
 
     # Add waterusers to model; basin 2
     ribasim_model.user_demand.add(
@@ -106,7 +108,7 @@ def add_water_users(ribasim_model: ribasim.Model) -> ribasim.Model:
                 active=True,
                 return_factor=[0.0],
                 min_level=[-999.0],
-                demand_priority=[1],
+                demand_priority=[2],
             ),
         ],
     )
@@ -193,6 +195,8 @@ def two_basin_model_sprinkling_sw_variations(
     ribasim_two_basin_model.basin.state.df["level"].loc[
         ribasim_two_basin_model.basin.node.df.index == 3
     ] = 8.0
+    ribasim_two_basin_model.basin.profile.df.loc[4] = [2,400.0,1000.0,None]
+    ribasim_two_basin_model.basin.profile.df.loc[5] = [3,400.0,1000.0,None]
     new_df = pd.DataFrame(
         {
             "node_id": np.array([4] * 3),
@@ -643,8 +647,9 @@ def case_two_basin_model_sprinkling_sw_allocation(
         ribasim_two_basin_model,
     )
     ribametamod.ribasim_model.allocation = ribasim.Allocation(
-        timestep=86400.0, use_allocation=True
+        timestep=86400.0
     )
+    ribametamod.ribasim_model.experimental.allocation=True
     return ribametamod
 
 
@@ -659,8 +664,9 @@ def case_two_basin_model_sprinkling_sw_allocation_dtsw_05(
         ribasim_two_basin_model,
     )
     ribametamod.ribasim_model.allocation = ribasim.Allocation(
-        timestep=86400.0, use_allocation=True
+        timestep=86400.0
     )
+    ribametamod.ribasim_model.experimental.allocation=False
     # update delt-sw for MetaSWAP
     ribametamod.msw_model.simulation_settings["dtsw"] = 0.5
     return ribametamod
