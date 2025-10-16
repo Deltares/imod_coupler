@@ -183,13 +183,7 @@ class CoupledExchangeBalance(ExchangeBalance):
         if not self.mf6_active_packages:
             return  # no active coupling
         super().compute_realised(realised_volume)
-        for api_key, riv_key in zip(self.mf6_api_packages, self.mf6_active_packages):
-            # deze shit is dubbel
-            # self.realised_fraction[:] = np.where(
-            #     np.isclose(self.demands_negative[riv_key], 0.0),
-            #     1.0,
-            #     self.realised_negative[riv_key] / self.demands_negative[riv_key],
-            # )[:]
+        for api_key in self.mf6_api_packages:
             # correction only applies to MF6 cells which negatively contribute to the Ribasim volumes
             # correction as extraction from MF6 model.
             # demands in exchange class are volumes per delt_gw, RHS needs a flux in m3/day

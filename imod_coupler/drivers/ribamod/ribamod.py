@@ -116,7 +116,8 @@ class RibaMod(Driver):
 
         # Get all the relevant river and drainage systems from MODFLOW 6
         mf6_flowmodel_key = self.coupling_config.mf6_model
-        self.mf6_head = self.mf6.get_head(mf6_flowmodel_key)
+        self.mf6.set_head(self.coupling_config.mf6_model)
+        self.mf6_head = self.mf6.head[self.coupling_config.mf6_model]
         self.mf6_active_river_packages = list(
             self.coupling_config.mf6_active_river_packages.keys()
         )

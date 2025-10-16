@@ -298,7 +298,7 @@ class RibaMetaMod(Driver):
             ptr_b_conversion=conversion_terms_recharge_area,
         )
         self.couplings["head"] = MemoryExchange(
-            self.mf6.get_head(self.coupling_config.mf6_model),
+            self.mf6.head[self.coupling_config.mf6_model],
             self.msw.get_head_ptr(),
             coupled_nodes["mf6_gwf_nodes"],
             coupled_nodes["msw_gwf_nodes"],
@@ -371,7 +371,7 @@ class RibaMetaMod(Driver):
     def couple(self) -> None:
         """Couple Modflow, MetaSWAP and Ribasim"""
         mf6_flowmodel_key = self.coupling_config.mf6_model
-        self.mf6_head = self.mf6.get_head(mf6_flowmodel_key)
+        self.mf6.set_head(mf6_flowmodel_key)
 
         if self.has_ribasim:
             self.coupled_ribasim_basins = np.zeros_like(
@@ -501,7 +501,9 @@ class RibaMetaMod(Driver):
         self.exchange_stage_rib2mod()
 
     def exchange_mod2rib(self) -> None:
-        self.exchange_balance.add_flux_estimate_mod(self.mf6_head, self.mf6.delt)
+        self.exchange_balance.add_flux_estimate_mod(
+            self.mf6.head[self.coupling_config.mf6_model], self.mf6.delt
+        )
         # reset Ribasim pointers
         self.ribasim.save_cumulative_drainage_infiltration()
 

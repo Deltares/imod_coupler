@@ -93,17 +93,7 @@ def ribasim_user_demand_model() -> ribasim.Model:
     return ribasim_testmodels.user_demand_model()
 
 
-# only load julia once per test session
-@pytest.fixture(scope="session")
-def julia_runtime(ribasim_dll_devel, ribasim_dll_dep_dir_devel):
-    dummy = RibasimWrapper(ribasim_dll_devel, ribasim_dll_dep_dir_devel)
-    dummy.initialize_julia()
-    yield
-
-
 # return RibasimWrapper instance for each test
 @pytest.fixture(scope="function")
-def libribasim(
-    julia_runtime, ribasim_dll_devel, ribasim_dll_dep_dir_devel
-) -> RibasimWrapper:
+def libribasim(ribasim_dll_devel, ribasim_dll_dep_dir_devel) -> RibasimWrapper:
     return RibasimWrapper(ribasim_dll_devel, ribasim_dll_dep_dir_devel)

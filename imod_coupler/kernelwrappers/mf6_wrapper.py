@@ -12,6 +12,7 @@ from xmipy import XmiWrapper
 
 class Mf6Wrapper(XmiWrapper):
     packages: dict[str, Mf6River | Mf6Drainage | Mf6Api] = {}
+    head: dict[str, NDArray[np.float64]] = {}
 
     def __init__(
         self,
@@ -22,10 +23,9 @@ class Mf6Wrapper(XmiWrapper):
     ):
         super().__init__(lib_path, lib_dependency, working_directory, timing)
 
-    def get_head(self, mf6_flowmodel_key: str) -> NDArray[np.float64]:
+    def set_head(self, mf6_flowmodel_key: str) -> None:
         mf6_head_tag = self.get_var_address("X", mf6_flowmodel_key)
-        mf6_head = self.get_value_ptr(mf6_head_tag)
-        return mf6_head
+        self.head[mf6_flowmodel_key] = self.get_value_ptr(mf6_head_tag)
 
     def set_api_packages(
         self, mf6_flowmodel_key: str, mf6_api_keys: Sequence[str]
