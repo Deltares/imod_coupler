@@ -15,7 +15,7 @@ install-minimal = { depends-on = ["install-imodc"] }
 build-imod-coupler = "rm -rf dist && pyinstaller imod_coupler/__main__.py --name imodc"
 
 [dependencies]
-geopandas = "1.0.*"
+geopandas = ">=1.0.0"
 netCDF4 = "*"
 loguru = "*"
 numpy = ">=2.0"
