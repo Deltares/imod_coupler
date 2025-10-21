@@ -210,7 +210,7 @@ def test_ribamod_two_basin(
 
     # Flow in the edges is always to the right.
     assert (
-        results.flow_df["flow_rate"].loc[results.flow_df["edge_id"].notna()] >= 0
+        results.flow_df["flow_rate"].loc[results.flow_df["link_id"].notna()] >= 0
     ).all()
 
 

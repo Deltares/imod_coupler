@@ -776,6 +776,15 @@ def test_ribametamod_two_basin_sprinkling_sw(
     )
     assert_results(tmp_path_dev, ribametamod_model, results)
 
+   # Read MODFLOW 6 output
+    mf6head = imod.mf6.open_hds(
+        tmp_path_dev / ribametamod_model._modflow6_model_dir / "GWF_1" / "GWF_1.hds",
+        tmp_path_dev / ribametamod_model._modflow6_model_dir / "GWF_1" / "dis.dis.grb",
+    ).compute()
+    
+    # The head should only decrease, going from left to right.
+    assert bool(mf6head.isel(time=-1, layer=0).diff("x").all())
+
 
 @pytest.mark.xdist_group(name="ribasim")
 @parametrize_with_cases(

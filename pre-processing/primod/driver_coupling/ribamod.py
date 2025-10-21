@@ -204,11 +204,11 @@ class RibaModActiveDriverCoupling(RibaModDriverCoupling):
 
     def _validate_subgrid_df(self, ribasim_model: ribasim.Model) -> pd.DataFrame | None:
         if self.mf6_packages:
-            if ribasim_model.basin.subgrid.df is None:
+            if ribasim_model.basin.subgrid.df is None and ribasim_model.basin.subgrid_time.df is None:
                 raise ValueError(
                     "ribasim.model.basin.subgrid must be defined for actively coupled packages."
                 )
-            return ribasim_model.basin.subgrid.df
+            return (ribasim_model.basin.subgrid.df, ribasim_model.basin.subgrid_time.df)
         else:
             return None
 
@@ -220,14 +220,21 @@ class RibaModActiveDriverCoupling(RibaModDriverCoupling):
         basin_ids: pd.Series,
         ribasim_model: ribasim.Model,
     ) -> ActiveNodeBasinMapping:
-        subgrid_df = self._validate_subgrid_df(ribasim_model)
-        return ActiveNodeBasinMapping(
+        subgrid_df, subgrid_time_df = self._validate_subgrid_df(ribasim_model)
+        subgrids_df = pd.concat([subgrid_df,subgrid_time_df], ignore_index=True)
+        if "time" in subgrids_df.columns:
+            subgrids_df.drop(columns=["time"], axis=1, inplace=True)
+        subgrids_df.index.names=["fid"]
+        mapping = ActiveNodeBasinMapping(
             name=name,
             conductance=conductance,
             gridded_basin=gridded_basin,
             basin_ids=basin_ids,
-            subgrid_df=subgrid_df,
+            subgrid_df=subgrids_df,
         )
+        ribasim_model.basin.subgrid.df = subgrids_df
+        return mapping
+        
 
 
 class RibaModPassiveDriverCoupling(RibaModDriverCoupling):
