@@ -195,8 +195,8 @@ def two_basin_model_sprinkling_sw_variations(
     ribasim_two_basin_model.basin.state.df["level"].loc[
         ribasim_two_basin_model.basin.node.df.index == 3
     ] = 8.0
-    ribasim_two_basin_model.basin.profile.df.loc[4] = [2,400.0,1000.0,None]
-    ribasim_two_basin_model.basin.profile.df.loc[5] = [3,400.0,1000.0,None]
+    ribasim_two_basin_model.basin.profile.df.loc[4] = [2,400.0,3000.0,None]
+    ribasim_two_basin_model.basin.profile.df.loc[5] = [3,400.0,3000.0,None]
     new_df = pd.DataFrame(
         {
             "node_id": np.array([4] * 3),
