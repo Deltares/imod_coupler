@@ -150,7 +150,11 @@ def add_water_users(ribasim_model: ribasim.Model) -> ribasim.Model:
     # add default level-control to basins
     ribasim_model.level_demand.add(
         ribasim.Node(10, Point(240.0, 10.0), subnetwork_id=2),
-        [level_demand.Static(demand_priority=[1], min_level=[-1.0e6], max_level=[-1.0e6])],
+        [
+            level_demand.Static(
+                demand_priority=[1], min_level=[-1.0e6], max_level=[-1.0e6]
+            )
+        ],
     )
     ribasim_model.edge.add(
         ribasim_model.level_demand[10],
@@ -158,7 +162,11 @@ def add_water_users(ribasim_model: ribasim.Model) -> ribasim.Model:
     )
     ribasim_model.level_demand.add(
         ribasim.Node(11, Point(740.0, 10.0), subnetwork_id=3),
-        [level_demand.Static(demand_priority=[1], min_level=[-1.0e6], max_level=[-1.0e6])],
+        [
+            level_demand.Static(
+                demand_priority=[1], min_level=[-1.0e6], max_level=[-1.0e6]
+            )
+        ],
     )
     ribasim_model.edge.add(
         ribasim_model.level_demand[11],
@@ -195,8 +203,8 @@ def two_basin_model_sprinkling_sw_variations(
     ribasim_two_basin_model.basin.state.df["level"].loc[
         ribasim_two_basin_model.basin.node.df.index == 3
     ] = 8.0
-    ribasim_two_basin_model.basin.profile.df.loc[4] = [2,400.0,3000.0,None]
-    ribasim_two_basin_model.basin.profile.df.loc[5] = [3,400.0,3000.0,None]
+    ribasim_two_basin_model.basin.profile.df.loc[4] = [2, 400.0, 3000.0, None]
+    ribasim_two_basin_model.basin.profile.df.loc[5] = [3, 400.0, 3000.0, None]
     new_df = pd.DataFrame(
         {
             "node_id": np.array([4] * 3),
@@ -646,10 +654,8 @@ def case_two_basin_model_sprinkling_sw_allocation(
         msw_two_basin_model_3layer,
         ribasim_two_basin_model,
     )
-    ribametamod.ribasim_model.allocation = ribasim.Allocation(
-        timestep=86400.0
-    )
-    ribametamod.ribasim_model.experimental.allocation=True
+    ribametamod.ribasim_model.allocation = ribasim.Allocation(timestep=86400.0)
+    ribametamod.ribasim_model.experimental.allocation = True
     return ribametamod
 
 
@@ -663,10 +669,8 @@ def case_two_basin_model_sprinkling_sw_allocation_dtsw_05(
         msw_two_basin_model_3layer,
         ribasim_two_basin_model,
     )
-    ribametamod.ribasim_model.allocation = ribasim.Allocation(
-        timestep=86400.0
-    )
-    ribametamod.ribasim_model.experimental.allocation=False
+    ribametamod.ribasim_model.allocation = ribasim.Allocation(timestep=86400.0)
+    ribametamod.ribasim_model.experimental.allocation = False
     # update delt-sw for MetaSWAP
     ribametamod.msw_model.simulation_settings["dtsw"] = 0.5
     return ribametamod

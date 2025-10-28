@@ -1,4 +1,3 @@
-import os
 import subprocess
 import textwrap
 from collections.abc import Callable
