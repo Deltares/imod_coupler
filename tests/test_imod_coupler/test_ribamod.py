@@ -42,7 +42,7 @@ def write_run_read(
     basin_df = pd.read_feather(
         tmp_path / ribamod_model._ribasim_model_dir / "results" / "basin.arrow"
     )
-    if not ribamod_model.ribasim_model.edge.df.empty:
+    if not ribamod_model.ribasim_model.link.df.empty:
         flow_df = pd.read_feather(
             tmp_path / ribamod_model._ribasim_model_dir / "results" / "flow.arrow"
         )
