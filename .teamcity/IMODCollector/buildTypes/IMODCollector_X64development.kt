@@ -38,13 +38,6 @@ object IMODCollector_X64development : BuildType({
             """.trimIndent()
         }
         script {
-            name = "Download Release Ribasim v2024.11.0"
-            scriptContent = """
-                curl -L -o ribasim_windows.zip https://github.com/Deltares/Ribasim/releases/download/v2024.11.0/ribasim_windows.zip
-                unzip  "ribasim_windows.zip"
-            """.trimIndent()
-        }
-        script {
             name = "Install iMOD Coupler"
             enabled = false
             workingDir = "coupler"
@@ -95,6 +88,13 @@ object IMODCollector_X64development : BuildType({
            cleanDestination = true
            buildRule = lastSuccessful("+::branches/update_4210")
            artifactRules = "MetaSWAP.zip!/x64/Release => metaswap"
+        }
+    }
+    dependencies {
+        artifacts(AbsoluteId("Ribasim_Windows_BuildRibasim")) {
+           cleanDestination = true
+           buildRule = tag("v2025.6.0")
+           artifactRules = "ribasim_windows.zip!/ribasim => ribasim"
         }
     }
 
