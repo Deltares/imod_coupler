@@ -94,7 +94,7 @@ def test_ribamod_write__error(
 
     with pytest.raises(
         ValueError,
-        match="ribasim.model.basin.subgrid must be defined for actively coupled packages.",
+        match="Either ribasim.model.basin.subgrid or ribasim_model.basin.subgrid_time.df must be defined for actively coupled packages.",
     ):
         coupled_models.write_exchanges(output_dir)
 

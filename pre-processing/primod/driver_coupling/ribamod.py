@@ -113,7 +113,12 @@ class RibaModDriverCoupling(DriverCoupling, abc.ABC):
             ] = filename
             coupled_basin_indices.append(basin_index)
 
-        coupled_basin_indices = np.unique(np.concatenate(coupled_basin_indices))
+        # join all index lists in coupled_basin_indices
+        all_coupled_basin_indices = []
+        for cpl in coupled_basin_indices:
+            all_coupled_basin_indices += cpl.tolist()
+        # force uniqueness onto the combined list
+        coupled_basin_indices = list(set(all_coupled_basin_indices))
         coupled_basin_node_ids = basin_ids[coupled_basin_indices]
 
         _nullify_ribasim_exchange_input(
@@ -202,19 +207,6 @@ class RibaModActiveDriverCoupling(RibaModDriverCoupling):
     def _prefix(self) -> str:
         return "active"
 
-    def _validate_subgrid_df(self, ribasim_model: ribasim.Model) -> pd.DataFrame | None:
-        if self.mf6_packages:
-            if (
-                ribasim_model.basin.subgrid.df is None
-                and ribasim_model.basin.subgrid_time.df is None
-            ):
-                raise ValueError(
-                    "ribasim.model.basin.subgrid must be defined for actively coupled packages."
-                )
-            return (ribasim_model.basin.subgrid.df, ribasim_model.basin.subgrid_time.df)
-        else:
-            return None
-
     def derive_mapping(
         self,
         name: str,
@@ -223,11 +215,20 @@ class RibaModActiveDriverCoupling(RibaModDriverCoupling):
         basin_ids: pd.Series,
         ribasim_model: ribasim.Model,
     ) -> ActiveNodeBasinMapping:
-        subgrid_df, subgrid_time_df = self._validate_subgrid_df(ribasim_model)
-        subgrids_df = pd.concat([subgrid_df, subgrid_time_df], ignore_index=True)
-        if "time" in subgrids_df.columns:
-            subgrids_df = subgrids_df.drop(columns=["time"], axis=1)
-        subgrids_df.index.names = ["fid"]
+        if self.mf6_packages:
+            subgrid_df = ribasim_model.basin.subgrid.df
+            subgrid_time_df = ribasim_model.basin.subgrid_time.df
+            if subgrid_df is None and subgrid_time_df is None:
+                raise ValueError(
+                    "Either ribasim.model.basin.subgrid or ribasim_model.basin.subgrid_time.df must be defined for actively coupled packages."
+                )
+            subgrids_df = pd.concat([subgrid_df, subgrid_time_df], ignore_index=True)
+            if "time" in subgrids_df.columns:
+                subgrids_df = subgrids_df.drop(columns=["time"], axis=1)
+            subgrids_df.index.names = ["fid"]
+        else:
+            subgrids_df = None
+
         mapping = ActiveNodeBasinMapping(
             name=name,
             conductance=conductance,
