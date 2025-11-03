@@ -35,6 +35,7 @@ class RibaModDriverCoupling(DriverCoupling, abc.ABC):
     ribasim_basin_definition: gpd.GeoDataFrame | xr.Dataset
     mf6_packages: list[str]
     subgrid_id_range: pd.DataFrame | None = None
+    subgrid_df: pd.DataFrame | None = None
 
     @abc.abstractmethod
     def derive_mapping(
@@ -138,6 +139,18 @@ class RibaModDriverCoupling(DriverCoupling, abc.ABC):
         gridded_basin: xr.DataArray,
     ) -> tuple[str, str, pd.DataFrame]:
         package = gwf_model[gwf_package_key]
+        
+        sgrid_df = ribasim_model.basin.subgrid.df
+        sgrid_time_df = ribasim_model.basin.subgrid_time.df
+        if sgrid_df is None and sgrid_time_df is None:
+            raise ValueError(
+            "Either ribasim.model.basin.subgrid or ribasim_model.basin.subgrid_time.df must be defined for actively coupled packages."
+            )
+        self.subgrid_df = pd.concat([sgrid_df, sgrid_time_df], ignore_index=True)
+        if "time" in self.subgrid_df.columns:
+            self.subgrid_df = self.subgrid_df.drop(columns=["time"], axis=1)
+        self.subgrid_df.index.names = ["fid"]        
+
         mapping = self.derive_mapping(
             name=gwf_package_key,
             gridded_basin=gridded_basin,
@@ -166,7 +179,7 @@ class RibaModDriverCoupling(DriverCoupling, abc.ABC):
             # in active coupling, check subgrid levels versus modflow bottom elevation
             if isinstance(self, RibaModActiveDriverCoupling):
                 # Cast to geodataframe for mypy
-                subgrid_df = cast(gpd.GeoDataFrame, ribasim_model.basin.subgrid.df)
+                ubgrid_df = cast(gpd.GeoDataFrame, self.subgrid_df)
                 #  check on the bottom elevation and ribasim minimal subgrid level
                 minimum_subgrid_level = (
                     subgrid_df.groupby("subgrid_id").min()["subgrid_level"].to_numpy()
@@ -216,27 +229,18 @@ class RibaModActiveDriverCoupling(RibaModDriverCoupling):
         ribasim_model: ribasim.Model,
     ) -> ActiveNodeBasinMapping:
         if self.mf6_packages:
-            subgrid_df = ribasim_model.basin.subgrid.df
-            subgrid_time_df = ribasim_model.basin.subgrid_time.df
-            if subgrid_df is None and subgrid_time_df is None:
+            if self.subgrid_df is None:
                 raise ValueError(
                     "Either ribasim.model.basin.subgrid or ribasim_model.basin.subgrid_time.df must be defined for actively coupled packages."
                 )
-            subgrids_df = pd.concat([subgrid_df, subgrid_time_df], ignore_index=True)
-            if "time" in subgrids_df.columns:
-                subgrids_df = subgrids_df.drop(columns=["time"], axis=1)
-            subgrids_df.index.names = ["fid"]
-        else:
-            subgrids_df = None
 
         mapping = ActiveNodeBasinMapping(
             name=name,
             conductance=conductance,
             gridded_basin=gridded_basin,
             basin_ids=basin_ids,
-            subgrid_df=subgrids_df,
+            subgrid_df=self.subgrid_df,
         )
-        ribasim_model.basin.subgrid.df = subgrids_df
         return mapping
 
 
