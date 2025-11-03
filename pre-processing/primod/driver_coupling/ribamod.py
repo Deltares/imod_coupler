@@ -179,7 +179,7 @@ class RibaModDriverCoupling(DriverCoupling, abc.ABC):
             # in active coupling, check subgrid levels versus modflow bottom elevation
             if isinstance(self, RibaModActiveDriverCoupling):
                 # Cast to geodataframe for mypy
-                ubgrid_df = cast(gpd.GeoDataFrame, self.subgrid_df)
+                subgrid_df = cast(gpd.GeoDataFrame, self.subgrid_df)
                 #  check on the bottom elevation and ribasim minimal subgrid level
                 minimum_subgrid_level = (
                     subgrid_df.groupby("subgrid_id").min()["subgrid_level"].to_numpy()
