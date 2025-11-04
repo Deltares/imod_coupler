@@ -139,17 +139,17 @@ class RibaModDriverCoupling(DriverCoupling, abc.ABC):
         gridded_basin: xr.DataArray,
     ) -> tuple[str, str, pd.DataFrame]:
         package = gwf_model[gwf_package_key]
-        
+
         sgrid_df = ribasim_model.basin.subgrid.df
         sgrid_time_df = ribasim_model.basin.subgrid_time.df
         if sgrid_df is None and sgrid_time_df is None:
             raise ValueError(
-            "Either ribasim.model.basin.subgrid or ribasim_model.basin.subgrid_time.df must be defined for actively coupled packages."
+                "Either ribasim.model.basin.subgrid or ribasim_model.basin.subgrid_time.df must be defined for actively coupled packages."
             )
         self.subgrid_df = pd.concat([sgrid_df, sgrid_time_df], ignore_index=True)
         if "time" in self.subgrid_df.columns:
             self.subgrid_df = self.subgrid_df.drop(columns=["time"], axis=1)
-        self.subgrid_df.index.names = ["fid"]        
+        self.subgrid_df.index.names = ["fid"]
 
         mapping = self.derive_mapping(
             name=gwf_package_key,
