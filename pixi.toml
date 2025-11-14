@@ -19,7 +19,6 @@ geopandas = ">=1.0.0"
 netCDF4 = "*"
 loguru = "*"
 numpy = ">=2.0"
-imod = "*"
 pip = "*"
 pydantic = ">=2.11.0"
 pyinstaller = "*"
@@ -29,6 +28,7 @@ scipy = "*"
 tomli = "*"
 tomli-w = "*"
 xmipy = "*"
+imod = "1.0.0.post1"
 
 [pypi-dependencies]
 ribasim = { git = "https://github.com/Deltares/Ribasim.git", tag = "v2025.5.0", subdirectory= "python/ribasim"}
@@ -87,11 +87,9 @@ publish-primod = { cmd = "rm --recursive --force dist && python -m build && twin
 
 [feature.py312.dependencies]
 python = "3.12.*"
-imod = ">=1.0.0rc5"
 
 [feature.py311.dependencies]
 python = "3.11.*"
-imod = ">=1.0.0rc5"
 
 [environments]
 default = { features = ["py312"], solve-group = "py312" }
