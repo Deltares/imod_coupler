@@ -44,7 +44,7 @@ Source = "https://github.com/Deltares/imod_coupler"
 
 [tool.ruff]
 lint.select = ["C4", "E", "F", "I", "NPY", "PD", "UP"]
-lint.ignore = ["E501", "PD901", "PD004"]
+lint.ignore = ["E501", "PD004"]
 lint.fixable = ["I"]
 
 [tool.mypy]

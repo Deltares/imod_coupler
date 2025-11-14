@@ -38,9 +38,9 @@ object IMODCollector_X64development : BuildType({
             """.trimIndent()
         }
         script {
-            name = "Download Release Ribasim v2024.11.0"
+            name = "Download Release Ribasim"
             scriptContent = """
-                curl -L -o ribasim_windows.zip https://github.com/Deltares/Ribasim/releases/download/v2024.11.0/ribasim_windows.zip
+                curl -L -o ribasim_windows.zip https://github.com/Deltares/Ribasim/releases/download/v2025.5.0/ribasim_windows.zip
                 unzip  "ribasim_windows.zip"
             """.trimIndent()
         }

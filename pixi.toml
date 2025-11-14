@@ -15,25 +15,24 @@ install-minimal = { depends-on = ["install-imodc"] }
 build-imod-coupler = "rm -rf dist && pyinstaller imod_coupler/__main__.py --name imodc"
 
 [dependencies]
-geopandas = "1.0.*"
+geopandas = ">=1.0.0"
 netCDF4 = "*"
 loguru = "*"
-numpy = "<2.0"
+numpy = ">=2.0"
 imod = "*"
 pip = "*"
-pandera = "0.20.*"
-pydantic = "2.*"
+pydantic = ">=2.11.0"
 pyinstaller = "*"
 python = ">=3.10"
+xarray = ">=2025.8.0"
 scipy = "*"
 tomli = "*"
 tomli-w = "*"
 xmipy = "*"
 
 [pypi-dependencies]
-ribasim = { git = "https://github.com/Deltares/Ribasim.git", tag = "v2024.11.0", subdirectory= "python/ribasim"}
-ribasim_testmodels = { git = "https://github.com/Deltares/Ribasim.git", tag = "v2024.11.0", subdirectory= "python/ribasim_testmodels"}
-
+ribasim = { git = "https://github.com/Deltares/Ribasim.git", tag = "v2025.5.0", subdirectory= "python/ribasim"}
+ribasim_testmodels = { git = "https://github.com/Deltares/Ribasim.git", tag = "v2025.5.0", subdirectory= "python/ribasim_testmodels"}
 
 [feature.common.tasks]
 # Install
