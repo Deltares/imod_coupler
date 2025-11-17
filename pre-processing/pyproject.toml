@@ -7,7 +7,8 @@ name = "primod"
 description = "Pre-process iMOD Coupler"
 readme = "README.md"
 authors = [
-    { name = "Julian Hofer", email = "Julian.Hofer@deltares.nl" },
+    { name = "Hendrik Kok", email = "Hendrik.Kok@deltares.nl" },
+    { name = "Robert Leander", email = "Robert.Leander@deltares.nl" },
     { name = "Joeri van Engelen", email = "Joeri.vanEngelen@deltares.nl" },
     { name = "Huite Bootsma", email = "Huite.Bootsma@deltares.nl" },
 ]
@@ -19,7 +20,7 @@ classifiers = [
 requires-python = ">=3.10"
 dependencies = [
     "geopandas",
-    "imod",
+    "imod>=1",
     "numpy",
     "pandas",
     "pydantic",
