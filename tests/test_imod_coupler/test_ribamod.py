@@ -42,7 +42,7 @@ def write_run_read(
     basin_df = pd.read_feather(
         tmp_path / ribamod_model._ribasim_model_dir / "results" / "basin.arrow"
     )
-    if not ribamod_model.ribasim_model.edge.df.empty:
+    if not ribamod_model.ribasim_model.link.df.empty:
         flow_df = pd.read_feather(
             tmp_path / ribamod_model._ribasim_model_dir / "results" / "flow.arrow"
         )
@@ -163,7 +163,7 @@ def test_ribamod_backwater(
     drn = results.budgets["drn_drn-1"].isel(time=-1).compute()
     riv = results.budgets["riv_riv-1"].isel(time=-1).compute()
 
-    # Get the last flow between the edges
+    # Get the last flow between the links
     volume_balance = results.basin_df[results.basin_df["time"] == "2020-12-31"]
     # Check's what lost and gained in the basins
     ribasim_budget = (
@@ -208,7 +208,7 @@ def test_ribamod_two_basin(
     ]
     assert level1 > level2
 
-    # Flow in the edges is always to the right.
+    # Flow in the links is always to the right.
     assert (
         results.flow_df["flow_rate"].loc[results.flow_df["link_id"].notna()] >= 0
     ).all()
