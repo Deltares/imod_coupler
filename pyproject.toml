@@ -7,11 +7,10 @@ name = "imod_coupler"
 description = "iMOD Coupler can be used to couple hydrological kernels"
 readme = "README.md"
 authors = [
-    { name = "Julian Hofer", email = "Julian.Hofer@deltares.nl" },
     { name = "Martijn Russcher", email = "Martijn.Russcher@deltares.nl" },
     { name = "Robert Leander", email = "Robert.Leander@deltares.nl" },
     { name = "Joeri van Engelen", email = "Joeri.vanEngelen@deltares.nl" },
-    { name = "Luit Jan Slooten", email = "LuitJan.Slooten@deltares.nl" },
+    { name = "Hendrik Kok", email = "Hendrik.Kok@deltares.nl"},
     { name = "Huite Bootsma", email = "Huite.Bootsma@deltares.nl" },
 ]
 license = { text = "MIT" }
