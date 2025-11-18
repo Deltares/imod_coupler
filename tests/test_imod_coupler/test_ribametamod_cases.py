@@ -139,13 +139,13 @@ def add_water_users(ribasim_model: ribasim.Model) -> ribasim.Model:
     )
 
     # add two-way connections to water-user nodes; basin 2
-    ribasim_model.edge.add(ribasim_model.basin[2], ribasim_model.user_demand[7])
-    ribasim_model.edge.add(ribasim_model.user_demand[7], ribasim_model.basin[2])
-    ribasim_model.edge.add(ribasim_model.basin[2], ribasim_model.user_demand[8])
-    ribasim_model.edge.add(ribasim_model.user_demand[8], ribasim_model.basin[2])
+    ribasim_model.link.add(ribasim_model.basin[2], ribasim_model.user_demand[7])
+    ribasim_model.link.add(ribasim_model.user_demand[7], ribasim_model.basin[2])
+    ribasim_model.link.add(ribasim_model.basin[2], ribasim_model.user_demand[8])
+    ribasim_model.link.add(ribasim_model.user_demand[8], ribasim_model.basin[2])
     # add two-way connections to water-user nodes; basin 3
-    ribasim_model.edge.add(ribasim_model.basin[3], ribasim_model.user_demand[9])
-    ribasim_model.edge.add(ribasim_model.user_demand[9], ribasim_model.basin[3])
+    ribasim_model.link.add(ribasim_model.basin[3], ribasim_model.user_demand[9])
+    ribasim_model.link.add(ribasim_model.user_demand[9], ribasim_model.basin[3])
 
     # add default level-control to basins
     ribasim_model.level_demand.add(
@@ -156,7 +156,7 @@ def add_water_users(ribasim_model: ribasim.Model) -> ribasim.Model:
             )
         ],
     )
-    ribasim_model.edge.add(
+    ribasim_model.link.add(
         ribasim_model.level_demand[10],
         ribasim_model.basin[2],
     )
@@ -168,7 +168,7 @@ def add_water_users(ribasim_model: ribasim.Model) -> ribasim.Model:
             )
         ],
     )
-    ribasim_model.edge.add(
+    ribasim_model.link.add(
         ribasim_model.level_demand[11],
         ribasim_model.basin[3],
     )

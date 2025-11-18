@@ -31,8 +31,8 @@ xmipy = "*"
 imod = "1.0.0.post1"
 
 [pypi-dependencies]
-ribasim = { git = "https://github.com/Deltares/Ribasim.git", tag = "v2025.5.0", subdirectory= "python/ribasim"}
-ribasim_testmodels = { git = "https://github.com/Deltares/Ribasim.git", tag = "v2025.5.0", subdirectory= "python/ribasim_testmodels"}
+ribasim = { git = "https://github.com/Deltares/Ribasim.git", tag = "v2025.6.0", subdirectory= "python/ribasim"}
+ribasim_testmodels = { git = "https://github.com/Deltares/Ribasim.git", tag = "v2025.6.0", subdirectory= "python/ribasim_testmodels"}
 
 [feature.common.tasks]
 # Install
@@ -88,11 +88,7 @@ publish-primod = { cmd = "rm --recursive --force dist && python -m build && twin
 [feature.py312.dependencies]
 python = "3.12.*"
 
-[feature.py311.dependencies]
-python = "3.11.*"
-
 [environments]
 default = { features = ["py312"], solve-group = "py312" }
 dev = { features = ["py312", "dev", "common"], solve-group = "py312" }
 py312 = { features = ["py312", "common"], solve-group = "py312" }
-py311 = ["py311", "common"]
