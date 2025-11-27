@@ -33,8 +33,8 @@ object IMODCollector_X64development : BuildType({
             name = "Download Release MODFLOW 6.5.0"
             scriptContent = """
                 mkdir modflow6
-                curl -O https://water.usgs.gov/water-resources/software/MODFLOW-6/mf6.6.3_win64.zip
-                unzip  -j "mf6.6.3_win64.zip" -d modflow6 mf6.6.3_win64/bin/libmf6.dll
+                curl -O https://water.usgs.gov/water-resources/software/MODFLOW-6/mf6.6.2_win64.zip
+                unzip  -j "mf6.6.2_win64.zip" -d modflow6 mf6.6.2_win64/bin/libmf6.dll
             """.trimIndent()
         }
         script {
