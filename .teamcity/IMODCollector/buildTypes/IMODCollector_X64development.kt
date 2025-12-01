@@ -20,6 +20,8 @@ object IMODCollector_X64development : BuildType({
 
     params {
         param("conda_env_path", "%system.teamcity.build.checkoutDir%/imod_collector_env")
+        param("reverse.dep.Modflow_Modflow6Release.MODFLOW6_Version", "6.6.3")
+        param("reverse.dep.Modflow_Modflow6Release.MODFLOW6_Platform", "win64")
     }
 
     vcs {
@@ -29,14 +31,6 @@ object IMODCollector_X64development : BuildType({
     }
 
     steps {
-        script {
-            name = "Download Release MODFLOW 6.5.0"
-            scriptContent = """
-                mkdir modflow6
-                curl -O https://water.usgs.gov/water-resources/software/MODFLOW-6/mf6.5.0_win64.zip
-                unzip  -j "mf6.5.0_win64.zip" -d modflow6 mf6.5.0_win64/bin/libmf6.dll
-            """.trimIndent()
-        }
         script {
             name = "Download Release Ribasim"
             scriptContent = """
@@ -91,6 +85,15 @@ object IMODCollector_X64development : BuildType({
     }
 
     dependencies {
+        dependency(AbsoluteId("Modflow_Modflow6Release")) {
+            snapshot {
+                onDependencyFailure = FailureAction.FAIL_TO_START
+            }
+            artifacts {
+                artifactRules = "+:MODFLOW6.zip!** => modflow6"
+            }
+        }
+
         artifacts(AbsoluteId("MSWMOD_MetaSWAP_MetaSWAPBuildWin64")) {
            cleanDestination = true
            buildRule = lastSuccessful("+::branches/update_4210")
