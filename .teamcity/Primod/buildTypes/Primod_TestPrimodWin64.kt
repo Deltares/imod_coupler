@@ -43,15 +43,6 @@ object Primod_TestPrimodWin64 : Template({
 
     steps {
         script {
-            name = "Set up pixi"
-            id = "RUNNER_1501"
-            workingDir = "imod_coupler"
-            scriptContent = """
-                pixi --version
-                pixi run --environment %pixi-environment% install
-            """.trimIndent()
-        }
-        script {
             name = "Run tests"
             id = "RUNNER_1503"
             workingDir = "imod_coupler"
