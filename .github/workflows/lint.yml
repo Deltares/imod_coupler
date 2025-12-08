@@ -16,8 +16,6 @@ jobs:
       - uses: prefix-dev/setup-pixi@v0.9.3
         with:
           pixi-version: "latest"
-      - name: Prepare pixi
-        run: pixi run --environment=dev install
       - name: Run ruff format
         run: |
           pixi run format-check
@@ -34,8 +32,6 @@ jobs:
       - uses: prefix-dev/setup-pixi@v0.9.3
         with:
           pixi-version: "latest"
-      - name: Prepare pixi
-        run: pixi run --environment=dev install
       - name: Run mypy on imodc
         run: |
           pixi run mypy-imodc
@@ -52,8 +48,6 @@ jobs:
       - uses: prefix-dev/setup-pixi@v0.9.3
         with:
           pixi-version: "latest"
-      - name: Prepare pixi
-        run: pixi run --environment=dev install
       - name: Check packages
         run: |
           pixi run check-package-primod
