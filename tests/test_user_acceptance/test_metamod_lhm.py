@@ -20,6 +20,9 @@ from imod.mf6.ims import Solution
 from imod.mf6.oc import OutputControl
 from imod.mf6.simulation import Modflow6Simulation
 
+from typing import Callable
+
+from primod import MetaMod, MetaModDriverCoupling
 
 def convert_imod5_to_mf6_sim(imod5_data: dict, period_data: dict, times: list) -> Modflow6Simulation:
     simulation = Modflow6Simulation.from_imod5_data(
@@ -128,13 +131,11 @@ def convert_imod5_to_msw_model(
 
     return msw_model
 
-@pytest.mark.user_acceptance
 def import_lhm_mf6_and_msw():
     """
     Convert iMOD5 LHM model to MODFLOW 6 using imod-python
     """
-    # user_acceptance_dir = Path(os.environ["USER_ACCEPTANCE_DIR"])
-    user_acceptance_dir = Path(__file__)
+    user_acceptance_dir = Path(os.environ["USER_ACCEPTANCE_DIR"])
     lhm_dir = user_acceptance_dir / "LHM_transient"
     lhm_prjfile = lhm_dir / "model" / "LHM_transient_test.PRJ"
     logfile_path = lhm_dir / "logfile_mf6.txt"
@@ -157,11 +158,63 @@ def import_lhm_mf6_and_msw():
         imod5_data, period_data = open_projectfile_data(lhm_prjfile)
 
         # Convert to MODFLOW 6 simulation and cleanup
-        simulation = convert_imod5_to_mf6_sim(imod5_data, period_data, times)
-        cleanup_mf6_sim(simulation)
+        mf6_simulation = convert_imod5_to_mf6_sim(imod5_data, period_data, times)
+        cleanup_mf6_sim(mf6_simulation)
 
         # Convert to MetaSwap model
-        msw_model = convert_imod5_to_msw_model(imod5_data, simulation, times)
+        msw_model = convert_imod5_to_msw_model(imod5_data, mf6_simulation, times)
 
-    return simulation, msw_model
+    return mf6_simulation, msw_model
 
+def lhm_driver_coupling():
+    """
+    Test coupling of LHM MODFLOW 6 and MetaSwap models
+    """
+    mf6_simulation, msw_model = import_lhm_mf6_and_msw()
+
+    driver_coupling = MetaModDriverCoupling(
+        mf6_model="imported_model", mf6_recharge_package="msw-rch", mf6_wel_package="msw-sprinkling"
+    )
+    return MetaMod(
+        msw_model,
+        mf6_simulation,
+        coupling_list=[driver_coupling],
+    )
+
+@pytest.mark.user_acceptance
+def test_lhm_conversion(
+    tmp_path_dev: Path,
+    metaswap_dll_devel: Path,
+    metaswap_dll_dep_dir_devel: Path,
+    modflow_dll_devel: Path,
+    run_coupler_function: Callable[[Path], None],
+) -> None:
+    """
+    Test LHM iMOD5 to MODFLOW 6 conversion
+    """
+    metamod_model = lhm_driver_coupling()
+    
+    assert isinstance(metamod_model, MetaMod)
+
+    metamod_model.write(
+        tmp_path_dev,
+        modflow6_dll=modflow_dll_devel,
+        metaswap_dll=metaswap_dll_devel,
+        metaswap_dll_dependency=metaswap_dll_dep_dir_devel,
+    )
+
+    run_coupler_function(tmp_path_dev / metamod_model._toml_name)
+
+    # Test if MetaSWAP output written
+    assert len(list((tmp_path_dev / "MetaSWAP").glob("*/*.idf"))) == 1704
+
+    # Test if Modflow6 output written
+    headfile = tmp_path_dev / "Modflow6" / "imported_model" / "imported_model.hds"
+    cbcfile = tmp_path_dev / "Modflow6" / "imported_model" / "imported_model.cbc"
+
+    assert headfile.exists()
+    assert cbcfile.exists()
+    # If computation failed, Modflow6 usually writes a headfile and cbcfile of 0
+    # bytes.
+    assert headfile.stat().st_size > 0
+    assert cbcfile.stat().st_size > 0
