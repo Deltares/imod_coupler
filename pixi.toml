@@ -85,6 +85,29 @@ lint = { depends-on = ["format", "ruff", "mypy-imodc", "mypy-primod"] }
 # Publish primod
 publish-primod = { cmd = "rm --recursive --force dist && python -m build && twine check dist/* && twine upload dist/*", cwd = "pre-processing" }
 
+[target.win-64.dependencies]
+7zip = "*"
+
+[target.linux-64.dependencies]
+p7zip = "*"
+
+[feature.user-acceptance.dependencies]
+dvc = "*"
+dvc-s3 = "*"
+rioxarray = "*"
+
+[feature.user-acceptance.tasks]
+pull_data = "dvc pull --remote minio"
+fetch_lhm = {cmd = "7z x LHM_transient.zip -o. -y", depends-on = ["pull_data"], cwd = "tests/data/user_acceptance"}
+user_acceptance = { cmd = [
+    "pytest",
+    "-m", "user_acceptance",
+    "--cache-clear",
+    "--verbose",
+    "--junitxml=user_acceptance_report.xml",
+], depends-on = ["install"], env = { USER_ACCEPTANCE_DIR = "tests/data/user_acceptance"} }
+run_imod5 = {cmd = ["prepare_mf6_transient_imod5.bat"], cwd = "tests/data/user_acceptance/LHM_transient/scripts_imod-5"}
+
 [feature.py312.dependencies]
 python = "3.12.*"
 
@@ -92,3 +115,4 @@ python = "3.12.*"
 default = { features = ["py312"], solve-group = "py312" }
 dev = { features = ["py312", "dev", "common"], solve-group = "py312" }
 py312 = { features = ["py312", "common"], solve-group = "py312" }
+user-acceptance = { features = ["py312", "common", "user-acceptance"], solve-group = "py312" }
