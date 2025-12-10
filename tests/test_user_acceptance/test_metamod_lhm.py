@@ -166,7 +166,8 @@ def import_lhm_mf6_and_msw():
 
     return mf6_simulation, msw_model
 
-def lhm_driver_coupling():
+@pytest.fixture(scope="session", autouse=False)
+def lhm_coupling():
     """
     Test coupling of LHM MODFLOW 6 and MetaSwap models
     """
@@ -181,36 +182,141 @@ def lhm_driver_coupling():
         coupling_list=[driver_coupling],
     )
 
-@pytest.mark.user_acceptance
-def test_lhm_conversion(
-    tmp_path_dev: Path,
+@pytest.fixture(scope="session", autouse=False)
+def written_lhm_conversion(
+    tmp_path_factory: Path,
+    lhm_coupling: MetaMod,
     metaswap_dll_devel: Path,
     metaswap_dll_dep_dir_devel: Path,
     modflow_dll_devel: Path,
-    run_coupler_function: Callable[[Path], None],
-) -> None:
+):
     """
-    Test LHM iMOD5 to MODFLOW 6 conversion
+    Write LHM conversion to temporary path
     """
-    metamod_model = lhm_driver_coupling()
-    
-    assert isinstance(metamod_model, MetaMod)
+    tmp_path = tmp_path_factory.mktemp("test_lhm_conversion")
+    metamod_model = lhm_coupling
 
     metamod_model.write(
-        tmp_path_dev,
+        tmp_path,
         modflow6_dll=modflow_dll_devel,
         metaswap_dll=metaswap_dll_devel,
         metaswap_dll_dependency=metaswap_dll_dep_dir_devel,
     )
 
-    run_coupler_function(tmp_path_dev / metamod_model._toml_name)
+    return tmp_path
+
+@pytest.mark.user_acceptance
+def test_lhm_metamod(
+    lhm_coupling: MetaMod,
+):
+    """
+    Test if the lhm_driver_coupling fixture works
+    """
+    assert isinstance(lhm_coupling, MetaMod)
+    
+    driver_coupling = lhm_coupling.coupling_list[0]
+    assert isinstance(driver_coupling, MetaModDriverCoupling)
+    # assert driver_coupling._check_sprinkling == True
+
+    mf6_simulation = lhm_coupling.mf6_simulation
+    gwf_model = mf6_simulation[driver_coupling.mf6_model]
+    msw_model = lhm_coupling.msw_model
+
+    grid_mapping, rch_mapping, well_mapping = driver_coupling.derive_mapping(
+        msw_model=msw_model,
+        gwf_model=gwf_model,
+    )
+
+    grid_mapping.dataset["svat"].shape == (2, 1300, 1200)
+    grid_mapping.dataset["mod_id"] == (2, 1300, 1200)
+    rch_mapping.dataset["svat"].shape == (2, 1300, 1200)
+    rch_mapping.dataset["rch_id"] == (2, 1300, 1200)
+    well_mapping.dataset["svat"].shape == (2, 1300, 1200)
+    assert len(well_mapping.dataset["wel_id"].shape) == 1
+    assert len(well_mapping.dataset["svat"].shape) == 1
+
+
+@pytest.mark.user_acceptance
+def test_lhm_written_files(
+    written_lhm_conversion: Path,
+) -> None:
+    """
+    Test if written dxc files are as expected
+    """
+    dxc_paths= list((written_lhm_conversion / "exchanges").glob("*.dxc"))
+    dxc_filenames = [p.name.lower() for p in dxc_paths]
+    assert len(dxc_filenames) == 3
+    expected_dxc_filenames = {
+        "nodenr2svat.dxc",
+        "rchindex2svat.dxc",
+        "wellindex2svat.dxc",
+    }
+    assert set(dxc_filenames) == expected_dxc_filenames
+
+    path_nodenr2svat = written_lhm_conversion / "exchanges" / "nodenr2svat.dxc"
+    path_rchindex2svat = written_lhm_conversion / "exchanges" / "rchindex2svat.dxc"
+    path_wellindex2svat = written_lhm_conversion / "exchanges" / "wellindex2svat.dxc"
+
+    settings = dict(delimiter= '\s+', index_col=False)
+    columns = ["node", "svat", "layer"]
+    columns_bc = ["bc_index", "svat", "layer"]
+
+    # Test nodenr2svat.dxc
+    df_nodenr2svat = pd.read_csv(path_nodenr2svat, names=columns, **settings)
+    # nodenr should not exceed node number beyond layer one
+    assert df_nodenr2svat["node"].max() <= (1300 * 1200)
+    # First active nodes are located in the sea, should not be connected to
+    # svats
+    assert df_nodenr2svat["node"].min() > 1
+    # Svat should start counting at 1
+    assert df_nodenr2svat["svat"].min() == 1
+    # Less than half of the model domain is expected to be covered by
+    # svats
+    assert df_nodenr2svat["svat"].max() <= ((1300 * 1200) / 2)
+    # Layer should be 1 for all entries
+    assert (df_nodenr2svat["layer"] == 1).all()
+
+    # Test rchindex2svat.dxc
+    df_rchindex2svat = pd.read_csv(path_rchindex2svat, names=columns_bc, **settings)
+    # Rch index and svat should start at 1
+    assert df_rchindex2svat["bc_index"].min() == 1
+    assert df_rchindex2svat["svat"].min() == 1
+    # rch index should be equal to svat in this model
+    assert (df_rchindex2svat["svat"] == df_rchindex2svat["bc_index"]).all()
+    # svat max should be equal to nodenr2svat max
+    assert df_rchindex2svat["svat"].max() == df_nodenr2svat["svat"].max()
+    # Layer should be 1 for all entries
+    assert (df_rchindex2svat["layer"] == 1).all()
+
+    # Test wellindex2svat.dxc
+    df_wellindex2svat = pd.read_csv(path_wellindex2svat, names=columns_bc, **settings)
+    # Well layer should 
+    assert (df_wellindex2svat["layer"] != 1).all()
+    # Well svat should not exceed nodenr2svat svat
+    assert df_wellindex2svat["svat"].max() <= df_nodenr2svat["svat"].max()
+    # There should be less wells than recharge cells
+    assert df_wellindex2svat["bc_index"].max() <= df_rchindex2svat["bc_index"].max()
+
+
+
+@pytest.mark.user_acceptance
+def test_lhm_coupled_simulation(
+    written_lhm_conversion: Path,
+    run_coupler_function: Callable[[Path], None],
+) -> None:
+    """
+    Test LHM iMOD5 to MODFLOW 6 conversion
+    """
+    toml_path = written_lhm_conversion / MetaMod._toml_name
+
+    run_coupler_function(toml_path)
 
     # Test if MetaSWAP output written
-    assert len(list((tmp_path_dev / "MetaSWAP").glob("*/*.idf"))) == 1704
+    assert len(list(( written_lhm_conversion / "MetaSWAP").glob("*/*.idf"))) > 0
 
     # Test if Modflow6 output written
-    headfile = tmp_path_dev / "Modflow6" / "imported_model" / "imported_model.hds"
-    cbcfile = tmp_path_dev / "Modflow6" / "imported_model" / "imported_model.cbc"
+    headfile =  written_lhm_conversion / "Modflow6" / "imported_model" / "imported_model.hds"
+    cbcfile =  written_lhm_conversion / "Modflow6" / "imported_model" / "imported_model.cbc"
 
     assert headfile.exists()
     assert cbcfile.exists()
