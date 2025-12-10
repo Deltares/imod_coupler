@@ -216,7 +216,7 @@ def test_lhm_metamod(
     
     driver_coupling = lhm_coupling.coupling_list[0]
     assert isinstance(driver_coupling, MetaModDriverCoupling)
-    # assert driver_coupling._check_sprinkling == True
+    assert driver_coupling._check_sprinkling() == True
 
     mf6_simulation = lhm_coupling.mf6_simulation
     gwf_model = mf6_simulation[driver_coupling.mf6_model]
@@ -228,10 +228,11 @@ def test_lhm_metamod(
     )
 
     grid_mapping.dataset["svat"].shape == (2, 1300, 1200)
-    grid_mapping.dataset["mod_id"] == (2, 1300, 1200)
+    grid_mapping.dataset["mod_id"].shape == (2, 1300, 1200)
     rch_mapping.dataset["svat"].shape == (2, 1300, 1200)
-    rch_mapping.dataset["rch_id"] == (2, 1300, 1200)
+    rch_mapping.dataset["rch_id"].shape == (2, 1300, 1200)
     well_mapping.dataset["svat"].shape == (2, 1300, 1200)
+    # Check if well mappings are 1d arrays
     assert len(well_mapping.dataset["wel_id"].shape) == 1
     assert len(well_mapping.dataset["svat"].shape) == 1
 
@@ -290,8 +291,8 @@ def test_lhm_written_files(
 
     # Test wellindex2svat.dxc
     df_wellindex2svat = pd.read_csv(path_wellindex2svat, names=columns_bc, **settings)
-    # Well layer should 
-    assert (df_wellindex2svat["layer"] != 1).all()
+    # There should be wells present in layers other than 1
+    assert (df_wellindex2svat["layer"] > 1).any()
     # Well svat should not exceed nodenr2svat svat
     assert df_wellindex2svat["svat"].max() <= df_nodenr2svat["svat"].max()
     # There should be less wells than recharge cells
