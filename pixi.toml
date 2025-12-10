@@ -106,7 +106,7 @@ user_acceptance = { cmd = [
     "--verbose",
     "--junitxml=user_acceptance_report.xml",
 ], depends-on = ["install"], env = { USER_ACCEPTANCE_DIR = "tests/data/user_acceptance"} }
-run_imod5 = {cmd = ["prepare_mf6_transient_imod5.bat"], cwd = "tests/data/user_acceptance/LHM_transient/scripts_imod-5"}
+run_imod5 = {cmd = ["./prepare_mf6_transient_imod5.bat"], cwd = "tests/data/user_acceptance/LHM_transient/scripts_imod-5"}
 
 [feature.py312.dependencies]
 python = "3.12.*"
