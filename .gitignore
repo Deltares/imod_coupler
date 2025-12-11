@@ -131,6 +131,7 @@ dmypy.json
 # Tests
 tests/temp
 report.xml
+user_acceptance_report.xml
 
 .pixi
 .imod_collector
