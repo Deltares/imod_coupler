@@ -219,7 +219,7 @@ def test_lhm_metamod(
     msw_model = lhm_coupling.msw_model
 
     assert isinstance(driver_coupling, MetaModDriverCoupling)
-    assert driver_coupling._check_sprinkling(gwf_model, msw_model) == True
+    assert driver_coupling._check_sprinkling(msw_model, gwf_model) == True
 
     grid_mapping, rch_mapping, well_mapping = driver_coupling.derive_mapping(
         msw_model=msw_model,
