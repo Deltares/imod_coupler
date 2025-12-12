@@ -34,7 +34,7 @@ In order to develop on `imod_coupler` locally, please follow the following steps
 - Create the environment by executing the following in your terminal:
 
   ```sh
-  pixi run --environment=dev install
+  pixi install --environment=dev
   ```
 
 - Install the test dependencies by executing the following in your terminal.

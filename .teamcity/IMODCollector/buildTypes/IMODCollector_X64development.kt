@@ -52,7 +52,6 @@ object IMODCollector_X64development : BuildType({
             workingDir = "coupler"
             scriptContent = """
                 rmdir dist /s /q
-                pixi run -e dev install-minimal
                 pixi run -e dev pyinstaller --onefile imod_coupler/__main__.py --name imodc
             """.trimIndent()
         }

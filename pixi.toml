@@ -8,9 +8,6 @@ platforms = ["win-64", "linux-64"]
 linux = "4.4.0"
 
 [tasks]
-# Install
-install-imodc = "pip install --no-deps --editable ."
-install-minimal = { depends-on = ["install-imodc"] }
 # Build
 build-imod-coupler = "rm -rf dist && pyinstaller imod_coupler/__main__.py --name imodc"
 
@@ -19,7 +16,6 @@ geopandas = ">=1.0.0"
 netCDF4 = "*"
 loguru = "*"
 numpy = ">=2.0"
-pip = "*"
 pydantic = ">=2.11.0"
 pyinstaller = "*"
 python = ">=3.10"
@@ -31,20 +27,17 @@ xmipy = "*"
 imod = "1.0.0.post1"
 
 [pypi-dependencies]
-ribasim = { git = "https://github.com/Deltares/Ribasim.git", tag = "v2025.6.0", subdirectory= "python/ribasim"}
-ribasim_testmodels = { git = "https://github.com/Deltares/Ribasim.git", tag = "v2025.6.0", subdirectory= "python/ribasim_testmodels"}
+ribasim = { git = "https://github.com/Deltares/Ribasim.git", tag = "v2025.6.0", subdirectory = "python/ribasim" }
+ribasim_testmodels = { git = "https://github.com/Deltares/Ribasim.git", tag = "v2025.6.0", subdirectory = "python/ribasim_testmodels" }
+imod_coupler = { path = ".", editable = true }
+primod = { path = "pre-processing", editable = true }
 
 [feature.common.tasks]
 # Install
-install-primod = "pip install --no-deps --editable pre-processing"
 install-metaswap-testmodels = "svn checkout https://repos.deltares.nl/repos/DSCTestbench/trunk/cases/e150_metaswap/f00_common/c00_common/LHM2016_v01vrz .imod_collector/e150_metaswap"
 install-imod-collector = "python scripts/download_imod_collector.py"
 install-imod-collector-regression = "python scripts/download_imod_collector.py regression"
 generate-env-file = "python scripts/generate_env_file.py"
-install = { depends-on = [
-    "install-minimal",
-    "install-primod",
-] }
 
 # Tests
 test-primod = "pytest --junitxml=report.xml tests/test_primod"
