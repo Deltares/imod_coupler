@@ -213,25 +213,23 @@ def test_lhm_metamod(
     Test if the lhm_driver_coupling fixture works
     """
     assert isinstance(lhm_coupling, MetaMod)
-    
     driver_coupling = lhm_coupling.coupling_list[0]
-    assert isinstance(driver_coupling, MetaModDriverCoupling)
-    assert driver_coupling._check_sprinkling() == True
-
     mf6_simulation = lhm_coupling.mf6_simulation
     gwf_model = mf6_simulation[driver_coupling.mf6_model]
     msw_model = lhm_coupling.msw_model
+
+    assert isinstance(driver_coupling, MetaModDriverCoupling)
+    assert driver_coupling._check_sprinkling(gwf_model, msw_model) == True
 
     grid_mapping, rch_mapping, well_mapping = driver_coupling.derive_mapping(
         msw_model=msw_model,
         gwf_model=gwf_model,
     )
 
-    grid_mapping.dataset["svat"].shape == (2, 1300, 1200)
-    grid_mapping.dataset["mod_id"].shape == (2, 1300, 1200)
-    rch_mapping.dataset["svat"].shape == (2, 1300, 1200)
-    rch_mapping.dataset["rch_id"].shape == (2, 1300, 1200)
-    well_mapping.dataset["svat"].shape == (2, 1300, 1200)
+    assert grid_mapping.dataset["svat"].shape == (2, 1300, 1200)
+    assert grid_mapping.dataset["mod_id"].shape == (2, 1300, 1200)
+    assert rch_mapping.dataset["svat"].shape == (2, 1300, 1200)
+    assert rch_mapping.dataset["rch_id"].shape == (2, 1300, 1200)
     # Check if well mappings are 1d arrays
     assert len(well_mapping.dataset["wel_id"].shape) == 1
     assert len(well_mapping.dataset["svat"].shape) == 1
