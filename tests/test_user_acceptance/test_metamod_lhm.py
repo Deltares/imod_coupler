@@ -9,6 +9,7 @@ import os
 import sys
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 import pytest
 
@@ -23,6 +24,47 @@ from imod.mf6.simulation import Modflow6Simulation
 from typing import Callable
 
 from primod import MetaMod, MetaModDriverCoupling
+
+
+def read_external_binaryfile(path: Path, dtype: type, max_rows: int) -> np.ndarray:
+    return np.fromfile(
+        file=path,
+        dtype=dtype,
+        count=max_rows,
+        offset=52, # skip header (52 bytes)
+        sep="",
+    )
+
+
+def coupled_nodes_grid(data_idomain_top: np.ndarray, node2svat: pd.DataFrame) -> np.ndarray:
+    """
+    Create a grid showing which nodes are coupled based on the node2svat mapping
+    and the idomain data.
+
+    Parameters
+    ----------
+    data_idomain_top: 2D array
+        idomain data of top layer
+    node2svat: pd.DataFrame
+        node2svat mapping dataframe, should be zero-based
+    """
+    is_active = data_idomain_top >= 1
+    mod_id = np.zeros_like(data_idomain_top, dtype=np.int32)
+    n_active = is_active.sum()
+    mod_id[is_active] = np.arange(1, n_active + 1)
+
+    # Due to a bug in iMOD5, also nodes coupled to wells are included in
+    # node2svat. Only need to do this for iMOD5 data
+    node2svat = node2svat.loc[node2svat["node"] < n_active]
+
+    rows, cols = np.nonzero(mod_id)
+    rows_dxc = rows[node2svat["node"].values]
+    cols_dxc = cols[node2svat["node"].values]
+
+    coupled_nodes = np.zeros_like(mod_id, dtype=np.int32)
+    coupled_nodes[rows_dxc, cols_dxc] = 1
+    return coupled_nodes
+
 
 def convert_imod5_to_mf6_sim(imod5_data: dict, period_data: dict, times: list) -> Modflow6Simulation:
     simulation = Modflow6Simulation.from_imod5_data(
@@ -236,7 +278,7 @@ def test_lhm_metamod(
 
 
 @pytest.mark.user_acceptance
-def test_lhm_written_files(
+def test_lhm_written_dxc_files(
     written_lhm_conversion: Path,
 ) -> None:
     """
@@ -297,7 +339,6 @@ def test_lhm_written_files(
     assert df_wellindex2svat["bc_index"].max() <= df_rchindex2svat["bc_index"].max()
 
 
-
 @pytest.mark.user_acceptance
 def test_lhm_coupled_simulation(
     written_lhm_conversion: Path,
@@ -323,3 +364,55 @@ def test_lhm_coupled_simulation(
     # bytes.
     assert headfile.stat().st_size > 0
     assert cbcfile.stat().st_size > 0
+
+
+@pytest.mark.user_acceptance
+def test_dxc_imod5_comparison(
+    written_lhm_conversion: Path,
+) -> None:
+    """
+    Compare written nodenr2svat dxc files to reference iMOD5 nodenr2svat dxc
+    files. These should be nearly identical: The only differences should be
+    caused by the following things:
+
+    - Differences in idomain definition between iMOD5 and imod-python conversion
+      to MODFLOW 6
+    - There is a bug in iMOD5 which includes cells connected to wells in the
+      nodenr2svat.dxc, while these should not be included. This is also
+      accounted for in this test.
+    """
+    idomain_path = written_lhm_conversion / "modflow6" / "imported_model" / "dis" / "idomain.bin"
+    dxc_path = written_lhm_conversion / "exchanges" / "nodenr2svat.dxc"
+
+    user_acceptance_dir = Path(os.environ["USER_ACCEPTANCE_DIR"])
+    lhm_dir = user_acceptance_dir / "LHM_transient"
+    imod5_dir = lhm_dir / "reference_imod5_data"
+    dxc_imod5 = imod5_dir / "NODENR2SVAT.DXC"
+    path_bnd_imod5 = imod5_dir / "IDOMAIN_L1.IDF"
+
+    # Read dis grids
+    shape = (15, 1300, 1200)
+    max_rows = np.prod(shape)
+    data_idomain = read_external_binaryfile(idomain_path, np.int32, max_rows).reshape(shape)
+    bnd = imod.idf.open(path_bnd_imod5).sel(layer=1, drop=True)
+
+    # Read dxc files
+    settings = dict(delimiter= '\s+', index_col=False)
+    columns = ["node", "svat", "layer"]
+
+    node2svat = pd.read_csv(dxc_path, names=columns, **settings) - 1
+    node2svat_imod5 = pd.read_csv(dxc_imod5, names=columns, **settings) - 1
+
+    coupled_nodes = coupled_nodes_grid(data_idomain[0], node2svat)
+    coupled_nodes_imod5 = coupled_nodes_grid(bnd.values, node2svat_imod5)
+
+    # Differences due to coupling in 166 cells
+    diff_coupled = coupled_nodes_imod5 - coupled_nodes
+    # Differences due to idomain in 204 cells
+    is_active = data_idomain[0] >= 1
+    is_active_imod5 = bnd.values >= 1
+    diff_idomain = is_active_imod5.astype(np.int32) - is_active.astype(np.int32)
+    # Filter differences in idomain from coupled differences:
+    diff_filtered = np.where(diff_idomain ^ diff_coupled, diff_coupled, 0)
+    # Assert no differences anymore
+    assert np.all(diff_filtered == 0)
