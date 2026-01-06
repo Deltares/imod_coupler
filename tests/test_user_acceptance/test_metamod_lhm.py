@@ -35,8 +35,13 @@ def read_external_binaryfile(path: Path, dtype: type, max_rows: int) -> np.ndarr
         sep="",
     )
 
+def read_area_svat(path: Path) -> pd.DataFrame:
+    area_svat_dict = imod.msw.fixed_format.fixed_format_parser(
+        path, imod.msw.GridData._metadata_dict
+    )
+    return pd.DataFrame(area_svat_dict)
 
-def coupled_nodes_grid(data_idomain_top: np.ndarray, node2svat: pd.DataFrame) -> np.ndarray:
+def coupled_nodes_grid(data_idomain_top: np.ndarray, node2svat: pd.DataFrame) -> tuple[np.ndarray, pd.DataFrame]:
     """
     Create a grid showing which nodes are coupled based on the node2svat mapping
     and the idomain data.
@@ -63,7 +68,11 @@ def coupled_nodes_grid(data_idomain_top: np.ndarray, node2svat: pd.DataFrame) ->
 
     coupled_nodes = np.zeros_like(mod_id, dtype=np.int32)
     coupled_nodes[rows_dxc, cols_dxc] = 1
-    return coupled_nodes
+
+    node2svat["row"] = rows_dxc
+    node2svat["col"] = cols_dxc
+
+    return coupled_nodes, node2svat
 
 
 def convert_imod5_to_mf6_sim(imod5_data: dict, period_data: dict, times: list) -> Modflow6Simulation:
@@ -247,6 +256,30 @@ def written_lhm_conversion(
 
     return tmp_path
 
+
+@pytest.fixture(scope="session", autouse=False)
+def imod_path(
+    written_lhm_conversion: Path,
+):
+    return {
+        "idomain": written_lhm_conversion / "modflow6" / "imported_model" / "dis" / "idomain.bin",
+        "dxc": written_lhm_conversion / "exchanges" / "nodenr2svat.dxc",
+        "area_svat": written_lhm_conversion / "metaswap" / "area_svat.inp",
+    }
+
+@pytest.fixture(scope="session", autouse=False)
+def imod5_path(
+):
+    user_acceptance_dir = Path(os.environ["USER_ACCEPTANCE_DIR"])
+    lhm_dir = user_acceptance_dir / "LHM_transient"
+    imod5_dir = lhm_dir / "reference_imod5_data"
+
+    return {
+        "idomain": imod5_dir / "IDOMAIN_L1.IDF",
+        "dxc": imod5_dir / "NODENR2SVAT.DXC",
+        "area_svat": imod5_dir / "AREA_SVAT.INP",
+    }
+
 @pytest.mark.user_acceptance
 def test_lhm_metamod(
     lhm_coupling: MetaMod,
@@ -368,51 +401,100 @@ def test_lhm_coupled_simulation(
 
 @pytest.mark.user_acceptance
 def test_dxc_imod5_comparison(
-    written_lhm_conversion: Path,
+    imod_path: dict,
+    imod5_path: dict,
 ) -> None:
     """
     Compare written nodenr2svat dxc files to reference iMOD5 nodenr2svat dxc
-    files. These should be nearly identical: The only differences should be
+    files. These should be nearly identical, the only differences should be
     caused by the following things:
 
     - Differences in idomain definition between iMOD5 and imod-python conversion
       to MODFLOW 6
-    - There is a bug in iMOD5 which includes cells connected to wells in the
-      nodenr2svat.dxc, while these should not be included. This is also
-      accounted for in this test.
+    - iMOD5 couples some extra cells to deeper layers, which we do not couple in
+      the imod-python conversion.
     """
-    idomain_path = written_lhm_conversion / "modflow6" / "imported_model" / "dis" / "idomain.bin"
-    dxc_path = written_lhm_conversion / "exchanges" / "nodenr2svat.dxc"
-
-    user_acceptance_dir = Path(os.environ["USER_ACCEPTANCE_DIR"])
-    lhm_dir = user_acceptance_dir / "LHM_transient"
-    imod5_dir = lhm_dir / "reference_imod5_data"
-    dxc_imod5 = imod5_dir / "NODENR2SVAT.DXC"
-    path_bnd_imod5 = imod5_dir / "IDOMAIN_L1.IDF"
-
     # Read dis grids
     shape = (15, 1300, 1200)
     max_rows = np.prod(shape)
-    data_idomain = read_external_binaryfile(idomain_path, np.int32, max_rows).reshape(shape)
-    bnd = imod.idf.open(path_bnd_imod5).sel(layer=1, drop=True)
+    idomain = read_external_binaryfile(imod_path["idomain"], np.int32, max_rows).reshape(shape)[0]
+    idomain_imod5 = imod.idf.open(imod5_path["idomain"]).sel(layer=1, drop=True).values
 
     # Read dxc files
     settings = dict(delimiter= '\s+', index_col=False)
     columns = ["node", "svat", "layer"]
+    # Correct to zero-based indexing
+    node2svat = pd.read_csv(imod_path["dxc"], names=columns, **settings) - 1
+    node2svat_imod5 = pd.read_csv(imod5_path["dxc"], names=columns, **settings) - 1
 
-    node2svat = pd.read_csv(dxc_path, names=columns, **settings) - 1
-    node2svat_imod5 = pd.read_csv(dxc_imod5, names=columns, **settings) - 1
-
-    coupled_nodes = coupled_nodes_grid(data_idomain[0], node2svat)
-    coupled_nodes_imod5 = coupled_nodes_grid(bnd.values, node2svat_imod5)
+    coupled_nodes, _ = coupled_nodes_grid(idomain, node2svat)
+    coupled_nodes_imod5, _ = coupled_nodes_grid(idomain_imod5, node2svat_imod5)
 
     # Differences due to coupling in 166 cells
     diff_coupled = coupled_nodes_imod5 - coupled_nodes
     # Differences due to idomain in 204 cells
-    is_active = data_idomain[0] >= 1
-    is_active_imod5 = bnd.values >= 1
+    is_active = idomain >= 1
+    is_active_imod5 = idomain_imod5 >= 1
     diff_idomain = is_active_imod5.astype(np.int32) - is_active.astype(np.int32)
     # Filter differences in idomain from coupled differences:
     diff_filtered = np.where(diff_idomain ^ diff_coupled, diff_coupled, 0)
     # Assert no differences anymore
     assert np.all(diff_filtered == 0)
+
+
+@pytest.mark.user_acceptance
+def test_compare_coupled_metaswap_grids(
+    imod_path: dict,
+    imod5_path: dict,
+) -> None:
+    """
+    Based on node2svat, reconstruct metaswap grid for soil physical unit and
+    compare with those constructed with imod5 reference data. 
+
+    - Differences in idomain definition between iMOD5 and imod-python conversion
+      to MODFLOW 6
+    - iMOD5 couples some extra cells to deeper layers, which we do not couple in
+      the imod-python conversion.
+    """
+
+    shape = (15, 1300, 1200)
+    max_rows = np.prod(shape)
+    idomain = read_external_binaryfile(imod_path["idomain"], np.int32, max_rows).reshape(shape)[0]
+    idomain_imod5 = imod.idf.open(imod5_path["idomain"]).sel(layer=1, drop=True).values
+
+    settings = dict(delimiter= '\s+', index_col=False)
+    columns = ["node", "svat", "layer"]
+    # Correct to zero-based indexing
+    node2svat = pd.read_csv(imod_path["dxc"], names=columns, **settings) - 1
+    node2svat_imod5 = pd.read_csv(imod5_path["dxc"], names=columns, **settings) - 1
+
+    _, node2svat_coupled = coupled_nodes_grid(idomain, node2svat)
+    node2svat_coupled[["svat"]] += 1  # back to 1-based indexing
+
+    _, node2svat_coupled_imod5 = coupled_nodes_grid(idomain_imod5, node2svat_imod5)
+    node2svat_coupled_imod5[["svat"]] += 1  # back to 1-based indexing
+
+    is_active = idomain >= 1
+    is_active_imod5 = idomain_imod5 >= 1
+
+    area_svat = read_area_svat(imod_path["area_svat"])
+    area_svat_imod5 = read_area_svat(imod5_path["area_svat"])
+
+    node2area_svat = node2svat_coupled.join(area_svat.set_index("svat"), on="svat")
+    node2area_svat_imod5 = node2svat_coupled_imod5.join(area_svat_imod5.set_index("svat"), on="svat")
+
+    varname = "soil_physical_unit"
+    coupled_svats = np.zeros_like(is_active, dtype=np.int32)
+    coupled_svats[node2area_svat["row"], node2area_svat["col"]] = node2area_svat[varname]
+    coupled_svats_imod5 = np.zeros_like(is_active, dtype=np.int32)
+    coupled_svats_imod5[node2area_svat_imod5["row"], node2area_svat_imod5["col"]] = node2area_svat_imod5[varname]
+    
+    # There are differences in some cells where iMOD5 has inactive cells and iMOD
+    # Python has not. Correct for that first, and the potential differences due to
+    # idomain differences.
+    coupled_svats_imod5 = np.where(is_active, coupled_svats_imod5, 0)
+    coupled_svats = np.where(is_active_imod5, coupled_svats, 0)
+
+    diff_soil_physical_unit = coupled_svats_imod5 - coupled_svats
+
+    assert np.all(diff_soil_physical_unit == 0)
