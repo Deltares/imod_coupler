@@ -60,8 +60,57 @@ In order to develop on `imod_coupler` locally, please follow the following steps
   pixi run lint
   ```
 
-- When developing with visual studio code, it is recommended to open the application via `open-vscode.bat`.
-  This will open the application in a new vscode window with the correct environment variables set.
+- When developing with visual studio code, it is recommended to open the
+  application via `open-vscode.bat`. This will open the application in a new
+  vscode window with the correct environment variables set.
+
+- To run the user acceptance tests will be described below. The model currently
+  used for the user acceptance tests is [the LHM
+  model](https://nhi.nu/modellen/lhm/), but more models might be added in the
+  future.
+
+  Run the user acceptance tests locally on a Windows machine by following these
+  steps:
+
+  1. First contact imod.support@deltares.nl and ask for an access key to access
+    the iMOD Python test data. They will contact you and send you a key. Make
+    sure you don't share this key with others!
+  2. Activate the user acceptance environment by running the following command in the root
+    of the repository:
+    
+    ```sh
+    pixi shell -e user-acceptance
+    ```
+
+  3. Add your key to the DVC configuration by running the following command in the root
+    of the repository:
+
+    ```sh
+      dvc remote modify --local minio access_key_id <your_access_key>
+      dvc remote modify --local minio secret_access_key <your_secret_access_key>
+    ```
+
+    Don't forget the ``--local`` flag, as this will store the key in the
+    ``.dvc/config.local`` file, which is not committed to the repository.
+
+  4. Pull the data from the DVC remote by running the following command in the root
+    of the repository:
+
+    ```sh
+      pixi run fetch_lhm
+    ```
+
+    This will unpack the LHM model data, which is used in the user acceptance
+    tests.
+
+  5. TODO: Add instructions how to reach MetaSWAP lookup table
+
+  6. Run the user acceptance tests by running the following command in the root 
+    of the repository:
+
+    ```sh
+      pixi run user_acceptance
+    ```
 
 ### Debugging
 
