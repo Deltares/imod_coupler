@@ -174,11 +174,15 @@ def cleanup_mf6_sim(simulation: Modflow6Simulation) -> None:
     model["npf"].dataset["save_flows"] = True
 
 def convert_imod5_to_msw_model(
-    imod5_data: dict, mf6_sim: Modflow6Simulation, times: list
+    imod5_data: dict, mf6_sim: Modflow6Simulation, times: list, unsa_svat_path: Path | str
 ) -> imod.msw.MetaSwapModel:
     dis_pkg = mf6_sim["imported_model"]["dis"]
     msw_model = imod.msw.MetaSwapModel.from_imod5_data(imod5_data, dis_pkg, times)
     msw_model["oc"] = imod.msw.VariableOutputControl()
+    msw_model.simulation_settings["unsa_svat_path"] = unsa_svat_path
+    msw_model.simulation_settings["vegetation_mdl"] = 1  # Simple vegetation model instead of wofost
+    msw_model.simulation_settings["evapotranspiration_mdl"] = 1  # Simple evapotranspiration model
+    msw_model.simulation_settings["postmsw_opt"] = 0 # Turn off PostMetaSWAP output
 
     return msw_model
 
@@ -190,6 +194,7 @@ def import_lhm_mf6_and_msw():
     lhm_dir = user_acceptance_dir / "LHM_transient"
     lhm_prjfile = lhm_dir / "model" / "LHM_transient_test.PRJ"
     logfile_path = lhm_dir / "logfile_mf6.txt"
+    unsa_svat_path = user_acceptance_dir / "LHM2018_v02vae"
 
     out_dir = lhm_dir / "mf6_imod-python"
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -213,7 +218,7 @@ def import_lhm_mf6_and_msw():
         cleanup_mf6_sim(mf6_simulation)
 
         # Convert to MetaSwap model
-        msw_model = convert_imod5_to_msw_model(imod5_data, mf6_simulation, times)
+        msw_model = convert_imod5_to_msw_model(imod5_data, mf6_simulation, times, unsa_svat_path.resolve())
 
     return mf6_simulation, msw_model
 
@@ -253,6 +258,17 @@ def written_lhm_conversion(
         metaswap_dll=metaswap_dll_devel,
         metaswap_dll_dependency=metaswap_dll_dep_dir_devel,
     )
+
+    # Override mete_grid.inp directory paths
+    with open(tmp_path / "metaswap" / "mete_grid.inp", "r") as f:
+        mete_grid_content = f.read()
+
+    user_acceptance_dir = Path(os.environ["USER_ACCEPTANCE_DIR"])
+    path_msw_dir = user_acceptance_dir / "LHM_transient" / "model" / "DBASE" / "MSP"
+    mete_grid_adapted = mete_grid_content.format(dir=path_msw_dir.resolve())
+
+    with open(tmp_path / "metaswap" / "mete_grid.inp", "w") as f:
+        f.write(mete_grid_adapted)
 
     return tmp_path
 
