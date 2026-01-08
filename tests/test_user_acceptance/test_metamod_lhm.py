@@ -86,7 +86,6 @@ def convert_imod5_to_mf6_sim(imod5_data: dict, period_data: dict, times: list) -
     simulation["imported_model"]["oc"] = OutputControl(
         save_head="last", save_budget="last"
     )
-    # Mimic iMOD5's "Moderate" settings
     solution = Solution(
         modelnames=["imported_model"],
         print_option="summary",
@@ -95,16 +94,12 @@ def convert_imod5_to_mf6_sim(imod5_data: dict, period_data: dict, times: list) -
         no_ptc=None,
         outer_dvclose=0.001,
         outer_maximum=150,
-        under_relaxation="dbd",
-        under_relaxation_theta=0.9,
-        under_relaxation_kappa=0.0001,
-        under_relaxation_gamma=0.0,
-        under_relaxation_momentum=0.0,
+        under_relaxation=None,
         backtracking_number=0,
         backtracking_tolerance=0.0,
         backtracking_reduction_factor=0.0,
         backtracking_residual_limit=0.0,
-        inner_maximum=30,
+        inner_maximum=100,
         inner_dvclose=0.001,
         inner_rclose=100.0,
         rclose_option="strict",
@@ -186,11 +181,10 @@ def convert_imod5_to_msw_model(
 
     return msw_model
 
-def import_lhm_mf6_and_msw():
+def import_lhm_mf6_and_msw(user_acceptance_dir: Path):
     """
     Convert iMOD5 LHM model to MODFLOW 6 using imod-python
     """
-    user_acceptance_dir = Path(os.environ["USER_ACCEPTANCE_DIR"])
     lhm_dir = user_acceptance_dir / "LHM_transient"
     lhm_prjfile = lhm_dir / "model" / "LHM_transient_test.PRJ"
     logfile_path = lhm_dir / "logfile_mf6.txt"
@@ -200,8 +194,8 @@ def import_lhm_mf6_and_msw():
     out_dir.mkdir(parents=True, exist_ok=True)
 
     # notes: M/D/Y and convert to list of datetime.
-    times = pd.date_range(start="1/1/2011", end="1/1/2012", freq="D").tolist()
-    #    os.chdir(lhm_dir)
+    # times = pd.date_range(start="1/1/2011", end="1/1/2012", freq="D").tolist()
+    times = pd.date_range(start="1/1/2011", end="1/7/2011", freq="D").tolist()
 
     with open(logfile_path, "w") as sys.stdout:
         imod.logging.configure(
@@ -222,12 +216,27 @@ def import_lhm_mf6_and_msw():
 
     return mf6_simulation, msw_model
 
+
+def write_mete_grid_abspaths(user_acceptance_dir: Path) -> None:
+    # Write mete_grid.inp with absolute paths
+    path_msw_dir = user_acceptance_dir / "LHM_transient" / "model" / "DBASE" / "MSP"
+
+    with open(path_msw_dir / "mete_grid_template.inp", "r") as f:
+        mete_grid_content = f.read()
+
+    mete_grid_adapted = mete_grid_content.format(dir=path_msw_dir.resolve())
+
+    with open(path_msw_dir / "mete_grid.inp", "w") as f:
+        f.write(mete_grid_adapted)
+
+
 @pytest.fixture(scope="session", autouse=False)
-def lhm_coupling():
+def lhm_coupling(user_acceptance_dir: Path):
     """
     Test coupling of LHM MODFLOW 6 and MetaSwap models
     """
-    mf6_simulation, msw_model = import_lhm_mf6_and_msw()
+    write_mete_grid_abspaths(user_acceptance_dir)
+    mf6_simulation, msw_model = import_lhm_mf6_and_msw(user_acceptance_dir)
 
     driver_coupling = MetaModDriverCoupling(
         mf6_model="imported_model", mf6_recharge_package="msw-rch", mf6_wel_package="msw-sprinkling"
@@ -258,17 +267,6 @@ def written_lhm_conversion(
         metaswap_dll=metaswap_dll_devel,
         metaswap_dll_dependency=metaswap_dll_dep_dir_devel,
     )
-
-    # Override mete_grid.inp directory paths
-    with open(tmp_path / "metaswap" / "mete_grid.inp", "r") as f:
-        mete_grid_content = f.read()
-
-    user_acceptance_dir = Path(os.environ["USER_ACCEPTANCE_DIR"])
-    path_msw_dir = user_acceptance_dir / "LHM_transient" / "model" / "DBASE" / "MSP"
-    mete_grid_adapted = mete_grid_content.format(dir=path_msw_dir.resolve())
-
-    with open(tmp_path / "metaswap" / "mete_grid.inp", "w") as f:
-        f.write(mete_grid_adapted)
 
     return tmp_path
 

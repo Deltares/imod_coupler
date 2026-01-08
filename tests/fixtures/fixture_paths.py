@@ -90,6 +90,11 @@ def ribasim_dll_regression() -> Path:
     return Path(os.environ["RIBASIM_DLL_REGRESSION"])
 
 
+@pytest.fixture(scope="session")
+def user_acceptance_dir() -> Path:
+    return Path(os.environ["USER_ACCEPTANCE_DIR"])
+
+
 @pytest.fixture(scope="function")
 def modstrip_loc() -> Path:
     return Path(__file__).parent.parent.absolute() / "data" / "modstrip"
