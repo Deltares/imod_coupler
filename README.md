@@ -103,13 +103,51 @@ In order to develop on `imod_coupler` locally, please follow the following steps
     This will unpack the LHM model data, which is used in the user acceptance
     tests.
 
-  5. TODO: Add instructions how to reach MetaSWAP lookup table
+  5. To make the MetaSWAP lookup table available to the user acceptance tests, you need to
+    mount the MinIO bucket containing the lookup table to a local folder.
+  
+    First the right software needs to be installed. On Windows, you can use
+    [Chocolatey](https://chocolatey.org/) to install WinFSP and rclone by running the following commands:
+
+    ```sh
+    choco install winfsp
+    choco install rclone
+    ```
+
+    Configure rclone to access the Deltares MinIO server. You can use the same
+    access key and secret access key as used for DVC.
+
+    ```sh
+    rclone config
+    ```
+
+    Your rclone.conf file should look like this:
+
+    ```
+    [minio]
+    type = s3
+    provider = Minio
+    access_key_id = <ACCESS_KEY>
+    secret_access_key = <SECRET_KEY>
+    endpoint = https://s3.deltares.nl
+    acl = private
+    location_constraint = EU
+    region = eu-west-1
+    ```
+
+    After configuring rclone, you can mount the MinIO bucket containing the
+    MetaSWAP lookup table by running the following command in the root of the
+    repository:
+
+    ```sh
+      rclone mount minio:imod-coupler-test-data .\tests\data\user_acceptance\metaswap_mount --vfs-cache-mode writes
+    ```
 
   6. Run the user acceptance tests by running the following command in the root 
     of the repository:
 
     ```sh
-      pixi run user_acceptance
+      pixi run -e user-acceptance user_acceptance
     ```
 
 ### Debugging
