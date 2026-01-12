@@ -127,8 +127,8 @@ In order to develop on `imod_coupler` locally, please follow the following steps
     [minio]
     type = s3
     provider = Minio
-    access_key_id = <ACCESS_KEY>
-    secret_access_key = <SECRET_KEY>
+    access_key_id = <your_access_key>
+    secret_access_key = <your_secret_access_key>
     endpoint = https://s3.deltares.nl
     acl = private
     location_constraint = EU
@@ -149,6 +149,8 @@ In order to develop on `imod_coupler` locally, please follow the following steps
     ```sh
       pixi run -e user-acceptance user_acceptance
     ```
+
+    These should take about slightly less than 2 hours to complete.
 
 ### Debugging
 
