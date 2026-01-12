@@ -90,10 +90,16 @@ def ribasim_dll_regression() -> Path:
     return Path(os.environ["RIBASIM_DLL_REGRESSION"])
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="session", autouse=False)
 def user_acceptance_dir() -> Path:
     return Path(os.environ["USER_ACCEPTANCE_DIR"])
 
+@pytest.fixture(scope="session", autouse=False)
+def user_acceptance_metaswap_dbase() -> Path:
+    """Path to the user acceptance metaswap database, which is 80 GB. Requires mount to access."""
+    # Resolve in advance, as otherwise python will return an OSError when trying
+    # to resolve at the mount point.
+    return Path(os.environ["USER_ACCEPTANCE_DIR"]).resolve() / "metaswap_mount" / "LHM2018_v02vae"
 
 @pytest.fixture(scope="function")
 def modstrip_loc() -> Path:

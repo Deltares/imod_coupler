@@ -181,14 +181,13 @@ def convert_imod5_to_msw_model(
 
     return msw_model
 
-def import_lhm_mf6_and_msw(user_acceptance_dir: Path):
+def import_lhm_mf6_and_msw(user_acceptance_dir: Path, user_acceptance_metaswap_dbase: Path) -> tuple[Modflow6Simulation, imod.msw.MetaSwapModel]:
     """
     Convert iMOD5 LHM model to MODFLOW 6 using imod-python
     """
     lhm_dir = user_acceptance_dir / "LHM_transient"
     lhm_prjfile = lhm_dir / "model" / "LHM_transient_test.PRJ"
     logfile_path = lhm_dir / "logfile_mf6.txt"
-    unsa_svat_path = user_acceptance_dir / "LHM2018_v02vae"
 
     out_dir = lhm_dir / "mf6_imod-python"
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -212,7 +211,7 @@ def import_lhm_mf6_and_msw(user_acceptance_dir: Path):
         cleanup_mf6_sim(mf6_simulation)
 
         # Convert to MetaSwap model
-        msw_model = convert_imod5_to_msw_model(imod5_data, mf6_simulation, times, unsa_svat_path.resolve())
+        msw_model = convert_imod5_to_msw_model(imod5_data, mf6_simulation, times, user_acceptance_metaswap_dbase)
 
     return mf6_simulation, msw_model
 
@@ -231,12 +230,12 @@ def write_mete_grid_abspaths(user_acceptance_dir: Path) -> None:
 
 
 @pytest.fixture(scope="session", autouse=False)
-def lhm_coupling(user_acceptance_dir: Path):
+def lhm_coupling(user_acceptance_dir: Path, user_acceptance_metaswap_dbase: Path) -> MetaMod:
     """
     Test coupling of LHM MODFLOW 6 and MetaSwap models
     """
     write_mete_grid_abspaths(user_acceptance_dir)
-    mf6_simulation, msw_model = import_lhm_mf6_and_msw(user_acceptance_dir)
+    mf6_simulation, msw_model = import_lhm_mf6_and_msw(user_acceptance_dir, user_acceptance_metaswap_dbase)
 
     driver_coupling = MetaModDriverCoupling(
         mf6_model="imported_model", mf6_recharge_package="msw-rch", mf6_wel_package="msw-sprinkling"
