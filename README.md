@@ -149,13 +149,16 @@ In order to develop on `imod_coupler` locally, please follow the following steps
     The next step therefore needs to be conducted **in a separate process**.
 
   6. Run the user acceptance tests by running the following command in the root 
-    of the repository **in a separate process**:
+    of the repository **in a separate process**. Note that the MetaSWAP database
+    is read from an S3 bucket, which requires fast network access. Running the
+    test on WiFi will slow down the tests significantly (1.5 hour instead of 45
+    minutes).
 
     ```sh
       pixi run -e user-acceptance user_acceptance_test
     ```
 
-    These should take about slightly less than 2 hours to complete.
+    The test should take about 45 minutes to complete.
 
 ### Debugging
 
