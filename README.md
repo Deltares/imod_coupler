@@ -73,7 +73,7 @@ In order to develop on `imod_coupler` locally, please follow the following steps
   steps:
 
   1. First contact imod.support@deltares.nl and ask for an access key to access
-    the iMOD Python test data. They will contact you and send you a key. Make
+    the iMOD Coupler test data. They will contact you and send you a key. Make
     sure you don't share this key with others!
   2. Activate the user acceptance environment by running the following command in the root
     of the repository:
