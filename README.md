@@ -152,7 +152,7 @@ In order to develop on `imod_coupler` locally, please follow the following steps
     of the repository **in a separate process**:
 
     ```sh
-      pixi run -e user-acceptance user_acceptance
+      pixi run -e user-acceptance user_acceptance_test
     ```
 
     These should take about slightly less than 2 hours to complete.

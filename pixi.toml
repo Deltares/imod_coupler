@@ -86,7 +86,7 @@ rioxarray = "*"
 [feature.user-acceptance.tasks]
 pull_data = "dvc pull --remote minio"
 fetch_lhm = {cmd = "tar -xf LHM_transient.zip", depends-on = ["pull_data"], cwd = "tests/data/user_acceptance"}
-user_acceptance = { cmd = [
+user_acceptance_test = { cmd = [
     "pytest",
     "-m", "user_acceptance",
     "--cache-clear",
