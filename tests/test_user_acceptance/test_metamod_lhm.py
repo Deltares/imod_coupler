@@ -31,9 +31,10 @@ def read_external_binaryfile(path: Path, dtype: type, max_rows: int) -> np.ndarr
         file=path,
         dtype=dtype,
         count=max_rows,
-        offset=52, # skip header (52 bytes)
+        offset=52,  # skip header (52 bytes)
         sep="",
     )
+
 
 def read_area_svat(path: Path) -> pd.DataFrame:
     area_svat_dict = imod.msw.fixed_format.fixed_format_parser(
@@ -41,7 +42,10 @@ def read_area_svat(path: Path) -> pd.DataFrame:
     )
     return pd.DataFrame(area_svat_dict)
 
-def coupled_nodes_grid(data_idomain_top: np.ndarray, node2svat: pd.DataFrame) -> tuple[np.ndarray, pd.DataFrame]:
+
+def coupled_nodes_grid(
+    data_idomain_top: np.ndarray, node2svat: pd.DataFrame
+) -> tuple[np.ndarray, pd.DataFrame]:
     """
     Create a grid showing which nodes are coupled based on the node2svat mapping
     and the idomain data.
@@ -75,7 +79,9 @@ def coupled_nodes_grid(data_idomain_top: np.ndarray, node2svat: pd.DataFrame) ->
     return coupled_nodes, node2svat
 
 
-def convert_imod5_to_mf6_sim(imod5_data: dict, period_data: dict, times: list) -> Modflow6Simulation:
+def convert_imod5_to_mf6_sim(
+    imod5_data: dict, period_data: dict, times: list
+) -> Modflow6Simulation:
     simulation = Modflow6Simulation.from_imod5_data(
         imod5_data,
         period_data,
@@ -168,20 +174,31 @@ def cleanup_mf6_sim(simulation: Modflow6Simulation) -> None:
         model[pkgname].dataset["save_flows"] = True
     model["npf"].dataset["save_flows"] = True
 
+
 def convert_imod5_to_msw_model(
-    imod5_data: dict, mf6_sim: Modflow6Simulation, times: list, unsa_svat_path: Path | str
+    imod5_data: dict,
+    mf6_sim: Modflow6Simulation,
+    times: list,
+    unsa_svat_path: Path | str,
 ) -> imod.msw.MetaSwapModel:
     dis_pkg = mf6_sim["imported_model"]["dis"]
     msw_model = imod.msw.MetaSwapModel.from_imod5_data(imod5_data, dis_pkg, times)
     msw_model["oc"] = imod.msw.VariableOutputControl()
     msw_model.simulation_settings["unsa_svat_path"] = unsa_svat_path
-    msw_model.simulation_settings["vegetation_mdl"] = 1  # Simple vegetation model instead of wofost
-    msw_model.simulation_settings["evapotranspiration_mdl"] = 1  # Simple evapotranspiration model
-    msw_model.simulation_settings["postmsw_opt"] = 0 # Turn off PostMetaSWAP output
+    msw_model.simulation_settings["vegetation_mdl"] = (
+        1  # Simple vegetation model instead of wofost
+    )
+    msw_model.simulation_settings["evapotranspiration_mdl"] = (
+        1  # Simple evapotranspiration model
+    )
+    msw_model.simulation_settings["postmsw_opt"] = 0  # Turn off PostMetaSWAP output
 
     return msw_model
 
-def import_lhm_mf6_and_msw(user_acceptance_dir: Path, user_acceptance_metaswap_dbase: Path) -> tuple[Modflow6Simulation, imod.msw.MetaSwapModel]:
+
+def import_lhm_mf6_and_msw(
+    user_acceptance_dir: Path, user_acceptance_metaswap_dbase: Path
+) -> tuple[Modflow6Simulation, imod.msw.MetaSwapModel]:
     """
     Convert iMOD5 LHM model to MODFLOW 6 using imod-python
     """
@@ -211,7 +228,9 @@ def import_lhm_mf6_and_msw(user_acceptance_dir: Path, user_acceptance_metaswap_d
         cleanup_mf6_sim(mf6_simulation)
 
         # Convert to MetaSwap model
-        msw_model = convert_imod5_to_msw_model(imod5_data, mf6_simulation, times, user_acceptance_metaswap_dbase)
+        msw_model = convert_imod5_to_msw_model(
+            imod5_data, mf6_simulation, times, user_acceptance_metaswap_dbase
+        )
 
     return mf6_simulation, msw_model
 
@@ -230,21 +249,28 @@ def write_mete_grid_abspaths(user_acceptance_dir: Path) -> None:
 
 
 @pytest.fixture(scope="session", autouse=False)
-def lhm_coupling(user_acceptance_dir: Path, user_acceptance_metaswap_dbase: Path) -> MetaMod:
+def lhm_coupling(
+    user_acceptance_dir: Path, user_acceptance_metaswap_dbase: Path
+) -> MetaMod:
     """
     Test coupling of LHM MODFLOW 6 and MetaSwap models
     """
     write_mete_grid_abspaths(user_acceptance_dir)
-    mf6_simulation, msw_model = import_lhm_mf6_and_msw(user_acceptance_dir, user_acceptance_metaswap_dbase)
+    mf6_simulation, msw_model = import_lhm_mf6_and_msw(
+        user_acceptance_dir, user_acceptance_metaswap_dbase
+    )
 
     driver_coupling = MetaModDriverCoupling(
-        mf6_model="imported_model", mf6_recharge_package="msw-rch", mf6_wel_package="msw-sprinkling"
+        mf6_model="imported_model",
+        mf6_recharge_package="msw-rch",
+        mf6_wel_package="msw-sprinkling",
     )
     return MetaMod(
         msw_model,
         mf6_simulation,
         coupling_list=[driver_coupling],
     )
+
 
 @pytest.fixture(scope="session", autouse=False)
 def written_lhm_conversion(
@@ -275,14 +301,18 @@ def imod_path(
     written_lhm_conversion: Path,
 ):
     return {
-        "idomain": written_lhm_conversion / "modflow6" / "imported_model" / "dis" / "idomain.bin",
+        "idomain": written_lhm_conversion
+        / "modflow6"
+        / "imported_model"
+        / "dis"
+        / "idomain.bin",
         "dxc": written_lhm_conversion / "exchanges" / "nodenr2svat.dxc",
         "area_svat": written_lhm_conversion / "metaswap" / "area_svat.inp",
     }
 
+
 @pytest.fixture(scope="session", autouse=False)
-def imod5_path(
-):
+def imod5_path():
     user_acceptance_dir = Path(os.environ["USER_ACCEPTANCE_DIR"])
     lhm_dir = user_acceptance_dir / "LHM_transient"
     imod5_dir = lhm_dir / "reference_imod5_data"
@@ -292,6 +322,7 @@ def imod5_path(
         "dxc": imod5_dir / "NODENR2SVAT.DXC",
         "area_svat": imod5_dir / "AREA_SVAT.INP",
     }
+
 
 @pytest.mark.user_acceptance
 def test_lhm_metamod(
@@ -330,7 +361,7 @@ def test_lhm_written_dxc_files(
     """
     Test if written dxc files are as expected
     """
-    dxc_paths= list((written_lhm_conversion / "exchanges").glob("*.dxc"))
+    dxc_paths = list((written_lhm_conversion / "exchanges").glob("*.dxc"))
     dxc_filenames = [p.name.lower() for p in dxc_paths]
     assert len(dxc_filenames) == 3
     expected_dxc_filenames = {
@@ -344,7 +375,7 @@ def test_lhm_written_dxc_files(
     path_rchindex2svat = written_lhm_conversion / "exchanges" / "rchindex2svat.dxc"
     path_wellindex2svat = written_lhm_conversion / "exchanges" / "wellindex2svat.dxc"
 
-    settings = dict(delimiter= '\s+', index_col=False)
+    settings = dict(delimiter="\s+", index_col=False)
     columns = ["node", "svat", "layer"]
     columns_bc = ["bc_index", "svat", "layer"]
 
@@ -398,11 +429,15 @@ def test_lhm_coupled_simulation(
     run_coupler_function(toml_path)
 
     # Test if MetaSWAP output written
-    assert len(list(( written_lhm_conversion / "MetaSWAP").glob("*/*.idf"))) > 0
+    assert len(list((written_lhm_conversion / "MetaSWAP").glob("*/*.idf"))) > 0
 
     # Test if Modflow6 output written
-    headfile =  written_lhm_conversion / "Modflow6" / "imported_model" / "imported_model.hds"
-    cbcfile =  written_lhm_conversion / "Modflow6" / "imported_model" / "imported_model.cbc"
+    headfile = (
+        written_lhm_conversion / "Modflow6" / "imported_model" / "imported_model.hds"
+    )
+    cbcfile = (
+        written_lhm_conversion / "Modflow6" / "imported_model" / "imported_model.cbc"
+    )
 
     assert headfile.exists()
     assert cbcfile.exists()
@@ -430,11 +465,13 @@ def test_dxc_imod5_comparison(
     # Read dis grids
     shape = (15, 1300, 1200)
     max_rows = np.prod(shape)
-    idomain = read_external_binaryfile(imod_path["idomain"], np.int32, max_rows).reshape(shape)[0]
+    idomain = read_external_binaryfile(
+        imod_path["idomain"], np.int32, max_rows
+    ).reshape(shape)[0]
     idomain_imod5 = imod.idf.open(imod5_path["idomain"]).sel(layer=1, drop=True).values
 
     # Read dxc files
-    settings = dict(delimiter= '\s+', index_col=False)
+    settings = dict(delimiter="\s+", index_col=False)
     columns = ["node", "svat", "layer"]
     # Correct to zero-based indexing
     node2svat = pd.read_csv(imod_path["dxc"], names=columns, **settings) - 1
@@ -462,7 +499,7 @@ def test_compare_coupled_metaswap_grids(
 ) -> None:
     """
     Based on node2svat, reconstruct metaswap grid for soil physical unit and
-    compare with those constructed with imod5 reference data. 
+    compare with those constructed with imod5 reference data.
 
     - Differences in idomain definition between iMOD5 and imod-python conversion
       to MODFLOW 6
@@ -472,10 +509,12 @@ def test_compare_coupled_metaswap_grids(
 
     shape = (15, 1300, 1200)
     max_rows = np.prod(shape)
-    idomain = read_external_binaryfile(imod_path["idomain"], np.int32, max_rows).reshape(shape)[0]
+    idomain = read_external_binaryfile(
+        imod_path["idomain"], np.int32, max_rows
+    ).reshape(shape)[0]
     idomain_imod5 = imod.idf.open(imod5_path["idomain"]).sel(layer=1, drop=True).values
 
-    settings = dict(delimiter= '\s+', index_col=False)
+    settings = dict(delimiter="\s+", index_col=False)
     columns = ["node", "svat", "layer"]
     # Correct to zero-based indexing
     node2svat = pd.read_csv(imod_path["dxc"], names=columns, **settings) - 1
@@ -494,14 +533,20 @@ def test_compare_coupled_metaswap_grids(
     area_svat_imod5 = read_area_svat(imod5_path["area_svat"])
 
     node2area_svat = node2svat_coupled.join(area_svat.set_index("svat"), on="svat")
-    node2area_svat_imod5 = node2svat_coupled_imod5.join(area_svat_imod5.set_index("svat"), on="svat")
+    node2area_svat_imod5 = node2svat_coupled_imod5.join(
+        area_svat_imod5.set_index("svat"), on="svat"
+    )
 
     varname = "soil_physical_unit"
     coupled_svats = np.zeros_like(is_active, dtype=np.int32)
-    coupled_svats[node2area_svat["row"], node2area_svat["col"]] = node2area_svat[varname]
+    coupled_svats[node2area_svat["row"], node2area_svat["col"]] = node2area_svat[
+        varname
+    ]
     coupled_svats_imod5 = np.zeros_like(is_active, dtype=np.int32)
-    coupled_svats_imod5[node2area_svat_imod5["row"], node2area_svat_imod5["col"]] = node2area_svat_imod5[varname]
-    
+    coupled_svats_imod5[node2area_svat_imod5["row"], node2area_svat_imod5["col"]] = (
+        node2area_svat_imod5[varname]
+    )
+
     # There are differences in some cells where iMOD5 has inactive cells and iMOD
     # Python has not. Correct for that first, and the potential differences due to
     # idomain differences.
