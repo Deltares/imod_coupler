@@ -7,22 +7,19 @@ describes how to set this up.
 
 import os
 import sys
+from collections.abc import Callable
 from pathlib import Path
 
+import imod
 import numpy as np
 import pandas as pd
 import pytest
-
-import imod
 from imod.formats.prj.prj import open_projectfile_data
 from imod.logging.config import LoggerType
 from imod.logging.loglevel import LogLevel
 from imod.mf6.ims import Solution
 from imod.mf6.oc import OutputControl
 from imod.mf6.simulation import Modflow6Simulation
-
-from typing import Callable
-
 from primod import MetaMod, MetaModDriverCoupling
 
 
@@ -67,8 +64,8 @@ def coupled_nodes_grid(
     node2svat = node2svat.loc[node2svat["node"] < n_active]
 
     rows, cols = np.nonzero(mod_id)
-    rows_dxc = rows[node2svat["node"].values]
-    cols_dxc = cols[node2svat["node"].values]
+    rows_dxc = rows[node2svat["node"].to_numpy()]
+    cols_dxc = cols[node2svat["node"].to_numpy()]
 
     coupled_nodes = np.zeros_like(mod_id, dtype=np.int32)
     coupled_nodes[rows_dxc, cols_dxc] = 1
@@ -239,7 +236,7 @@ def write_mete_grid_abspaths(user_acceptance_dir: Path) -> None:
     # Write mete_grid.inp with absolute paths
     path_msw_dir = user_acceptance_dir / "LHM_transient" / "model" / "DBASE" / "MSP"
 
-    with open(path_msw_dir / "mete_grid_template.inp", "r") as f:
+    with open(path_msw_dir / "mete_grid_template.inp") as f:
         mete_grid_content = f.read()
 
     mete_grid_adapted = mete_grid_content.format(dir=path_msw_dir.resolve())
@@ -338,7 +335,7 @@ def test_lhm_metamod(
     msw_model = lhm_coupling.msw_model
 
     assert isinstance(driver_coupling, MetaModDriverCoupling)
-    assert driver_coupling._check_sprinkling(msw_model, gwf_model) == True
+    assert driver_coupling._check_sprinkling(msw_model, gwf_model)
 
     grid_mapping, rch_mapping, well_mapping = driver_coupling.derive_mapping(
         msw_model=msw_model,
@@ -375,7 +372,7 @@ def test_lhm_written_dxc_files(
     path_rchindex2svat = written_lhm_conversion / "exchanges" / "rchindex2svat.dxc"
     path_wellindex2svat = written_lhm_conversion / "exchanges" / "wellindex2svat.dxc"
 
-    settings = dict(delimiter="\s+", index_col=False)
+    settings = {"delimter": "\s+", "index_col": False}
     columns = ["node", "svat", "layer"]
     columns_bc = ["bc_index", "svat", "layer"]
 
@@ -468,10 +465,12 @@ def test_dxc_imod5_comparison(
     idomain = read_external_binaryfile(
         imod_path["idomain"], np.int32, max_rows
     ).reshape(shape)[0]
-    idomain_imod5 = imod.idf.open(imod5_path["idomain"]).sel(layer=1, drop=True).values
+    idomain_imod5 = (
+        imod.idf.open(imod5_path["idomain"]).sel(layer=1, drop=True).to_numpy()
+    )
 
     # Read dxc files
-    settings = dict(delimiter="\s+", index_col=False)
+    settings = {"delimter": "\s+", "index_col": False}
     columns = ["node", "svat", "layer"]
     # Correct to zero-based indexing
     node2svat = pd.read_csv(imod_path["dxc"], names=columns, **settings) - 1
@@ -512,9 +511,11 @@ def test_compare_coupled_metaswap_grids(
     idomain = read_external_binaryfile(
         imod_path["idomain"], np.int32, max_rows
     ).reshape(shape)[0]
-    idomain_imod5 = imod.idf.open(imod5_path["idomain"]).sel(layer=1, drop=True).values
+    idomain_imod5 = (
+        imod.idf.open(imod5_path["idomain"]).sel(layer=1, drop=True).to_numpy()
+    )
 
-    settings = dict(delimiter="\s+", index_col=False)
+    settings = {"delimter": "\s+", "index_col": False}
     columns = ["node", "svat", "layer"]
     # Correct to zero-based indexing
     node2svat = pd.read_csv(imod_path["dxc"], names=columns, **settings) - 1

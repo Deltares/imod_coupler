@@ -2,8 +2,9 @@
 Tests to verify that the mount point for the user acceptance metaswap database exists.
 """
 
-import pytest
 from pathlib import Path
+
+import pytest
 
 
 @pytest.mark.user_acceptance
