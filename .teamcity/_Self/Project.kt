@@ -1,5 +1,6 @@
 package _Self
 
+import _Self.buildTypes.Primod_TestPrimodPython312Win64
 import _Self.buildTypes.*
 import _Self.vcsRoots.*
 import jetbrains.buildServer.configs.kotlin.*
@@ -15,9 +16,11 @@ object Project : Project({
     vcsRoot(ImodCoupler)
 
     buildType(TestbenchCouplerWin64)
+    buildType(Primod_TestPrimodPython312Win64)
     buildType(Main)
 
-    subProject(Primod.Project)
+    template(Primod_TestPrimodWin64)
+
     subProject(IMODCollector.Project)
 })
 
@@ -56,6 +59,11 @@ object Main : BuildType({
     dependencies {
         snapshot(TestbenchCouplerWin64) {
             onDependencyFailure = FailureAction.FAIL_TO_START
-        }    
+        }
+
+        snapshot(Primod_TestPrimodPython312Win64)
+        {
+            onDependencyFailure = FailureAction.FAIL_TO_START
+        }
     }
 })

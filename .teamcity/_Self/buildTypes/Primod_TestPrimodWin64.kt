@@ -1,12 +1,13 @@
-package Primod.buildTypes
+package _Self.buildTypes
 
+import IMODCollector.buildTypes.IMODCollector_X64development
 import _Self.vcsRoots.ImodCoupler
+import _Self.vcsRoots.MetaSwapLookupTable
 import jetbrains.buildServer.configs.kotlin.*
 import jetbrains.buildServer.configs.kotlin.buildFeatures.XmlReport
 import jetbrains.buildServer.configs.kotlin.buildFeatures.commitStatusPublisher
 import jetbrains.buildServer.configs.kotlin.buildFeatures.xmlReport
 import jetbrains.buildServer.configs.kotlin.buildSteps.script
-import jetbrains.buildServer.configs.kotlin.triggers.vcs
 
 object Primod_TestPrimodWin64 : Template({
     name = "Test Primod Win64"
@@ -31,8 +32,8 @@ object Primod_TestPrimodWin64 : Template({
     }
 
     vcs {
-        root(_Self.vcsRoots.ImodCoupler, ". => imod_coupler")
-        root(_Self.vcsRoots.MetaSwapLookupTable, ". => lookup_table")
+        root(ImodCoupler, ". => imod_coupler")
+        root(MetaSwapLookupTable, ". => lookup_table")
 
         cleanCheckout = true
         branchFilter = """
@@ -47,14 +48,6 @@ object Primod_TestPrimodWin64 : Template({
             id = "RUNNER_1503"
             workingDir = "imod_coupler"
             scriptContent = "pixi run --environment %pixi-environment% test-primod"
-        }
-    }
-
-    triggers {
-        vcs {
-            id = "TRIGGER_340"
-            triggerRules = "+:root=${ImodCoupler.id}:**"
-
         }
     }
 
@@ -78,7 +71,7 @@ object Primod_TestPrimodWin64 : Template({
     }
 
     dependencies {
-        dependency(IMODCollector.buildTypes.IMODCollector_X64development) {
+        dependency(IMODCollector_X64development) {
             snapshot {
                 onDependencyFailure = FailureAction.FAIL_TO_START
             }

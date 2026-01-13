@@ -1,4 +1,4 @@
-package Primod.buildTypes
+package _Self.buildTypes
 
 import jetbrains.buildServer.configs.kotlin.*
 
