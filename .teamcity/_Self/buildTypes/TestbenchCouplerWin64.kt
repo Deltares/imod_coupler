@@ -65,17 +65,6 @@ object TestbenchCouplerWin64 : BuildType({
         }
     }
 
-    triggers {
-        finishBuildTrigger {
-            buildType = "${IMODCollector_X64development.id}"
-            successfulOnly = true
-        }
-        vcs {
-            triggerRules = "+:root=${ImodCoupler.id}:**"
-
-        }
-    }
-
     features {
         commitStatusPublisher {
             vcsRootExtId = "${ImodCoupler.id}"
