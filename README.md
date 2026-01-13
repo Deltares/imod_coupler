@@ -107,7 +107,8 @@ In order to develop on `imod_coupler` locally, please follow the following steps
     mount the MinIO bucket containing the lookup table to a local folder.
   
     First the right software needs to be installed. On Windows, you can use
-    [Chocolatey](https://chocolatey.org/) to install WinFSP and rclone by running the following commands:
+    [Chocolatey](https://chocolatey.org/) to install WinFSP and rclone by
+    running the following commands:
 
     ```sh
     choco install winfsp
@@ -115,13 +116,14 @@ In order to develop on `imod_coupler` locally, please follow the following steps
     ```
 
     Configure rclone to access the Deltares MinIO server. You can use the same
-    access key and secret access key as used for DVC.
+    access key and secret access key as used for DVC:
 
     ```sh
     rclone config
     ```
 
-    Your rclone.conf file should look like this:
+    Your rclone.conf file should look like as follows. Note that in this case
+    the remote is named ``minio``:
 
     ```
     [minio]
@@ -137,14 +139,17 @@ In order to develop on `imod_coupler` locally, please follow the following steps
 
     After configuring rclone, you can mount the MinIO bucket containing the
     MetaSWAP lookup table by running the following command in the root of the
-    repository:
+    repository.
 
     ```sh
-      rclone mount minio:imod-coupler-test-data .\tests\data\user_acceptance\metaswap_mount --vfs-cache-mode writes
+      pixi run mount_minio
     ```
 
+    This runs as a background process, so it is expected that it doesn't finish.
+    The next step therefore needs to be conducted **in a separate process**.
+
   6. Run the user acceptance tests by running the following command in the root 
-    of the repository:
+    of the repository **in a separate process**:
 
     ```sh
       pixi run -e user-acceptance user_acceptance
