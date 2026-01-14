@@ -9,8 +9,9 @@ import jetbrains.buildServer.configs.kotlin.buildFeatures.commitStatusPublisher
 import jetbrains.buildServer.configs.kotlin.buildFeatures.xmlReport
 import jetbrains.buildServer.configs.kotlin.buildSteps.script
 
-object TestPrimodWin64 : Template({
+object TestPrimodWin64 : BuildType({
     name = "Test Primod Win64"
+    description = "Win64 Regression testbench for MODFLOW6/MetaSWAP coupler"
 
     publishArtifacts = PublishMode.ALWAYS
 
@@ -29,6 +30,8 @@ object TestPrimodWin64 : Template({
         param("env.RIBASIM_DLL_DEP_DIR_REGRESSION", "%system.teamcity.build.checkoutDir%/imod_collector_regression/ribasim/bin")
         param("env.METASWAP_LOOKUP_TABLE", "%system.teamcity.build.checkoutDir%/lookup_table")
         param("env.RIBASIM_DLL_REGRESSION", "%system.teamcity.build.checkoutDir%/imod_collector_regression/ribasim/bin/libribasim.dll")
+
+        param("pixi-environment", "py312")
     }
 
     vcs {
@@ -91,6 +94,6 @@ object TestPrimodWin64 : Template({
     }
 
     requirements {
-        equals("env.OS", "Windows_NT", "RQ_195")
+        equals("env.OS", "Windows_NT")
     }
 })
