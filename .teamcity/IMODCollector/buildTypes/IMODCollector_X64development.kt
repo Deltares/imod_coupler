@@ -22,6 +22,8 @@ object IMODCollector_X64development : BuildType({
         param("conda_env_path", "%system.teamcity.build.checkoutDir%/imod_collector_env")
         param("reverse.dep.Modflow_Modflow6Release.MODFLOW6_Version", "6.6.3")
         param("reverse.dep.Modflow_Modflow6Release.MODFLOW6_Platform", "win64")
+        param("reverse.dep.iMOD6_Coupler_Ribasim_binaries.RIBASIM_Version", "v2025.6.0")
+        param("reverse.dep.iMOD6_Coupler_Ribasim_binaries.RIBASIM_Platform", "windows")
     }
 
     vcs {
@@ -31,13 +33,6 @@ object IMODCollector_X64development : BuildType({
     }
 
     steps {
-        script {
-            name = "Download Release Ribasim"
-            scriptContent = """
-                curl -L -o ribasim_windows.zip https://github.com/Deltares/Ribasim/releases/download/v2025.6.0/ribasim_windows.zip
-                unzip  "ribasim_windows.zip"
-            """.trimIndent()
-        }
         script {
             name = "Install iMOD Coupler"
             enabled = false
@@ -90,6 +85,15 @@ object IMODCollector_X64development : BuildType({
             }
             artifacts {
                 artifactRules = "+:MODFLOW6.zip!** => modflow6"
+            }
+        }
+
+        dependency(AbsoluteId("iMOD6_Coupler_Ribasim_binaries")) {
+            snapshot {
+                onDependencyFailure = FailureAction.FAIL_TO_START
+            }
+            artifacts {
+                artifactRules = "+:ribasim.zip!** => ribasim"
             }
         }
 
