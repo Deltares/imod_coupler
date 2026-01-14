@@ -9,7 +9,7 @@ import jetbrains.buildServer.configs.kotlin.buildFeatures.commitStatusPublisher
 import jetbrains.buildServer.configs.kotlin.buildFeatures.xmlReport
 import jetbrains.buildServer.configs.kotlin.buildSteps.script
 
-object Primod_TestPrimodWin64 : Template({
+object TestPrimodWin64 : Template({
     name = "Test Primod Win64"
 
     publishArtifacts = PublishMode.ALWAYS
