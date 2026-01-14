@@ -1,15 +1,17 @@
-package Primod.buildTypes
+package _Self.buildTypes
 
+import IMODCollector.buildTypes.IMODCollector_X64development
 import _Self.vcsRoots.ImodCoupler
+import _Self.vcsRoots.MetaSwapLookupTable
 import jetbrains.buildServer.configs.kotlin.*
 import jetbrains.buildServer.configs.kotlin.buildFeatures.XmlReport
 import jetbrains.buildServer.configs.kotlin.buildFeatures.commitStatusPublisher
 import jetbrains.buildServer.configs.kotlin.buildFeatures.xmlReport
 import jetbrains.buildServer.configs.kotlin.buildSteps.script
-import jetbrains.buildServer.configs.kotlin.triggers.vcs
 
-object Primod_TestPrimodWin64 : Template({
+object TestPrimodWin64 : BuildType({
     name = "Test Primod Win64"
+    description = "Win64 Regression testbench for MODFLOW6/MetaSWAP coupler"
 
     publishArtifacts = PublishMode.ALWAYS
 
@@ -28,11 +30,13 @@ object Primod_TestPrimodWin64 : Template({
         param("env.RIBASIM_DLL_DEP_DIR_REGRESSION", "%system.teamcity.build.checkoutDir%/imod_collector_regression/ribasim/bin")
         param("env.METASWAP_LOOKUP_TABLE", "%system.teamcity.build.checkoutDir%/lookup_table")
         param("env.RIBASIM_DLL_REGRESSION", "%system.teamcity.build.checkoutDir%/imod_collector_regression/ribasim/bin/libribasim.dll")
+
+        param("pixi-environment", "py312")
     }
 
     vcs {
-        root(_Self.vcsRoots.ImodCoupler, ". => imod_coupler")
-        root(_Self.vcsRoots.MetaSwapLookupTable, ". => lookup_table")
+        root(ImodCoupler, ". => imod_coupler")
+        root(MetaSwapLookupTable, ". => lookup_table")
 
         cleanCheckout = true
         branchFilter = """
@@ -47,14 +51,6 @@ object Primod_TestPrimodWin64 : Template({
             id = "RUNNER_1503"
             workingDir = "imod_coupler"
             scriptContent = "pixi run --environment %pixi-environment% test-primod"
-        }
-    }
-
-    triggers {
-        vcs {
-            id = "TRIGGER_340"
-            triggerRules = "+:root=${ImodCoupler.id}:**"
-
         }
     }
 
@@ -78,7 +74,7 @@ object Primod_TestPrimodWin64 : Template({
     }
 
     dependencies {
-        dependency(IMODCollector.buildTypes.IMODCollector_X64development) {
+        dependency(IMODCollector_X64development) {
             snapshot {
                 onDependencyFailure = FailureAction.FAIL_TO_START
             }
@@ -98,6 +94,6 @@ object Primod_TestPrimodWin64 : Template({
     }
 
     requirements {
-        equals("env.OS", "Windows_NT", "RQ_195")
+        equals("env.OS", "Windows_NT")
     }
 })

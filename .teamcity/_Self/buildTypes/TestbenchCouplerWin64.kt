@@ -1,14 +1,12 @@
 package _Self.buildTypes
 
-import IMODCollector.buildTypes.IMODCollector_X64development
 import _Self.vcsRoots.ImodCoupler
 import jetbrains.buildServer.configs.kotlin.*
 import jetbrains.buildServer.configs.kotlin.buildFeatures.XmlReport
 import jetbrains.buildServer.configs.kotlin.buildFeatures.commitStatusPublisher
 import jetbrains.buildServer.configs.kotlin.buildFeatures.xmlReport
 import jetbrains.buildServer.configs.kotlin.buildSteps.script
-import jetbrains.buildServer.configs.kotlin.triggers.finishBuildTrigger
-import jetbrains.buildServer.configs.kotlin.triggers.vcs
+
 
 object TestbenchCouplerWin64 : BuildType({
     name = "Testbench Coupler Win64"
