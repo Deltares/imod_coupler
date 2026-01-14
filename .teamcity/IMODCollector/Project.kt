@@ -19,7 +19,7 @@ object Ribasim_binaries : BuildType({
     description = "Download Ribasim release binaries"
 
     artifactRules = """
-        ribasim/* => ribasim.zip!
+        ribasim/** => ribasim.zip!
     """.trimIndent()
 
     params {
