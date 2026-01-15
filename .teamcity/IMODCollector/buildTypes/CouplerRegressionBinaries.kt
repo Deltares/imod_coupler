@@ -27,7 +27,7 @@ object Coupler_Regression_Binaries : BuildType( {
             name = "Download iMOD Coupler"
             scriptContent = """
                 wget https://github.com/Deltares/imod_coupler/releases/download/%COUPLER_Version%/imod_coupler_%COUPLER_Platform%.zip -O coupler.zip
-                unzip  "coupler.zip"
+                unzip  "coupler.zip" -d coupler
             """.trimIndent()
         }
     }
