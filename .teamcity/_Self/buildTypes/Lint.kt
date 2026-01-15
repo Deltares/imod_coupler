@@ -13,11 +13,11 @@ object Lint : BuildType({
 
     steps {
         script {
-            name = "Run ruff format"
-            id = "Run_ruff_format"
+            name = "Run ruff format check"
+            id = "Run_ruff_format_check"
             workingDir = "imod_coupler"
             scriptContent = """
-                    pixi run --environment default --frozen format-check 
+                    pixi run --environment dev --frozen format-check 
                 """.trimIndent()
             formatStderrAsError = true
         }
@@ -26,7 +26,7 @@ object Lint : BuildType({
             id = "Run_ruff"
             workingDir = "imod_coupler"
             scriptContent = """
-                    pixi run --environment default --frozen ruff
+                    pixi run --environment dev --frozen ruff
                 """.trimIndent()
             formatStderrAsError = true
         }
