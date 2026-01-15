@@ -19,7 +19,7 @@ object MyPy : BuildType({
         script {
             name = "Run mypy on imodc"
             id = "Run_mypy_on_imodc"
-            workingDir = "imod-python"
+            workingDir = "imod_coupler"
             scriptContent = """
                     pixi run --environment dev --frozen mypy-imodc-report
                     pixi run --environment dev --frozen mypy-imodc
@@ -29,7 +29,7 @@ object MyPy : BuildType({
         script {
             name = "Run mypy on primod"
             id = "Run_mypy_on_primod"
-            workingDir = "imod-python"
+            workingDir = "imod_coupler"
             scriptContent = """
                     pixi run --environment dev --frozen mypy-primod-report
                     pixi run --environment dev --frozen mypy-primod
