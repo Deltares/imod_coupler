@@ -15,6 +15,7 @@ object Project : Project({
     vcsRoot(MetaSwapLookupTable)
     vcsRoot(ImodCoupler)
 
+    buildType(MyPy)
     buildType(TestbenchCouplerWin64)
     buildType(TestPrimodWin64)
     buildType(Main)

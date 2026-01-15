@@ -56,6 +56,10 @@ ruff = "*"
 tqdm = "*"
 twine = "*"
 
+
+[feature.dev.pypi-dependencies]
+mypy2junit = "*"
+
 [feature.dev.tasks]
 # Install
 install-test-dependencies = { depends-on = [
@@ -69,7 +73,9 @@ test-imod-coupler = "pytest -vvv -s --numprocesses=auto --dist=loadgroup --baset
 tests = { depends-on = ["test-primod", "test-imod-coupler"] }
 # Lint
 mypy-imodc = "mypy --ignore-missing-imports --strict imod_coupler"
+mypy-imodc-report = "mypy --ignore-missing-imports --strict imod_coupler | mypy2junit > mypy-imodc-report.xml"
 mypy-primod = "mypy --ignore-missing-imports pre-processing/primod"
+mypy-primod-report = "mypy --ignore-missing-imports pre-processing/primod | mypy2junit > mypy-primod-report.xml"
 format = "ruff format ."
 format-check = "ruff format --check ."
 ruff = "ruff check ."

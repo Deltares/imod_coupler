@@ -1,5 +1,6 @@
 package IMODCollector.buildTypes
 
+import _Self.buildTypes.MyPy
 import _Self.vcsRoots.ImodCoupler
 import jetbrains.buildServer.configs.kotlin.*
 import jetbrains.buildServer.configs.kotlin.buildFeatures.PullRequests
@@ -79,6 +80,10 @@ object IMODCollector_X64development : BuildType({
     }
 
     dependencies {
+        snapshot(MyPy){
+            onDependencyFailure = FailureAction.FAIL_TO_START
+        }
+
         dependency(AbsoluteId("Modflow_Modflow6Release")) {
             snapshot {
                 onDependencyFailure = FailureAction.FAIL_TO_START
