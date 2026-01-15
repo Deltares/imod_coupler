@@ -31,4 +31,8 @@ object Lint : BuildType({
             formatStderrAsError = true
         }
     }
+
+    requirements {
+        equals("env.OS", "Windows_NT")
+    }
 })

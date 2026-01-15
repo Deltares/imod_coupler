@@ -56,4 +56,8 @@ object MyPy : BuildType({
             rules = "imod_coupler/*.xml"
         }
     }
+
+    requirements {
+        equals("env.OS", "Windows_NT")
+    }
 })
