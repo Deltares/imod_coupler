@@ -82,10 +82,6 @@ class Mf6Wrapper(XmiWrapper):
         mf6_storage = self.get_value_ptr(mf6_storage_tag)
         return mf6_storage
 
-    def has_sc1(self, mf6_flowmodel_key: str) -> bool:
-        mf6_is_sc1_tag = self.get_var_address("ISTOR_COEF", mf6_flowmodel_key, "STO")
-        mf6_has_sc1 = bool(self.get_value_ptr(mf6_is_sc1_tag)[0] != 0)
-        return mf6_has_sc1
 
     def get_area(self, mf6_flowmodel_key: str) -> NDArray[np.float64]:
         mf6_area_tag = self.get_var_address("AREA", mf6_flowmodel_key, "DIS")
@@ -117,6 +113,41 @@ class Mf6Wrapper(XmiWrapper):
         )
         mf6_sprinkling_wells = self.get_value_ptr(mf6_sprinkling_tag)[:, 0]
         return mf6_sprinkling_wells
+        
+    def get_ss(self, mf6_flowmodel_key: str) -> NDArray[np.float64]:
+        mf6_storage_tag = self.get_var_address("SS", mf6_flowmodel_key, "STO")
+        mf6_storage = self.get_value_ptr(mf6_storage_tag)
+        return mf6_storage
+
+    def get_sy(self, mf6_flowmodel_key: str) -> NDArray[np.float64]:
+        mf6_storage_tag = self.get_var_address("SY", mf6_flowmodel_key, "STO")
+        mf6_storage = self.get_value_ptr(mf6_storage_tag)
+        return mf6_storage
+
+    def get_dis_shape(self, mf6_flowmodel_key: str) -> tuple:
+        nlay_tag = self.get_var_address("NLAY", mf6_flowmodel_key, "DIS")
+        nrow_tag = self.get_var_address("NROW", mf6_flowmodel_key, "DIS")
+        ncol_tag = self.get_var_address("NCOL", mf6_flowmodel_key, "DIS")
+        return (
+            self.get_value_ptr(nlay_tag)[0],
+            self.get_value_ptr(nrow_tag)[0],
+            self.get_value_ptr(ncol_tag)[0],
+        )
+
+    def get_nodeuser(self, mf6_flowmodel_key: str) -> NDArray[np.int32]:
+        nodeuser_tag = self.get_var_address("NODEUSER", mf6_flowmodel_key, "DIS")
+        return self.get_value_ptr(nodeuser_tag)
+
+    def get_saturation(self, mf6_flowmodel_key: str) -> NDArray[np.float64]:
+        saturation_tag = self.get_var_address("SAT", mf6_flowmodel_key, "NPF")
+        return self.get_value_ptr(saturation_tag)
+        
+    def has_sc1(self, mf6_flowmodel_key: str) -> bool:
+        mf6_is_sc1_tag = self.get_var_address("ISTOR_COEF", mf6_flowmodel_key, "STO")
+        mf6_has_sc1 = bool(self.get_value_ptr(mf6_is_sc1_tag)[0] != 0)
+        return mf6_has_sc1
+
+
 
 
 class Mf6Boundary(ABC):
