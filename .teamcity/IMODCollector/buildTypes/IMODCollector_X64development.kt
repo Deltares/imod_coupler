@@ -1,5 +1,6 @@
 package IMODCollector.buildTypes
 
+import _Self.buildTypes.Lint
 import _Self.buildTypes.MyPy
 import _Self.vcsRoots.ImodCoupler
 import jetbrains.buildServer.configs.kotlin.*
@@ -80,6 +81,10 @@ object IMODCollector_X64development : BuildType({
     }
 
     dependencies {
+        snapshot(Lint){
+            onDependencyFailure = FailureAction.FAIL_TO_START
+        }
+
         snapshot(MyPy){
             onDependencyFailure = FailureAction.FAIL_TO_START
         }
