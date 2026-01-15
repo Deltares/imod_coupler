@@ -12,6 +12,7 @@ object Project : Project({
     description = "Collect iMOD6 coupled components + coupler into a single package"
     buildType(IMODCollector_X64development)
     buildType(Ribasim_binaries)
+    buildType(Coupler_Regression_Binaries)
 })
 
 object Ribasim_binaries : BuildType({
