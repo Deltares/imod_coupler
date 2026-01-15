@@ -19,6 +19,7 @@ object Coupler_Regression_Binaries : BuildType( {
     """.trimIndent()
 
     vcs {
+        cleanCheckout = true
     }
 
     steps {
