@@ -17,7 +17,7 @@ from imod_coupler.config import BaseConfig
 from imod_coupler.drivers.driver import Driver
 from imod_coupler.drivers.metamod.config import MetaModConfig
 from imod_coupler.kernelwrappers.mf6_wrapper import Mf6Wrapper
-from imod_coupler.kernelwrappers.msw_wrapper import MswWrapper, MswMultiWrapper
+from imod_coupler.kernelwrappers.msw_wrapper import MswMultiWrapper, MswWrapper
 from imod_coupler.logging.exchange_collector import ExchangeCollector
 from imod_coupler.utils import MemoryExchange
 
@@ -81,6 +81,7 @@ class MetaMod(Driver):
         self,
         mf6_msw_node_map: Path,
         mf6_msw_recharge_map: Path,
+        msw_model: str,
         mf6_msw_sprinkling_map_groundwater: Path | None,
     ) -> dict[str, NDArray[np.int32]]:
         def svats2index(
@@ -94,7 +95,7 @@ class MetaMod(Driver):
         # create a lookup, with the svat tuples (id, lay) as keys and the
         # metaswap internal indexes as values
         svat_lookup: dict[tuple[np.int32, np.int32], int] = {}
-        msw_mod2svat_file = self.msw.working_directory / "mod2svat.inp"
+        msw_mod2svat_file = self.msw.working_dirs[msw_model] / "mod2svat.inp"
         if msw_mod2svat_file.is_file():
             svat_data: NDArray[np.int32] = np.loadtxt(
                 msw_mod2svat_file, dtype=np.int32, ndmin=2
@@ -228,6 +229,7 @@ class MetaMod(Driver):
             coupled_nodes = self.get_coupling_tables_per_gwf_model(
                 coupling_config.mf6_msw_node_map,
                 coupling_config.mf6_msw_recharge_map,
+                msw_model,
                 coupling_config.mf6_msw_sprinkling_map_groundwater,
             )
             exchange_logger = self.initialize_exchange_logger_per_gwf_model(
@@ -239,7 +241,7 @@ class MetaMod(Driver):
                 gwf_model,
                 coupling_config.mf6_msw_recharge_pkg,
                 coupling_config.mf6_msw_well_pkg,
-                msw_model
+                msw_model,
             )
             # append to list of gwf-model exchanges per exchange type
             for coupling in self.couplings.keys():

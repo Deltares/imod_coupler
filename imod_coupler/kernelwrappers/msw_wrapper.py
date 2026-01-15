@@ -1,3 +1,4 @@
+import multiprocessing as mp
 from ctypes import byref, c_double, c_int
 from pathlib import Path
 
@@ -5,14 +6,13 @@ import numpy as np
 from numpy.typing import NDArray
 from xmipy import XmiWrapper
 from xmipy.utils import cd
-import multiprocessing as mp
 
 
 class MswMultiWrapper:
-
     models: dict[str, XmiWrapper] = {}
-    models: list = []
+    # models: list = []
     model_names: list[str] = []
+    working_dirs: dict[str, str] = {}
 
     def __init__(
         self,
@@ -20,29 +20,36 @@ class MswMultiWrapper:
         lib_dependency: str | Path | None = None,
         working_directory: str | Path | None = None,
         timing: bool = False,
-        msw_workdirs = list[str] | None,
+        msw_workdirs=list[str] | None,
     ):
-        assert(msw_workdirs is not None)
+        assert msw_workdirs is not None
         for msw_model in msw_workdirs:
-            model = mp.Process(name = msw_model,target = MswWrapper, args = (lib_path, lib_dependency, working_directory / msw_model, timing))
-            self.models.append(model)
+            model = mp.Process(
+                name=msw_model,
+                target=MswWrapper,
+                args=(lib_path, lib_dependency, working_directory / msw_model, timing),
+            )
+            self.models[msw_model] = model
+            self.working_dirs[msw_model] = working_directory / msw_model
             model.start()
 
-
     def initialize(self) -> None:
-        if __name__ == '__main__':
+        if __name__ == "__main__":
             with mp.Pool(5) as p:
                 pass
 
-    def get_storage_ptr(self, model:str):
+    def get_working_dir(self, model: str):
+        return self.models[model].working_directory
+
+    def get_storage_ptr(self, model: str):
         return self.models[model].get_storage_ptr()
-    
-    def get_volume_ptr(self, model:str):
+
+    def get_volume_ptr(self, model: str):
         return self.models[model].get_volume_ptr()
-    
-    def get_head_ptr(self, model:str):
+
+    def get_head_ptr(self, model: str):
         return self.models[model].get_head_ptr()
-    
+
     def get_version(self):
         return self.models[self.model_names[0]].get_version()
 
@@ -58,21 +65,21 @@ class MswMultiWrapper:
         for model in self.models.values():
             model.finalize()
 
-    def prepare_solve(self, id:int) -> None:
+    def prepare_solve(self, id: int) -> None:
         for model in self.models.values():
             model.prepare_solve(id)
 
-    def solve(self, id:int) -> None:
+    def solve(self, id: int) -> None:
         for model in self.models.values():
             model.solve(id)
 
-    def finalize_solve(self, id:int) -> None:
+    def finalize_solve(self, id: int) -> None:
         for model in self.models.values():
             model.finalize_solve(id)
 
     def report_timing_totals(self):
         return self.models[self.model_names[0]].report_timing_totals()
-    
+
 
 class MswWrapper(XmiWrapper):
     def __init__(
