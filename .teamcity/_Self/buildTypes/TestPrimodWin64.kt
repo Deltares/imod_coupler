@@ -1,5 +1,6 @@
 package _Self.buildTypes
 
+import IMODCollector.buildTypes.Coupler_Regression_Binaries
 import IMODCollector.buildTypes.IMODCollector_X64development
 import _Self.vcsRoots.ImodCoupler
 import _Self.vcsRoots.MetaSwapLookupTable
@@ -16,6 +17,9 @@ object TestPrimodWin64 : BuildType({
     publishArtifacts = PublishMode.ALWAYS
 
     params {
+        param("reverse.dep.iMOD6_Coupler_Coupler_Regression_Binaries.COUPLER_Version", "v2024.3.0")
+        param("reverse.dep.iMOD6_Coupler_Coupler_Regression_Binaries.COUPLER_Platform", "windows")
+
         param("env.METASWAP_DLL_REGRESSION", "%system.teamcity.build.checkoutDir%/imod_collector_regression/metaswap/MetaSWAP.dll")
         param("env.IMOD_COUPLER_EXEC_REGRESSION", "%system.teamcity.build.checkoutDir%/imod_collector_regression/imod_coupler/imodc.exe")
         param("env.MODFLOW_DLL_DEVEL", "%system.teamcity.build.checkoutDir%/imod_collector_devel/modflow6/libmf6.dll")
@@ -85,10 +89,14 @@ object TestPrimodWin64 : BuildType({
                     imod_collector.zip!** => imod_collector_devel
                 """.trimIndent()
             }
+        }
+
+        dependency(Coupler_Regression_Binaries) {
+            snapshot {
+                onDependencyFailure = FailureAction.FAIL_TO_START
+            }
             artifacts {
-                buildRule = tag("regression")
-                cleanDestination = true
-                artifactRules = "imod_coupler_windows.zip!** => imod_collector_regression"
+                artifactRules = "+:imod_coupler_release.zip!** => imod_collector_regression"
             }
         }
     }
