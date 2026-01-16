@@ -30,14 +30,6 @@ object TestPrimodWin64 : BuildType({
         param("env.MODFLOW_DLL_DEVEL", "%system.teamcity.build.checkoutDir%/imod_collector_devel/modflow6/libmf6.dll")
         param("env.RIBASIM_DLL_DEP_DIR_DEVEL", "%system.teamcity.build.checkoutDir%/imod_collector_devel/ribasim/bin")
         param("env.RIBASIM_DLL_DEVEL", "%system.teamcity.build.checkoutDir%/imod_collector_devel/ribasim/bin/libribasim.dll")
-
-        // Regression binaries parameters
-        param("env.IMOD_COUPLER_EXEC_REGRESSION", "%system.teamcity.build.checkoutDir%/imod_collector_regression/imod_coupler/imodc.exe")
-        param("env.METASWAP_DLL_DEP_DIR_REGRESSION", "%system.teamcity.build.checkoutDir%/imod_collector_regression/metaswap")
-        param("env.METASWAP_DLL_REGRESSION", "%system.teamcity.build.checkoutDir%/imod_collector_regression/metaswap/MetaSWAP.dll")
-        param("env.MODFLOW_DLL_REGRESSION", "%system.teamcity.build.checkoutDir%/imod_collector_regression/modflow6/libmf6.dll")
-        param("env.RIBASIM_DLL_DEP_DIR_REGRESSION", "%system.teamcity.build.checkoutDir%/imod_collector_regression/ribasim/bin")
-        param("env.RIBASIM_DLL_REGRESSION", "%system.teamcity.build.checkoutDir%/imod_collector_regression/ribasim/bin/libribasim.dll")
         
         param("env.METASWAP_LOOKUP_TABLE", "%system.teamcity.build.checkoutDir%/lookup_table")
     }
@@ -92,15 +84,6 @@ object TestPrimodWin64 : BuildType({
                 artifactRules = """
                     imod_collector.zip!** => imod_collector_devel
                 """.trimIndent()
-            }
-        }
-
-        dependency(Coupler_Regression_Binaries) {
-            snapshot {
-                onDependencyFailure = FailureAction.FAIL_TO_START
-            }
-            artifacts {
-                artifactRules = "+:imod_coupler_release.zip!** => imod_collector_regression"
             }
         }
     }
