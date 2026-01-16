@@ -15,18 +15,19 @@ object Coupler_Regression_Binaries : BuildType( {
     }
 
     artifactRules = """
-        imod_coupler/** => imod_coupler_release.zip!
+        coupler/** => imod_coupler_release.zip!
     """.trimIndent()
 
     vcs {
+        cleanCheckout = true
     }
 
     steps {
         script {
             name = "Download iMOD Coupler"
             scriptContent = """
-                wget https://github.com/Deltares/imod_coupler/releases/download/%COUPLER_Version%/imod_coupler_%COUPLER_Platform%.zip -O imod_coupler.zip
-                unzip  "imod_coupler.zip"
+                wget https://github.com/Deltares/imod_coupler/releases/download/%COUPLER_Version%/imod_coupler_%COUPLER_Platform%.zip -O coupler.zip
+                unzip  "coupler.zip" -d coupler
             """.trimIndent()
         }
     }
