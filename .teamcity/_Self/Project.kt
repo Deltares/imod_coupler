@@ -17,6 +17,7 @@ object Project : Project({
 
     buildType(Lint)
     buildType(MyPy)
+    buildType(TwineCheck)
     buildType(TestbenchCouplerWin64)
     buildType(TestPrimodWin64)
     buildType(Main)
