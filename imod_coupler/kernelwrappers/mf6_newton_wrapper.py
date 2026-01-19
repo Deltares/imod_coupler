@@ -17,7 +17,7 @@ class ExpandArray:
     Parameters
     ----------
     shape: tuple[int, int, int]:    tuple of grid dimensions layer, row and column
-    userid (NDArray[Any]):          array with user id's (one based) for reduced model nodes,
+    userid (NDArray[Any]):          array with user id's (zero based) for reduced model nodes,
                                     relative to the user defined array
     ptr (NDArray[Any]):             pointer array with variable values (reduced size)
     ptr_nodelist (NDArray[Any]):    optional pointer array for bc-packages to map package nodes to (user defined) modelnodes
@@ -47,7 +47,7 @@ class ExpandArray:
         self.nodelist = ptr_nodelist
 
     def _set_userid(self, userid: NDArray[Any]) -> None:
-        self.userid = userid - 1  # change to zero based index
+        self.userid = userid
         _, count = np.unique(self.userid, return_counts=True)
         assert np.all(count == 1)  # in case of n-m coupling, use only one rch element!
 
@@ -110,17 +110,17 @@ class PhreaticModelArray:
     Parameters
     ----------
     shape: tuple[int, int, int]:    tuple of grid dimensions layer, row and column
-    userid (NDArray[Any]):          array with user id's (one based) for reduced model nodes,
+    userid (NDArray[Any]):          array with user id's (zero based) for reduced model nodes,
     ptr_saturation (NDArray[Any]):  pointer array with saturation on reduced model nodes
     ptr_variable (NDArray[Any]):    pointer array with variable values on reduced model nodes
-    nodes (NDArray[Any]):           selection of coupled nodes in first model layer, for which the
-                                    corresponding phreatic nodes are computed
+    node_idx (NDArray[Any]):        selection of coupled nodes in first model layer, for which the
+                                    corresponding phreatic nodes are computed (zero based)
     max_layer (NDArray[Any]|None):  optional array with maximum layer (zero based) index for each node
     """
 
     variable: ExpandArray
     saturation: ExpandArray
-    nodes: NDArray[Any]
+    node_idx: NDArray[Any]
     row_user_index: NDArray[Any]
     col_user_index: NDArray[Any]
     initialised: bool
@@ -131,15 +131,15 @@ class PhreaticModelArray:
         userid: NDArray[Any],
         ptr_saturation: NDArray[Any],
         ptr_variable: NDArray[Any],
-        nodes: NDArray[Any],
-        max_layer: NDArray[Any],
+        node_idx: NDArray[Any],
+        max_layer_idx: NDArray[Any],
     ) -> None:
         self.nlay, self.nrow, self.ncol = shape
         self.variable = ExpandArray(shape, userid, ptr_variable)
         self.saturation = ExpandArray(shape, userid, ptr_saturation)
         self.initialised = False
-        self.nodes = nodes - 1
-        self.max_layer = max_layer
+        self.node_idx = node_idx
+        self.max_layer_idx = max_layer_idx
 
     def _ensure_user_indices(self) -> None:
         """
@@ -150,8 +150,10 @@ class PhreaticModelArray:
         """
         if self.initialised:
             return
-        self.row_user_index = np.repeat(np.arange(self.nrow), self.ncol)[self.nodes]
-        self.col_user_index = np.tile(np.arange(self.ncol), reps=self.nrow)[self.nodes]
+        self.row_user_index = np.repeat(np.arange(self.nrow), self.ncol)[self.node_idx]
+        self.col_user_index = np.tile(np.arange(self.ncol), reps=self.nrow)[
+            self.node_idx
+        ]
         self.initialised = True
 
     def set_at_phreatic(self, new_values: NDArray[Any]) -> None:
@@ -181,9 +183,9 @@ class PhreaticModelArray:
         # TODO: use max layer from input in case of dry columns?
         self._ensure_user_indices()
         phreatic_layer = np.argmax(self.saturation.to_full_3d() > 0, axis=0).flatten()[
-            self.nodes
+            self.node_idx
         ]
-        return np.minimum(phreatic_layer, self.max_layer)
+        return np.minimum(phreatic_layer, self.max_layer_idx)
 
     @property
     def phreatic_reduced_idx(self) -> Any:
@@ -209,7 +211,7 @@ class PhreaticBCArray:
     to get or set values.
     """
 
-    initial_nodes: NDArray[Any]
+    initial_nodes_idx: NDArray[Any]
 
     def __init__(
         self,
@@ -218,7 +220,7 @@ class PhreaticBCArray:
         ptr_saturation: NDArray[Any],
         ptr_package_variable: NDArray[Any],
         ptr_package_nodelist: NDArray[Any],
-        max_layer: NDArray[Any],
+        max_layer_idx: NDArray[Any],
     ) -> None:
         self.nlay, self.nrow, self.ncol = shape
         self.variable = ExpandArray(
@@ -230,36 +232,49 @@ class PhreaticBCArray:
         self.saturation = ExpandArray(shape, userid, ptr_saturation)
         self.nodes_ptr = ptr_package_nodelist  # used for nodes after prepare_timestep
         self.initialised = False
-        self.max_layer = max_layer
+        self.max_layer_idx = max_layer_idx
 
     def _ensure_user_indices(self) -> None:
         # the nodelist for bc-packages is only filled after the first prepare-timestep call
         # This method therefore is not called from the constructor
         if not self.initialised:
-            self.nodes = self.nodes_ptr - 1
+            self.nodes_idx = self.nodes_ptr - 1
             userid = self.variable.userid
             self.row_user_index = np.repeat(np.arange(self.nrow), self.ncol)[
-                userid[self.nodes]
+                userid[self.nodes_idx]
             ]
             self.col_user_index = np.tile(np.arange(self.ncol), reps=self.nrow)[
-                userid[self.nodes]
+                userid[self.nodes_idx]
             ]
-            self.initial_nodes = np.copy(self.nodes)
+            self.initial_nodes_idx = np.copy(self.nodes_idx)
             self.initialised = True
 
     def set_at_phreatic(self, new_values: NDArray[Any]) -> None:
         # the variable values does not need to be mapped, since the nodelist points to the phreatic nodes
         self.variable.reduced[:] = new_values[:]
-        self.variable.nodelist[:] = (self.phreatic_layer_idx + 1)[:]  # type ignore
+        self.variable.nodelist[:] = (self.phreatic_reduced_idx + 1)[:]  # type ignore
 
     @property
     def phreatic_layer_idx(self) -> Any:
-        self._ensure_user_indices()
+        # self._ensure_user_indices()
         # use initial_nodes since self.nodes is updated by set_ptr method
         phreatic_layer = np.argmax(self.saturation.to_full_3d() > 0, axis=0).flatten()[
-            self.variable.userid[self.initial_nodes]
+            self.variable.userid[self.initial_nodes_idx]
         ]
-        return np.minimum(phreatic_layer, self.max_layer)
+        return np.minimum(phreatic_layer, self.max_layer_idx)
+
+    @property
+    def phreatic_reduced_idx(self) -> Any:
+        self._ensure_user_indices()
+        phreatic_reduced_index = self.variable.reduced_index.reshape(
+            (self.nlay, self.nrow, self.ncol)
+        )[
+            self.phreatic_layer_idx,
+            self.row_user_index,
+            self.col_user_index,
+        ].flatten()
+        assert np.all(phreatic_reduced_index >= 0)
+        return phreatic_reduced_index
 
 
 class PhreaticStorage:
@@ -283,10 +298,10 @@ class PhreaticStorage:
         ptr_saturation: NDArray[Any],
         ptr_storage_sy: NDArray[Any],
         ptr_storage_ss: NDArray[Any],
-        active_top_layer_nodes: NDArray[Any],
+        active_top_layer_node_idx: NDArray[Any],
         max_layer: NDArray[Any],
     ) -> None:
-        self.zeros = np.zeros(active_top_layer_nodes.size)
+        self.zeros = np.zeros(active_top_layer_node_idx.size)
         self.initial_sy = np.copy(ptr_storage_sy)
         self.initial_ss = np.copy(ptr_storage_ss)
         self.sy = PhreaticModelArray(
@@ -294,7 +309,7 @@ class PhreaticStorage:
             userid,
             ptr_saturation,
             ptr_storage_sy,
-            active_top_layer_nodes,
+            active_top_layer_node_idx,
             max_layer,
         )
         self.ss = PhreaticModelArray(
@@ -302,7 +317,7 @@ class PhreaticStorage:
             userid,
             ptr_saturation,
             ptr_storage_ss,
-            active_top_layer_nodes,
+            active_top_layer_node_idx,
             max_layer,
         )
 
@@ -331,7 +346,7 @@ class PhreaticRecharge:
         ptr_saturation: NDArray[Any],
         ptr_recharge: NDArray[Any],
         ptr_recharge_nodelist: NDArray[Any],
-        max_layer: NDArray[Any],
+        max_layer_idx: NDArray[Any],
     ) -> None:
         self.recharge = PhreaticBCArray(
             shape,
@@ -339,7 +354,7 @@ class PhreaticRecharge:
             ptr_saturation,
             ptr_recharge,
             ptr_recharge_nodelist,
-            max_layer,
+            max_layer_idx,
         )
 
     def set(self, new_recharge: NDArray[Any]) -> None:
@@ -361,11 +376,16 @@ class PhreaticHeads:
         userid: NDArray[Any],
         ptr_saturation: NDArray[Any],
         ptr_heads: NDArray[Any],
-        active_top_layer_nodes: NDArray[Any],
-        max_layer: NDArray[Any],
+        active_top_layer_node_idx: NDArray[Any],
+        max_layer_idx: NDArray[Any],
     ) -> None:
         self.heads = PhreaticModelArray(
-            shape, userid, ptr_saturation, ptr_heads, active_top_layer_nodes, max_layer
+            shape,
+            userid,
+            ptr_saturation,
+            ptr_heads,
+            active_top_layer_node_idx,
+            max_layer_idx,
         )
 
     def get(self) -> NDArray[Any]:
