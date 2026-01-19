@@ -1,6 +1,5 @@
 package _Self.vcsRoots
 
-import jetbrains.buildServer.configs.kotlin.*
 import jetbrains.buildServer.configs.kotlin.vcs.SvnVcsRoot
 
 object MetaSwapLookupTable : SvnVcsRoot({
