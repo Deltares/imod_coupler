@@ -1,10 +1,13 @@
 package _Self.buildTypes
 
 import IMODCollector.buildTypes.Coupler_Regression_Binaries
+import Templates.GitHubIntegrationTemplate
 import _Self.vcsRoots.ImodCoupler
-import jetbrains.buildServer.configs.kotlin.*
+import _Self.vcsRoots.MetaSwapLookupTable
+import jetbrains.buildServer.configs.kotlin.BuildType
+import jetbrains.buildServer.configs.kotlin.FailureAction
+import jetbrains.buildServer.configs.kotlin.PublishMode
 import jetbrains.buildServer.configs.kotlin.buildFeatures.XmlReport
-import jetbrains.buildServer.configs.kotlin.buildFeatures.commitStatusPublisher
 import jetbrains.buildServer.configs.kotlin.buildFeatures.xmlReport
 import jetbrains.buildServer.configs.kotlin.buildSteps.script
 
@@ -12,6 +15,8 @@ import jetbrains.buildServer.configs.kotlin.buildSteps.script
 object TestbenchCouplerWin64 : BuildType({
     name = "Testbench Coupler Win64"
     description = "Win64 Regression testbench for MODFLOW6/MetaSWAP coupler"
+
+    templates(GitHubIntegrationTemplate)
 
     artifactRules = """imod_coupler\tests\temp => test_output.zip"""
     publishArtifacts = PublishMode.ALWAYS
@@ -43,8 +48,8 @@ object TestbenchCouplerWin64 : BuildType({
     }
 
     vcs {
-        root(_Self.vcsRoots.ImodCoupler, ". => imod_coupler")
-        root(_Self.vcsRoots.MetaSwapLookupTable, ". => lookup_table")
+        root(ImodCoupler, ". => imod_coupler")
+        root(MetaSwapLookupTable, ". => lookup_table")
 
         cleanCheckout = true
         branchFilter = """
@@ -73,15 +78,6 @@ object TestbenchCouplerWin64 : BuildType({
     }
 
     features {
-        commitStatusPublisher {
-            vcsRootExtId = "${ImodCoupler.id}"
-            publisher = github {
-                githubUrl = "https://api.github.com"
-                authType = personalToken {
-                    token = "credentialsJSON:6b37af71-1f2f-4611-8856-db07965445c0"
-                }
-            }
-        }
         xmlReport {
             reportType = XmlReport.XmlReportType.JUNIT
             rules = "imod_coupler/report.xml"

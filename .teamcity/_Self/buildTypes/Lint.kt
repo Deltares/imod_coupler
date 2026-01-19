@@ -1,15 +1,17 @@
 package _Self.buildTypes
 
+import Templates.GitHubIntegrationTemplate
 import _Self.vcsRoots.ImodCoupler
 import jetbrains.buildServer.configs.kotlin.BuildType
-import jetbrains.buildServer.configs.kotlin.buildFeatures.commitStatusPublisher
 import jetbrains.buildServer.configs.kotlin.buildSteps.script
 
 object Lint : BuildType({
     name = "Lint"
 
+    templates(GitHubIntegrationTemplate)
+
     vcs {
-        root(_Self.vcsRoots.ImodCoupler, ". => imod_coupler")
+        root(ImodCoupler, ". => imod_coupler")
         cleanCheckout = true
     }
 
@@ -31,19 +33,6 @@ object Lint : BuildType({
                     pixi run --environment dev --frozen ruff
                 """.trimIndent()
             formatStderrAsError = true
-        }
-    }
-
-    features {
-        commitStatusPublisher {
-            id = "BUILD_EXT_142"
-            vcsRootExtId = "${ImodCoupler.id}"
-            publisher = github {
-                githubUrl = "https://api.github.com"
-                authType = personalToken {
-                    token = "credentialsJSON:6b37af71-1f2f-4611-8856-db07965445c0"
-                }
-            }
         }
     }
 

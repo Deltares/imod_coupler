@@ -1,18 +1,20 @@
 package IMODCollector.buildTypes
 
+import Templates.GitHubIntegrationTemplate
 import _Self.buildTypes.Lint
 import _Self.buildTypes.MyPy
 import _Self.buildTypes.TwineCheck
 import _Self.vcsRoots.ImodCoupler
-import jetbrains.buildServer.configs.kotlin.*
-import jetbrains.buildServer.configs.kotlin.buildFeatures.PullRequests
-import jetbrains.buildServer.configs.kotlin.buildFeatures.commitStatusPublisher
-import jetbrains.buildServer.configs.kotlin.buildFeatures.pullRequests
+import jetbrains.buildServer.configs.kotlin.AbsoluteId
+import jetbrains.buildServer.configs.kotlin.BuildType
+import jetbrains.buildServer.configs.kotlin.FailureAction
 import jetbrains.buildServer.configs.kotlin.buildSteps.script
 
 object IMODCollector_X64development : BuildType({
     name = "x64_development"
     description = "Collect all Release_x64 kernels in the iMOD6 suite"
+
+    templates(GitHubIntegrationTemplate)
 
     artifactRules = """
         coupler/dist/ => imod_collector.zip!/
@@ -30,7 +32,7 @@ object IMODCollector_X64development : BuildType({
     }
 
     vcs {
-        root(_Self.vcsRoots.ImodCoupler, "+:. => ./coupler")
+        root(ImodCoupler, "+:. => ./coupler")
 
         cleanCheckout = true
     }
@@ -57,27 +59,6 @@ object IMODCollector_X64development : BuildType({
             name = "Get version from imod coupler"
             workingDir = "coupler"
             scriptContent = """call dist\imodc --version"""
-        }
-    }
-
-    features {
-        commitStatusPublisher {
-            vcsRootExtId = "${ImodCoupler.id}"
-            publisher = github {
-                githubUrl = "https://api.github.com"
-                authType = personalToken {
-                    token = "credentialsJSON:6b37af71-1f2f-4611-8856-db07965445c0"
-                }
-            }
-        }
-        pullRequests {
-            vcsRootExtId = "${ImodCoupler.id}"
-            provider = github {
-                authType = token {
-                    token = "credentialsJSON:71420214-373c-4ccd-ba32-2ea886843f62"
-                }
-                filterAuthorRole = PullRequests.GitHubRoleFilter.MEMBER
-            }
         }
     }
 
