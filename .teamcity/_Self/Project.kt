@@ -1,5 +1,6 @@
 package _Self
 
+import Templates.GitHubIntegrationTemplate
 import _Self.buildTypes.TestPrimodWin64
 import _Self.buildTypes.*
 import _Self.vcsRoots.*
@@ -14,6 +15,8 @@ object Project : Project({
 
     vcsRoot(MetaSwapLookupTable)
     vcsRoot(ImodCoupler)
+
+    template(GitHubIntegrationTemplate)
 
     buildType(Lint)
     buildType(MyPy)

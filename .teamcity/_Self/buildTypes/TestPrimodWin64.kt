@@ -1,18 +1,21 @@
 package _Self.buildTypes
 
-import IMODCollector.buildTypes.Coupler_Regression_Binaries
 import IMODCollector.buildTypes.IMODCollector_X64development
+import Templates.GitHubIntegrationTemplate
 import _Self.vcsRoots.ImodCoupler
 import _Self.vcsRoots.MetaSwapLookupTable
-import jetbrains.buildServer.configs.kotlin.*
+import jetbrains.buildServer.configs.kotlin.BuildType
+import jetbrains.buildServer.configs.kotlin.FailureAction
+import jetbrains.buildServer.configs.kotlin.PublishMode
 import jetbrains.buildServer.configs.kotlin.buildFeatures.XmlReport
-import jetbrains.buildServer.configs.kotlin.buildFeatures.commitStatusPublisher
 import jetbrains.buildServer.configs.kotlin.buildFeatures.xmlReport
 import jetbrains.buildServer.configs.kotlin.buildSteps.script
 
 object TestPrimodWin64 : BuildType({
     name = "Test Primod Win64"
     description = "Win64 Regression testbench for MODFLOW6/MetaSWAP coupler"
+
+    templates(GitHubIntegrationTemplate)
 
     publishArtifacts = PublishMode.ALWAYS
 
@@ -55,16 +58,6 @@ object TestPrimodWin64 : BuildType({
     }
 
     features {
-        commitStatusPublisher {
-            id = "BUILD_EXT_142"
-            vcsRootExtId = "${ImodCoupler.id}"
-            publisher = github {
-                githubUrl = "https://api.github.com"
-                authType = personalToken {
-                    token = "credentialsJSON:6b37af71-1f2f-4611-8856-db07965445c0"
-                }
-            }
-        }
         xmlReport {
             id = "BUILD_EXT_145"
             reportType = XmlReport.XmlReportType.JUNIT
