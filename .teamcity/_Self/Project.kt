@@ -1,5 +1,6 @@
 package _Self
 
+import Pixi.PixiProject
 import Templates.GitHubIntegrationTemplate
 import _Self.buildTypes.TestPrimodWin64
 import _Self.buildTypes.*
@@ -26,6 +27,7 @@ object Project : Project({
     buildType(Main)
 
     subProject(IMODCollector.Project)
+    subProject(PixiProject)
 })
 
 object Main : BuildType({
