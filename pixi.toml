@@ -84,6 +84,13 @@ lint = { depends-on = ["format", "ruff", "mypy-imodc", "mypy-primod"] }
 # Publish primod
 publish-primod = { cmd = "rm --recursive --force dist && python -m build && twine check dist/* && twine upload dist/*", cwd = "pre-processing" }
 
+[feature.pixi-update.dependencies]
+pip = "*"
+pixi-diff-to-markdown = "*"
+
+[feature.pixi-update.tasks]
+update = "pixi update --json | pixi-diff-to-markdown > diff.md"
+
 [feature.py312.dependencies]
 python = "3.12.*"
 
@@ -91,3 +98,4 @@ python = "3.12.*"
 default = { features = ["py312"], solve-group = "py312" }
 dev = { features = ["py312", "dev", "common"], solve-group = "py312" }
 py312 = { features = ["py312", "common"], solve-group = "py312" }
+pixi-update = { features = ["pixi-update"], no-default-feature = true }
