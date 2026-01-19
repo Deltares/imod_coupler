@@ -19,5 +19,6 @@
     "sonarlint.connectedMode.project": {
         "connectionId": "deltares",
         "projectKey": "Deltares_imod_coupler"
-    }
+    },
+    "python-envs.pythonProjects": []
 }

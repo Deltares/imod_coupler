@@ -2,6 +2,7 @@ package IMODCollector.buildTypes
 
 import _Self.buildTypes.Lint
 import _Self.buildTypes.MyPy
+import _Self.buildTypes.TwineCheck
 import _Self.vcsRoots.ImodCoupler
 import jetbrains.buildServer.configs.kotlin.*
 import jetbrains.buildServer.configs.kotlin.buildFeatures.PullRequests
@@ -86,6 +87,10 @@ object IMODCollector_X64development : BuildType({
         }
 
         snapshot(MyPy){
+            onDependencyFailure = FailureAction.FAIL_TO_START
+        }
+
+        snapshot(TwineCheck){
             onDependencyFailure = FailureAction.FAIL_TO_START
         }
 

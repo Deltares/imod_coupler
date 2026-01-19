@@ -1,7 +1,9 @@
 package _Self.buildTypes
 
+import _Self.vcsRoots.ImodCoupler
 import jetbrains.buildServer.configs.kotlin.BuildType
 import jetbrains.buildServer.configs.kotlin.buildFeatures.XmlReport
+import jetbrains.buildServer.configs.kotlin.buildFeatures.commitStatusPublisher
 import jetbrains.buildServer.configs.kotlin.buildFeatures.xmlReport
 import jetbrains.buildServer.configs.kotlin.buildSteps.script
 import jetbrains.buildServer.configs.kotlin.failureConditions.BuildFailureOnMetric
@@ -51,6 +53,17 @@ object MyPy : BuildType({
     }
 
     features {
+        commitStatusPublisher {
+            id = "BUILD_EXT_142"
+            vcsRootExtId = "${ImodCoupler.id}"
+            publisher = github {
+                githubUrl = "https://api.github.com"
+                authType = personalToken {
+                    token = "credentialsJSON:6b37af71-1f2f-4611-8856-db07965445c0"
+                }
+            }
+        }
+
         xmlReport {
             reportType = XmlReport.XmlReportType.JUNIT
             rules = "imod_coupler/*.xml"
