@@ -64,8 +64,8 @@ In order to develop on `imod_coupler` locally, please follow the following steps
   application via `open-vscode.bat`. This will open the application in a new
   vscode window with the correct environment variables set.
 
-- To run the user acceptance tests will be described below. The model currently
-  used for the user acceptance tests is [the LHM
+- How to run the user acceptance tests will be described below. The model
+  currently used for the user acceptance tests is [the LHM
   model](https://nhi.nu/modellen/lhm/), but more models might be added in the
   future.
 
