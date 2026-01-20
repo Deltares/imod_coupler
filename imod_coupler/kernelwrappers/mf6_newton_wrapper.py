@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, cast
 
 import numpy as np
 from numpy.typing import NDArray
@@ -25,6 +25,7 @@ class ExpandArray:
     """
 
     reduced: NDArray[Any]
+    reduced_index: NDArray[np.int32]
     non_reduced: NDArray[Any]
     nlay: int
     nrow: int
@@ -124,6 +125,7 @@ class PhreaticModelArray:
     row_user_index: NDArray[Any]
     col_user_index: NDArray[Any]
     initialised: bool
+    max_layer_idx: NDArray[np.int32]
 
     def __init__(
         self,
@@ -132,7 +134,7 @@ class PhreaticModelArray:
         ptr_saturation: NDArray[Any],
         ptr_variable: NDArray[Any],
         node_idx: NDArray[Any],
-        max_layer_idx: NDArray[Any],
+        max_layer_idx: NDArray[np.int32],
     ) -> None:
         self.nlay, self.nrow, self.ncol = shape
         self.variable = ExpandArray(shape, userid, ptr_variable)
@@ -172,23 +174,33 @@ class PhreaticModelArray:
         Returns:
             NDArray[Any]: Array with variable values at phreatic nodes of initial nodes selection
         """
-        return self.variable.to_full_3d()[
-            self.phreatic_layer_idx,
-            self.row_user_index,
-            self.col_user_index,
-        ].flatten()  # type ignore
+        return cast(
+            NDArray[Any],
+            self.variable.to_full_3d()[
+                self.phreatic_layer_idx,
+                self.row_user_index,
+                self.col_user_index,
+            ].flatten(),
+        )
 
     @property
-    def phreatic_layer_idx(self) -> Any:
+    def phreatic_layer_idx(self) -> NDArray[Any]:
         # TODO: use max layer from input in case of dry columns?
         self._ensure_user_indices()
-        phreatic_layer = np.argmax(self.saturation.to_full_3d() > 0, axis=0).flatten()[
-            self.node_idx
-        ]
-        return np.minimum(phreatic_layer, self.max_layer_idx)
+        phreatic_layer: NDArray[np.int32] = (
+            np.argmax(self.saturation.to_full_3d() > 0, axis=0)
+            .astype(np.int32)
+            .flatten()[self.node_idx]
+        )
+        # np.argmax returns an integer array (np.intp); ensure the result has a
+        # consistent integer dtype for further indexing and satisfy mypy.
+        phreatic_layer_max: NDArray[np.int32] = np.minimum(
+            phreatic_layer, self.max_layer_idx
+        ).astype(np.int32)
+        return phreatic_layer_max
 
     @property
-    def phreatic_reduced_idx(self) -> Any:
+    def phreatic_reduced_idx(self) -> NDArray[np.int32]:
         phreatic_reduced_index = self.variable.reduced_index.reshape(
             (self.nlay, self.nrow, self.ncol)
         )[
@@ -197,7 +209,7 @@ class PhreaticModelArray:
             self.col_user_index,
         ].flatten()
         assert np.all(phreatic_reduced_index >= 0)
-        return phreatic_reduced_index
+        return cast(NDArray[np.int32], phreatic_reduced_index)
 
 
 class PhreaticBCArray:
@@ -212,6 +224,7 @@ class PhreaticBCArray:
     """
 
     initial_nodes_idx: NDArray[Any]
+    max_layer_idx: NDArray[np.int32]
 
     def __init__(
         self,
@@ -220,7 +233,7 @@ class PhreaticBCArray:
         ptr_saturation: NDArray[Any],
         ptr_package_variable: NDArray[Any],
         ptr_package_nodelist: NDArray[Any],
-        max_layer_idx: NDArray[Any],
+        max_layer_idx: NDArray[np.int32],
     ) -> None:
         self.nlay, self.nrow, self.ncol = shape
         self.variable = ExpandArray(
@@ -252,19 +265,27 @@ class PhreaticBCArray:
     def set_at_phreatic(self, new_values: NDArray[Any]) -> None:
         # the variable values does not need to be mapped, since the nodelist points to the phreatic nodes
         self.variable.reduced[:] = new_values[:]
-        self.variable.nodelist[:] = (self.phreatic_reduced_idx + 1)[:]  # type ignore
+        if self.variable.nodelist is None:
+            raise RuntimeError("package nodelist is not initialised")
+        self.variable.nodelist[:] = (self.phreatic_reduced_idx + 1)[:]
 
     @property
-    def phreatic_layer_idx(self) -> Any:
+    def phreatic_layer_idx(self) -> NDArray[Any]:
         # self._ensure_user_indices()
         # use initial_nodes since self.nodes is updated by set_ptr method
-        phreatic_layer = np.argmax(self.saturation.to_full_3d() > 0, axis=0).flatten()[
-            self.variable.userid[self.initial_nodes_idx]
-        ]
-        return np.minimum(phreatic_layer, self.max_layer_idx)
+        phreatic_layer: NDArray[np.int32] = (
+            np.argmax(self.saturation.to_full_3d() > 0, axis=0)
+            .astype(np.int32)
+            .flatten()[self.variable.userid[self.initial_nodes_idx]]
+        )
+        # ensure a consistent integer dtype for indexing and satisfy mypy
+        result: NDArray[np.int32] = np.minimum(
+            phreatic_layer, self.max_layer_idx
+        ).astype(np.int32)
+        return result
 
     @property
-    def phreatic_reduced_idx(self) -> Any:
+    def phreatic_reduced_idx(self) -> NDArray[np.int32]:
         self._ensure_user_indices()
         phreatic_reduced_index = self.variable.reduced_index.reshape(
             (self.nlay, self.nrow, self.ncol)
@@ -274,7 +295,7 @@ class PhreaticBCArray:
             self.col_user_index,
         ].flatten()
         assert np.all(phreatic_reduced_index >= 0)
-        return phreatic_reduced_index
+        return cast(NDArray[np.int32], phreatic_reduced_index)
 
 
 class PhreaticStorage:
@@ -299,7 +320,7 @@ class PhreaticStorage:
         ptr_storage_sy: NDArray[Any],
         ptr_storage_ss: NDArray[Any],
         active_top_layer_node_idx: NDArray[Any],
-        max_layer: NDArray[Any],
+        max_layer: NDArray[np.int32],
     ) -> None:
         self.zeros = np.zeros(active_top_layer_node_idx.size)
         self.initial_sy = np.copy(ptr_storage_sy)
@@ -346,7 +367,7 @@ class PhreaticRecharge:
         ptr_saturation: NDArray[Any],
         ptr_recharge: NDArray[Any],
         ptr_recharge_nodelist: NDArray[Any],
-        max_layer_idx: NDArray[Any],
+        max_layer_idx: NDArray[np.int32],
     ) -> None:
         self.recharge = PhreaticBCArray(
             shape,
@@ -377,7 +398,7 @@ class PhreaticHeads:
         ptr_saturation: NDArray[Any],
         ptr_heads: NDArray[Any],
         active_top_layer_node_idx: NDArray[Any],
-        max_layer_idx: NDArray[Any],
+        max_layer_idx: NDArray[np.int32],
     ) -> None:
         self.heads = PhreaticModelArray(
             shape,

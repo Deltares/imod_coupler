@@ -1,8 +1,5 @@
 from __future__ import annotations
 
-from collections.abc import Iterator
-from contextlib import contextmanager
-from os import chdir
 from pathlib import Path
 from sys import stderr
 from typing import Any

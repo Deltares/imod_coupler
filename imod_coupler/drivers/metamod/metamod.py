@@ -414,7 +414,7 @@ class MetaModNewton(MetaMod):
             )
             self.enable_sprinkling_groundwater = True
 
-    def get_first_layer_node_idx(self, node_idx: NDArray[Any]) -> NDArray[Any]:
+    def get_first_layer_node_idx(self, node_idx: NDArray[Any]) -> NDArray[np.int32]:
         _, nrow, ncol = self.mf6.get_dis_shape(self.coupling_config.mf6_model)
         userid = self.mf6_get_userid()
         first_layer_ids = userid[userid <= (nrow * ncol)]
@@ -424,7 +424,7 @@ class MetaModNewton(MetaMod):
             )
         return first_layer_ids - 1
 
-    def mf6_get_userid(self) -> NDArray[Any]:
+    def mf6_get_userid(self) -> NDArray[np.int32]:
         nlay, nrow, ncol = self.mf6.get_dis_shape(self.coupling_config.mf6_model)
         userid = self.mf6.get_nodeuser(self.coupling_config.mf6_model)
         if userid.size == 1:

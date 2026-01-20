@@ -4,11 +4,13 @@ from collections.abc import Callable
 from pathlib import Path
 
 import numpy as np
+import pandas as pd
 import pytest
 import tomli
 import tomli_w
 from common_scripts.mf6_water_balance.combine import create_modflow_waterbalance_file
 from imod.mf6 import open_cbc, open_hds
+from imod.msw.fixed_format import VariableMetaData, format_fixed_width
 from numpy.testing import assert_array_almost_equal
 from primod.metamod import MetaMod
 from pytest_cases import parametrize_with_cases
@@ -135,10 +137,42 @@ def test_metamod_develop(
         metaswap_dll_dependency=metaswap_dll_dep_dir_devel,
     )
 
+    dbot_active = metamod_model.mf6_simulation["GWF_1"].is_use_newton() & (
+        "newton_pe" in str(tmp_path_dev)
+    )
+    if dbot_active:
+        # TODO replace this logic when iMOd-python supports writing dbot input files
+        _metadata_dict = {
+            "svat": VariableMetaData(10, 1, 9999999, int),
+            "bottom": VariableMetaData(10, -9999.0, 9999.0, float),
+            "sc2": VariableMetaData(10, 0.0, 1.0, float),
+        }
+        _, svat = metamod_model.msw_model["grid"].generate_index_array()
+        out = {}
+        out["svat"] = svat.to_numpy()[svat.to_numpy() > 0]
+        out["bottom"] = np.array([99.0] * out["svat"].size)
+        index = metamod_model.coupling_list[0].mf6_max_layer.to_numpy()[0, 10:40].min()
+        out["bottom"][10:40] = 5.0
+        out["sc2"] = np.array([0.01] * out["svat"].size)
+
+        with open(
+            tmp_path_dev / metamod_model._metaswap_model_dir / "dbot_svat.inp", "w"
+        ) as file:
+            for row in pd.DataFrame(out).itertuples():
+                for index, metadata in enumerate(_metadata_dict.values()):
+                    content = format_fixed_width(row[index + 1], metadata)
+                    file.write(content)
+                file.write("\n")
+
     run_coupler_function(tmp_path_dev / metamod_model._toml_name)
 
     # Test if MetaSWAP output written
-    assert len(list((tmp_path_dev / "MetaSWAP").glob("*/*.idf"))) == 1704
+    if dbot_active:
+        assert (
+            len(list((tmp_path_dev / "MetaSWAP").glob("*/*.idf"))) == 2928
+        )  # longer runtime
+    else:
+        assert len(list((tmp_path_dev / "MetaSWAP").glob("*/*.idf"))) == 1704
 
     # Test if Modflow6 output written
     headfile, cbcfile, _, _ = mf6_output_files(tmp_path_dev)
