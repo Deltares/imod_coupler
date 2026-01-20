@@ -1,15 +1,20 @@
 package IMODCollector.buildTypes
 
+import Templates.GitHubIntegrationTemplate
+import _Self.buildTypes.Lint
+import _Self.buildTypes.MyPy
+import _Self.buildTypes.TwineCheck
 import _Self.vcsRoots.ImodCoupler
-import jetbrains.buildServer.configs.kotlin.*
-import jetbrains.buildServer.configs.kotlin.buildFeatures.PullRequests
-import jetbrains.buildServer.configs.kotlin.buildFeatures.commitStatusPublisher
-import jetbrains.buildServer.configs.kotlin.buildFeatures.pullRequests
+import jetbrains.buildServer.configs.kotlin.AbsoluteId
+import jetbrains.buildServer.configs.kotlin.BuildType
+import jetbrains.buildServer.configs.kotlin.FailureAction
 import jetbrains.buildServer.configs.kotlin.buildSteps.script
 
 object IMODCollector_X64development : BuildType({
     name = "x64_development"
     description = "Collect all Release_x64 kernels in the iMOD6 suite"
+
+    templates(GitHubIntegrationTemplate)
 
     artifactRules = """
         coupler/dist/ => imod_collector.zip!/
@@ -22,22 +27,17 @@ object IMODCollector_X64development : BuildType({
         param("conda_env_path", "%system.teamcity.build.checkoutDir%/imod_collector_env")
         param("reverse.dep.Modflow_Modflow6Release.MODFLOW6_Version", "6.6.3")
         param("reverse.dep.Modflow_Modflow6Release.MODFLOW6_Platform", "win64")
+        param("reverse.dep.iMOD6_Coupler_Ribasim_binaries.RIBASIM_Version", "v2025.6.0")
+        param("reverse.dep.iMOD6_Coupler_Ribasim_binaries.RIBASIM_Platform", "windows")
     }
 
     vcs {
-        root(_Self.vcsRoots.ImodCoupler, "+:. => ./coupler")
+        root(ImodCoupler, "+:. => ./coupler")
 
         cleanCheckout = true
     }
 
     steps {
-        script {
-            name = "Download Release Ribasim"
-            scriptContent = """
-                curl -L -o ribasim_windows.zip https://github.com/Deltares/Ribasim/releases/download/v2025.6.0/ribasim_windows.zip
-                unzip  "ribasim_windows.zip"
-            """.trimIndent()
-        }
         script {
             name = "Install iMOD Coupler"
             enabled = false
@@ -62,34 +62,34 @@ object IMODCollector_X64development : BuildType({
         }
     }
 
-    features {
-        commitStatusPublisher {
-            vcsRootExtId = "${ImodCoupler.id}"
-            publisher = github {
-                githubUrl = "https://api.github.com"
-                authType = personalToken {
-                    token = "credentialsJSON:6b37af71-1f2f-4611-8856-db07965445c0"
-                }
-            }
-        }
-        pullRequests {
-            vcsRootExtId = "${ImodCoupler.id}"
-            provider = github {
-                authType = token {
-                    token = "credentialsJSON:71420214-373c-4ccd-ba32-2ea886843f62"
-                }
-                filterAuthorRole = PullRequests.GitHubRoleFilter.MEMBER
-            }
-        }
-    }
-
     dependencies {
+        snapshot(Lint){
+            onDependencyFailure = FailureAction.FAIL_TO_START
+        }
+
+        snapshot(MyPy){
+            onDependencyFailure = FailureAction.FAIL_TO_START
+        }
+
+        snapshot(TwineCheck){
+            onDependencyFailure = FailureAction.FAIL_TO_START
+        }
+
         dependency(AbsoluteId("Modflow_Modflow6Release")) {
             snapshot {
                 onDependencyFailure = FailureAction.FAIL_TO_START
             }
             artifacts {
                 artifactRules = "+:MODFLOW6.zip!** => modflow6"
+            }
+        }
+
+        dependency(AbsoluteId("iMOD6_Coupler_Ribasim_binaries")) {
+            snapshot {
+                onDependencyFailure = FailureAction.FAIL_TO_START
+            }
+            artifacts {
+                artifactRules = "+:ribasim.zip!** => ribasim"
             }
         }
 

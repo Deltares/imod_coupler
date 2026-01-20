@@ -56,6 +56,10 @@ ruff = "*"
 tqdm = "*"
 twine = "*"
 
+
+[feature.dev.pypi-dependencies]
+mypy2junit = "*"
+
 [feature.dev.tasks]
 # Install
 install-test-dependencies = { depends-on = [
@@ -69,7 +73,9 @@ test-imod-coupler = "pytest -vvv -s --numprocesses=auto --dist=loadgroup --baset
 tests = { depends-on = ["test-primod", "test-imod-coupler"] }
 # Lint
 mypy-imodc = "mypy --ignore-missing-imports --strict imod_coupler"
+mypy-imodc-report = "mypy --ignore-missing-imports --strict imod_coupler | mypy2junit > mypy-imodc-report.xml"
 mypy-primod = "mypy --ignore-missing-imports pre-processing/primod"
+mypy-primod-report = "mypy --ignore-missing-imports pre-processing/primod | mypy2junit > mypy-primod-report.xml"
 format = "ruff format ."
 format-check = "ruff format --check ."
 ruff = "ruff check ."
@@ -77,6 +83,14 @@ check-package-primod = { cmd = "rm --recursive --force dist && python -m build &
 lint = { depends-on = ["format", "ruff", "mypy-imodc", "mypy-primod"] }
 # Publish primod
 publish-primod = { cmd = "rm --recursive --force dist && python -m build && twine check dist/* && twine upload dist/*", cwd = "pre-processing" }
+
+[feature.pixi-update.dependencies]
+pip = "*"
+pixi-diff-to-markdown = "*"
+gh = "*"
+
+[feature.pixi-update.tasks]
+update = "pixi update --json | pixi-diff-to-markdown > diff.md"
 
 [feature.user-acceptance.dependencies]
 dvc = "*"
@@ -115,3 +129,4 @@ default = { features = ["py312"], solve-group = "py312" }
 dev = { features = ["py312", "dev", "common"], solve-group = "py312" }
 py312 = { features = ["py312", "common"], solve-group = "py312" }
 user-acceptance = { features = ["py312", "common", "user-acceptance"], solve-group = "py312" }
+pixi-update = { features = ["pixi-update"], no-default-feature = true }
