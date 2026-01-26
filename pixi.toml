@@ -92,6 +92,35 @@ gh = "*"
 [feature.pixi-update.tasks]
 update = "pixi update --json | pixi-diff-to-markdown > diff.md"
 
+[feature.user-acceptance.dependencies]
+dvc = "*"
+dvc-s3 = "*"
+rioxarray = "*"
+
+[feature.user-acceptance.tasks]
+pull_data = "dvc pull --remote minio"
+fetch_lhm = {cmd = "tar -xf LHM_transient.zip", depends-on = ["pull_data"], cwd = "tests/data/user_acceptance"}
+user_acceptance_test = { cmd = [
+    "pytest",
+    "-m", "user_acceptance",
+    "--cache-clear",
+    "--verbose",
+    "--junitxml=user_acceptance_report.xml",
+], env = { USER_ACCEPTANCE_DIR = "tests/data/user_acceptance"} }
+run_imod5 = {cmd = ["./prepare_mf6_transient_imod5.bat"], cwd = "tests/data/user_acceptance/LHM_transient/scripts_imod-5"}
+mount_minio = { cmd = [
+    "rclone", 
+    "mount",
+    "minio:imod-coupler-test-data", 
+    "tests/data/user_acceptance/metaswap_mount", 
+    "--vfs-cache-mode", 
+    "minimal"
+    # Don't set vfs-cache-mode to "full" as this kills performance: It requires
+    # buffering in memory, which slows down a lot when the system runs out of
+    # memory. Don't set to "off" as MetaSWAP apparently requires write access to read the
+    # database...
+]}
+
 [feature.py312.dependencies]
 python = "3.12.*"
 
@@ -99,4 +128,5 @@ python = "3.12.*"
 default = { features = ["py312"], solve-group = "py312" }
 dev = { features = ["py312", "dev", "common"], solve-group = "py312" }
 py312 = { features = ["py312", "common"], solve-group = "py312" }
+user-acceptance = { features = ["py312", "common", "user-acceptance"], solve-group = "py312" }
 pixi-update = { features = ["pixi-update"], no-default-feature = true }
