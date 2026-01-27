@@ -122,8 +122,15 @@ In order to develop on `imod_coupler` locally, please follow the following steps
     rclone config
     ```
 
-    Your rclone.conf file should look like as follows. Note that in this case
-    the remote is named ``minio``:
+    This will let you interactively configure ``rclone`` in the terminal. Run
+    the following command:
+    
+    ```sh
+    rclone config file
+    ```
+
+    This will print the path to the ``rclone.conf`` file, which should look like
+    as follows. Note that in this case the remote is named ``minio``:
 
     ```
     [minio]
