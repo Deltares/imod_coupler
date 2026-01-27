@@ -372,7 +372,7 @@ def test_lhm_written_dxc_files(
     path_rchindex2svat = written_lhm_conversion / "exchanges" / "rchindex2svat.dxc"
     path_wellindex2svat = written_lhm_conversion / "exchanges" / "wellindex2svat.dxc"
 
-    settings = {"delimter": "\s+", "index_col": False}
+    settings = {"delimiter": "\s+", "index_col": False}
     columns = ["node", "svat", "layer"]
     columns_bc = ["bc_index", "svat", "layer"]
 
@@ -470,7 +470,7 @@ def test_dxc_imod5_comparison(
     )
 
     # Read dxc files
-    settings = {"delimter": "\s+", "index_col": False}
+    settings = {"delimiter": "\s+", "index_col": False}
     columns = ["node", "svat", "layer"]
     # Correct to zero-based indexing
     node2svat = pd.read_csv(imod_path["dxc"], names=columns, **settings) - 1
@@ -515,7 +515,7 @@ def test_compare_coupled_metaswap_grids(
         imod.idf.open(imod5_path["idomain"]).sel(layer=1, drop=True).to_numpy()
     )
 
-    settings = {"delimter": "\s+", "index_col": False}
+    settings = {"delimiter": "\s+", "index_col": False}
     columns = ["node", "svat", "layer"]
     # Correct to zero-based indexing
     node2svat = pd.read_csv(imod_path["dxc"], names=columns, **settings) - 1
