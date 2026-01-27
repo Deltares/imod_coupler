@@ -288,7 +288,7 @@ def prepared_msw_model_newton_perched(
     msw_model = make_msw_model_free(partly_inactive_idomain_perched, grid_sizes_perched)
     # increase precipitation, zero evaporation
     msw_model["meteo_grid"].dataset["precipitation"] = (
-        msw_model["meteo_grid"].dataset["precipitation"] * 14.0
+        msw_model["meteo_grid"].dataset["precipitation"] * 20.0
     )
     pp = msw_model["meteo_grid"].dataset["precipitation"]
     # pp[120:140, :, :] = pp[120:140, :, :] * 1.0

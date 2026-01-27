@@ -78,7 +78,7 @@ def make_recharge_pkg(idomain: xr.DataArray) -> mf6.Recharge:
     recharge[:, 0] = np.nan
     recharge = recharge.where(idomain_l1)
 
-    return mf6.Recharge(recharge)
+    return mf6.Recharge(recharge, save_flows=True, fixed_cell=1)
 
 
 def make_coupled_mf6_model_newton(idomain: xr.DataArray) -> mf6.Modflow6Simulation:
