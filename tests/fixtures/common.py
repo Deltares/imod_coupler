@@ -25,6 +25,28 @@ def grid_sizes() -> tuple[
     return x, y, layer, dx, dy, dz
 
 
+def grid_sizes_perched() -> tuple[
+    list[float],
+    list[float],
+    NDArray[int_],
+    float,
+    float,
+    NDArray[float64],
+]:
+    x = np.arange(0.0, 50.0, 1.0)
+    y = np.array([0.0])
+    layer = np.arange(1, 21)
+    dx = 1.0
+    dy = -1.0
+    dz = np.array([0.5] * layer.size)
+    return x, y, layer, dx, dy, dz
+
+
+def get_extendet_times() -> pd.DatetimeIndex:
+    freq = "D"
+    return pd.date_range(start="1/1/1971", end="1/1/1972", freq=freq)
+
+
 def get_times() -> pd.DatetimeIndex:
     freq = "D"
     return pd.date_range(start="1/1/1971", end="8/1/1971", freq=freq)
