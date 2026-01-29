@@ -25,9 +25,9 @@ tomli = "*"
 tomli-w = "*"
 xmipy = "*"
 imod = "1.0.0.post1"
+ribasim = "2025.6.0"
 
 [pypi-dependencies]
-ribasim = { git = "https://github.com/Deltares/Ribasim.git", tag = "v2025.6.0", subdirectory = "python/ribasim" }
 ribasim_testmodels = { git = "https://github.com/Deltares/Ribasim.git", tag = "v2025.6.0", subdirectory = "python/ribasim_testmodels" }
 imod_coupler = { path = ".", editable = true }
 primod = { path = "pre-processing", editable = true }
