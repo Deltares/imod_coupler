@@ -16,6 +16,11 @@ from numpy.typing import NDArray
 from imod_coupler.config import BaseConfig
 from imod_coupler.drivers.driver import Driver
 from imod_coupler.drivers.metamod.config import MetaModConfig
+from imod_coupler.drivers.metamod.utils import (
+    CoupledPhreaticHeads,
+    CoupledPhreaticRecharge,
+    CoupledPhreaticStorage,
+)
 from imod_coupler.kernelwrappers.mf6_wrapper import Mf6Wrapper
 from imod_coupler.kernelwrappers.msw_wrapper import MswWrapper
 from imod_coupler.logging.exchange_collector import ExchangeCollector
@@ -36,6 +41,14 @@ class MetaMod(Driver):
     delt: float  # time step from MODFLOW 6 (leading)
 
     enable_sprinkling_groundwater: bool = False
+
+    couplings: dict[
+        str,
+        MemoryExchange
+        | CoupledPhreaticStorage
+        | CoupledPhreaticRecharge
+        | CoupledPhreaticHeads,
+    ]
 
     def __init__(self, base_config: BaseConfig, metamod_config: MetaModConfig):
         """Constructs the `MetaMod` object"""
@@ -165,7 +178,7 @@ class MetaMod(Driver):
         # get exchange logger
         exchange_logger = self.get_exchange_logger()
         # set couplings
-        self.couplings: dict[str, MemoryExchange] = {
+        self.couplings = {
             "storage": MemoryExchange(
                 self.msw.get_storage_ptr(),
                 self.mf6.get_storage(self.coupling_config.mf6_model),
@@ -276,3 +289,162 @@ class MetaMod(Driver):
         total_msw = self.msw.report_timing_totals()
         total = total_mf6 + total_msw
         logger.info(f"Total elapsed time in numerical kernels: {total:0.4f} seconds")
+
+
+class MetaModNewton(MetaMod):
+    """
+    MetaModNewton: the coupling between MetaSWAP and MODFLOW 6, for the Newton formulation of MODFLOW 6
+    """
+
+    uzf_active: bool = True
+    max_layer_idx: NDArray[np.int32]
+
+    def __init__(self, base_config: BaseConfig, metamod_config: MetaModConfig):
+        super().__init__(base_config, metamod_config)
+
+    def set_coupling(self) -> None:
+        # get coupled indexes
+        coupled_nodes = self.get_coupled_nodes(
+            self.coupling_config.mf6_msw_node_map,
+            self.coupling_config.mf6_msw_recharge_map,
+            self.coupling_config.mf6_msw_sprinkling_map_groundwater,
+        )
+        # get exchange logger
+        exchange_logger = self.get_exchange_logger()
+        # get conversion terms
+        mf6_area = self.mf6.get_area(self.coupling_config.mf6_model)
+        conversion_terms_sy = 1.0 / mf6_area
+        recharge_nodes = (
+            self.mf6.get_recharge_nodes(
+                self.coupling_config.mf6_model,
+                self.coupling_config.mf6_msw_recharge_pkg,
+            )
+            - 1
+        )
+        conversion_terms_recharge_area = (
+            1.0 / mf6_area[recharge_nodes]
+        )  # volume to length
+        # get aditional info
+        first_layer_node_idx = self.get_first_layer_node_idx(
+            coupled_nodes["mf6_gwf_nodes"]
+        )
+        userid = self.mf6_get_userid() - 1
+        saturation = self.mf6.get_saturation(self.coupling_config.mf6_model)
+        sy = self.mf6.get_sy(self.coupling_config.mf6_model)
+        ss = self.mf6.get_ss(self.coupling_config.mf6_model)
+        nlay, nrow, ncol = self.mf6.get_dis_shape(self.coupling_config.mf6_model)
+        max_layer_idx = self.get_max_layer_idx(coupled_nodes, nlay)
+        # fill dictionary of couplings
+        self.couplings = {
+            "storage": CoupledPhreaticStorage(
+                shape=(nlay, nrow, ncol),
+                userid=userid,
+                ptr_saturation=saturation,
+                ptr_storage_sy=sy,
+                ptr_storage_ss=ss,
+                active_top_layer_nodes=first_layer_node_idx,
+                max_layer=max_layer_idx,
+                coupling=MemoryExchange(
+                    self.msw.get_storage_ptr(),
+                    np.full_like(first_layer_node_idx, 0.0, dtype=np.float64),
+                    coupled_nodes["msw_gwf_nodes"],
+                    coupled_nodes["mf6_gwf_nodes"],
+                    exchange_logger,
+                    "sy",
+                    ptr_b_conversion=conversion_terms_sy[first_layer_node_idx],
+                ),
+            ),
+            "recharge": CoupledPhreaticRecharge(
+                shape=(nlay, nrow, ncol),
+                userid=userid,
+                ptr_saturation=saturation,
+                ptr_recharge=self.mf6.get_recharge(
+                    self.coupling_config.mf6_model,
+                    self.coupling_config.mf6_msw_recharge_pkg,
+                ),
+                ptr_recharge_nodelist=self.mf6.get_recharge_nodes(
+                    self.coupling_config.mf6_model,
+                    self.coupling_config.mf6_msw_recharge_pkg,
+                ),
+                max_layer=max_layer_idx,
+                coupling=MemoryExchange(
+                    self.msw.get_volume_ptr(),
+                    self.mf6.get_recharge(
+                        self.coupling_config.mf6_model,
+                        self.coupling_config.mf6_msw_recharge_pkg,
+                    ),
+                    coupled_nodes["msw_rch_nodes"],
+                    coupled_nodes["mf6_rch_nodes"],
+                    exchange_logger,
+                    "recharge",
+                    ptr_b_conversion=conversion_terms_recharge_area,
+                ),
+            ),
+            "head": CoupledPhreaticHeads(
+                shape=(nlay, nrow, ncol),
+                userid=userid,
+                ptr_saturation=saturation,
+                ptr_heads=self.mf6.get_head(self.coupling_config.mf6_model),
+                active_top_layer_nodes=first_layer_node_idx,
+                max_layer=max_layer_idx,
+                coupling=MemoryExchange(
+                    np.full_like(first_layer_node_idx, 0.0, dtype=np.float64),
+                    self.msw.get_head_ptr(),
+                    coupled_nodes["mf6_gwf_nodes"],
+                    coupled_nodes["msw_gwf_nodes"],
+                    exchange_logger,
+                    "head",
+                    exchange_operator="avg",
+                ),
+            ),
+        }
+        if self.enable_sprinkling_groundwater:
+            assert isinstance(self.coupling_config.mf6_msw_well_pkg, str)
+            self.couplings["sprinkling"] = MemoryExchange(
+                self.msw.get_volume_ptr(),
+                self.mf6.get_well(
+                    self.coupling_config.mf6_model,
+                    self.coupling_config.mf6_msw_well_pkg,
+                ),
+                coupled_nodes["msw_well_nodes"],
+                coupled_nodes["mf6_well_nodes"],
+                exchange_logger,
+                "sprinkling",
+                exchange_operator="sum",
+            )
+            self.enable_sprinkling_groundwater = True
+
+    def get_first_layer_node_idx(self, node_idx: NDArray[Any]) -> NDArray[np.int32]:
+        _, nrow, ncol = self.mf6.get_dis_shape(self.coupling_config.mf6_model)
+        userid = self.mf6_get_userid()
+        first_layer_ids = userid[userid <= (nrow * ncol)]
+        if node_idx.max() > first_layer_ids.max():
+            raise ValueError(
+                "MetaSWAP can only be coupled to the first model layer of MODFLOW 6"
+            )
+        return first_layer_ids - 1
+
+    def mf6_get_userid(self) -> NDArray[np.int32]:
+        nlay, nrow, ncol = self.mf6.get_dis_shape(self.coupling_config.mf6_model)
+        userid = self.mf6.get_nodeuser(self.coupling_config.mf6_model)
+        if userid.size == 1:
+            # no reduced domain, set userid to modelid
+            # TODO: find out if there is a flag that indicates that usernodes == modelnodes
+            userid = np.arange(nlay * nrow * ncol)
+        return userid
+
+    def get_max_layer_idx(
+        self, coupled_nodes: dict[str, NDArray[np.int32]], nlay: int
+    ) -> NDArray[np.int32]:
+        if self.coupling_config.mf6_node_max_layer is not None:
+            table_node_layer: NDArray[np.int32] = np.loadtxt(
+                self.coupling_config.mf6_node_max_layer,
+                dtype=np.int64,
+                ndmin=2,
+                skiprows=1,
+            )
+            return table_node_layer[:, 1] - 1
+        else:
+            return np.full_like(
+                coupled_nodes["mf6_gwf_nodes"], fill_value=nlay - 1, dtype=np.int32
+            )

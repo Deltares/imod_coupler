@@ -25,6 +25,7 @@ class Coupling(BaseModel):
     )
     # for deprecation warning on label
     mf6_msw_sprinkling_map: FilePath | None = None
+    mf6_node_max_layer: FilePath | None = None
 
     output_config_file: FilePath | None = None
 
