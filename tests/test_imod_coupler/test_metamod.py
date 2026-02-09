@@ -3,15 +3,31 @@ import textwrap
 from collections.abc import Callable
 from pathlib import Path
 
+import numpy as np
+import pandas as pd
 import pytest
 import tomli
 import tomli_w
 from common_scripts.mf6_water_balance.combine import create_modflow_waterbalance_file
 from imod.mf6 import open_cbc, open_hds
+from imod.msw.fixed_format import VariableMetaData, format_fixed_width
 from numpy.testing import assert_array_almost_equal
 from primod.metamod import MetaMod
 from pytest_cases import parametrize_with_cases
 from test_utilities import numeric_csvfiles_equal
+
+from imod_coupler.drivers.metamod.utils import (
+    CoupledPhreaticHeads,
+    CoupledPhreaticRecharge,
+    CoupledPhreaticStorage,
+)
+from imod_coupler.kernelwrappers.mf6_newton_wrapper import (
+    PhreaticHeads,
+    PhreaticRecharge,
+    PhreaticStorage,
+)
+from imod_coupler.logging.exchange_collector import ExchangeCollector
+from imod_coupler.utils import MemoryExchange
 
 decimal_tolerance = 8
 
@@ -121,10 +137,42 @@ def test_metamod_develop(
         metaswap_dll_dependency=metaswap_dll_dep_dir_devel,
     )
 
+    dbot_active = metamod_model.mf6_simulation["GWF_1"].is_use_newton() & (
+        "newton_pe" in str(tmp_path_dev)
+    )
+    if dbot_active:
+        # TODO replace this logic when iMOd-python supports writing dbot input files
+        _metadata_dict = {
+            "svat": VariableMetaData(10, 1, 9999999, int),
+            "bottom": VariableMetaData(10, -9999.0, 9999.0, float),
+            "sc2": VariableMetaData(10, 0.0, 1.0, float),
+        }
+        _, svat = metamod_model.msw_model["grid"].generate_index_array()
+        out = {}
+        out["svat"] = svat.to_numpy()[svat.to_numpy() > 0]
+        out["bottom"] = np.array([99.0] * out["svat"].size)
+        index = metamod_model.coupling_list[0].mf6_max_layer.to_numpy()[0, 10:40].min()
+        out["bottom"][10:40] = 5.0
+        out["sc2"] = np.array([0.01] * out["svat"].size)
+
+        with open(
+            tmp_path_dev / metamod_model._metaswap_model_dir / "dbot_svat.inp", "w"
+        ) as file:
+            for row in pd.DataFrame(out).itertuples():
+                for index, metadata in enumerate(_metadata_dict.values()):
+                    content = format_fixed_width(row[index + 1], metadata)
+                    file.write(content)
+                file.write("\n")
+
     run_coupler_function(tmp_path_dev / metamod_model._toml_name)
 
     # Test if MetaSWAP output written
-    assert len(list((tmp_path_dev / "MetaSWAP").glob("*/*.idf"))) == 1704
+    if dbot_active:
+        assert (
+            len(list((tmp_path_dev / "MetaSWAP").glob("*/*.idf"))) == 2928
+        )  # longer runtime
+    else:
+        assert len(list((tmp_path_dev / "MetaSWAP").glob("*/*.idf"))) == 1704
 
     # Test if Modflow6 output written
     headfile, cbcfile, _, _ = mf6_output_files(tmp_path_dev)
@@ -393,3 +441,278 @@ def add_logging_request_to_toml_file(toml_dir: Path, toml_filename: str) -> None
     )  # on print ,"\\\\" gets rendered as "\\"
     with open(toml_dir / "output_config.toml", "w") as f:
         f.write(output_config_content.format(workdir=path_quadruple_backslash))
+
+
+def test_newton_classes() -> None:
+    nlay = 3
+    nrow = 4
+    ncol = 4
+    idomain = np.ones((nlay, nrow, ncol))
+    idomain[1, :, :] = -1  # layer two is inactive
+    userid = (np.arange(nlay * nrow * ncol)).reshape((nlay, nrow, ncol))[idomain == 1]
+    recharge = np.full((3 * 4), fill_value=0.001)
+    recharge_nodelist = np.array(
+        [1, 2, 3, 5, 6, 7, 9, 10, 11, 13, 14, 15]
+    )  # layer 1, first 3 columns, one based MF6internal pointer
+    saturation = np.ones_like(idomain)
+    saturation[2, :, 2] = 0.5  # third column, phreatisch layer = 3
+    saturation[0:2, :, 2] = 0.0
+    saturation[0, :, 1] = 0.6  # second column, phreatisch layer = 1
+    saturation[0, :, 0] = 1.0  # first column,  phreatisch layer = 1
+    saturation = saturation[idomain == 1]
+    phreatic_nodelist = (
+        np.array(
+            [
+                1,
+                2,
+                35 - 16,
+                5,
+                6,
+                39 - 16,
+                9,
+                10,
+                43 - 16,
+                13,
+                14,
+                47 - 16,
+            ]
+        )
+        - 1
+    )  # -16 for userid -> modelid since layer 2 is inactive
+    max_layer = np.full(nrow * ncol, fill_value=nlay - 1)
+
+    # recharge
+    rch = PhreaticRecharge(
+        (nlay, nrow, ncol),
+        userid,
+        saturation,
+        recharge,
+        recharge_nodelist,
+        max_layer[recharge_nodelist - 1],
+    )
+    recharge_org = np.copy(recharge)
+    rch.set(recharge * 2)
+    assert (recharge == recharge_org * 2).all()
+    assert (recharge_nodelist - 1 == phreatic_nodelist).all()
+
+    # storage
+    sy = np.full(
+        (nlay - 1, nrow, ncol), fill_value=0.15
+    ).flatten()  # -1 to remove inactive second layer from internal array
+    sy_org = np.copy(sy)
+    ss = np.full(
+        (nlay - 1, nrow, ncol), fill_value=0.1e-6
+    ).flatten()  # -1 to remove inactive second layer from internal array
+    ss_org = np.copy(ss)
+    coupled_nodes = np.array([1, 2, 3, 5, 6, 7, 9, 10, 11, 13, 14, 15]) - 1
+    # set storage pointers based on saturation
+    sto = PhreaticStorage(
+        (nlay, nrow, ncol),
+        userid,
+        saturation,
+        sy,
+        ss,
+        coupled_nodes,
+        max_layer[coupled_nodes],
+    )
+    new_sy = np.full((coupled_nodes.size), fill_value=0.20)
+    # coupled first layer, first three columns
+    # should only updates the phreatic nodes underlying the coupled nodes
+    sto.set(new_sy)
+    phreatic_nodes = (
+        np.array(
+            [
+                1,
+                2,
+                35 - 16,
+                5,
+                6,
+                39 - 16,
+                9,
+                10,
+                43 - 16,
+                13,
+                14,
+                47 - 16,
+            ]
+        )
+        - 1
+    )  # -16 for userid -> modelid since layer 2 is inactive
+    nodes = np.arange((nlay - 1) * nrow * ncol) + 1
+    mask = np.ones_like(nodes)
+    mask[phreatic_nodes - 1] = 0
+    non_phreatic_nodes = nodes[mask.astype(dtype=bool)]
+    # sets phreatic values for SY
+    assert (sy[phreatic_nodes] == 0.2).all()
+    assert (sy[non_phreatic_nodes] == 0.15).all()
+    # zeros SS for phreatic nodes
+    assert (ss[phreatic_nodes] == 0.0).all()
+    assert (ss[non_phreatic_nodes] == 0.1e-6).all()
+    # resets arrays to initial values
+    sto.reset()
+    assert (sy == sy_org).all()
+    assert (ss == ss_org).all()
+
+    # head
+    heads = np.arange((nlay - 1) * nrow * ncol)
+    hds = PhreaticHeads(
+        (nlay, nrow, ncol),
+        userid,
+        saturation,
+        heads,
+        coupled_nodes,
+        max_layer[coupled_nodes],
+    )
+    phreatic_heads = hds.get()
+    assert (phreatic_heads == heads[phreatic_nodes]).all()
+
+
+def test_coupled_newton_classes() -> None:
+    nlay = 3
+    nrow = 4
+    ncol = 4
+    idomain = np.ones((nlay, nrow, ncol))
+    idomain[1, :, :] = -1  # layer two is inactive
+    userid = (np.arange(nlay * nrow * ncol)).reshape((nlay, nrow, ncol))[idomain == 1]
+    saturation = np.ones_like(idomain)
+    saturation[2, :, 2] = 0.5  # third column, phreatisch layer = 3
+    saturation[0:2, :, 2] = 0.0
+    saturation[0, :, 1] = 0.6  # second column, phreatisch layer = 1
+    saturation[0, :, 0] = 1.0  # first column,  phreatisch layer = 1
+    saturation = saturation[idomain == 1]
+    max_layer = np.full(nrow * ncol, fill_value=nlay - 1)
+
+    # recharge
+    recharge_mf6 = np.full((3 * 4), fill_value=0.001)
+    recharge_msw = np.copy(recharge_mf6) * 2.0
+    recharge_mf6_nodelist = np.array(
+        [1, 2, 3, 5, 6, 7, 9, 10, 11, 13, 14, 15]
+    )  # layer 1, first 3 columns, one based MF6internal pointer
+    recharge_org = np.copy(recharge_mf6)
+    phreatic_nodelist = [
+        1,
+        2,
+        35 - 16,
+        5,
+        6,
+        39 - 16,
+        9,
+        10,
+        43 - 16,
+        13,
+        14,
+        47 - 16,
+    ]  # -16 for userid -> modelid since layer 2 is inactive
+    rch = CoupledPhreaticRecharge(
+        shape=(nlay, nrow, ncol),
+        userid=userid,
+        ptr_saturation=saturation,
+        ptr_recharge=recharge_mf6,
+        ptr_recharge_nodelist=recharge_mf6_nodelist,
+        max_layer=max_layer[recharge_mf6_nodelist - 1],
+        coupling=MemoryExchange(
+            recharge_msw,
+            recharge_mf6,
+            np.arange(recharge_msw.size),
+            np.arange(recharge_msw.size),
+            ExchangeCollector(),
+            "rch",
+            exchange_operator="sum",
+        ),
+    )
+    rch.exchange()
+    assert (recharge_mf6 == recharge_org * 2).all()
+    assert (recharge_mf6_nodelist == phreatic_nodelist).all()
+
+    # storage
+    sy_mf6 = np.full(
+        (nlay - 1, nrow, ncol), fill_value=0.15
+    ).flatten()  # -1 to remove inactive second layer from internal array
+    sy_mf6_subset_top_layers = sy_mf6[: nrow * ncol]
+    sy_msw = np.full((nrow, ncol), fill_value=0.2).flatten()
+    sy_mf6_org = np.copy(sy_mf6)
+    ss_mf6 = np.full(
+        (nlay - 1, nrow, ncol), fill_value=0.1e-6
+    ).flatten()  # -1 to remove inactive second layer from internal array
+    ss_mf6_org = np.copy(ss_mf6)
+    coupled_nodes = (
+        np.array([1, 2, 3, 5, 6, 7, 9, 10, 11, 13, 14, 15]) - 1
+    )  # zero based
+    sto = CoupledPhreaticStorage(
+        shape=(nlay, nrow, ncol),
+        userid=userid,
+        ptr_saturation=saturation,
+        ptr_storage_sy=sy_mf6,
+        ptr_storage_ss=ss_mf6,
+        active_top_layer_nodes=coupled_nodes,
+        max_layer=max_layer[coupled_nodes],
+        coupling=MemoryExchange(
+            sy_msw,
+            sy_mf6_subset_top_layers[coupled_nodes],
+            coupled_nodes,
+            np.arange(coupled_nodes.size),
+            ExchangeCollector(),
+            "sy",
+            exchange_operator="avg",
+        ),
+    )
+    # evaluate exchange from msw pointer (values 0.2)
+    sto.exchange()
+    phreatic_nodes = (
+        np.array(
+            [
+                1,
+                2,
+                35 - 16,
+                5,
+                6,
+                39 - 16,
+                9,
+                10,
+                43 - 16,
+                13,
+                14,
+                47 - 16,
+            ]
+        )
+        - 1  # zero based
+    )  # -16 for userid -> modelid since layer 2 is inactive
+    nodes = np.arange((nlay - 1) * nrow * ncol)
+    mask = np.ones_like(nodes)
+    mask[phreatic_nodes] = 0
+    non_phreatic_nodes = nodes[mask.astype(dtype=bool)]
+    # sets phreatic values for SY
+    assert (sy_mf6[phreatic_nodes] == 0.2).all()
+    assert (sy_mf6[non_phreatic_nodes] == 0.15).all()
+    # zeros SS for phreatic nodes
+    assert (ss_mf6[phreatic_nodes] == 0.0).all()
+    assert (ss_mf6[non_phreatic_nodes] == 0.1e-6).all()
+    # reset storage
+    sto.storage.reset()
+    sy = sto.storage.sy.variable.reduced
+    assert (sy == sy_mf6_org).all()
+    assert (ss_mf6 == ss_mf6_org).all()
+
+    # head
+    heads_mf6 = np.arange((nlay - 1) * nrow * ncol)
+    heads_msw = np.arange(nrow * ncol)
+    hds = CoupledPhreaticHeads(
+        shape=(nlay, nrow, ncol),
+        userid=userid,
+        ptr_saturation=saturation,
+        ptr_heads=heads_mf6,
+        active_top_layer_nodes=coupled_nodes,
+        max_layer=max_layer[coupled_nodes],
+        coupling=MemoryExchange(
+            heads_mf6[coupled_nodes],
+            heads_msw,
+            np.arange(coupled_nodes.size),
+            coupled_nodes,
+            ExchangeCollector(),
+            "heads",
+            exchange_operator="avg",
+        ),
+    )
+    hds.exchange()
+    phreatic_heads = hds.coupling.ptr_b
+    assert (phreatic_heads[coupled_nodes] == heads_mf6[phreatic_nodes]).all()

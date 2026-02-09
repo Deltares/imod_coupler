@@ -1,8 +1,5 @@
 from __future__ import annotations
 
-from collections.abc import Iterator
-from contextlib import contextmanager
-from os import chdir
 from pathlib import Path
 from sys import stderr
 from typing import Any
@@ -167,13 +164,3 @@ class MemoryExchange:
         """finalizes the exchange within the logger, if present"""
         if self.label in self.exchange_logger.exchanges.keys():
             self.exchange_logger.exchanges[self.label].finalize()
-
-
-@contextmanager
-def cd(newdir: Path) -> Iterator[None]:
-    prevdir = Path().cwd()
-    chdir(newdir)
-    try:
-        yield
-    finally:
-        chdir(prevdir)
