@@ -1,8 +1,5 @@
 from __future__ import annotations
 
-from collections.abc import Iterator
-from contextlib import contextmanager
-from os import chdir
 from pathlib import Path
 from sys import stderr
 from typing import Any
@@ -23,7 +20,7 @@ def create_mapping(
     ntgt: int,
     operator: str | None = None,
     weights: NDArray[np.float64] | None = None,
-) -> tuple[csr_matrix, NDArray[np.int_]]:
+) -> tuple[csr_matrix, NDArray[np.int32]]:
     """
     Create a mapping from source indexes to target indexes by constructing
     a sparse matrix of size (ntgt x nsrc) and creates a mask array with 0
@@ -158,22 +155,17 @@ class MemoryExchange:
         self.ptr_b[:] = (
             self.mask[:] * self.ptr_b[:] + self.mapping.dot(self.ptr_a)[:] / delt
         )
+        self.delt = delt
+
+    def add(self, delt: float = 1.0) -> None:
+        """sum Kernel a to Kernel b"""
+        np.add(self.ptr_b, self.mapping.dot(self.ptr_a)[:] / delt, out=self.ptr_b)
 
     def log(self, time: float) -> None:
-        """Log the exchange for receiving side; array b"""
-        self.exchange_logger.log_exchange(self.label, self.ptr_b[:], time)
+        self.exchange_logger.log_exchange(self.label + "_a", self.ptr_a[:], time)
+        self.exchange_logger.log_exchange(self.label + "_b", self.ptr_b[:], time)
 
     def finalize_log(self) -> None:
         """finalizes the exchange within the logger, if present"""
         if self.label in self.exchange_logger.exchanges.keys():
             self.exchange_logger.exchanges[self.label].finalize()
-
-
-@contextmanager
-def cd(newdir: Path) -> Iterator[None]:
-    prevdir = Path().cwd()
-    chdir(newdir)
-    try:
-        yield
-    finally:
-        chdir(prevdir)
