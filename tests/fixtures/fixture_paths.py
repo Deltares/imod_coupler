@@ -102,7 +102,6 @@ def user_acceptance_metaswap_dbase() -> Path:
     # to resolve at the mount point.
     return (
         Path(os.environ["USER_ACCEPTANCE_DIR"]).resolve()
-        / "metaswap_mount"
         / "LHM2018_v02vae_BOFEK2020"
     )
 
