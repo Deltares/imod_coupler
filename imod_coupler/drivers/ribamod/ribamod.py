@@ -94,7 +94,7 @@ class RibaMod(Driver):
         # Print output to stdout
         self.mf6.set_int("ISTDOUTTOFILE", 0)
         self.mf6.initialize()
-        self.ribasim.init_julia()
+        self.ribasim.initialize_julia()  # only once per session
         self.ribasim.initialize(str(self.ribamod_config.kernels.ribasim.config_file))
         self.log_version()
         if self.coupling_config.output_config_file is not None:
@@ -112,11 +112,12 @@ class RibaMod(Driver):
     def couple(self) -> None:
         """Couple Modflow and Ribasim"""
 
-        self.max_iter = self.mf6.max_iter()
+        self.max_iter = self.mf6.max_iter
 
         # Get all the relevant river and drainage systems from MODFLOW 6
         mf6_flowmodel_key = self.coupling_config.mf6_model
-        self.mf6_head = self.mf6.get_head(mf6_flowmodel_key)
+        self.mf6.set_head(self.coupling_config.mf6_model)
+        self.mf6_head = self.mf6.head[self.coupling_config.mf6_model]
         self.mf6_active_river_packages = list(
             self.coupling_config.mf6_active_river_packages.keys()
         )
@@ -287,7 +288,7 @@ class RibaMod(Driver):
     def finalize(self) -> None:
         self.mf6.finalize()
         self.ribasim.finalize()
-        self.ribasim.shutdown_julia()
+        # self.ribasim.shutdown_julia()
         self.exchange_logger.finalize()
 
     def get_current_time(self) -> float:

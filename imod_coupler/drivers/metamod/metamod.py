@@ -7,7 +7,6 @@ description:
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any
 
 import numpy as np
 from loguru import logger
@@ -32,7 +31,6 @@ class MetaMod(Driver):
     mf6: Mf6Wrapper  # the MODFLOW 6 XMI kernel
     msw: MswWrapper  # the MetaSWAP XMI kernel
 
-    max_iter: NDArray[Any]  # max. nr outer iterations in MODFLOW kernel
     delt: float  # time step from MODFLOW 6 (leading)
 
     enable_sprinkling_groundwater: bool = False
@@ -61,6 +59,7 @@ class MetaMod(Driver):
         # Print output to stdout
         self.mf6.set_int("ISTDOUTTOFILE", 0)
         self.mf6.initialize()
+        self.mf6.set_head(self.coupling_config.mf6_model)
         self.msw.initialize()
         self.log_version()
         self.set_coupling()
@@ -188,7 +187,7 @@ class MetaMod(Driver):
                 ptr_b_conversion=conversion_terms_recharge_area,
             ),
             "head": MemoryExchange(
-                self.mf6.get_head(self.coupling_config.mf6_model),
+                self.mf6.head[self.coupling_config.mf6_model],
                 self.msw.get_head_ptr(),
                 coupled_nodes["mf6_gwf_nodes"],
                 coupled_nodes["msw_gwf_nodes"],
@@ -229,7 +228,7 @@ class MetaMod(Driver):
 
         # convergence loop
         self.mf6.prepare_solve(1)
-        for kiter in range(1, self.mf6.max_iter() + 1):
+        for kiter in range(1, self.mf6.max_iter + 1):
             has_converged = self.do_iter(1)
             if has_converged:
                 logger.debug(f"MF6-MSW converged in {kiter} iterations")
