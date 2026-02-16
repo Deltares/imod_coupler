@@ -17,7 +17,7 @@ netCDF4 = "*"
 loguru = "*"
 numpy = ">=2.0"
 pydantic = ">=2.11.0"
-pyinstaller = "*"
+pyinstaller = "!=6.19.0" # Skip 6.19.0 due to AV alert
 python = ">=3.10"
 xarray = ">=2025.8.0"
 scipy = "*"
