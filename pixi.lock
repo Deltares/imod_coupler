@@ -7951,7 +7951,7 @@ packages:
 - pypi: ./
   name: imod-coupler
   version: 2024.3.0
-  sha256: 8614b786544bfe2d055ce8430c39a4d547cc52cd79c2773ebe17d80c09fd7f15
+  sha256: 6122af2d8f5c2defef6e4ff958533e3df6c49a48d1801b2cdc70438e62a2c1d5
   requires_dist:
   - h5netcdf
   - loguru
