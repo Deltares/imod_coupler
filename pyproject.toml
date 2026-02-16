@@ -48,3 +48,6 @@ lint.fixable = ["I"]
 
 [tool.mypy]
 plugins = ["pydantic.mypy", "numpy.typing.mypy_plugin"]
+
+[tool.pytest]
+markers = ["user_acceptance: marks tests as slow (deselect with '-m \"not user_acceptance\"')",]
