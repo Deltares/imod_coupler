@@ -110,7 +110,7 @@ In order to develop on `imod_coupler` locally, please follow the following steps
       pixi run -e user-acceptance user_acceptance_test
     ```
 
-    The test should take about 45 minutes to complete.
+    The test should take about 50 minutes to complete.
 
 ### Debugging
 
