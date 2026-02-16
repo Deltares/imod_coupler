@@ -17,7 +17,6 @@ netCDF4 = "*"
 loguru = "*"
 numpy = ">=2.0"
 pydantic = ">=2.11.0"
-pyinstaller = "!=6.19.0" # Skip 6.19.0 due to AV alert
 python = ">=3.10"
 xarray = ">=2025.8.0"
 scipy = "*"
@@ -31,6 +30,7 @@ ribasim = "=2025.6.0"
 ribasim_testmodels = { git = "https://github.com/Deltares/Ribasim.git", tag = "v2025.6.0", subdirectory = "python/ribasim_testmodels" }
 imod_coupler = { path = ".", editable = true }
 primod = { path = "pre-processing", editable = true }
+pyinstaller = "*" # Use pypi version instead of condforge due to issues with the AV
 
 [feature.common.tasks]
 # Install
