@@ -108,18 +108,6 @@ user_acceptance_test = { cmd = [
     "--junitxml=user_acceptance_report.xml",
 ], env = { USER_ACCEPTANCE_DIR = "tests/data/user_acceptance"} }
 run_imod5 = {cmd = ["./prepare_mf6_transient_imod5.bat"], cwd = "tests/data/user_acceptance/LHM_transient/scripts_imod-5"}
-mount_minio = { cmd = [
-    "rclone", 
-    "mount",
-    "minio:imod-coupler-test-data", 
-    "tests/data/user_acceptance/metaswap_mount", 
-    "--vfs-cache-mode", 
-    "minimal"
-    # Don't set vfs-cache-mode to "full" as this kills performance: It requires
-    # buffering in memory, which slows down a lot when the system runs out of
-    # memory. Don't set to "off" as MetaSWAP apparently requires write access to read the
-    # database...
-]}
 
 [feature.py312.dependencies]
 python = "3.12.*"

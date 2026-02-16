@@ -100,66 +100,11 @@ In order to develop on `imod_coupler` locally, please follow the following steps
       pixi run fetch_lhm
     ```
 
-    This will unpack the LHM model data, which is used in the user acceptance
-    tests.
+    This will unpack the LHM model data and the MetaSWAP database, which are
+    used for the user acceptance tests.
 
-  5. To make the MetaSWAP lookup table available to the user acceptance tests, you need to
-    mount the MinIO bucket containing the lookup table to a local folder.
-  
-    First the right software needs to be installed. On Windows, you can use
-    [Chocolatey](https://chocolatey.org/) to install WinFSP and rclone by
-    running the following commands:
-
-    ```sh
-    choco install winfsp
-    choco install rclone
-    ```
-
-    Configure rclone to access the Deltares MinIO server. You can use the same
-    access key and secret access key as used for DVC:
-
-    ```sh
-    rclone config
-    ```
-
-    This will let you interactively configure ``rclone`` in the terminal. Run
-    the following command:
-    
-    ```sh
-    rclone config file
-    ```
-
-    This will print the path to the ``rclone.conf`` file, which should look like
-    as follows. Note that in this case the remote is named ``minio``:
-
-    ```
-    [minio]
-    type = s3
-    provider = Minio
-    access_key_id = <your_access_key>
-    secret_access_key = <your_secret_access_key>
-    endpoint = https://s3.deltares.nl
-    acl = private
-    location_constraint = EU
-    region = eu-west-1
-    ```
-
-    After configuring rclone, you can mount the MinIO bucket containing the
-    MetaSWAP lookup table by running the following command in the root of the
-    repository.
-
-    ```sh
-      pixi run mount_minio
-    ```
-
-    This runs as a background process, so it is expected that it doesn't finish.
-    The next step therefore needs to be conducted **in a separate process**.
-
-  6. Run the user acceptance tests by running the following command in the root 
-    of the repository **in a separate process**. Note that the MetaSWAP database
-    is read from an S3 bucket, which requires fast network access. Running the
-    test on WiFi will slow down the tests significantly (1.5 hour instead of 45
-    minutes).
+  5. Run the user acceptance tests by running the following command in the root 
+    of the repository.
 
     ```sh
       pixi run -e user-acceptance user_acceptance_test
