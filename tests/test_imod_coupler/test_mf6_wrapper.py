@@ -109,8 +109,8 @@ def test_mf6_get_river_flux(
         has_converged = mf6wrapper.solve(1)
         if has_converged:
             break
-    heads = mf6wrapper.get_head("GWF_1")
-    q = mf6_river.get_flux(heads)
+    mf6wrapper.set_head("GWF_1")
+    q = mf6_river.get_flux(mf6wrapper.head["GWF_1"])
     q_expected = np.array(
         [
             -0.0,
