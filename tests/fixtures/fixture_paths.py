@@ -101,8 +101,7 @@ def user_acceptance_metaswap_dbase() -> Path:
     # Resolve in advance, as otherwise python will return an OSError when trying
     # to resolve at the mount point.
     return (
-        Path(os.environ["USER_ACCEPTANCE_DIR"]).resolve()
-        / "LHM2018_v02vae_BOFEK2020"
+        Path(os.environ["USER_ACCEPTANCE_DIR"]).resolve() / "LHM2018_v02vae_BOFEK2020"
     )
 
 
