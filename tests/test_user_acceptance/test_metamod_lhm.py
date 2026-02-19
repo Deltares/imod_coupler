@@ -1,8 +1,25 @@
 """
-LHM user acceptance , these are pytest-marked with 'user_acceptance'.
+User acceptance tests are pytest-marked with 'user_acceptance'.
 
-These require the LHM model to be available on the local drive. The test plan
+These require the model to be available on the local drive. The test plan
 describes how to set this up.
+
+This user acceptance test consists of the Dutch National Model (LHM). It is a
+large-scale model and serves as a stress-test of the capabilities of iMOD
+Coupler. The MODFLOW6 model consists of 15 layers, 1300 rows, and 1200 columns.
+It is coupled to a MetaSWAP model and runs on a daily timestep. For an extensive
+description, see the online documentation (https://nhi.nu/modellen/lhm/). This
+test runs for 7 days. Broadly speaking, the following changes have been made to
+the LHM 4.3.3:
+
+- Quasi-3D hydrogeological layering of the MODFLOW model is converted to fully
+  3D layering, with 15 layers instead of 8 layers. The other adaptations that
+  were necessary to prepare the groundwater model for MODFLOW 6 are described in
+  detail in the concept report for the LHM 5.0, tussenversie dec 2024.
+- The WOFOST crop model has been turned off
+- No coupling to surface water bodies (Mozart-DM)
+- A reduced MetaSWAP database is used, namely the BOFEK 2020 database
+  constructed for the LHM-light model. This is 16 GB instead of 80 GB.
 """
 
 import os
