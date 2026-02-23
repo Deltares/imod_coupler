@@ -199,7 +199,7 @@ def assert_results(
             .sum(dim=["y", "x", "layer"], skipna=True)
             .to_numpy()
         )
-        runoff_exchange = results.exchange_budget["exchange_demand_sw_ponding"][
+        runoff_exchange = results.exchange_budget["exchange_demand_sw_ponding_b"][
             :, basin_index
         ]
         if basin_index < 5:
@@ -244,7 +244,9 @@ def assert_results(
                         "basin_index"
                     ].to_numpy()
                     riv_flux_estimate_exchange = (
-                        results.exchange_budget["exchange_demand_" + package].to_numpy()
+                        results.exchange_budget[
+                            "exchange_demand_" + package + "_b"
+                        ].to_numpy()
                     )[:, basin_index]
                     summed_riv_flux_estimate = sum_budgets(
                         riv_flux_estimate_exchange, summed_riv_flux_estimate
@@ -263,9 +265,9 @@ def assert_results(
                         results.mf6head.where(cond_ar.notnull() & package_basin_mask)
                     ).reshape(ntime, nriv)
 
-                    stage = results.exchange_budget["stage_" + package].to_numpy()[
-                        :, basin_indices == basin_index
-                    ]
+                    stage = results.exchange_budget[
+                        "stage_" + package + "_b"
+                    ].to_numpy()[:, basin_indices == basin_index]
                     if isinstance(mf6_model[package], imod.mf6.River):
                         bottom = flatten(
                             mf6_model[package]
@@ -331,7 +333,9 @@ def assert_results(
                 for package in item.mf6_packages:
                     # river flux estimate from coupler logging
                     riv_flux_estimate_exchange = (
-                        results.exchange_budget["exchange_demand_" + package].to_numpy()
+                        results.exchange_budget[
+                            "exchange_demand_" + package + "_b"
+                        ].to_numpy()
                     )[:, 0][basin_mask.ravel()]
                     summed_riv_flux_estimate = sum_budgets(
                         riv_flux_estimate_exchange, summed_riv_flux_estimate
@@ -380,12 +384,15 @@ def assert_results(
                 dtype=np.int32
             )
             # should be resampled for dtsw < dtgw
-            sprinkling_realized = resample_budget_array(
-                results.exchange_budget["sprinkling_realized"], delt_gw
-            )  # m3/dtgw
-            sprinkling_realised_exchange = sprinkling_realized[:, coupled_svats].sum(
-                axis=1
-            )
+            for key in results.exchange_budget.keys():
+                if "sw_sprinkling_realized" in key:
+                    sprinkling_realized = resample_budget_array(
+                        results.exchange_budget[key], delt_gw
+                    )  # m3/dtgw
+                    sprinkling_realised_exchange = sprinkling_realized[
+                        :, coupled_svats
+                    ].sum(axis=1)
+                    break
             if basin_index < 5:
                 plot_results(
                     tmp_path_dev,
@@ -533,11 +540,11 @@ def test_ribametamod_backwater(
         metaswap_dll_dep_dir_devel,
         run_coupler_function,
         output_labels=[
-            "exchange_demand_riv-1",
-            "exchange_demand_drn-1",
-            "exchange_demand_sw_ponding",
-            "stage_riv-1",
-            "stage_drn-1",
+            "exchange_demand_riv-1_b",
+            "exchange_demand_drn-1_b",
+            "exchange_demand_sw_ponding_b",
+            "stage_riv-1_b",
+            "stage_drn-1_b",
         ],
     )
     assert_results(tmp_path_dev, ribametamod_model, results)
@@ -568,9 +575,9 @@ def test_ribametamod_bucket(
         metaswap_dll_dep_dir_devel,
         run_coupler_function,
         output_labels=[
-            "exchange_demand_riv-1",
-            "exchange_demand_sw_ponding",
-            "stage_riv-1",
+            "exchange_demand_riv-1_b",
+            "exchange_demand_sw_ponding_b",
+            "stage_riv-1_b",
         ],
     )
     assert_results(tmp_path_dev, ribametamod_model, results)
@@ -629,9 +636,9 @@ def test_ribametamod_two_basin(
         metaswap_dll_dep_dir_devel,
         run_coupler_function,
         output_labels=[
-            "exchange_demand_riv_1",
-            "exchange_demand_sw_ponding",
-            "stage_riv_1",
+            "exchange_demand_riv_1_b",
+            "exchange_demand_sw_ponding_b",
+            "stage_riv_1_b",
         ],
     )
     assert_results(tmp_path_dev, ribametamod_model, results)
@@ -662,9 +669,9 @@ def test_ribametamod_two_basin_dtgw_2(
         metaswap_dll_dep_dir_devel,
         run_coupler_function,
         output_labels=[
-            "exchange_demand_riv_1",
-            "exchange_demand_sw_ponding",
-            "stage_riv_1",
+            "exchange_demand_riv_1_b",
+            "exchange_demand_sw_ponding_b",
+            "stage_riv_1_b",
         ],
     )
     # frequentie for MODFLOW-6 and MetaSWAP output
@@ -697,9 +704,9 @@ def test_ribametamod_two_basin_dtsw_05(
         metaswap_dll_dep_dir_devel,
         run_coupler_function,
         output_labels=[
-            "exchange_demand_riv_1",
-            "exchange_demand_sw_ponding",
-            "stage_riv_1",
+            "exchange_demand_riv_1_b",
+            "exchange_demand_sw_ponding_b",
+            "stage_riv_1_b",
         ],
     )
     # frequentie for MODFLOW-6 and MetaSWAP output
@@ -732,9 +739,9 @@ def test_ribametamod_two_basin_dtgw_2_dtsw_05(
         metaswap_dll_dep_dir_devel,
         run_coupler_function,
         output_labels=[
-            "exchange_demand_riv_1",
-            "exchange_demand_sw_ponding",
-            "stage_riv_1",
+            "exchange_demand_riv_1_b",
+            "exchange_demand_sw_ponding_b",
+            "stage_riv_1_b",
         ],
     )
     # frequentie for MODFLOW-6 and MetaSWAP output
@@ -767,11 +774,11 @@ def test_ribametamod_two_basin_sprinkling_sw(
         metaswap_dll_dep_dir_devel,
         run_coupler_function,
         output_labels=[
-            "exchange_demand_riv_1",
-            "exchange_demand_sw_ponding",
-            "stage_riv_1",
-            "sprinkling_realized",
-            "sprinkling_demand",
+            "exchange_demand_riv_1_b",
+            "exchange_demand_sw_ponding_b",
+            "stage_riv_1_b",
+            "sw_sprinkling_realized_b",
+            "sw_sprinkling_demand_a",
         ],
     )
     assert_results(tmp_path_dev, ribametamod_model, results)
@@ -813,11 +820,11 @@ def test_ribametamod_two_basin_sprinkling_sw_allocation(
         metaswap_dll_dep_dir_devel,
         run_coupler_function,
         output_labels=[
-            "exchange_demand_riv_1",
-            "exchange_demand_sw_ponding",
-            "stage_riv_1",
-            "sprinkling_realized",
-            "sprinkling_demand",
+            "exchange_demand_riv_1_b",
+            "exchange_demand_sw_ponding_b",
+            "stage_riv_1_b",
+            "sw_sprinkling_realized_b",
+            "sw_sprinkling_demand_a",
         ],
     )
     assert_results(tmp_path_dev, ribametamod_model, results)
@@ -850,11 +857,12 @@ def test_ribametamod_two_basin_sprinkling_sw_allocation_dtsw_05(
         metaswap_dll_dep_dir_devel,
         run_coupler_function,
         output_labels=[
-            "exchange_demand_riv_1",
-            "exchange_demand_sw_ponding",
-            "stage_riv_1",
-            "sprinkling_realized",
-            "sprinkling_demand",
+            "exchange_demand_riv_1_b",
+            "exchange_demand_sw_ponding_b",
+            "stage_riv_1_b",
+            "sw_sprinkling_realized_b",
+            "sw_sprinkling_realized_a",
+            "sw_sprinkling_demand_a",
         ],
     )
     # frequentie for MODFLOW-6 and MetaSWAP output
@@ -893,7 +901,7 @@ def test_exchange_balance() -> None:
     realised[0] = -5.0
     realised[1] = -5.0
     # compute
-    exchange.compute_realised(realised)
+    exchange.compute_realised(realised, compute_volumes=True)
     # compare: realised_factor = 1 - (-shortage - sum_negative_demands)
     realised_factor = np.zeros(shape=shape, dtype=np.float64)
     realised_factor[0] = 1 - (-10 / -15)

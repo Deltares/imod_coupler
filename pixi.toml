@@ -17,20 +17,20 @@ netCDF4 = "*"
 loguru = "*"
 numpy = ">=2.0"
 pydantic = ">=2.11.0"
-pyinstaller = "*"
 python = ">=3.10"
 xarray = ">=2025.8.0"
 scipy = "*"
 tomli = "*"
 tomli-w = "*"
 xmipy = "*"
-imod = "1.0.0.post1"
+imod = "=1.0.0.post1"
+ribasim = "=2025.6.0"
 
 [pypi-dependencies]
-ribasim = { git = "https://github.com/Deltares/Ribasim.git", tag = "v2025.6.0", subdirectory = "python/ribasim" }
 ribasim_testmodels = { git = "https://github.com/Deltares/Ribasim.git", tag = "v2025.6.0", subdirectory = "python/ribasim_testmodels" }
 imod_coupler = { path = ".", editable = true }
 primod = { path = "pre-processing", editable = true }
+pyinstaller = "*" # Use pypi version instead of condforge due to issues with the AV
 
 [feature.common.tasks]
 # Install
@@ -56,6 +56,10 @@ ruff = "*"
 tqdm = "*"
 twine = "*"
 
+
+[feature.dev.pypi-dependencies]
+mypy2junit = "*"
+
 [feature.dev.tasks]
 # Install
 install-test-dependencies = { depends-on = [
@@ -69,7 +73,9 @@ test-imod-coupler = "pytest -vvv -s --numprocesses=auto --dist=loadgroup --baset
 tests = { depends-on = ["test-primod", "test-imod-coupler"] }
 # Lint
 mypy-imodc = "mypy --ignore-missing-imports --strict imod_coupler"
+mypy-imodc-report = "mypy --ignore-missing-imports --strict imod_coupler | mypy2junit > mypy-imodc-report.xml"
 mypy-primod = "mypy --ignore-missing-imports pre-processing/primod"
+mypy-primod-report = "mypy --ignore-missing-imports pre-processing/primod | mypy2junit > mypy-primod-report.xml"
 format = "ruff format ."
 format-check = "ruff format --check ."
 ruff = "ruff check ."
@@ -78,6 +84,31 @@ lint = { depends-on = ["format", "ruff", "mypy-imodc", "mypy-primod"] }
 # Publish primod
 publish-primod = { cmd = "rm --recursive --force dist && python -m build && twine check dist/* && twine upload dist/*", cwd = "pre-processing" }
 
+[feature.pixi-update.dependencies]
+pip = "*"
+pixi-diff-to-markdown = "*"
+gh = "*"
+
+[feature.pixi-update.tasks]
+update = "pixi update --json | pixi-diff-to-markdown > diff.md"
+
+[feature.user-acceptance.dependencies]
+dvc = "*"
+dvc-s3 = "*"
+rioxarray = "*"
+
+[feature.user-acceptance.tasks]
+pull_data = "dvc pull --remote minio"
+fetch_lhm = {cmd = "tar -xf LHM2018_v02vae_BOFEK2020.zip && tar -xf LHM_transient.zip", depends-on = ["pull_data"], cwd = "tests/data/user_acceptance"}
+user_acceptance_test = { cmd = [
+    "pytest",
+    "-m", "user_acceptance",
+    "--cache-clear",
+    "--verbose",
+    "--junitxml=user_acceptance_report.xml",
+], env = { USER_ACCEPTANCE_DIR = "tests/data/user_acceptance"} }
+run_imod5 = {cmd = ["./prepare_mf6_transient_imod5.bat"], cwd = "tests/data/user_acceptance/LHM_transient/scripts_imod-5"}
+
 [feature.py312.dependencies]
 python = "3.12.*"
 
@@ -85,3 +116,5 @@ python = "3.12.*"
 default = { features = ["py312"], solve-group = "py312" }
 dev = { features = ["py312", "dev", "common"], solve-group = "py312" }
 py312 = { features = ["py312", "common"], solve-group = "py312" }
+user-acceptance = { features = ["py312", "common", "user-acceptance"], solve-group = "py312" }
+pixi-update = { features = ["pixi-update"], no-default-feature = true }
