@@ -7,6 +7,7 @@ description:
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Any
 
 import numpy as np
 from loguru import logger
@@ -383,7 +384,7 @@ class MetaModNewton(MetaMod):
                 shape=(nlay, nrow, ncol),
                 userid=userid,
                 ptr_saturation=saturation,
-                ptr_heads=self.mf6.get_head(self.coupling_config.mf6_model),
+                ptr_heads=self.mf6.head[self.coupling_config.mf6_model],
                 active_top_layer_nodes=first_layer_node_idx,
                 max_layer=max_layer_idx,
                 coupling=MemoryExchange(
