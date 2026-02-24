@@ -138,11 +138,11 @@ class MetaModDriverCoupling(DriverCoupling):
 
         well_mapping = None
         if self._check_sprinkling(msw_model=msw_model, gwf_model=gwf_model):
-            pass
-            # well = gwf_model[self.mf6_wel_package]
-            # well_mapping = WellSvatMapping(svat, well, index=index)
-
-        return grid_mapping, rch_mapping, well_mapping, max_layer
+            well = gwf_model.prepare_wel_for_mf6(self.mf6_wel_package, True, True)
+            well_mapping = WellSvatMapping(svat, well, index=index)
+            return grid_mapping, rch_mapping, well_mapping, max_layer
+        else:
+            return grid_mapping, rch_mapping, None, max_layer
 
     def write_exchanges(self, directory: Path, coupled_model: Any) -> dict[str, Any]:
         mf6_simulation = coupled_model.mf6_simulation
