@@ -1,6 +1,6 @@
 package _Self.buildTypes
 
-import IMODCollector.buildTypes.Coupler_Regression_Binaries
+import IMODCollector.buildTypes.IMODCollector_X64development
 import Templates.GitHubIntegrationTemplate
 import _Self.vcsRoots.ImodCoupler
 import _Self.vcsRoots.MetaSwapLookupTable
@@ -11,21 +11,19 @@ import jetbrains.buildServer.configs.kotlin.buildFeatures.XmlReport
 import jetbrains.buildServer.configs.kotlin.buildFeatures.xmlReport
 import jetbrains.buildServer.configs.kotlin.buildSteps.script
 
-
-object TestbenchCouplerWin64 : BuildType({
-    name = "Testbench Coupler Win64"
+object TestPrimodWin64 : BuildType({
+    name = "Test Primod Win64"
     description = "Win64 Regression testbench for MODFLOW6/MetaSWAP coupler"
 
     templates(GitHubIntegrationTemplate)
 
-    artifactRules = """imod_coupler\tests\temp => test_output.zip"""
     publishArtifacts = PublishMode.ALWAYS
 
     params {
         param("reverse.dep.iMOD6_Coupler_Coupler_Regression_Binaries.COUPLER_Version", "v2024.4.0")
         param("reverse.dep.iMOD6_Coupler_Coupler_Regression_Binaries.COUPLER_Platform", "windows")
 
-        param("env.PIXI_FROZEN", "true")
+        param("pixi-environment", "py312")
         param("conda_env_path", "%system.teamcity.build.checkoutDir%/imod_coupler_testbench_env")
 
         // Collector binaries parameters
@@ -35,14 +33,6 @@ object TestbenchCouplerWin64 : BuildType({
         param("env.MODFLOW_DLL_DEVEL", "%system.teamcity.build.checkoutDir%/imod_collector_devel/modflow6/libmf6.dll")
         param("env.RIBASIM_DLL_DEP_DIR_DEVEL", "%system.teamcity.build.checkoutDir%/imod_collector_devel/ribasim/bin")
         param("env.RIBASIM_DLL_DEVEL", "%system.teamcity.build.checkoutDir%/imod_collector_devel/ribasim/bin/libribasim.dll")
-
-        // Regression binaries parameters
-        param("env.IMOD_COUPLER_EXEC_REGRESSION", "%system.teamcity.build.checkoutDir%/imod_collector_regression/imodc.exe")
-        param("env.METASWAP_DLL_DEP_DIR_REGRESSION", "%system.teamcity.build.checkoutDir%/imod_collector_regression/metaswap")
-        param("env.METASWAP_DLL_REGRESSION", "%system.teamcity.build.checkoutDir%/imod_collector_regression/metaswap/MetaSWAP.dll")
-        param("env.MODFLOW_DLL_REGRESSION", "%system.teamcity.build.checkoutDir%/imod_collector_regression/modflow6/libmf6.dll")
-        param("env.RIBASIM_DLL_DEP_DIR_REGRESSION", "%system.teamcity.build.checkoutDir%/imod_collector_regression/ribasim/bin")
-        param("env.RIBASIM_DLL_REGRESSION", "%system.teamcity.build.checkoutDir%/imod_collector_regression/ribasim/bin/libribasim.dll")
         
         param("env.METASWAP_LOOKUP_TABLE", "%system.teamcity.build.checkoutDir%/lookup_table")
     }
@@ -60,37 +50,24 @@ object TestbenchCouplerWin64 : BuildType({
 
     steps {
         script {
-            name = "Set up pixi"
-            workingDir = "imod_coupler"
-            scriptContent = """
-                pixi --version
-                pixi install -e dev
-                pixi list -e dev
-            """.trimIndent()
-        }
-        script {
             name = "Run tests"
+            id = "RUNNER_1503"
             workingDir = "imod_coupler"
-            scriptContent = """
-                pixi run -e dev test-imod-coupler
-            """.trimIndent()
+            scriptContent = "pixi run --environment %pixi-environment% test-primod"
         }
     }
 
     features {
         xmlReport {
+            id = "BUILD_EXT_145"
             reportType = XmlReport.XmlReportType.JUNIT
             rules = "imod_coupler/report.xml"
             verbose = true
         }
     }
 
-    failureConditions {
-        executionTimeoutMin = 120
-    }
-
     dependencies {
-        dependency(IMODCollector.buildTypes.IMODCollector_X64development) {
+        dependency(IMODCollector_X64development) {
             snapshot {
                 onDependencyFailure = FailureAction.FAIL_TO_START
             }
@@ -100,15 +77,6 @@ object TestbenchCouplerWin64 : BuildType({
                 artifactRules = """
                     imod_collector.zip!** => imod_collector_devel
                 """.trimIndent()
-            }
-        }
-
-        dependency(Coupler_Regression_Binaries) {
-            snapshot {
-                onDependencyFailure = FailureAction.FAIL_TO_START
-            }
-            artifacts {
-                artifactRules = "+:imod_coupler_release.zip!** => imod_collector_regression"
             }
         }
     }

@@ -15,10 +15,10 @@ class Kernels(BaseModel):
 
 class Coupling(BaseModel):
     mf6_model: str  # the MODFLOW 6 model that will be coupled
-    mf6_active_river_packages: dict[str, str]
-    mf6_active_drainage_packages: dict[str, str]
-    mf6_passive_river_packages: dict[str, str]
-    mf6_passive_drainage_packages: dict[str, str]
+    mf6_active_river_packages: dict[str, FilePath]
+    mf6_active_drainage_packages: dict[str, FilePath]
+    mf6_passive_river_packages: dict[str, FilePath]
+    mf6_passive_drainage_packages: dict[str, FilePath]
 
     mf6_msw_recharge_pkg: str = (
         ""  # the recharge package that will be used for coupling

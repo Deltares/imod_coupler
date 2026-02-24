@@ -1,0 +1,5 @@
+[core]
+    remote = minio
+['remote "minio"']
+    url = s3://imod-coupler-test-data/dvc_remote
+    endpointurl = https://s3.deltares.nl
