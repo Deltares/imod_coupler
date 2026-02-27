@@ -88,14 +88,14 @@ object TestbenchCouplerWin64 : BuildType({
             param("testName", "tests.test_imod_coupler.test_metamod.test_metamod_regression[newton]")
             param("mute", "true")
             param("scope", "project")
-            param("comment", "Regression ")
+            param("comment", "New Regression test fails ")
         }
         feature {
             type = "testMute"
-            param("testName", "tests.test_imod_coupler.test_metamod.test_metamod_regression[newton_perched])
+            param("testName", "tests.test_imod_coupler.test_metamod.test_metamod_regression[newton_perched]")
             param("mute", "true")
             param("scope", "project")
-            param("comment", "Regression ")
+            param("comment", "New Regression test fails ")
         }
     }
 
