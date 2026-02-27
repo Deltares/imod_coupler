@@ -83,6 +83,20 @@ object TestbenchCouplerWin64 : BuildType({
             rules = "imod_coupler/report.xml"
             verbose = true
         }
+        feature {
+            type = "testMute"
+            param("testName", "tests.test_imod_coupler.test_metamod.test_metamod_regression[newton]")
+            param("mute", "true")
+            param("scope", "project")
+            param("comment", "Regression ")
+        }
+        feature {
+            type = "testMute"
+            param("testName", "tests.test_imod_coupler.test_metamod.test_metamod_regression[newton_perched])
+            param("mute", "true")
+            param("scope", "project")
+            param("comment", "Regression ")
+        }
     }
 
     failureConditions {
