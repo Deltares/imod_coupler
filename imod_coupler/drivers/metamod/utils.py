@@ -1,12 +1,12 @@
 from abc import ABC
 from typing import Any
 
+from numpy import zeros, zeros_like
 from numpy.typing import NDArray
 
 from imod_coupler.kernelwrappers.mf6_newton_wrapper import (
-    PhreaticHeads,
-    PhreaticRecharge,
-    PhreaticStorage,
+    PhreaticBCArray,
+    PhreaticModelArray,
 )
 from imod_coupler.utils import MemoryExchange
 
@@ -38,11 +38,18 @@ class CoupledPhreaticStorage(CoupledBase):
         coupling: MemoryExchange,
     ) -> None:
         super().__init__(coupling)
-        self.storage = PhreaticStorage(
+        self.sto_sy = PhreaticModelArray(
             shape,
             userid,
             ptr_saturation,
             ptr_storage_sy,
+            active_top_layer_nodes,
+            max_layer,
+        )
+        self.sto_ss = PhreaticModelArray(
+            shape,
+            userid,
+            ptr_saturation,
             ptr_storage_ss,
             active_top_layer_nodes,
             max_layer,
@@ -50,9 +57,10 @@ class CoupledPhreaticStorage(CoupledBase):
 
     def exchange(self, time: float | None = None) -> None:
         self.coupling.exchange()  # exchange to top nodes
-        self.storage.reset()  # reset befor setting the exchanged values
-        self.storage.set(self.coupling.ptr_b)  # set to phreatic nodes
-
+        self.sto_sy.reset()  # reset befor setting the exchanged values
+        self.sto_ss.reset()  # reset befor setting the exchanged values
+        self.sto_sy.set_at_phreatic(self.coupling.ptr_b)
+        self.sto_ss.set_at_phreatic(zeros_like(self.sto_ss.variable))
 
 class CoupledPhreaticRecharge(CoupledBase):
     def __init__(
@@ -66,7 +74,7 @@ class CoupledPhreaticRecharge(CoupledBase):
         coupling: MemoryExchange,
     ) -> None:
         super().__init__(coupling)
-        self.recharge = PhreaticRecharge(
+        self.recharge = PhreaticBCArray(
             shape,
             userid,
             ptr_saturation,
@@ -77,7 +85,7 @@ class CoupledPhreaticRecharge(CoupledBase):
 
     def exchange(self, time: float | None = None) -> None:
         self.coupling.exchange()  # exchange to top nodes
-        self.recharge.set(self.coupling.ptr_b)  # set to phreatic nodes
+        self.recharge.set_at_phreatic(self.coupling.ptr_b)  # set to phreatic nodes
 
 
 class CoupledPhreaticHeads(CoupledBase):
@@ -92,7 +100,7 @@ class CoupledPhreaticHeads(CoupledBase):
         coupling: MemoryExchange,
     ) -> None:
         super().__init__(coupling)
-        self.heads = PhreaticHeads(
+        self.heads = PhreaticModelArray(
             shape,
             userid,
             ptr_saturation,
@@ -102,5 +110,7 @@ class CoupledPhreaticHeads(CoupledBase):
         )
 
     def exchange(self, time: float | None = None) -> None:
-        self.coupling.ptr_a = self.heads.get()  # get heads at phreatic nodes
+        self.coupling.ptr_a = (
+            self.heads.get_at_phreatic()
+        )  # get heads at phreatic nodes
         self.coupling.exchange()  # exchange to msw

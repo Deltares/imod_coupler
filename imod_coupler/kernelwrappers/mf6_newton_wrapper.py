@@ -140,6 +140,7 @@ class PhreaticModelArray:
         self.variable = ExpandArray(shape, userid, ptr_variable)
         self.saturation = ExpandArray(shape, userid, ptr_saturation)
         self.initialised = False
+        self.initial = np.copy(ptr_variable)
         self.node_idx = node_idx
         self.max_layer_idx = max_layer_idx
 
@@ -183,6 +184,9 @@ class PhreaticModelArray:
             ].flatten(),
         )
 
+    def reset(self) -> None:
+        self.variable.reduced[:] = self.initial[:]
+
     @property
     def phreatic_layer_idx(self) -> NDArray[Any]:
         # TODO: use max layer from input in case of dry columns?
@@ -200,6 +204,10 @@ class PhreaticModelArray:
         return phreatic_layer_max
 
     @property
+    # The reduced index for each position the full array
+    # Reshaped to 3D
+    # From that select the phreatic layer index
+    # Flatten the result
     def phreatic_reduced_idx(self) -> NDArray[np.int32]:
         phreatic_reduced_index = self.variable.reduced_index.reshape(
             (self.nlay, self.nrow, self.ncol)
@@ -296,118 +304,3 @@ class PhreaticBCArray:
         ].flatten()
         assert np.all(phreatic_reduced_index >= 0)
         return cast(NDArray[np.int32], phreatic_reduced_index)
-
-
-class PhreaticStorage:
-    """
-    Wrapper class for STO-package of MODFLOW 6. Contains methods for:
-
-    1- Setting values to phreatic nodes of SY and zeros the corresponding SS values
-    2- Resetting both SY and SS arrays to initial values
-    """
-
-    sy: PhreaticModelArray
-    ss: PhreaticModelArray
-    zeros: NDArray[Any]
-    initial_sy: NDArray[Any]
-    initial_ss: NDArray[Any]
-
-    def __init__(
-        self,
-        shape: tuple[int, int, int],
-        userid: NDArray[Any],
-        ptr_saturation: NDArray[Any],
-        ptr_storage_sy: NDArray[Any],
-        ptr_storage_ss: NDArray[Any],
-        active_top_layer_node_idx: NDArray[Any],
-        max_layer: NDArray[np.int32],
-    ) -> None:
-        self.zeros = np.zeros(active_top_layer_node_idx.size)
-        self.initial_sy = np.copy(ptr_storage_sy)
-        self.initial_ss = np.copy(ptr_storage_ss)
-        self.sy = PhreaticModelArray(
-            shape,
-            userid,
-            ptr_saturation,
-            ptr_storage_sy,
-            active_top_layer_node_idx,
-            max_layer,
-        )
-        self.ss = PhreaticModelArray(
-            shape,
-            userid,
-            ptr_saturation,
-            ptr_storage_ss,
-            active_top_layer_node_idx,
-            max_layer,
-        )
-
-    def reset(self) -> None:
-        self.sy.variable.reduced[:] = self.initial_sy[:]
-        self.ss.variable.reduced[:] = self.initial_ss[:]
-
-    def set(self, new_sy: NDArray[Any]) -> None:
-        self.sy.set_at_phreatic(new_sy)
-        self.ss.set_at_phreatic(self.zeros)
-
-
-class PhreaticRecharge:
-    """
-    Wrapper class for RCH-package of MODFLOW 6. Contains methods for:
-
-    - Setting recharge values and updating package-nodelist to current phreatic nodes
-    """
-
-    recharge: PhreaticBCArray
-
-    def __init__(
-        self,
-        shape: tuple[int, int, int],
-        userid: NDArray[Any],
-        ptr_saturation: NDArray[Any],
-        ptr_recharge: NDArray[Any],
-        ptr_recharge_nodelist: NDArray[Any],
-        max_layer_idx: NDArray[np.int32],
-    ) -> None:
-        self.recharge = PhreaticBCArray(
-            shape,
-            userid,
-            ptr_saturation,
-            ptr_recharge,
-            ptr_recharge_nodelist,
-            max_layer_idx,
-        )
-
-    def set(self, new_recharge: NDArray[Any]) -> None:
-        self.recharge.set_at_phreatic(new_recharge)
-
-
-class PhreaticHeads:
-    """
-    Wrapper class for heads of MODFLOW 6. Contains methods for:
-
-    - Getting heads values for current phreatic nodes
-    """
-
-    heads: PhreaticModelArray
-
-    def __init__(
-        self,
-        shape: tuple[int, int, int],
-        userid: NDArray[Any],
-        ptr_saturation: NDArray[Any],
-        ptr_heads: NDArray[Any],
-        active_top_layer_node_idx: NDArray[Any],
-        max_layer_idx: NDArray[np.int32],
-    ) -> None:
-        self.heads = PhreaticModelArray(
-            shape,
-            userid,
-            ptr_saturation,
-            ptr_heads,
-            active_top_layer_node_idx,
-            max_layer_idx,
-        )
-
-    def get(self) -> NDArray[Any]:
-        return self.heads.get_at_phreatic()

@@ -22,9 +22,8 @@ from imod_coupler.drivers.metamod.utils import (
     CoupledPhreaticStorage,
 )
 from imod_coupler.kernelwrappers.mf6_newton_wrapper import (
-    PhreaticHeads,
-    PhreaticRecharge,
-    PhreaticStorage,
+    PhreaticBCArray,
+    PhreaticModelArray,
 )
 from imod_coupler.logging.exchange_collector import ExchangeCollector
 from imod_coupler.utils import MemoryExchange
@@ -486,7 +485,7 @@ def test_newton_classes() -> None:
     max_layer = np.full(nrow * ncol, fill_value=nlay - 1)
 
     # recharge
-    rch = PhreaticRecharge(
+    rch = PhreaticBCArray(
         (nlay, nrow, ncol),
         userid,
         saturation,
@@ -495,7 +494,7 @@ def test_newton_classes() -> None:
         max_layer[recharge_nodelist - 1],
     )
     recharge_org = np.copy(recharge)
-    rch.set(recharge * 2)
+    rch.set_at_phreatic(recharge * 2)
     assert (recharge == recharge_org * 2).all()
     assert (recharge_nodelist - 1 == phreatic_nodelist).all()
 
@@ -510,19 +509,29 @@ def test_newton_classes() -> None:
     ss_org = np.copy(ss)
     coupled_nodes = np.array([1, 2, 3, 5, 6, 7, 9, 10, 11, 13, 14, 15]) - 1
     # set storage pointers based on saturation
-    sto = PhreaticStorage(
+
+    sto_sy = PhreaticModelArray(
         (nlay, nrow, ncol),
         userid,
         saturation,
         sy,
+        coupled_nodes,
+        max_layer[coupled_nodes],
+    )
+    sto_ss = PhreaticModelArray(
+        (nlay, nrow, ncol),
+        userid,
+        saturation,
         ss,
         coupled_nodes,
         max_layer[coupled_nodes],
     )
+
     new_sy = np.full((coupled_nodes.size), fill_value=0.20)
     # coupled first layer, first three columns
     # should only updates the phreatic nodes underlying the coupled nodes
-    sto.set(new_sy)
+    sto_sy.set_at_phreatic(new_sy)
+    sto_ss.set_at_phreatic(np.zeros(coupled_nodes.size))
     phreatic_nodes = (
         np.array(
             [
@@ -553,13 +562,14 @@ def test_newton_classes() -> None:
     assert (ss[phreatic_nodes] == 0.0).all()
     assert (ss[non_phreatic_nodes] == 0.1e-6).all()
     # resets arrays to initial values
-    sto.reset()
+    sto_sy.reset()
+    sto_ss.reset()
     assert (sy == sy_org).all()
     assert (ss == ss_org).all()
 
     # head
     heads = np.arange((nlay - 1) * nrow * ncol)
-    hds = PhreaticHeads(
+    hds = PhreaticModelArray(
         (nlay, nrow, ncol),
         userid,
         saturation,
@@ -567,7 +577,7 @@ def test_newton_classes() -> None:
         coupled_nodes,
         max_layer[coupled_nodes],
     )
-    phreatic_heads = hds.get()
+    phreatic_heads = hds.get_at_phreatic()
     assert (phreatic_heads == heads[phreatic_nodes]).all()
 
 
@@ -692,8 +702,9 @@ def test_coupled_newton_classes() -> None:
     assert (ss_mf6[phreatic_nodes] == 0.0).all()
     assert (ss_mf6[non_phreatic_nodes] == 0.1e-6).all()
     # reset storage
-    sto.storage.reset()
-    sy = sto.storage.sy.variable.reduced
+    sto.sto_sy.reset()
+    sto.sto_ss.reset()
+    sy = sto.sto_sy.variable.reduced
     assert (sy == sy_mf6_org).all()
     assert (ss_mf6 == ss_mf6_org).all()
 
