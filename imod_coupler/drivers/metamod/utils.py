@@ -1,7 +1,7 @@
 from abc import ABC
 from typing import Any
 
-from numpy import zeros, zeros_like
+from numpy import zeros_like
 from numpy.typing import NDArray
 
 from imod_coupler.kernelwrappers.mf6_newton_wrapper import (
@@ -61,6 +61,7 @@ class CoupledPhreaticStorage(CoupledBase):
         self.sto_ss.reset()  # reset befor setting the exchanged values
         self.sto_sy.set_at_phreatic(self.coupling.ptr_b)
         self.sto_ss.set_at_phreatic(zeros_like(self.sto_ss.variable))
+
 
 class CoupledPhreaticRecharge(CoupledBase):
     def __init__(
