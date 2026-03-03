@@ -216,12 +216,12 @@ def test_metamod_regression(
     # Read Modflow 6 output
     headfile_dev, cbcfile_dev, grbfile_dev, _ = mf6_output_files(tmp_path_dev)
 
-    heads_dev = open_hds(headfile_dev, grbfile_dev)
-    budgets_dev = open_cbc(cbcfile_dev, grbfile_dev)
-
     # Regression testing temporarilily disable to be able to merge this branch
     # With imod_coupler issue #430 this situation is to be resolved
     """
+    heads_dev = open_hds(headfile_dev, grbfile_dev)
+    budgets_dev = open_cbc(cbcfile_dev, grbfile_dev)
+
     # Write model again, but now with paths to regression dll
     metamod_model.write(
         tmp_path_reg,
