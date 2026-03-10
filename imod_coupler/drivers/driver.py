@@ -86,7 +86,7 @@ def get_driver(
     config_dict: dict[str, Any], config_dir: Path, base_config: BaseConfig
 ) -> Driver:
     from imod_coupler.drivers.metamod.config import MetaModConfig
-    from imod_coupler.drivers.metamod.metamod import MetaMod
+    from imod_coupler.drivers.metamod.metamod import MetaMod, MetaModNewton
     from imod_coupler.drivers.ribametamod.config import RibaMetaModConfig
     from imod_coupler.drivers.ribametamod.ribametamod import RibaMetaMod
     from imod_coupler.drivers.ribamod.config import RibaModConfig
@@ -99,6 +99,8 @@ def get_driver(
 
     if base_config.driver_type == "metamod":
         metamod_config = MetaModConfig(config_dir=config_dir, **config_dict["driver"])
+        if base_config.modflow_newton_formulation:
+            return MetaModNewton(base_config, metamod_config)
         return MetaMod(base_config, metamod_config)
     elif base_config.driver_type == "ribamod":
         ribamod_config = RibaModConfig(config_dir=config_dir, **config_dict["driver"])
