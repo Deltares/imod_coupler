@@ -14,8 +14,8 @@ object Ribasim_binaries : BuildType({
     params {
         select("RIBASIM_Platform", "",
             options = listOf("windows", "linux"))
-        select("RIBASIM_Version", "",
-            options = listOf("v2025.6.0", "v2025.5.0", "v2025.4.0", "v2025.3.0"))
+        select("RIBASIM_Version", "v2026.1.0-rc2",
+            options = listOf("v2025.6.0", "v2025.5.0", "v2025.4.0", "v2025.3.0", "v2026.1.0-rc2"))
     }
 
     vcs {
