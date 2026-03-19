@@ -58,9 +58,10 @@ class RibaMetaDriverCoupling(DriverCoupling):
         ][0]
 
         index, svat = msw_model[grid_data_key].generate_index_array()
-        basin_ids = _validate_node_ids(
-            ribasim_model.basin.node.df, self.ribasim_basin_definition
-        )
+        if ribasim_model.basin.node is not None:
+            basin_ids = _validate_node_ids(
+                ribasim_model.basin.node.df, self.ribasim_basin_definition
+            )
         if isinstance(self.ribasim_basin_definition, gpd.GeoDataFrame):
             gridded_basin = imod.prepare.rasterize(
                 self.ribasim_basin_definition,
@@ -84,9 +85,10 @@ class RibaMetaDriverCoupling(DriverCoupling):
         )
 
         if self._check_sprinkling(msw_model=msw_model):
-            user_demand_ids = _validate_node_ids(
-                ribasim_model.user_demand.node.df, self.ribasim_user_demand_definition
-            )
+            if ribasim_model.user_demand.node is not None:
+                user_demand_ids = _validate_node_ids(
+                    ribasim_model.user_demand.node.df, self.ribasim_user_demand_definition
+                )
             if isinstance(self.ribasim_user_demand_definition, gpd.GeoDataFrame):
                 gridded_user_demand = imod.prepare.rasterize(
                     self.ribasim_user_demand_definition,
