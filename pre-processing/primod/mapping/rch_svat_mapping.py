@@ -58,7 +58,7 @@ class RechargeSvatMapping(MetaModMapping):
         )
 
         n_subunit = self.dataset["subunit"].size
-        n_rch = self.dataset["rch_active"].sum()
+        n_rch = np.array(self.dataset["rch_active"]).sum()
 
         rch_active = self.dataset["rch_active"].to_numpy()
 
