@@ -430,7 +430,7 @@ class MetaModNewton(MetaMod):
         if userid.size == 1:
             # no reduced domain, set userid to modelid
             # TODO: find out if there is a flag that indicates that usernodes == modelnodes
-            userid = np.arange(nlay * nrow * ncol)
+            userid = np.arange(nlay * nrow * ncol, dtype=np.int32)
         return userid
 
     def get_max_layer_idx(
