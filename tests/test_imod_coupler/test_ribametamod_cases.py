@@ -105,7 +105,6 @@ def add_water_users(ribasim_model: ribasim.Model) -> ribasim.Model:
         [
             user_demand.Static(  # type: ignore
                 demand=[1.0],
-                active=True,
                 return_factor=[0.0],
                 min_level=[-999.0],
                 demand_priority=[2],
@@ -117,7 +116,6 @@ def add_water_users(ribasim_model: ribasim.Model) -> ribasim.Model:
         [
             user_demand.Static(  # type: ignore
                 demand=[0.00001, 0.00002],
-                active=True,
                 return_factor=[0.0, 0.0],
                 min_level=[-999.0, -999.0],
                 demand_priority=[4, 8],
@@ -130,7 +128,6 @@ def add_water_users(ribasim_model: ribasim.Model) -> ribasim.Model:
         [
             user_demand.Static(  # type: ignore
                 demand=[1.0],
-                active=True,
                 return_factor=[0.0],
                 min_level=[-999.0],
                 demand_priority=[3],
@@ -208,7 +205,6 @@ def two_basin_model_sprinkling_sw_variations(
     new_df = pd.DataFrame(
         {
             "node_id": np.array([4] * 3),
-            "active": np.array([pd.NA] * 3),
             "level": np.array([0, 3.0, 6.0]),
             "flow_rate": np.array([0.0, 0.0, 0.000000001]),
             "control_state": [None, None, None],
