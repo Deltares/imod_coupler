@@ -1,4 +1,3 @@
-from ctypes import byref, c_int, create_string_buffer
 from typing import Any
 
 import numpy as np
@@ -14,30 +13,11 @@ class RibasimWrapper(XmiWrapper):
     _in_del: bool = False
 
     def initialize(self, config_file: str = "") -> None:
-        self.initialize_julia()
         super().initialize(config_file)
         self.set_infiltration_drainage_array()
 
     def finalize(self) -> None:
         super().finalize()
-        if not self._in_del:
-            self.finalize_julia()
-
-    def initialize_julia(self) -> None:
-        if not RibasimWrapper._julia_initialised:
-            argument = create_string_buffer(0)
-            self.lib.init_julia(c_int(0), byref(argument))
-            RibasimWrapper._julia_initialised = True
-
-    def finalize_julia(self) -> None:
-        if RibasimWrapper._julia_initialised:
-            self.lib.shutdown_julia(c_int(0))
-            RibasimWrapper._julia_initialised = False
-
-    def __del__(self) -> None:
-        # this will call finalize without the Julia shutdown
-        self._in_del = True
-        super().__del__()  # type: ignore[no-untyped-call]
 
     def get_constant_int(self, name: str) -> int:
         match name:

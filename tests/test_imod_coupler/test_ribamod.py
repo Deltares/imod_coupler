@@ -39,12 +39,21 @@ def write_run_read(
     run_coupler_function(tmp_path / ribamod_model._toml_name)
 
     # Read Ribasim output
-    basin_df = pd.read_feather(
-        tmp_path / ribamod_model._ribasim_model_dir / "results" / "basin.arrow"
+    basin_df = (
+        xr.open_dataset(
+            tmp_path / ribamod_model._ribasim_model_dir / "results" / "basin.nc"
+        )
+        .to_dataframe()
+        .reset_index()
     )
+
     if not ribamod_model.ribasim_model.link.df.empty:
-        flow_df = pd.read_feather(
-            tmp_path / ribamod_model._ribasim_model_dir / "results" / "flow.arrow"
+        flow_df = (
+            xr.open_dataset(
+                tmp_path / ribamod_model._ribasim_model_dir / "results" / "flow.nc"
+            )
+            .to_dataframe()
+            .reset_index()
         )
     else:
         flow_df = pd.DataFrame()
