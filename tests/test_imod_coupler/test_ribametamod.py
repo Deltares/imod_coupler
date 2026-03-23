@@ -459,12 +459,22 @@ def write_run_read(
     exchange_budget = exchange_budgets.get_results()
 
     # Read Ribasim output
-    basin_df = pd.read_feather(
-        tmp_path / ribametamod_model._ribasim_model_dir / "results" / "basin.arrow"
+    basin_df = (
+        xr.open_dataset(
+            tmp_path / ribametamod_model._ribasim_model_dir / "results" / "basin.nc"
+        )
+        .to_dataframe()
+        .reset_index()
     )
-    file = tmp_path / ribametamod_model._ribasim_model_dir / "results" / "flow.arrow"
-    if file.is_file():
-        flow_df = pd.read_feather(file)
+
+    if not ribametamod_model.ribasim_model.link.df.empty:
+        flow_df = (
+            xr.open_dataset(
+                tmp_path / ribametamod_model._ribasim_model_dir / "results" / "flow.nc"
+            )
+            .to_dataframe()
+            .reset_index()
+        )
     else:
         flow_df = None
 
