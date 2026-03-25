@@ -51,7 +51,7 @@ class NetcdfExchangeLogger(AbstractExchange):
             self.initfile(len(exchange))
         loc = np.where(self.timevar[:] == time)
         if np.size(loc) > 0:
-            first = int(loc[0])
+            first = int(loc[0][0])
             self.datavar[first, :] = exchange[:]
         else:
             self.timevar[self.pos] = time
