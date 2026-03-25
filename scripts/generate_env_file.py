@@ -12,7 +12,7 @@ def generate_env_file() -> None:
     with open(".env", "w") as f:
         f.write(
             template.render(
-                imod_coupler_exec = "imodc",
+                imod_coupler_exec="imodc",
                 imod_collector_dev_path=_get_imod_collector_path("develop").resolve(),
                 imod_collector_regression_path=_get_imod_collector_path(
                     "regression"
