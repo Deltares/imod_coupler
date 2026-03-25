@@ -47,8 +47,6 @@ generate-env-file = "python scripts/generate_env_file.py"
 test-primod = "pytest --junitxml=report.xml tests/test_primod"
 
 [feature.common.dependencies]
-dvc = "*"
-dvc-s3 = "*"
 python-build = "*"
 httpx = "*"
 ipython = "*"
@@ -99,8 +97,9 @@ gh = "*"
 update = "pixi update --json | pixi-diff-to-markdown > diff.md"
 
 [feature.user-acceptance.dependencies]
+dvc = "*"
+dvc-s3 = "*"
 rioxarray = "*"
-awscli = "*"
 
 [feature.user-acceptance.tasks]
 pull_data = "dvc pull --remote minio"
