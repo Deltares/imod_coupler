@@ -1,9 +1,10 @@
+import argparse
 from pathlib import Path
 
 import jinja2
 
 
-def generate_env_file() -> None:
+def generate_env_file(exec: str) -> None:
     template_generator = jinja2.Environment(
         loader=jinja2.FileSystemLoader("scripts/templates"),
         autoescape=True,
@@ -12,38 +13,20 @@ def generate_env_file() -> None:
     with open(".env", "w") as f:
         f.write(
             template.render(
-                imod_collector_dev_path=_get_imod_collector_path("develop").resolve(),
-                imod_collector_regression_path=_get_imod_collector_path(
-                    "regression"
-                ).resolve(),
-                metaswap_lookup_table_path=_get_metaswap_path().resolve(),
+                imod_coupler_exec = exec,
+                imod_collector_dev_path=Path("./.imod_collector/develop").resolve(),
+                imod_collector_regression_path=Path("./.imod_collector/regression").resolve(),
+                metaswap_lookup_table_path=Path("./.imod_collector/LHM2016_v01vrz").resolve(),
             )
         )
 
-
-def _get_imod_collector_path(tag: str) -> Path:
-    """
-    Find an existing path of imod_collector.
-    Extract the numeric suffix from each path and find the path with the highest number
-    """
-    search_path = Path(".imod_collector")
-    paths = search_path.glob(f"{tag}_*")
-    if not paths:
-        raise ValueError(f"No paths found for tag '{tag}'")
-    paths_with_numbers = [(path, int(path.name.split("_")[1])) for path in paths]
-    if not paths_with_numbers:
-        raise ValueError(f"No numeric suffixes found in paths for tag {tag}")
-
-    path_with_highest_number = max(paths_with_numbers, key=lambda x: x[1])[0]
-    return Path(path_with_highest_number)
-
-
-def _get_metaswap_path() -> Path:
-    metaswap_path = Path(".imod_collector/e150_metaswap")
-    if not metaswap_path.exists():
-        raise ValueError(f"Metaswap lookup table not found at {metaswap_path}")
-    return metaswap_path
-
-
 if __name__ == "__main__":
-    generate_env_file()
+    parser = argparse.ArgumentParser(description="Generate the .env file for imod_coupler.")
+    parser.add_argument(
+        "imodc",
+        nargs="?",
+        default="local",
+        help="Path or name of the imodc executable (default: 'local' to use the local Python code)",
+    )
+    args = parser.parse_args()
+    generate_env_file(args.imodc)
