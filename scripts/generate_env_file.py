@@ -13,15 +13,22 @@ def generate_env_file(exec: str) -> None:
     with open(".env", "w") as f:
         f.write(
             template.render(
-                imod_coupler_exec = exec,
+                imod_coupler_exec=exec,
                 imod_collector_dev_path=Path("./.imod_collector/develop").resolve(),
-                imod_collector_regression_path=Path("./.imod_collector/regression").resolve(),
-                metaswap_lookup_table_path=Path("./.imod_collector/LHM2016_v01vrz").resolve(),
+                imod_collector_regression_path=Path(
+                    "./.imod_collector/regression"
+                ).resolve(),
+                metaswap_lookup_table_path=Path(
+                    "./.imod_collector/LHM2016_v01vrz"
+                ).resolve(),
             )
         )
 
+
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Generate the .env file for imod_coupler.")
+    parser = argparse.ArgumentParser(
+        description="Generate the .env file for imod_coupler."
+    )
     parser.add_argument(
         "imodc",
         nargs="?",

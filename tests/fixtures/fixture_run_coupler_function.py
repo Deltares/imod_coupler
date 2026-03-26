@@ -8,8 +8,10 @@ import pytest
 
 from imod_coupler.__main__ import run_coupler
 
+
 def _run_coupler_worker(file: Path) -> None:
     run_coupler(file)
+
 
 @pytest.fixture(scope="session")
 def run_coupler_function(imod_coupler_exec_devel: Path) -> Callable[[Path], None]:
