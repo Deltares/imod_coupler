@@ -1,3 +1,4 @@
+import multiprocessing
 import subprocess
 import sys
 from collections.abc import Callable
@@ -8,6 +9,10 @@ import pytest
 from imod_coupler.__main__ import run_coupler
 
 
+def _run_coupler_worker(file: Path) -> None:
+    run_coupler(file)
+
+
 @pytest.fixture(scope="session")
 def run_coupler_function(imod_coupler_exec_devel: Path) -> Callable[[Path], None]:
     """
@@ -16,13 +21,16 @@ def run_coupler_function(imod_coupler_exec_devel: Path) -> Callable[[Path], None
     Otherwise it would not be possible to attach the debugger.
     pydevd is loaded when starting the debugger via Visual Studio Code (PyCharm is untested).
     """
-    if "pydevd" in sys.modules:
+    if "pydevd" in sys.modules or imod_coupler_exec_devel == Path("local"):
 
         def run_coupler_debug(file: Path) -> None:
-            try:
-                run_coupler(file)
-            except Exception as ex:
-                raise subprocess.CalledProcessError(1, "run_coupler", None, str(ex))
+            # Start the coupler in a separate process. This avoids dll unloading issues
+            # when the dll crashes.
+            p = multiprocessing.Process(target=_run_coupler_worker, args=(file,))
+            p.start()
+            p.join()
+            if p.exitcode != 0:
+                raise subprocess.CalledProcessError(p.exitcode, "run_coupler")
 
         return run_coupler_debug
     else:
