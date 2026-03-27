@@ -21,6 +21,7 @@ Deltares colleagues can find the issue tracker at [Jira](https://issuetracker.de
 
 ## Contributing
 
+### Setting up your machine
 In order to develop on `imod_coupler` locally, please follow the following steps:
 
 - Download and install [pixi](https://pixi.sh).
@@ -32,16 +33,18 @@ In order to develop on `imod_coupler` locally, please follow the following steps
   ```
 
 - Install the test dependencies by executing the following in your terminal.
-  It automatically downloads the imod coupler dependencies (MetaSWAP, MODFLOW6 & Ribasim) and [regression imod_collector](https://github.com/Deltares/imod_coupler/releases).
-  It downloads the [MetaSWAP lookup table](https://s3.deltares.nl/metaswap/db/LHM2016_v01vrz/).
-  It also generates a `.env` that contains the paths to the downloaded imod_collectors.
 
   ```sh
   pixi run -e dev install-test-dependencies
   ```
 
+  It automatically downloads the imod coupler dependencies (MetaSWAP, MODFLOW6 & Ribasim) and [regression imod_collector](https://github.com/Deltares/imod_coupler/releases).
+  It downloads the [MetaSWAP lookup table](https://s3.deltares.nl/metaswap/db/LHM2016_v01vrz/).
+  It also generates a `.env` that contains the paths to the downloaded imod_collectors.
+
   `install-test-dependencies` creates a `.env` file in the root of the project with the required environment variables pointing to the paths of imod_collector that can be found in the `.pixi` folder.
 
+  <br />
 - The tests can then be run with:
 
   ```sh
@@ -58,53 +61,31 @@ In order to develop on `imod_coupler` locally, please follow the following steps
   application via `open-vscode.bat`. This will open the application in a new
   vscode window with the correct environment variables set.
 
-- How to run the user acceptance tests will be described below. The model
-  currently used for the user acceptance tests is [the LHM
-  model](https://nhi.nu/modellen/lhm/), but more models might be added in the
-  future.
+### Running acceptance test
+The model currently used for the user acceptance tests is [the LHM model](https://nhi.nu/modellen/lhm/), but more models might be added in the future.
+You can run the user acceptance tests locally on a Windows machine by following these steps:
 
-  Run the user acceptance tests locally on a Windows machine by following these
-  steps:
+1. Pull the data from the Minio/DVC remote by running the following command in the root
+  of the repository:
 
-  1. First contact imod.support@deltares.nl and ask for an access key to access
-    the iMOD Coupler test data. They will contact you and send you a key. Make
-    sure you don't share this key with others!
-  2. Activate the user acceptance environment by running the following command in the root
-    of the repository:
-    
-    ```sh
-    pixi shell -e user-acceptance
-    ```
+```sh
+pixi run -e user-acceptance fetch_lhm
+```
 
-  3. Add your key to the DVC configuration by running the following command in the root
-    of the repository:
+This will unpack the LHM model data and the MetaSWAP database, which are
+used for the user acceptance tests.
 
-    ```sh
-      dvc remote modify --local minio access_key_id <your_access_key>
-      dvc remote modify --local minio secret_access_key <your_secret_access_key>
-    ```
+2. Run the user acceptance tests by running the following command in the root 
+  of the repository.
 
-    Don't forget the ``--local`` flag, as this will store the key in the
-    ``.dvc/config.local`` file, which is not committed to the repository.
-
-  4. Pull the data from the DVC remote by running the following command in the root
-    of the repository:
-
-    ```sh
-      pixi run fetch_lhm
-    ```
-
-    This will unpack the LHM model data and the MetaSWAP database, which are
-    used for the user acceptance tests.
-
-  5. Run the user acceptance tests by running the following command in the root 
-    of the repository.
-
-    ```sh
+```sh
       pixi run -e user-acceptance user_acceptance_test
-    ```
+```
 
-    The test should take about 50 minutes to complete.
+The test should take about 50 minutes to complete.
+
+### DVC
+Various versions of data are being tracked using DVC. This makes it possible to have different versions of data avaialble on different branches. The bucket in which this data resides is set to readonly for the public. If you want to push new/updated data to the bucket, please contact one of the project maintainers.
 
 ### Debugging
 

@@ -102,8 +102,9 @@ dvc-s3 = "*"
 rioxarray = "*"
 
 [feature.user-acceptance.tasks]
+pull_lhm_db = { cmd = "aws s3 cp s3://metaswap/db/LHM2018_v02vae_BOFEK2020.zip ./LHM2018_v02vae_BOFEK2020.zip --no-sign-request --endpoint-url https://s3.deltares.nl --no-verify-ssl", cwd = "tests/data/user_acceptance" }
 pull_data = "dvc pull --remote minio"
-fetch_lhm = {cmd = "tar -xf LHM2018_v02vae_BOFEK2020.zip && tar -xf LHM_transient.zip", depends-on = ["pull_data"], cwd = "tests/data/user_acceptance"}
+fetch_lhm = {cmd = "tar -xf LHM2018_v02vae_BOFEK2020.zip && tar -xf LHM_transient.zip", depends-on = ["pull_lhm_db", "pull_data"], cwd = "tests/data/user_acceptance"}
 user_acceptance_test = { cmd = [
     "pytest",
     "-m", "user_acceptance",
