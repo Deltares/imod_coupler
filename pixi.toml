@@ -34,9 +34,13 @@ pyinstaller = "*" # Use pypi version instead of condforge due to issues with the
 
 [feature.common.tasks]
 # Install
-install-metaswap-testmodels = "svn checkout https://repos.deltares.nl/repos/DSCTestbench/trunk/cases/e150_metaswap/f00_common/c00_common/LHM2016_v01vrz .imod_collector/e150_metaswap"
-install-imod-collector = "python scripts/download_imod_collector.py"
-install-imod-collector-regression = "python scripts/download_imod_collector.py regression"
+install-ribasim = { cmd = "python scripts/download_ribasim.py 2025.6.0 ./.imod_collector/develop/ribasim", cwd="." }
+install-modflow = { cmd = "python scripts/download_modflow.py 6.7.0 ./.imod_collector/develop/modflow6", cwd="." }
+install-metaswap = "aws s3 cp s3://metaswap/releases/r2410 ./.imod_collector/develop/metaswap --recursive --no-sign-request --endpoint-url https://s3.deltares.nl --no-verify-ssl"
+install-metaswap-test-db = "aws s3 cp s3://metaswap/db/LHM2016_v01vrz ./.imod_collector/LHM2016_v01vrz --recursive --no-sign-request --endpoint-url https://s3.deltares.nl --no-verify-ssl"
+
+install-imod-collector = { depends-on = ["install-metaswap", "install-ribasim", "install-modflow"] }
+install-imod-collector-regression = "python scripts/download_regression.py 2025.11.0 ./.imod_collector/regression"
 generate-env-file = "python scripts/generate_env_file.py"
 
 # Tests
@@ -63,7 +67,7 @@ mypy2junit = "*"
 [feature.dev.tasks]
 # Install
 install-test-dependencies = { depends-on = [
-    "install-metaswap-testmodels",
+    "install-metaswap-test-db",
     "install-imod-collector",
     "install-imod-collector-regression",
     "generate-env-file",

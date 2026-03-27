@@ -134,5 +134,5 @@ report.xml
 user_acceptance_report.xml
 
 .pixi
-.imod_collector
 .teamcity/.idea/
+.imod_collector/

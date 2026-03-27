@@ -23,27 +23,21 @@ Deltares colleagues can find the issue tracker at [Jira](https://issuetracker.de
 
 In order to develop on `imod_coupler` locally, please follow the following steps:
 
-- Create an access token at the [TeamCity build server](https://dpcbuild.deltares.nl/profile.html?item=accessTokens#).
-  Choose permission scope: `<Same as current user>`.
-- Store the token in your local user environment as `TEAMCITY_TOKEN`.
-  This token will be used to download artifacts from Teamcity, make sure to store it well.
 - Download and install [pixi](https://pixi.sh).
-- Download and install [svn](https://tortoisesvn.net/downloads.html).
-  Make sure to install the svn command line tools as well.
 - Download the Git repository of `imod_coupler` and navigate to the root of the project.
 - Create the environment by executing the following in your terminal:
 
   ```sh
-  pixi install --environment=dev
+  pixi install -e dev
   ```
 
 - Install the test dependencies by executing the following in your terminal.
-  It automatically downloads the [latest imod_collector](https://dpcbuild.deltares.nl/buildConfiguration/iMOD6_IMOD6collectorDaily_ReleaseX64?branch=%3Cdefault%3E&mode=builds) and [regression imod_collector](https://dpcbuild.deltares.nl/buildConfiguration/iMOD6_IMOD6collectorDaily_ReleaseX64?branch=%3Cdefault%3E&mode=builds&tag=regression) from the build server.
-  It downloads the [MetaSWAP lookup table](https://repos.deltares.nl/repos/DSCTestbench/trunk/cases/e150_metaswap/f00_common/c00_common/LHM2016_v01vrz).
+  It automatically downloads the imod coupler dependencies (MetaSWAP, MODFLOW6 & Ribasim) and [regression imod_collector](https://github.com/Deltares/imod_coupler/releases).
+  It downloads the [MetaSWAP lookup table](https://s3.deltares.nl/metaswap/db/LHM2016_v01vrz/).
   It also generates a `.env` that contains the paths to the downloaded imod_collectors.
 
   ```sh
-  pixi run install-test-dependencies
+  pixi run -e dev install-test-dependencies
   ```
 
   `install-test-dependencies` creates a `.env` file in the root of the project with the required environment variables pointing to the paths of imod_collector that can be found in the `.pixi` folder.
@@ -51,13 +45,13 @@ In order to develop on `imod_coupler` locally, please follow the following steps
 - The tests can then be run with:
 
   ```sh
-  pixi run tests
+  pixi run -e dev tests
   ```
 
 - Lint the codebase with:
 
   ```sh
-  pixi run lint
+  pixi run -e dev lint
   ```
 
 - When developing with visual studio code, it is recommended to open the
