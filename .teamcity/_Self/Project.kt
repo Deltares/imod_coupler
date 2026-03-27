@@ -5,6 +5,7 @@ import Templates.GitHubIntegrationTemplate
 import _Self.buildTypes.TestPrimodWin64
 import _Self.buildTypes.*
 import _Self.vcsRoots.*
+import Weekly.WeeklyProject
 import jetbrains.buildServer.configs.kotlin.*
 import jetbrains.buildServer.configs.kotlin.Project
 import jetbrains.buildServer.configs.kotlin.buildFeatures.PullRequests
@@ -28,6 +29,7 @@ object Project : Project({
 
     subProject(IMODCollector.Project)
     subProject(PixiProject)
+    subProject(WeeklyProject)
 })
 
 object Main : BuildType({
