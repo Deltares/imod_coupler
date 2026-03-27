@@ -9,7 +9,7 @@ linux = "4.4.0"
 
 [tasks]
 # Build
-build-imod-coupler = "rm -rf dist && pyinstaller imod_coupler/__main__.py --name imodc"
+build-imod-coupler = "rm -rf dist && pyinstaller --onefile imod_coupler/__main__.py --name imodc"
 
 [dependencies]
 geopandas = ">=1.0.0"
