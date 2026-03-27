@@ -47,6 +47,7 @@ generate-env-file = "python scripts/generate_env_file.py"
 test-primod = "pytest --junitxml=report.xml tests/test_primod"
 
 [feature.common.dependencies]
+awscli = "*"
 python-build = "*"
 httpx = "*"
 ipython = "*"
