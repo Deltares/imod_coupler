@@ -7,7 +7,6 @@ import jetbrains.buildServer.configs.kotlin.triggers.schedule
 import jetbrains.buildServer.configs.kotlin.buildFeatures.XmlReport
 import jetbrains.buildServer.configs.kotlin.buildFeatures.xmlReport
 import jetbrains.buildServer.configs.kotlin.buildSteps.script
-import jetbrains.buildServer.configs.kotlin.Dependencies.ReuseBuilds
 import _Self.vcsRoots.ImodCoupler
 
 object WeeklyProject : Project({
@@ -85,7 +84,6 @@ object AcceptanceTests : BuildType({
         dependency(IMODCollector.buildTypes.IMODCollector_X64development) {
             snapshot {
                 onDependencyFailure = FailureAction.FAIL_TO_START
-                reuseBuilds = ReuseBuilds.YES
             }
 
             artifacts {
@@ -94,8 +92,6 @@ object AcceptanceTests : BuildType({
                     imod_collector.zip!** => imod_collector_devel
                 """.trimIndent()
             }
-
-            branchFilter = "+:refs/heads/main"
         }
     }
 
