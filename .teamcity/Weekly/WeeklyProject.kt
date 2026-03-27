@@ -71,7 +71,7 @@ object AcceptanceTests : BuildType({
     features {
         xmlReport {
             reportType = XmlReport.XmlReportType.JUNIT
-            rules = "user_acceptance_report.xml"
+            rules = "imod_coupler/user_acceptance_report.xml"
             verbose = true
         }
     }
