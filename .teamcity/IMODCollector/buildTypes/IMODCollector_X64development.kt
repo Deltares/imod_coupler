@@ -17,9 +17,9 @@ object IMODCollector_X64development : BuildType({
 
     artifactRules = """
         coupler/dist/ => imod_collector.zip!/
-        .imod_collector/develop/modflow6/ => imod_collector.zip!/modflow6/
-        .imod_collector/develop/metaswap/ => imod_collector.zip!/metaswap/
-        .imod_collector/develop/ribasim/ => imod_collector.zip!/ribasim/
+        coupler/.imod_collector/develop/modflow6/ => imod_collector.zip!/modflow6/
+        coupler/.imod_collector/develop/metaswap/ => imod_collector.zip!/metaswap/
+        coupler/.imod_collector/develop/ribasim/ => imod_collector.zip!/ribasim/
     """.trimIndent()
 
     vcs {
