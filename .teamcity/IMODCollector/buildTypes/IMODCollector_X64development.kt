@@ -34,7 +34,7 @@ object IMODCollector_X64development : BuildType({
             workingDir = "coupler"
             scriptContent = """
                 pixi --version
-                pixi install
+                pixi install -e dev
                 pixi list
             """.trimIndent()
         }
@@ -42,14 +42,14 @@ object IMODCollector_X64development : BuildType({
             name = "Get coupler dependencies"
             workingDir = "coupler"
             scriptContent = """
-                pixi run install-imod-collector
+                pixi run -e dev install-imod-collector
             """.trimIndent()
         }
         script {
             name = "Create executable with pyinstaller"
             workingDir = "coupler"
             scriptContent = """
-                pixi run build-imod-coupler
+                pixi run -e dev build-imod-coupler
             """.trimIndent()
         }
         script {
