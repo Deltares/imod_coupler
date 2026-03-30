@@ -1,15 +1,14 @@
 # iMOD Coupler
 
-The `imod_coupler` is used to couple hydrological kernels.
-It currently focuses on groundwater and supports coupling between MetaSWAP and Modflow6.
+`imod_coupler` couples hydrological kernels. It currently focuses on groundwater and supports coupling between MetaSWAP, MODFLOW 6, and Ribasim.
 
-It as command line app that can be run via
+It is a command-line application that can be run via:
 
 ```sh
 imodc /path/to/imod_coupler.toml
 ```
 
-In order to receive help for its usage, run
+For usage information, run:
 
 ```sh
 imodc --help
@@ -17,90 +16,80 @@ imodc --help
 
 ## Issues
 
-Deltares colleagues can find the issue tracker at [Jira](https://issuetracker.deltares.nl/secure/RapidBoard.jspa?rapidView=469&projectKey=IMOD6&view=planning&selectedIssue=IMOD6-840)
+Deltares colleagues can find the issue tracker on [Jira](https://issuetracker.deltares.nl/secure/RapidBoard.jspa?rapidView=469&projectKey=IMOD6&view=planning&selectedIssue=IMOD6-840).
 
 ## Contributing
 
 ### Setting up your machine
-In order to develop on `imod_coupler` locally, please follow the following steps:
 
-- Download and install [pixi](https://pixi.sh).
-- Download the Git repository of `imod_coupler` and navigate to the root of the project.
-- Create the environment by executing the following in your terminal:
+To develop `imod_coupler` locally:
 
-  ```sh
-  pixi install -e dev
-  ```
+1. Download and install [pixi](https://pixi.sh).
+2. Clone the repository and navigate to the project root.
+3. Create the development environment:
 
-- Install the test dependencies by executing the following in your terminal.
+   ```sh
+   pixi install -e dev
+   ```
 
-  ```sh
-  pixi run -e dev install-test-dependencies
-  ```
+4. Install the test dependencies:
 
-  It automatically downloads the imod coupler dependencies (MetaSWAP, MODFLOW6 & Ribasim) and [regression imod_collector](https://github.com/Deltares/imod_coupler/releases).
-  It downloads the [MetaSWAP lookup table](https://s3.deltares.nl/metaswap/db/LHM2016_v01vrz/).
-  It also generates a `.env` that contains the paths to the downloaded imod_collectors.
+   ```sh
+   pixi run -e dev install-test-dependencies
+   ```
 
-  `install-test-dependencies` creates a `.env` file in the root of the project with the required environment variables pointing to the paths of imod_collector that can be found in the `.pixi` folder.
+   This command:
+   - Downloads the kernel dependencies (MetaSWAP, MODFLOW 6 & Ribasim) and the [regression imod_coupler](https://github.com/Deltares/imod_coupler/releases)
+   - Downloads the [MetaSWAP lookup table](https://s3.deltares.nl/metaswap/db/LHM2016_v01vrz/)
+   - Generates a `.env` file in the project root with environment variables pointing to the downloaded binaries in the `.pixi` folder
 
-  <br />
-- The tests can then be run with:
+5. Run the tests:
 
-  ```sh
-  pixi run -e dev tests
-  ```
+   ```sh
+   pixi run -e dev tests
+   ```
 
-- Lint the codebase with:
+6. Lint the codebase:
 
-  ```sh
-  pixi run -e dev lint
-  ```
+   ```sh
+   pixi run -e dev lint
+   ```
 
-- When developing with visual studio code, it is recommended to open the
-  application via `open-vscode.bat`. This will open the application in a new
-  vscode window with the correct environment variables set.
+> **Tip:** When developing with Visual Studio Code, open the project via `open-vscode.bat` to launch a new window with the correct environment variables set.
 
-### Running acceptance test
-The model currently used for the user acceptance tests is [the LHM model](https://nhi.nu/modellen/lhm/), but more models might be added in the future.
-You can run the user acceptance tests locally on a Windows machine by following these steps:
+### Running acceptance tests
 
-1. Pull the data from the Minio/DVC remote by running the following command in the root
-  of the repository:
+The user acceptance tests currently use [the LHM model](https://nhi.nu/modellen/lhm/). More models may be added in the future. These tests can only be run locally on Windows.
 
-```sh
-pixi run -e user-acceptance fetch_lhm
-```
+1. Pull the data from the Minio/DVC remote:
 
-This will unpack the LHM model data and the MetaSWAP database, which are
-used for the user acceptance tests.
+   ```sh
+   pixi run -e user-acceptance fetch_lhm
+   ```
 
-2. Run the user acceptance tests by running the following command in the root 
-  of the repository.
+   This unpacks the LHM model data and the MetaSWAP database required for the tests.
 
-```sh
-      pixi run -e user-acceptance user_acceptance_test
-```
+2. Run the user acceptance tests:
 
-The test should take about 50 minutes to complete.
+   ```sh
+   pixi run -e user-acceptance user_acceptance_test
+   ```
+
+   The tests take approximately 60 minutes to complete.
 
 ### DVC
-Various versions of data are being tracked using DVC. This makes it possible to have different versions of data avaialble on different branches. The bucket in which this data resides is set to readonly for the public. If you want to push new/updated data to the bucket, please contact one of the project maintainers.
+
+Various versions of test data are tracked using DVC, which allows different data versions to exist across branches. The storage bucket is read-only for the public. To push new or updated data, contact one of the project maintainers.
 
 ### Debugging
 
-When debugging the unit tests in visual studio code with the test explorer, you can encounter some problems.
-Both MODFLOW 6 and MetaSWAP might behave unpredicateble when being initialized and finalized multiple times.
+When debugging unit tests in Visual Studio Code using the Test Explorer, you may encounter issues because MODFLOW 6 and MetaSWAP can behave unpredictably when initialized and finalized multiple times in the same process.
 
-When you only run, not debug, unit tests, this is not the case, since there is a switch statement that determines if we should call `subprocess.run()`, or stay within the main thread.
-See the fixture for `run_coupler_function` for more information.
+This does not occur when running (not debugging) unit tests, because a conditional check determines whether to call `subprocess.run()` or stay within the main thread. See the `run_coupler_function` fixture for details.
 
 ### Troubleshooting
 
-If you encounter errors while running the tests, it might be that your pip dependencies are outdated.
-This happens when you have pulled the latest changes from imod_coupler.
-In that case you need to update the pip dependencies as well.
-Try running:
+If you encounter errors after pulling the latest changes, your pip dependencies may be outdated. Update them by running:
 
 ```sh
 pixi run update-git-dependencies
