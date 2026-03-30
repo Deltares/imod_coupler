@@ -57,7 +57,7 @@ class RibaMetaDriverCoupling(DriverCoupling):
             pkgname for pkgname, pkg in msw_model.items() if isinstance(pkg, GridData)
         ][0]
 
-        index, svat = msw_model[grid_data_key].generate_index_array()
+        index, svat = msw_model[grid_data_key].generate_index_svat_array()
         basin_ids = _validate_node_ids(
             ribasim_model.basin.node.df, self.ribasim_basin_definition
         )
@@ -109,7 +109,7 @@ class RibaMetaDriverCoupling(DriverCoupling):
                 swsprmax["max_abstraction_surfacewater"].values,
                 (nsu, 1, 1),
             )
-            index_swspr, svat_swspr = swspr_grid_data.generate_index_array()
+            index_swspr, svat_swspr = swspr_grid_data.generate_index_svat_array()
             svat_user_demand_mapping = SvatUserDemandMapping(
                 name="msw_sw_sprinkling",
                 gridded_user_demand=gridded_user_demand,

@@ -21,6 +21,7 @@ class BaseConfig(BaseModel):
     """Model for the base config validated by pydantic"""
 
     log_level: LogLevel = LogLevel.INFO
+    parallel: bool = False
     timing: bool = False
     driver_type: DriverType
     driver: BaseModel

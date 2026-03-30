@@ -152,6 +152,8 @@ def metaswap_model(
     msw_model["oc_var"] = msw.VariableOutputControl()
     msw_model["oc_time"] = msw.TimeOutputControl(time=times + pd.Timedelta(days=1))
 
+    msw_model.starttime = times[0].strftime("%d/%m/%Y")
+
     return msw_model
 
 

@@ -30,7 +30,8 @@ class MetaMod(CoupledModel, MetaModMixin):
 
     def __init__(
         self,
-        msw_model: MetaSwapModel,
+        # msw_model: MetaSwapModel,
+        msw_model: dict[str, MetaSwapModel],
         mf6_simulation: Modflow6Simulation,
         coupling_list: Sequence[MetaModDriverCoupling],
     ):
@@ -99,16 +100,17 @@ class MetaMod(CoupledModel, MetaModMixin):
             directory / self._modflow6_model_dir,
             **modflow6_write_kwargs,
         )
-
         mf6_dis_pkg, mf6_wel_pkg = self.get_mf6_pkgs_for_metaswap(
             coupling_dict, self.mf6_simulation
         )
 
-        self.msw_model.write(
-            directory / self._metaswap_model_dir,
-            mf6_dis_pkg,
-            mf6_wel_pkg,
-        )
+        for msw_model_key, msw_model in self.msw_model.items():
+            directory_msw = directory / self._metaswap_model_dir / Path(msw_model_key)
+            msw_model.write(
+                directory_msw,
+                mf6_dis_pkg[msw_model_key],
+                mf6_wel_pkg[msw_model_key],
+            )
 
     def write_toml(
         self,
@@ -116,7 +118,7 @@ class MetaMod(CoupledModel, MetaModMixin):
         modflow6_dll: str | Path,
         metaswap_dll: str | Path,
         metaswap_dll_dependency: str | Path,
-        coupling_dict: dict[str, Any],
+        coupling_dicts: list[dict[str, Any]],
     ) -> None:
         """
         Write .toml file which configures the imod coupler run.
@@ -147,7 +149,18 @@ class MetaMod(CoupledModel, MetaModMixin):
 
         toml_path = directory / self._toml_name
 
+        # create MetaSWAP dictionary
+        msw_list = []
+        for msw_model in self.msw_model.keys():
+            d = {}
+            d["msw_model"] = msw_model
+            d["mpi_rank"] = 0
+            d["dll"] = str(metaswap_dll)
+            d["work_dir"] = f".\\{self._metaswap_model_dir}\\{msw_model}"
+            msw_list.append(d)
+
         coupler_toml = {
+            "parallel": False,
             "timing": False,
             "log_level": "INFO",
             "driver_type": "metamod",
@@ -157,13 +170,14 @@ class MetaMod(CoupledModel, MetaModMixin):
                         "dll": str(modflow6_dll),
                         "work_dir": f".\\{self._modflow6_model_dir}",
                     },
-                    "metaswap": {
-                        "dll": str(metaswap_dll),
-                        "work_dir": f".\\{self._metaswap_model_dir}",
-                        "dll_dep_dir": str(metaswap_dll_dependency),
-                    },
+                    # "metaswap": {
+                    #    "dll": str(metaswap_dll),
+                    #    "work_dir": f".\\{self._metaswap_model_dir}",
+                    #    "dll_dep_dir": str(metaswap_dll_dependency),
+                    # },
+                    "metaswap": msw_list,
                 },
-                "coupling": [coupling_dict],
+                "coupling": coupling_dicts,
             },
         }
 

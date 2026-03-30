@@ -1,3 +1,4 @@
+import multiprocessing as mp
 from ctypes import byref, c_double, c_int
 from pathlib import Path
 
@@ -5,6 +6,81 @@ import numpy as np
 from numpy.typing import NDArray
 from xmipy import XmiWrapper
 from xmipy.utils import cd
+
+from imod_coupler.drivers.kernel_config import Metaswap
+import shutil
+
+
+class MswMultiWrapper:
+    models: dict[str, XmiWrapper] = {}
+    # models: list = []
+    model_names: list[str] = []
+    working_dirs: dict[str, str] = {}
+
+    def __init__(
+        self,
+        msw_kernels: list[Metaswap],
+        timing: bool = False,
+    ):
+        for kernel in msw_kernels:
+            msw_model_name = kernel.msw_model
+            # copy the DLL
+            dll_path = Path(kernel.work_dir, kernel.dll.name)
+            shutil.copy(kernel.dll, dll_path)
+            model = MswWrapper(
+                lib_path=dll_path,
+                lib_dependency=kernel.dll_dep_dir,
+                working_directory=kernel.work_dir,
+                timing=timing,
+            )
+            self.models[msw_model_name] = model
+            self.working_dirs[msw_model_name] = kernel.work_dir
+
+    def initialize(self) -> None:
+        for model in self.models.values():
+            model.initialize()
+
+    def get_working_dir(self, model: str):
+        return self.models[model].working_directory
+
+    def get_storage_ptr(self, model: str):
+        return self.models[model].get_storage_ptr()
+
+    def get_volume_ptr(self, model: str):
+        return self.models[model].get_volume_ptr()
+
+    def get_head_ptr(self, model: str):
+        return self.models[model].get_head_ptr()
+
+    def get_version(self):
+        return next(iter(self.models.values())).get_version()
+
+    def prepare_time_step(self, delt: float):
+        for model in self.models.values():
+            model.prepare_time_step(delt)
+
+    def finalize_time_step(self):
+        for model in self.models.values():
+            model.finalize_time_step()
+
+    def finalize(self) -> None:
+        for model in self.models.values():
+            model.finalize()
+
+    def prepare_solve(self, id: int) -> None:
+        for model in self.models.values():
+            model.prepare_solve(id)
+
+    def solve(self, id: int) -> None:
+        for model in self.models.values():
+            model.solve(id)
+
+    def finalize_solve(self, id: int) -> None:
+        for model in self.models.values():
+            model.finalize_solve(id)
+
+    def report_timing_totals(self):
+        return self.models[self.model_names[0]].report_timing_totals()
 
 
 class MswWrapper(XmiWrapper):
