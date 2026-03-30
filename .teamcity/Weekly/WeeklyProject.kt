@@ -74,8 +74,19 @@ object AcceptanceTests : BuildType({
             rules = "imod_coupler/user_acceptance_report.xml"
             verbose = true
         }
+        notifications {
+            notifierSettings = emailNotifier {
+                email = """
+                joeri.vanengelen@deltares.nl
+                robert.leander@deltares.nl
+                sunny.titus@deltares.nl
+            """.trimIndent()
+            }
+            buildFailedToStart = true
+            buildFailed = true
+        }
     }
-
+    
     failureConditions {
         executionTimeoutMin = 120
     }
@@ -133,20 +144,6 @@ object  WeeklyJobs : BuildType({
 
     failureConditions {
         errorMessage = true
-    }
-
-    features {
-        notifications {
-            notifierSettings = emailNotifier {
-                email = """
-                joeri.vanengelen@deltares.nl
-                robert.leander@deltares.nl
-                sunny.titus@deltares.nl
-            """.trimIndent()
-            }
-            buildFailedToStart = true
-            buildFailed = true
-        }
     }
 
     dependencies {
