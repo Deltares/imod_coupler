@@ -2,6 +2,10 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
+import csv
+
+from imod.mf6 import Modflow6Simulation
+from imod.mf6.model_gwf import GroundwaterFlowModel
 
 
 def diff_per_column_dataframe(
@@ -66,3 +70,29 @@ def numeric_csvfiles_equal(
         print(columns_with_differences)
 
     return not is_different
+
+
+def write_mete_grid_inp_abs_path(meteo_output_dir: Path, mete_grid: Path):
+    # WORKAROUND: set absolute paths in file mete_grid.inp
+    df = pd.read_csv(mete_grid, header=None)
+    for row in range(df.shape[0]):
+        df.loc[row, 2] = str(meteo_output_dir / Path(df.loc[row, 2]))
+        df.loc[row, 3] = str(meteo_output_dir / Path(df.loc[row, 3]))
+    for col in [2, 3, 4, 5, 6]:
+        df.loc[:, col] = '"' + df[col] + '"'
+    df.to_csv(
+        mete_grid,
+        header=False,
+        quoting=csv.QUOTE_NONE,
+        float_format="%.4f",
+        index=False,
+    )
+
+
+def get_mf6_gwf_model_names(mf6_splitted: Modflow6Simulation) -> list[str]:
+    mf6_model_name_list = [
+        model_name
+        for model_name, model in mf6_splitted.items()
+        if isinstance(model, GroundwaterFlowModel)
+    ]
+    return mf6_model_name_list

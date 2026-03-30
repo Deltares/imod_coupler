@@ -1,14 +1,11 @@
 import pytest
 from imod.mf6 import Modflow6Simulation
-from imod.mf6.model_gwf import GroundwaterFlowModel
 from imod.msw import MetaSwapModel
 from imod.msw.fixed_format import VariableMetaData
 from primod import MetaMod, MetaModDriverCoupling
-import numpy as np
 from imod.msw.meteo_grid import MeteoGridCopy
 from pathlib import Path
-import pandas as pd
-import csv
+from test_utilities import write_mete_grid_inp_abs_path, get_mf6_gwf_model_names
 
 
 def case_sprinkling(
@@ -85,52 +82,43 @@ def case_inactive_cell(
     )
 
 
-def case_multi_model_no_sprinkling(
+def case_multi_model_no_sprinkling_two_subdomains(
     coupled_mf6_model: Modflow6Simulation,
     prepared_msw_model: MetaSwapModel,
     tmp_path_dev: Path,
 ) -> MetaMod:
-    prepared_msw_model.pop("sprinkling")
-    partitions_array = coupled_mf6_model["GWF_1"]["dis"]["idomain"].isel(
-        layer=0, drop=True
-    )
 
-    # Create meteo output directory, write the meteo data, and copy metegrid.
+    # Remove the sprinkling package
+    prepared_msw_model.pop("sprinkling")
+
+    # Create meteo output directory, write the meteo data
     meteo_output_dir = tmp_path_dev / "metaswap" / "meteo"
     meteo_output_dir.mkdir(exist_ok=True, parents=True)
     prepared_msw_model["meteo_grid"].write(meteo_output_dir)
-    del prepared_msw_model["meteo_grid"]
     mete_grid = meteo_output_dir / Path("mete_grid.inp")
 
-    # WORKAROUND: set absolute paths in file mete_grid.inp
-    df = pd.read_csv(mete_grid, header=None)
-    for row in range(df.shape[0]):
-        df[2][row] = str(meteo_output_dir / Path(df[2][row]))
-        df[3][row] = str(meteo_output_dir / Path(df[3][row]))
-    for col in [2, 3, 4, 5, 6]:
-        df.loc[:, col] = '"' + df[col] + '"'
-    df.to_csv(
-        mete_grid,
-        header=False,
-        quoting=csv.QUOTE_NONE,
-        float_format="%.4f",
-        index=False,
-    )
+    # WORKAROUND: set absolute paths in mete_grid.inp
+    write_mete_grid_inp_abs_path(meteo_output_dir, mete_grid)
 
+    # Set MeteGridCopy instance
+    del prepared_msw_model["meteo_grid"]
     prepared_msw_model["meteo_grid"] = MeteoGridCopy(mete_grid)
 
+    # Set the partions array
+    partitions_array = coupled_mf6_model["GWF_1"]["dis"]["idomain"].isel(
+        layer=0, drop=True
+    )
     partitions_array = partitions_array.where(partitions_array.x > 300, 0)
 
+    # Split the MetaSWAP and MODFLOW 6 models
     mf6_splitted = coupled_mf6_model.split(partitions_array)
     msw_splitted = prepared_msw_model.split(partitions_array)
 
-    mf6_model_name_list = [
-        model_name
-        for model_name, model in mf6_splitted.items()
-        if isinstance(model, GroundwaterFlowModel)
-    ]
+    # Get the submodel names
+    mf6_model_name_list = get_mf6_gwf_model_names(mf6_splitted)
     msw_model_name_list = msw_splitted.keys()
 
+    # Generate the couplings
     coupling_list = []
     for mf6_model_name, msw_model_name in zip(mf6_model_name_list, msw_model_name_list):
         coupling_list.append(
@@ -141,52 +129,60 @@ def case_multi_model_no_sprinkling(
             )
         )
 
+    # Couple MetaSWAP and MODFLOW 6
     return MetaMod(msw_splitted, mf6_splitted, coupling_list=coupling_list)
 
 
-def case_multi_model_no_sprinkling_three_subs(
+def case_multi_model_no_sprinkling_three_subdomains(
     coupled_mf6_model: Modflow6Simulation,
     prepared_msw_model: MetaSwapModel,
+    tmp_path_dev: Path,
 ) -> MetaMod:
+
+    # Remove the sprinkling package
     prepared_msw_model.pop("sprinkling")
+
+    # Create meteo output directory, write the meteo data
+    meteo_output_dir = tmp_path_dev / "metaswap" / "meteo"
+    meteo_output_dir.mkdir(exist_ok=True, parents=True)
+    prepared_msw_model["meteo_grid"].write(meteo_output_dir)
+    mete_grid = meteo_output_dir / Path("mete_grid.inp")
+
+    # WORKAROUND: set absolute paths in mete_grid.inp
+    write_mete_grid_inp_abs_path(meteo_output_dir, mete_grid)
+
+    # Set MeteGridCopy instance
+    del prepared_msw_model["meteo_grid"]
+    prepared_msw_model["meteo_grid"] = MeteoGridCopy(mete_grid)
+
+    # Set the partions array
     partitions_array = coupled_mf6_model["GWF_1"]["dis"]["idomain"].isel(
         layer=0, drop=True
     )
     partitions_array = partitions_array.where(partitions_array.y > 100, 2)
     partitions_array = partitions_array.where(partitions_array.y < 300, 0)
 
-    simulation = coupled_mf6_model.split(partitions_array)
-    driver_coupling0 = MetaModDriverCoupling(
-        mf6_model="GWF_1_0", msw_model="unsa_1", mf6_recharge_package="rch_msw"
-    )
-    driver_coupling1 = MetaModDriverCoupling(
-        mf6_model="GWF_1_1", msw_model="unsa_2", mf6_recharge_package="rch_msw"
-    )
-    driver_coupling2 = MetaModDriverCoupling(
-        mf6_model="GWF_1_2", msw_model="unsa_3", mf6_recharge_package="rch_msw"
-    )
+    # Split the MetaSWAP and MODFLOW 6 models
+    mf6_splitted = coupled_mf6_model.split(partitions_array)
+    msw_splitted = prepared_msw_model.split(partitions_array)
 
-    msw_model_dict = {}
-    np = int(partitions_array.max().values) + 1
-    hdx = 0.5 * partitions_array.dx.values.item()
-    hdy = 0.5 * abs(partitions_array.dy.values.item())
-    for ip in range(np):
-        part_array = partitions_array.where(partitions_array == ip, drop=True)
+    # Get the submodel names
+    mf6_model_name_list = get_mf6_gwf_model_names(mf6_splitted)
+    msw_model_name_list = msw_splitted.keys()
 
-        xmin = part_array["x"].min().values.item() - hdx
-        xmax = part_array["x"].max().values.item() + hdx
-        ymin = part_array["y"].min().values.item() - hdy
-        ymax = part_array["y"].max().values.item() + hdy
-
-        msw_model_dict[f"unsa_{ip + 1}"] = prepared_msw_model.clip_box(
-            x_min=xmin, x_max=xmax, y_min=ymin, y_max=ymax
+    # Generate the couplings
+    coupling_list = []
+    for mf6_model_name, msw_model_name in zip(mf6_model_name_list, msw_model_name_list):
+        coupling_list.append(
+            MetaModDriverCoupling(
+                mf6_model=mf6_model_name,
+                msw_model=msw_model_name,
+                mf6_recharge_package="rch_msw",
+            )
         )
 
-    return MetaMod(
-        msw_model_dict,
-        simulation,
-        coupling_list=[driver_coupling0, driver_coupling1, driver_coupling2],
-    )
+    # Couple MetaSWAP and MODFLOW 6
+    return MetaMod(msw_splitted, mf6_splitted, coupling_list=coupling_list)
 
 
 def fail_write_inactive_cell(
