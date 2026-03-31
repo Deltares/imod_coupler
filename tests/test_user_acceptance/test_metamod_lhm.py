@@ -340,6 +340,11 @@ def imod5_path():
 
 
 @pytest.mark.user_acceptance
+def test_metaswap_dbase_exists(user_acceptance_metaswap_dbase: Path) -> None:
+    assert user_acceptance_metaswap_dbase.exists()
+
+
+@pytest.mark.user_acceptance
 def test_lhm_metamod(
     lhm_coupling: MetaMod,
 ):
