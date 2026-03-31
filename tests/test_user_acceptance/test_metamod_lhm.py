@@ -26,6 +26,7 @@ import os
 import sys
 from collections.abc import Callable
 from pathlib import Path
+from typing import cast
 
 import imod
 import numpy as np
@@ -339,6 +340,11 @@ def imod5_path():
 
 
 @pytest.mark.user_acceptance
+def test_metaswap_dbase_exists(user_acceptance_metaswap_dbase: Path) -> None:
+    assert user_acceptance_metaswap_dbase.exists()
+
+
+@pytest.mark.user_acceptance
 def test_lhm_metamod(
     lhm_coupling: MetaMod,
 ):
@@ -346,7 +352,7 @@ def test_lhm_metamod(
     Test if the lhm_driver_coupling fixture works
     """
     assert isinstance(lhm_coupling, MetaMod)
-    driver_coupling = lhm_coupling.coupling_list[0]
+    driver_coupling = cast(MetaModDriverCoupling, lhm_coupling.coupling_list[0])
     mf6_simulation = lhm_coupling.mf6_simulation
     gwf_model = mf6_simulation[driver_coupling.mf6_model]
     msw_model = lhm_coupling.msw_model
@@ -354,7 +360,7 @@ def test_lhm_metamod(
     assert isinstance(driver_coupling, MetaModDriverCoupling)
     assert driver_coupling._check_sprinkling(msw_model, gwf_model)
 
-    grid_mapping, rch_mapping, well_mapping = driver_coupling.derive_mapping(
+    grid_mapping, rch_mapping, well_mapping, _ = driver_coupling.derive_mapping(
         msw_model=msw_model,
         gwf_model=gwf_model,
     )
