@@ -94,10 +94,11 @@ def remove_sprinkling_from_groundwater(msw_model: MetaSwapModel) -> MetaSwapMode
 
 def add_water_users(ribasim_model: ribasim.Model) -> ribasim.Model:
     # add subnetwork id to basins
-    ribasim_model.basin.node.df["subnetwork_id"][2] = 2
-    ribasim_model.basin.node.df["subnetwork_id"][3] = 3
-    ribasim_model.terminal.node.df["subnetwork_id"][1] = 3
-    ribasim_model.flow_boundary.node.df["subnetwork_id"][1] = 2
+    ribasim_model.node.df.loc[1, "subnetwork_id"] = 2  # flow boundary
+    ribasim_model.node.df.loc[2, "subnetwork_id"] = 2  # left basin
+    ribasim_model.node.df.loc[3, "subnetwork_id"] = 3  # right basin
+    ribasim_model.node.df.loc[4, "subnetwork_id"] = 3  # tabulated rating curve
+    ribasim_model.node.df.loc[5, "subnetwork_id"] = 3  # terminal
 
     # Add waterusers to model; basin 2
     ribasim_model.user_demand.add(
