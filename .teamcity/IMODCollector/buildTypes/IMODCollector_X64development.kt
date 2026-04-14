@@ -27,7 +27,7 @@ object IMODCollector_X64development : BuildType({
         param("conda_env_path", "%system.teamcity.build.checkoutDir%/imod_collector_env")
         param("reverse.dep.Modflow_Modflow6Release.MODFLOW6_Version", "6.6.3")
         param("reverse.dep.Modflow_Modflow6Release.MODFLOW6_Platform", "win64")
-        param("reverse.dep.iMOD6_Coupler_Ribasim_binaries.RIBASIM_Version", "v2026.1.0-rc2")
+        param("reverse.dep.iMOD6_Coupler_Ribasim_binaries.RIBASIM_Version", "v2026.1.0")
         param("reverse.dep.iMOD6_Coupler_Ribasim_binaries.RIBASIM_Platform", "windows")
     }
 
