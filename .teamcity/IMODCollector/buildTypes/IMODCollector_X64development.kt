@@ -20,6 +20,8 @@ object IMODCollector_X64development : BuildType({
         coupler/.imod_collector/develop/modflow6/ => imod_collector.zip!/modflow6/
         coupler/.imod_collector/develop/metaswap/ => imod_collector.zip!/metaswap/
         coupler/.imod_collector/develop/ribasim/ => imod_collector.zip!/ribasim/
+        coupler/pixi.lock
+        coupler/pixi.toml
     """.trimIndent()
 
     vcs {
