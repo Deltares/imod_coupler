@@ -3,6 +3,7 @@ package _Self.buildTypes
 import Templates.GitHubIntegrationTemplate
 import _Self.vcsRoots.ImodCoupler
 import jetbrains.buildServer.configs.kotlin.*
+import jetbrains.buildServer.configs.kotlin.buildSteps.script
 
 object SonarCloud : BuildType({
     name = "SonarCloud"
@@ -11,7 +12,7 @@ object SonarCloud : BuildType({
     templates(GitHubIntegrationTemplate)
 
     params {
-        password("sonar_token", "%sonar_token%")
+        param("sonar_scanner_version", "8.0.1.6346")
     }
 
     vcs {
@@ -20,13 +21,15 @@ object SonarCloud : BuildType({
     }
 
     steps {
-        step {
+        script {
             name = "SonarCloud analysis"
             id = "Sonar_analysis"
-            type = "sonar-plugin"
-            param("teamcity.build.workingDir", "imod_coupler")
-            param("additionalParameters", "-Dproject.settings=imod_coupler/myproject.properties")
-            param("sonarServer", "54d6c253-800e-4025-870b-cb760324147b")
+            workingDir = "imod_coupler"
+            scriptContent = """
+                curl -sSL "https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-%sonar_scanner_version%-windows-x64.zip" -o sonar-cli.zip
+                tar -xf sonar-cli.zip
+                sonar-scanner-%sonar_scanner_version%-windows-x64\bin\sonar-scanner.bat "-Dsonar.token=%sonar_token%"
+            """.trimIndent()
         }
     }
 
