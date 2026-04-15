@@ -24,7 +24,6 @@ object SonarCloud : BuildType({
             name = "SonarCloud analysis"
             id = "Sonar_analysis"
             type = "sonar-plugin"
-            param("teamcity.build.workingDir", "imod_coupler")
             param("sonarServer", "54d6c253-800e-4025-870b-cb760324147b")
         }
     }
