@@ -3,6 +3,7 @@ package _Self.buildTypes
 import Templates.GitHubIntegrationTemplate
 import _Self.vcsRoots.ImodCoupler
 import jetbrains.buildServer.configs.kotlin.*
+import jetbrains.buildServer.configs.kotlin.buildSteps.script
 
 object SonarCloud : BuildType({
     name = "SonarCloud"
@@ -10,29 +11,25 @@ object SonarCloud : BuildType({
 
     templates(GitHubIntegrationTemplate)
 
+    params {
+        param("sonar_scanner_version", "8.0.1.6346")
+    }
+
     vcs {
         root(ImodCoupler, ". => imod_coupler")
         cleanCheckout = true
     }
 
     steps {
-        step {
+        script {
             name = "SonarCloud analysis"
             id = "Sonar_analysis"
-            type = "sonar-plugin"            
-            param("sonarServer", "54d6c253-800e-4025-870b-cb760324147b")
-            param("sonarProjectName", "imod_coupler")
-            param("sonarProjectKey", "Deltares_imod_coupler")
-            param("sonarProjectVersion", "%build.number%")
-
-            param("teamcity.build.workingDir", "imod_coupler")
-            param("sonarProjectSources", "imod_coupler,pre-processing/primod")
-            param("sonarProjectTests", "tests")
-            param("additionalParameters", """
-                    -Dsonar.organization=deltares
-                    -Dsonar.python.version=3.10
-                    -Dsonar.token=%sonar_token%
-                """.trimIndent())
+            workingDir = "imod_coupler"
+            scriptContent = """
+                curl -sSL "https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-%sonar_scanner_version%-windows-x64.zip" -o sonar-cli.zip
+                tar -xf sonar-cli.zip
+                sonar-scanner-%sonar_scanner_version%-windows-x64\bin\sonar-scanner.bat "-Dsonar.token=%sonar_token%"
+            """.trimIndent()
         }
     }
 
