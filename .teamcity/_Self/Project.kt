@@ -3,6 +3,7 @@ package _Self
 import Pixi.PixiProject
 import Templates.GitHubIntegrationTemplate
 import _Self.buildTypes.TestPrimodWin64
+import _Self.buildTypes.SonarCloud
 import _Self.buildTypes.*
 import _Self.vcsRoots.*
 import Weekly.WeeklyProject
@@ -25,6 +26,7 @@ object Project : Project({
     buildType(TwineCheck)
     buildType(TestbenchCouplerWin64)
     buildType(TestPrimodWin64)
+    buildType(SonarCloud)
     buildType(Main)
 
     subProject(IMODCollector.Project)
@@ -72,6 +74,10 @@ object Main : BuildType({
         snapshot(TestPrimodWin64)
         {
             onDependencyFailure = FailureAction.FAIL_TO_START
+        }
+
+        snapshot(SonarCloud) {
+            onDependencyFailure = FailureAction.ADD_PROBLEM
         }
     }
 })
