@@ -1,5 +1,6 @@
 package _Self
 
+import Deploy.DeployProject
 import Pixi.PixiProject
 import Templates.GitHubIntegrationTemplate
 import _Self.buildTypes.TestPrimodWin64
@@ -32,6 +33,7 @@ object Project : Project({
     subProject(IMODCollector.Project)
     subProject(PixiProject)
     subProject(WeeklyProject)
+    subProject(DeployProject)
 })
 
 object Main : BuildType({
