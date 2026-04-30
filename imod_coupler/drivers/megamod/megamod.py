@@ -18,7 +18,7 @@ from imod_coupler.config import BaseConfig
 from imod_coupler.drivers.driver import Driver
 from imod_coupler.drivers.megamod.config import Coupling, MegaModConfig
 from imod_coupler.kernelwrappers.mf6_wrapper import Mf6Wrapper
-from imod_coupler.logging.exchange_collector import ExchangeCollector
+#from imod_coupler.logging.exchange_collector import ExchangeCollector
 from imod_coupler.utils import create_mapping
 from xmipy import XmiWrapper
 from imod_coupler.drivers.megamod.logging import Logging
@@ -87,12 +87,7 @@ class MegaMod(Driver):
         self.mf6.initialize()
         self.msw.initialize()
         self.log_version()
-        if self.coupling.output_config_file is not None:
-            self.exchange_logger = ExchangeCollector.from_file(
-                self.coupling.output_config_file
-            )
-        else:
-            self.exchange_logger = ExchangeCollector()
+        self.exchange_logger = None
         self.couple()
 
     def log_version(self) -> None:
@@ -102,7 +97,7 @@ class MegaMod(Driver):
     def couple(self) -> None:
         """Couple Modflow and Megaswap"""
         self.mf6_head = self.mf6.get_head(self.coupling.mf6_model)
-        self.ms6_head_old = self.mf6.get_head_old(self.coupling.mf6_model)
+        self.mf6_head_old = self.mf6.get_head_old(self.coupling.mf6_model)
         self.mf6_recharge = self.mf6.get_recharge(
             self.coupling.mf6_model, self.coupling.mf6_msw_recharge_pkg
         )
@@ -127,6 +122,7 @@ class MegaMod(Driver):
         self.msw_evsoil = self.msw.get_value_ptr('evsoil')
         self.msw_evpond = self.msw.get_value_ptr('evpond')
         self.msw_dtgw = self.msw.get_value_ptr('dtgw')
+        self.msw_tiop = self.msw.get_value_ptr('tiop')
 
         # create mappings
         table_node2svat: NDArray[np.int32] = np.loadtxt(
@@ -188,38 +184,70 @@ class MegaMod(Driver):
         self.logging.evpond_list.append(self.msw_evpond[node])
 
     def update(self) -> None:
+        print ("============================================")
+        print ("mf6-prepare timestep")
         self.mf6.prepare_time_step(0.0)
         self.delt = self.mf6.get_time_step()
 
-        self.exchange_heads_mf2msw()
-        self.msw.prepare_time_step(self.delt)
+#       self.exchange_heads_mf2msw()
+        print ("exchange head mf to sss")
+        # write into the msw pointer if available; preserve fallback to scalar
+        try:
+            self.msw_tiop[...] = self.get_current_time()   # rl666
+        except Exception:
+            self.msw_tiop = self.get_current_time()   # rl666
         # TODO: reset qmv in msw
+        self.msw.prepare_time_step(self.delt)
         self.exchange_sc1_msw2mf()
         self.exchange_recharge_msw2mf()
+        print ("exchange sc1 sss to mf")
+        print ("exchange recharge sss to mf")
+
+        msw_storage_old = self.msw_storage[:].copy()
+        msw_volume_old = self.msw_volume[:].copy()
 
         # convergence loop
         self.mf6.prepare_solve(1)
         for kiter in range(1, self.max_iter + 1):
+            print ("===============   Begin Iter")
             has_converged = self.do_iter(1)
+
+            ##############################################################################
+            eps = 0.5   # relaxation factor to stabi7lize coupling; TODO: implement more advanced under-relaxation scheme    
+            self.msw_storage[:] = eps*self.msw_storage[:] + (1 - eps) * msw_storage_old[:] 
+            self.msw_volume[:] = eps*self.msw_volume[:] + (1 - eps) * msw_volume_old[:]
+            msw_storage_old = self.msw_storage[:].copy()
+            msw_volume_old = self.msw_volume[:].copy()
+            ##############################################################################
+            
+            self.fdump.write("%8.3f %15.5e %15.5e %15.5e %15.5e\n"
+                         %(self.get_current_time(), self.msw_storage[0],self.msw_volume[0],self.msw_phead[0][0], self.msw_phead[0][1]))
             if has_converged:
                 logger.debug(f"MF6-MSW converged in {kiter} iterations")
                 break
-        self.fdump.write("%8.3f %15.5e\n"%(self.get_current_time(), self.msw_storage[0]))
+            print ("===============   End Iter")
+        self.fdump.write("%8.3f %15.5e %15.5e %15.5e %15.5e\n"
+                         %(self.get_current_time(), self.msw_storage[0],self.msw_volume[0],self.msw_phead[0][0], self.msw_phead[0][1]))
         self.mf6.finalize_solve(1)
         self.mf6.finalize_time_step()
+        print ("mf finalize time step")
         self.exchange_qmodf()
+        print ("exchange qmodf mf to sss")
         self.log_exchange_vars(0,0)
         
 
         self.msw.finalize_time_step() # should compute qmodf intenal?
+        print ("============================================")
 
     def finalize(self) -> None:
         self.mf6.finalize()
         self.msw.finalize()
-        self.exchange_logger.finalize()
+        if self.exchange_logger is not None:
+            self.exchange_logger.finalize()
 
     def get_current_time(self) -> float:
-        return self.mf6.get_current_time()
+        tiop = self.mf6.get_current_time()
+        return tiop
 
     def get_end_time(self) -> float:
         return self.mf6.get_end_time()
@@ -227,11 +255,16 @@ class MegaMod(Driver):
     def do_iter(self, sol_id: int) -> bool:
         """Execute a single iteration"""
         self.exchange_heads_mf2msw()
-        self.msw.prepare_time_step(self.delt)
+        print ("exchange head mf to sss")
+        self.msw.solve()
         # TODO: reset qmv in msw
         self.exchange_sc1_msw2mf()
         self.exchange_recharge_msw2mf()
+        print ("exchange sc1 sss to mf")
+        print ("exchange recharge sss to mf")
+        print (np.min(self.mf6_recharge), np.max(self.mf6_recharge))
         has_converged = self.mf6.solve(sol_id)
+        print ("mf solve")
         return has_converged
 
     def report_timing_totals(self) -> None:
@@ -241,10 +274,16 @@ class MegaMod(Driver):
         logger.info(f"Total elapsed time in numerical kernels: {total:0.4f} seconds")
 
     def exchange_qmodf(self) -> None:
-        self.mf6_qmodf = ((self.mf6_head[:] - self.ms6_head_old[:]) * self.mf6_storage[:]) - self.mf6_recharge[:]
+#       self.mf6_qmodf = ((self.mf6_head[:] - self.mf6_head_old[:]) * self.mf6_storage[:]) - self.mf6_recharge[:]
+#       self.msw_qmodf[:] = (
+#           self.mask_mod2msw["head"][:] * self.msw_qmodf[:]
+#           + self.map_mod2msw["head"].dot(self.mf6_qmodf)[:]  
+#       )
+        self.mf6_qmodf = ((self.mf6_head[:] - self.mf6_head_old[:]) * self.mf6_storage[:])
         self.msw_qmodf[:] = (
             self.mask_mod2msw["head"][:] * self.msw_qmodf[:]
-            + self.map_mod2msw["head"].dot(self.mf6_qmodf)[:]
+            + self.map_mod2msw["head"].dot(self.mf6_qmodf)[:]  
+            - self.msw_volume[:]/self.delt/self.mf6_area[self.mf6_recharge_nodelist - 1]   # recharge term
         )
         return
 
@@ -253,12 +292,13 @@ class MegaMod(Driver):
             self.mask_msw2mod["storage"][:] * self.mf6_storage[:]
             + self.map_msw2mod["storage"].dot(self.msw_storage)[:]
         )
-        self.exchange_logger.log_exchange(
-            "mf6_storage", self.mf6_storage, self.get_current_time()
-        )
-        self.exchange_logger.log_exchange(
-            "msw_storage", self.msw_storage, self.get_current_time()
-        )
+        if self.exchange_logger is not None:
+            self.exchange_logger.log_exchange(
+                "mf6_storage", self.mf6_storage, self.get_current_time()
+            )
+            self.exchange_logger.log_exchange(
+                "msw_storage", self.msw_storage, self.get_current_time()
+            )
 
     def exchange_recharge_msw2mf(self) -> None:
         #TODO: check units

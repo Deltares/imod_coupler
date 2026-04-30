@@ -2,7 +2,7 @@ import abc
 from pathlib import Path
 from typing import Any
 
-import netCDF4 as nc
+# import netCDF4 as nc
 import numpy as np
 import tomli
 from numpy.typing import NDArray
@@ -96,10 +96,20 @@ class ExchangeCollector:
             self.exchanges[name].write_exchange(exchange, time)
 
     def create_exchange_object(
-        self, flux_name: str, dict_def: dict[str, Any]
+        self, flux_name: str, dict_def: dict[str, Any], sync: bool = False
     ) -> AbstractExchange:
         typename = dict_def["type"]
         if typename == "netcdf":
+            nclog: NetcdfExchangeLogger = NetcdfExchangeLogger(
+                flux_name, self.output_dir, dict_def
+            )
+            if "sync" in dict_def:
+                nclog.initfile(dict_def["sync"])
+            else:
+                nclog.initfile(0)
+
+
+
             return NetcdfExchangeLogger(flux_name, self.output_dir, dict_def)
         raise ValueError("unkwnown type of exchange logger")
 

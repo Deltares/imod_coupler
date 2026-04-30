@@ -47,7 +47,7 @@ def run_coupler(config_path: Path) -> None:
         start = time.perf_counter()
 
     driver = get_driver(config_dict, config_dir, base_config)
-    driver.fdump = open("dump_megamod.txt", "w")	
+    driver.fdump = open("d:/leander/temp/dump_megamod.txt", "w")	
     driver.execute()
     driver.fdump.close()
 
