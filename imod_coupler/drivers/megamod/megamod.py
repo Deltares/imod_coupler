@@ -189,37 +189,24 @@ class MegaMod(Driver):
         self.mf6.prepare_time_step(0.0)
         self.delt = self.mf6.get_time_step()
 
-#       self.exchange_heads_mf2msw()
+        self.exchange_heads_mf2msw()
         print ("exchange head mf to sss")
         # write into the msw pointer if available; preserve fallback to scalar
         try:
-            self.msw_tiop[...] = self.get_current_time()   # rl666
+            self.msw_tiop[:] = self.get_current_time()
         except Exception:
-            self.msw_tiop = self.get_current_time()   # rl666
-        # TODO: reset qmv in msw
+            self.msw_tiop = self.get_current_time()
         self.msw.prepare_time_step(self.delt)
         self.exchange_sc1_msw2mf()
         self.exchange_recharge_msw2mf()
         print ("exchange sc1 sss to mf")
         print ("exchange recharge sss to mf")
 
-        msw_storage_old = self.msw_storage[:].copy()
-        msw_volume_old = self.msw_volume[:].copy()
-
         # convergence loop
         self.mf6.prepare_solve(1)
         for kiter in range(1, self.max_iter + 1):
             print ("===============   Begin Iter")
             has_converged = self.do_iter(1)
-
-            ##############################################################################
-            eps = 0.5   # relaxation factor to stabi7lize coupling; TODO: implement more advanced under-relaxation scheme    
-            self.msw_storage[:] = eps*self.msw_storage[:] + (1 - eps) * msw_storage_old[:] 
-            self.msw_volume[:] = eps*self.msw_volume[:] + (1 - eps) * msw_volume_old[:]
-            msw_storage_old = self.msw_storage[:].copy()
-            msw_volume_old = self.msw_volume[:].copy()
-            ##############################################################################
-            
             self.fdump.write("%8.3f %15.5e %15.5e %15.5e %15.5e\n"
                          %(self.get_current_time(), self.msw_storage[0],self.msw_volume[0],self.msw_phead[0][0], self.msw_phead[0][1]))
             if has_converged:
@@ -234,7 +221,6 @@ class MegaMod(Driver):
         self.exchange_qmodf()
         print ("exchange qmodf mf to sss")
         self.log_exchange_vars(0,0)
-        
 
         self.msw.finalize_time_step() # should compute qmodf intenal?
         print ("============================================")
