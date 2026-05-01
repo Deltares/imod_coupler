@@ -7,7 +7,7 @@ Usage:
     python scripts/extract_changelog_notes.py <version>
 
 Example:
-    python scripts/extract_changelog_notes.py v1.2.0
+    python scripts/extract_changelog_notes.py v2025.11.0
 """
 
 import re
