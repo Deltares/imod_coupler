@@ -39,10 +39,6 @@ object BuildPrimodPackage : BuildType({
             id = "Create_Primod_package"
             workingDir = "imod_coupler"
             scriptContent = """
-                SET TEMP=%system.teamcity.build.checkoutDir%\tmpdir
-                SET TMPDIR=%system.teamcity.build.checkoutDir%\tmpdir
-                SET TMP=%system.teamcity.build.checkoutDir%\tmpdir
-
                 pixi run --environment dev --frozen build-primod
             """.trimIndent()
             formatStderrAsError = true
