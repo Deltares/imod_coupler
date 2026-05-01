@@ -94,3 +94,17 @@ If you encounter errors after pulling the latest changes, your pip dependencies 
 ```sh
 pixi run update-git-dependencies
 ```
+
+### Releasing primod
+
+The `primod` package is published to [PyPI](https://pypi.org/project/primod/). To release a new version:
+
+1. Update the version number in `pre-processing/primod/__init__.py`.
+
+2. Build and publish:
+
+   ```sh
+   pixi run -e dev publish-primod
+   ```
+
+   This will build the package (if sources have changed) and upload it to PyPI via `twine`.
