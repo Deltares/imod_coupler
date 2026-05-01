@@ -12,6 +12,18 @@ All notable changes to this project will be documented in this file.
 
 ### Removed
 
+## [v2026.4.0-rc.1]
+
+### Added
+
+- A Deploy pipeline has been added to aid in simpliying the coupler release process
+
+### Fixed
+
+### Changed
+
+### Removed
+
 ## [v2025.11.0]
 
 ### Changed
