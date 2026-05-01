@@ -2,6 +2,7 @@ package Deploy
 
 import IMODCollector.buildTypes.IMODCollector_X64development
 import _Self.vcsRoots.ImodCoupler
+import jetbrains.buildServer.configs.kotlin.AbsoluteId
 import jetbrains.buildServer.configs.kotlin.BuildType
 import jetbrains.buildServer.configs.kotlin.FailureAction
 import jetbrains.buildServer.configs.kotlin.Project
@@ -59,7 +60,7 @@ object CreateGitHubRelease : BuildType({
     }
 
     dependencies {
-        dependency(IMODCollector_X64development) {
+        dependency(AbsoluteId("SigningAndCertificates_IMOD_SigningCollector")) {
             snapshot {
                 onDependencyFailure = FailureAction.FAIL_TO_START
             }
