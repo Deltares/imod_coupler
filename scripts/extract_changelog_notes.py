@@ -19,14 +19,10 @@ CHANGELOG = Path(__file__).parent.parent / "CHANGELOG.md"
 
 def extract_notes(text: str, version: str) -> str:
     escaped = re.escape(version)
-    pattern = re.compile(
-        rf"## \[{escaped}\][^\n]*\n(.*?)(?=\n## |\Z)", re.DOTALL
-    )
+    pattern = re.compile(rf"## \[{escaped}\][^\n]*\n(.*?)(?=\n## |\Z)", re.DOTALL)
     match = pattern.search(text)
     if not match:
-        raise SystemExit(
-            f"Could not find a section for [{version}] in CHANGELOG.md"
-        )
+        raise SystemExit(f"Could not find a section for [{version}] in CHANGELOG.md")
     notes = match.group(1).strip()
     if not notes:
         raise SystemExit(f"The [{version}] section in CHANGELOG.md is empty")
