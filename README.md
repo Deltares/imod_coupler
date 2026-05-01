@@ -112,7 +112,7 @@ pixi run update-git-dependencies
 
    ### Removed
 
-   ## [vYYYY.MM.X] - YYYY-MM-DD
+   ## [vYYYY.MM.X]
    ...
    ```
 
