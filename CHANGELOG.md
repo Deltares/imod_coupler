@@ -16,7 +16,7 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
-- A Deploy pipeline has been added to aid in simpliying the coupler release process
+- A Deploy pipeline has been added to aid in simplifying the coupler release process
 
 ### Fixed
 

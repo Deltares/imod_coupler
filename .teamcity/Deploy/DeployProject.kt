@@ -50,10 +50,10 @@ object CreateGitHubRelease : BuildType({
                     echo "Creating GitHub release for: ${'$'}tag"
                     
                     ${'$'}notesFile = [System.IO.Path]::GetTempFileName()
-                    pixi run --environment default --frozen python scripts/extract_changelog_notes.py ${'$'}tag | Set-Content -Path ${'$'}notesFile -Encoding UTF8
+                    pixi run --environment dev --frozen python scripts/extract_changelog_notes.py ${'$'}tag | Set-Content -Path ${'$'}notesFile -Encoding UTF8
                     if (${'$'}LASTEXITCODE -ne 0) { exit ${'$'}LASTEXITCODE }
                     
-                    pixi run --environment default --frozen gh release create ${'$'}tag release/* --verify-tag --notes-file ${'$'}notesFile
+                    pixi run --environment dev --frozen gh release create ${'$'}tag release/* --verify-tag --notes-file ${'$'}notesFile
                 """.trimIndent()
             }
         }

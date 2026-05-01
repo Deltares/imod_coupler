@@ -93,7 +93,6 @@ publish-primod = { cmd = "rm --recursive --force dist && python -m build && twin
 [feature.pixi-update.dependencies]
 pip = "*"
 pixi-diff-to-markdown = "*"
-gh = "*"
 
 [feature.pixi-update.tasks]
 update = "pixi update --json | pixi-diff-to-markdown > diff.md"
