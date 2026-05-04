@@ -96,6 +96,10 @@ object DeployPrimodPackage : BuildType({
             }
         }
     }
+
+    requirements {
+        equals("env.OS", "Windows_NT")
+    }
 })
 
 object DeployAll : BuildType({
