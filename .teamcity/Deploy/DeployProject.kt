@@ -59,7 +59,7 @@ object DeployPrimodPackage : BuildType({
     params {
         param("env.TWINE_USERNAME", "__token__")
         param("env.TWINE_NON_INTERACTIVE", "true")
-        password("env.TWINE_PASSWORD", "credentialsJSON:2cea585c-e4f8-4a45-9941-9189daf09ecc")
+        password("env.TWINE_PASSWORD", "credentialsJSON:5b785916-d498-4c7f-9dca-e841152a761c")
     }
 
     vcs {
