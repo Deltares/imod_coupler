@@ -88,7 +88,7 @@ check-package-primod = { cmd = "rm --recursive --force dist && python -m build &
 lint = { depends-on = ["format", "ruff", "mypy-imodc", "mypy-primod"] }
 # Build & publish primod
 build-primod = { cmd = "rm --recursive --force dist && python -m build && twine check dist/*", cwd = "pre-processing", inputs = ["pre-processing/primod/**", "pre-processing/pyproject.toml"] }
-publish-primod = { cmd = "twine upload dist/*", cwd = "pre-processing", depends-on = ["build-primod"] }
+publish-primod = { cmd = "twine upload dist/*", cwd = "pre-processing"}
 
 [feature.pixi-update.dependencies]
 pip = "*"
