@@ -95,16 +95,52 @@ If you encounter errors after pulling the latest changes, your pip dependencies 
 pixi run update-git-dependencies
 ```
 
-### Releasing primod
-
-The `primod` package is published to [PyPI](https://pypi.org/project/primod/). To release a new version:
+### Creating a release
 
 1. Update the version number in `pre-processing/primod/__init__.py`.
 
-2. Build and publish:
+2. Add all notable changes to the `[Unreleased]` section in [CHANGELOG.md](CHANGELOG.md), using the existing subsections (Added, Fixed, Changed, Removed).
 
-   ```sh
-   pixi run -e dev publish-primod
+3. In CHANGELOG.md, rename `## [Unreleased]` to `## [vYYYY.MM.X] - YYYY-MM-DD` and add a fresh empty `## [Unreleased]` section above it:
+
+   ```markdown
+   ## [Unreleased]
+
+   ### Added
+
+   ### Fixed
+
+   ### Changed
+
+   ### Removed
+
+   ## [vYYYY.MM.X]
+   ...
    ```
 
-   This will build the package (if sources have changed) and upload it to PyPI via `twine`.
+   You can verify the notes that will be used for the release with:
+
+   ```sh
+   python scripts/extract_changelog_notes.py vYYYY.MM.X
+   ```
+
+4. Commit the changelog and the init file updates:
+
+   ```sh
+   git add CHANGELOG.md pre-processing/primod/__init__.py
+   git commit -m "Release vYYYY.MM.X"
+   ```
+
+5. Push the commit and tag:
+
+   ```sh
+   git push origin main vYYYY.MM.X
+   ```
+
+6. When the commit has been merged to main, checkout main and tag the commit:
+
+   ```sh
+   git tag vYYYY.MM.X
+   ```
+
+7. In TeamCity, select the **Deploy** project and trigger the **Deploy All** build, selecting the tag `vYYYY.MM.X` as the branch. TeamCity will build the artifacts and create the GitHub release using the notes from CHANGELOG.md.

@@ -1,11 +1,12 @@
 package Deploy
 
+import IMODCollector.buildTypes.IMODCollector_X64development
 import _Self.vcsRoots.ImodCoupler
 import jetbrains.buildServer.configs.kotlin.AbsoluteId
 import jetbrains.buildServer.configs.kotlin.BuildType
 import jetbrains.buildServer.configs.kotlin.FailureAction
 import jetbrains.buildServer.configs.kotlin.Project
-import jetbrains.buildServer.configs.kotlin.buildFeatures.dockerSupport
+import jetbrains.buildServer.configs.kotlin.buildSteps.powerShell
 import jetbrains.buildServer.configs.kotlin.buildSteps.ScriptBuildStep
 import jetbrains.buildServer.configs.kotlin.buildSteps.script
 
@@ -14,6 +15,8 @@ object DeployProject : Project({
 
     buildType(BuildPrimodPackage)
     buildType(DeployPrimodPackage)
+    buildType(CreateGitHubRelease)
+
 
     buildType(DeployAll)
 })
@@ -102,6 +105,63 @@ object DeployPrimodPackage : BuildType({
     }
 })
 
+object CreateGitHubRelease : BuildType({
+    name = "Create GitHub release"
+
+    type = Type.DEPLOYMENT
+    maxRunningBuilds = 1
+
+    params {
+        param("env.GH_TOKEN", "%github_deltares-service-account_access_token%")
+    }
+
+    vcs {
+        root(ImodCoupler)
+
+        cleanCheckout = true
+        branchFilter = """
+            +:*
+            -:<default>
+            -:refs/heads/gh-pages
+        """.trimIndent()
+        showDependenciesChanges = true
+    }
+
+    steps {
+        powerShell {
+            name = "Create GitHub release"
+            id = "Create_GitHub_release"
+            formatStderrAsError = true
+            scriptMode = script {
+                content = """
+                    ${'$'}tag = git describe --tags --abbrev=0 --exact-match
+                    
+                    echo "Creating GitHub release for: ${'$'}tag"
+                    
+                    ${'$'}notesFile = [System.IO.Path]::GetTempFileName()
+                    pixi run --environment dev --frozen python scripts/extract_changelog_notes.py ${'$'}tag | Set-Content -Path ${'$'}notesFile -Encoding UTF8
+                    if (${'$'}LASTEXITCODE -ne 0) { exit ${'$'}LASTEXITCODE }
+                    
+                    pixi run --environment dev --frozen gh release create ${'$'}tag release/* --verify-tag --notes-file ${'$'}notesFile
+                """.trimIndent()
+            }
+        }
+    }
+
+    dependencies {
+        dependency(AbsoluteId("SigningAndCertificates_IMOD_SigningCollector")) {
+            snapshot {
+                onDependencyFailure = FailureAction.FAIL_TO_START
+            }
+
+            artifacts {
+                buildRule = lastSuccessful()
+                artifactRules = "+:**/* => release"
+            }
+        }
+    }
+})
+
 object DeployAll : BuildType({
     name = "Deploy All"
 
@@ -122,6 +182,8 @@ object DeployAll : BuildType({
 
     dependencies {
         snapshot(DeployPrimodPackage) {
+        }
+       snapshot(CreateGitHubRelease) {
         }
     }
 })
