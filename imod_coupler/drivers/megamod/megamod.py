@@ -260,11 +260,6 @@ class MegaMod(Driver):
         logger.info(f"Total elapsed time in numerical kernels: {total:0.4f} seconds")
 
     def exchange_qmodf(self) -> None:
-#       self.mf6_qmodf = ((self.mf6_head[:] - self.mf6_head_old[:]) * self.mf6_storage[:]) - self.mf6_recharge[:]
-#       self.msw_qmodf[:] = (
-#           self.mask_mod2msw["head"][:] * self.msw_qmodf[:]
-#           + self.map_mod2msw["head"].dot(self.mf6_qmodf)[:]  
-#       )
         self.mf6_qmodf = ((self.mf6_head[:] - self.mf6_head_old[:]) * self.mf6_storage[:])
         self.msw_qmodf[:] = (
             self.mask_mod2msw["head"][:] * self.msw_qmodf[:]
