@@ -49,6 +49,7 @@ test-primod = "pytest --junitxml=report.xml tests/test_primod"
 [feature.common.dependencies]
 awscli = "*"
 python-build = "*"
+gh = "*" 
 httpx = "*"
 ipython = "*"
 jupyterlab = "*"
@@ -92,7 +93,6 @@ publish-primod = { cmd = "rm --recursive --force dist && python -m build && twin
 [feature.pixi-update.dependencies]
 pip = "*"
 pixi-diff-to-markdown = "*"
-gh = "*"
 
 [feature.pixi-update.tasks]
 update = "pixi update --json | pixi-diff-to-markdown > diff.md"

@@ -94,3 +94,51 @@ If you encounter errors after pulling the latest changes, your pip dependencies 
 ```sh
 pixi run update-git-dependencies
 ```
+
+### Creating a release
+
+1. Add all notable changes to the `[Unreleased]` section in [CHANGELOG.md](CHANGELOG.md), using the existing subsections (Added, Fixed, Changed, Removed).
+
+2. In CHANGELOG.md, rename `## [Unreleased]` to `## [vYYYY.MM.X] - YYYY-MM-DD` and add a fresh empty `## [Unreleased]` section above it:
+
+   ```markdown
+   ## [Unreleased]
+
+   ### Added
+
+   ### Fixed
+
+   ### Changed
+
+   ### Removed
+
+   ## [vYYYY.MM.X]
+   ...
+   ```
+
+   You can verify the notes that will be used for the release with:
+
+   ```sh
+   python scripts/extract_changelog_notes.py vYYYY.MM.X
+   ```
+
+3. Commit the changelog update:
+
+   ```sh
+   git add CHANGELOG.md
+   git commit -m "Release vYYYY.MM.X"
+   ```
+
+4. Tag the commit:
+
+   ```sh
+   git tag vYYYY.MM.X
+   ```
+
+5. Push the commit and tag:
+
+   ```sh
+   git push origin main vYYYY.MM.X
+   ```
+
+6. In TeamCity, select the **Deploy** project and trigger the **Deploy All** build, selecting the tag `vYYYY.MM.X` as the branch. TeamCity will build the artifacts and create the GitHub release using the notes from CHANGELOG.md.
