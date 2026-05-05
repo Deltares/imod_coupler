@@ -1,13 +1,11 @@
 package Deploy
 
-import IMODCollector.buildTypes.IMODCollector_X64development
 import _Self.vcsRoots.ImodCoupler
 import jetbrains.buildServer.configs.kotlin.AbsoluteId
 import jetbrains.buildServer.configs.kotlin.BuildType
 import jetbrains.buildServer.configs.kotlin.FailureAction
 import jetbrains.buildServer.configs.kotlin.Project
 import jetbrains.buildServer.configs.kotlin.buildSteps.powerShell
-import jetbrains.buildServer.configs.kotlin.buildSteps.ScriptBuildStep
 import jetbrains.buildServer.configs.kotlin.buildSteps.script
 
 object DeployProject : Project({
@@ -15,6 +13,8 @@ object DeployProject : Project({
 
     buildType(BuildPrimodPackage)
     buildType(DeployPrimodPackage)
+    buildType(BuildCouplerPackage)
+    buildType(DeployCouplerPackage)
     buildType(CreateGitHubRelease)
 
 
@@ -105,6 +105,90 @@ object DeployPrimodPackage : BuildType({
     }
 })
 
+object BuildCouplerPackage : BuildType({
+    name = "Build Coupler package"
+
+    artifactRules = """imod_coupler\dist => dist.zip"""
+
+    vcs {
+        root(ImodCoupler, ". => imod_coupler")
+
+        cleanCheckout = true
+        branchFilter = """
+            +:*
+            -:<default>
+            -:refs/heads/gh-pages
+        """.trimIndent()
+        showDependenciesChanges = true
+    }
+
+    steps {
+        script {
+            name = "Create Coupler package"
+            id = "Create_Coupler_package"
+            workingDir = "imod_coupler"
+            scriptContent = """
+                pixi run --environment dev --frozen build-coupler
+            """.trimIndent()
+            formatStderrAsError = true
+        }
+    }
+
+    requirements {
+        equals("env.OS", "Windows_NT")
+    }
+
+})
+
+object DeployCouplerPackage : BuildType({
+    name = "Deploy Coupler Package"
+
+    params {
+        param("env.TWINE_USERNAME", "__token__")
+        param("env.TWINE_NON_INTERACTIVE", "true")
+        //password("env.TWINE_PASSWORD", "credentialsJSON:5b785916-d498-4c7f-9dca-e841152a761c")
+    }
+
+    vcs {
+        root(ImodCoupler, ". => imod_coupler")
+
+        cleanCheckout = true
+        branchFilter = """
+            +:*
+            -:<default>
+            -:refs/heads/gh-pages
+        """.trimIndent()
+        showDependenciesChanges = true
+    }
+
+    steps {
+        script {
+            name = "Deploy Coupler to PyPi"
+            id = "Deploy_Coupler_to_PyPi"
+            workingDir = "imod_coupler"
+            scriptContent = """
+                pixi run --environment dev --frozen publish-coupler
+            """.trimIndent()
+        }
+    }
+
+    dependencies {
+        dependency(BuildCouplerPackage) {
+            snapshot {
+                onDependencyFailure = FailureAction.FAIL_TO_START
+            }
+
+            artifacts {
+                artifactRules = """+:dist.zip!** => imod_coupler\dist"""
+            }
+        }
+    }
+
+    requirements {
+        equals("env.OS", "Windows_NT")
+    }
+})
+
 object CreateGitHubRelease : BuildType({
     name = "Create GitHub release"
 
@@ -182,6 +266,8 @@ object DeployAll : BuildType({
 
     dependencies {
         snapshot(DeployPrimodPackage) {
+        }
+        snapshot(DeployCouplerPackage) {
         }
        snapshot(CreateGitHubRelease) {
         }

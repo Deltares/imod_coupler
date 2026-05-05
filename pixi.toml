@@ -90,6 +90,9 @@ lint = { depends-on = ["format", "ruff", "mypy-imodc", "mypy-primod"] }
 # Build & publish primod
 build-primod = { cmd = "rm --recursive --force dist && python -m build && twine check dist/*", cwd = "pre-processing", inputs = ["pre-processing/primod/**", "pre-processing/pyproject.toml"] }
 publish-primod = { cmd = "twine upload dist/*", cwd = "pre-processing"}
+# Build & publish coupler
+build-coupler = { cmd = "rm --recursive --force dist && python -m build && twine check dist/*", inputs = ["imod_coupler/**", "pyproject.toml"] }
+publish-coupler = { cmd = "twine upload dist/*", cwd = "." }
 
 [feature.pixi-update.dependencies]
 pip = "*"
