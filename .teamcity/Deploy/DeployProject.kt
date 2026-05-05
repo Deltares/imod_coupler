@@ -31,9 +31,7 @@ object BuildPrimodPackage : BuildType({
 
         cleanCheckout = true
         branchFilter = """
-            +:*
-            -:<default>
-            -:refs/heads/gh-pages
+            +:refs/tags/*
         """.trimIndent()
         showDependenciesChanges = true
     }
@@ -70,9 +68,7 @@ object DeployPrimodPackage : BuildType({
 
         cleanCheckout = true
         branchFilter = """
-            +:*
-            -:<default>
-            -:refs/heads/gh-pages
+            +:refs/tags/*
         """.trimIndent()
         showDependenciesChanges = true
     }
@@ -115,9 +111,7 @@ object BuildCouplerPackage : BuildType({
 
         cleanCheckout = true
         branchFilter = """
-            +:*
-            -:<default>
-            -:refs/heads/gh-pages
+            +:refs/tags/*
         """.trimIndent()
         showDependenciesChanges = true
     }
@@ -146,7 +140,7 @@ object DeployCouplerPackage : BuildType({
     params {
         param("env.TWINE_USERNAME", "__token__")
         param("env.TWINE_NON_INTERACTIVE", "true")
-        //password("env.TWINE_PASSWORD", "credentialsJSON:5b785916-d498-4c7f-9dca-e841152a761c")
+        password("env.TWINE_PASSWORD", "credentialsJSON:7b90c3fe-f8f9-4e97-8847-d5fc5495760c")
     }
 
     vcs {
@@ -154,9 +148,7 @@ object DeployCouplerPackage : BuildType({
 
         cleanCheckout = true
         branchFilter = """
-            +:*
-            -:<default>
-            -:refs/heads/gh-pages
+            +:refs/tags/*
         """.trimIndent()
         showDependenciesChanges = true
     }
@@ -204,9 +196,7 @@ object CreateGitHubRelease : BuildType({
 
         cleanCheckout = true
         branchFilter = """
-            +:*
-            -:<default>
-            -:refs/heads/gh-pages
+            +:refs/tags/*
         """.trimIndent()
         showDependenciesChanges = true
     }
@@ -257,9 +247,7 @@ object DeployAll : BuildType({
 
         cleanCheckout = true
         branchFilter = """
-            +:*
-            -:<default>
-            -:refs/heads/gh-pages
+            +:refs/tags/*
         """.trimIndent()
         showDependenciesChanges = true
     }
