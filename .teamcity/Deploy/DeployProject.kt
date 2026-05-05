@@ -7,13 +7,102 @@ import jetbrains.buildServer.configs.kotlin.BuildType
 import jetbrains.buildServer.configs.kotlin.FailureAction
 import jetbrains.buildServer.configs.kotlin.Project
 import jetbrains.buildServer.configs.kotlin.buildSteps.powerShell
+import jetbrains.buildServer.configs.kotlin.buildSteps.ScriptBuildStep
+import jetbrains.buildServer.configs.kotlin.buildSteps.script
 
 object DeployProject : Project({
     name = "Deploy"
 
+    buildType(BuildPrimodPackage)
+    buildType(DeployPrimodPackage)
     buildType(CreateGitHubRelease)
 
+
     buildType(DeployAll)
+})
+
+object BuildPrimodPackage : BuildType({
+    name = "Build Primod package"
+
+    artifactRules = """imod_coupler\pre-processing\dist => dist.zip"""
+
+    vcs {
+        root(ImodCoupler, ". => imod_coupler")
+
+        cleanCheckout = true
+        branchFilter = """
+            +:*
+            -:<default>
+            -:refs/heads/gh-pages
+        """.trimIndent()
+        showDependenciesChanges = true
+    }
+
+    steps {
+        script {
+            name = "Create Primod package"
+            id = "Create_Primod_package"
+            workingDir = "imod_coupler"
+            scriptContent = """
+                pixi run --environment dev --frozen build-primod
+            """.trimIndent()
+            formatStderrAsError = true
+        }
+    }
+
+    requirements {
+        equals("env.OS", "Windows_NT")
+    }
+
+})
+
+object DeployPrimodPackage : BuildType({
+     name = "Deploy Primod Package"
+
+    params {
+        param("env.TWINE_USERNAME", "__token__")
+        param("env.TWINE_NON_INTERACTIVE", "true")
+        password("env.TWINE_PASSWORD", "credentialsJSON:5b785916-d498-4c7f-9dca-e841152a761c")
+    }
+
+    vcs {
+        root(ImodCoupler, ". => imod_coupler")
+
+        cleanCheckout = true
+        branchFilter = """
+            +:*
+            -:<default>
+            -:refs/heads/gh-pages
+        """.trimIndent()
+        showDependenciesChanges = true
+    }
+
+    steps {
+        script {
+            name = "Deploy Primod to PyPi"
+            id = "Deploy_Primod_to_PyPi"
+            workingDir = "imod_coupler"
+            scriptContent = """
+                pixi run --environment dev --frozen publish-primod
+            """.trimIndent()
+        }
+    }
+
+    dependencies {
+        dependency(BuildPrimodPackage) {
+            snapshot {
+                onDependencyFailure = FailureAction.FAIL_TO_START
+            }
+
+            artifacts {
+                artifactRules = """+:dist.zip!** => imod_coupler\pre-processing\dist"""
+            }
+        }
+    }
+
+    requirements {
+        equals("env.OS", "Windows_NT")
+    }
 })
 
 object CreateGitHubRelease : BuildType({
@@ -92,7 +181,9 @@ object DeployAll : BuildType({
     }
 
     dependencies {
-        snapshot(CreateGitHubRelease) {
+        snapshot(DeployPrimodPackage) {
+        }
+       snapshot(CreateGitHubRelease) {
         }
     }
 })
