@@ -32,6 +32,9 @@ dependencies = [
 ]
 dynamic = ["version"]
 
+[tool.hatch.build.targets.sdist]
+include = ["imod_coupler/", "README.md", "pyproject.toml"]
+
 [tool.hatch.version]
 path = "imod_coupler/__init__.py"
 

@@ -97,11 +97,13 @@ pixi run update-git-dependencies
 
 ### Creating a release
 
-1. Update the version number in `pre-processing/primod/__init__.py`.
+1. Update the version number in `imod-coupler/__init__.py`.
 
-2. Add all notable changes to the `[Unreleased]` section in [CHANGELOG.md](CHANGELOG.md), using the existing subsections (Added, Fixed, Changed, Removed).
+2. Update the version number in `pre-processing/primod/__init__.py`.
 
-3. In CHANGELOG.md, rename `## [Unreleased]` to `## [vYYYY.MM.X] - YYYY-MM-DD` and add a fresh empty `## [Unreleased]` section above it:
+3. Add all notable changes to the `[Unreleased]` section in [CHANGELOG.md](CHANGELOG.md), using the existing subsections (Added, Fixed, Changed, Removed).
+
+4. In CHANGELOG.md, rename `## [Unreleased]` to `## [vYYYY.MM.X] - YYYY-MM-DD` and add a fresh empty `## [Unreleased]` section above it:
 
    ```markdown
    ## [Unreleased]
@@ -124,23 +126,23 @@ pixi run update-git-dependencies
    python scripts/extract_changelog_notes.py vYYYY.MM.X
    ```
 
-4. Commit the changelog and the init file updates:
+5. Commit the changelog and the init file updates:
 
    ```sh
    git add CHANGELOG.md pre-processing/primod/__init__.py
    git commit -m "Release vYYYY.MM.X"
    ```
 
-5. Push the commit and tag:
-
-   ```sh
-   git push origin main vYYYY.MM.X
-   ```
-
-6. When the commit has been merged to main, checkout main and tag the commit:
+6. When the commit has been merged to main or a release branch, switch to that branch and tag the commit:
 
    ```sh
    git tag vYYYY.MM.X
    ```
 
-7. In TeamCity, select the **Deploy** project and trigger the **Deploy All** build, selecting the tag `vYYYY.MM.X` as the branch. TeamCity will build the artifacts and create the GitHub release using the notes from CHANGELOG.md.
+7. Push the tag:
+
+   ```sh
+   git push origin vYYYY.MM.X
+   ```
+
+8. In TeamCity, select the **Deploy** project and trigger the **Deploy All** build, selecting the tag `vYYYY.MM.X` as the branch. TeamCity will build the artifacts and create the GitHub release using the notes from CHANGELOG.md.
