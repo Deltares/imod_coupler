@@ -31,7 +31,9 @@ object BuildPrimodPackage : BuildType({
 
         cleanCheckout = true
         branchFilter = """
-            +:refs/tags/*
+            +:*
+            -:<default>
+            -:refs/heads/gh-pages
         """.trimIndent()
         showDependenciesChanges = true
     }
@@ -68,7 +70,9 @@ object DeployPrimodPackage : BuildType({
 
         cleanCheckout = true
         branchFilter = """
-            +:refs/tags/*
+            +:*
+            -:<default>
+            -:refs/heads/gh-pages
         """.trimIndent()
         showDependenciesChanges = true
     }
@@ -111,7 +115,9 @@ object BuildCouplerPackage : BuildType({
 
         cleanCheckout = true
         branchFilter = """
-            +:refs/tags/*
+            +:*
+            -:<default>
+            -:refs/heads/gh-pages
         """.trimIndent()
         showDependenciesChanges = true
     }
@@ -148,7 +154,9 @@ object DeployCouplerPackage : BuildType({
 
         cleanCheckout = true
         branchFilter = """
-            +:refs/tags/*
+            +:*
+            -:<default>
+            -:refs/heads/gh-pages
         """.trimIndent()
         showDependenciesChanges = true
     }
@@ -196,7 +204,9 @@ object CreateGitHubRelease : BuildType({
 
         cleanCheckout = true
         branchFilter = """
-            +:refs/tags/*
+            +:*
+            -:<default>
+            -:refs/heads/gh-pages
         """.trimIndent()
         showDependenciesChanges = true
     }
@@ -247,7 +257,9 @@ object DeployAll : BuildType({
 
         cleanCheckout = true
         branchFilter = """
-            +:refs/tags/*
+            +:*
+            -:<default>
+            -:refs/heads/gh-pages
         """.trimIndent()
         showDependenciesChanges = true
     }

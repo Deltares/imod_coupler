@@ -5,9 +5,9 @@ import jetbrains.buildServer.configs.kotlin.vcs.GitVcsRoot
 object ImodCoupler : GitVcsRoot({
     name = "imod_coupler"
     url = "https://github.com/Deltares/imod_coupler"
-    branch = "main"
+    branch = "refs/heads/main"
     branchSpec = """
-        +:refs/heads/*
+        +:refs/heads/main
         +:refs/tags/*
         -:refs/heads/gh-pages
     """.trimIndent()

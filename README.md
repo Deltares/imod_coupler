@@ -103,7 +103,7 @@ pixi run update-git-dependencies
 
 3. Add all notable changes to the `[Unreleased]` section in [CHANGELOG.md](CHANGELOG.md), using the existing subsections (Added, Fixed, Changed, Removed).
 
-4. In CHANGELOG.md, rename `## [Unreleased]` to `## [vYYYY.MM.X] - YYYY-MM-DD` and add a fresh empty `## [Unreleased]` section above it:
+4. In CHANGELOG.md, rename `## [Unreleased]` to `## [vYYYY.MM.X]` and add a fresh empty `## [Unreleased]` section above it:
 
    ```markdown
    ## [Unreleased]
@@ -129,7 +129,7 @@ pixi run update-git-dependencies
 5. Commit the changelog and the init file updates:
 
    ```sh
-   git add CHANGELOG.md pre-processing/primod/__init__.py
+   git add CHANGELOG.md imod_coupler/__init__.py pre-processing/primod/__init__.py 
    git commit -m "Release vYYYY.MM.X"
    ```
 
