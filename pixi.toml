@@ -28,6 +28,7 @@ ribasim = "=2025.6.0"
 
 [pypi-dependencies]
 ribasim_testmodels = { git = "https://github.com/Deltares/Ribasim.git", tag = "v2025.6.0", subdirectory = "python/ribasim_testmodels" }
+ribasim_api = { git = "https://github.com/Deltares/Ribasim.git", tag = "v2025.6.0", subdirectory = "python/ribasim_api" }
 imod_coupler = { path = ".", editable = true }
 primod = { path = "pre-processing", editable = true }
 pyinstaller = "*" # Use pypi version instead of condforge due to issues with the AV

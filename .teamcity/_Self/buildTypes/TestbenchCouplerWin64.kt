@@ -64,7 +64,7 @@ object TestbenchCouplerWin64 : BuildType({
             workingDir = "imod_coupler"
             scriptContent = """
                 pixi --version
-                pixi install -e dev
+                pixi install -e dev --frozen
                 pixi list -e dev
             """.trimIndent()
         }
@@ -72,7 +72,7 @@ object TestbenchCouplerWin64 : BuildType({
             name = "Run tests"
             workingDir = "imod_coupler"
             scriptContent = """
-                pixi run -e dev test-imod-coupler
+                pixi run -e dev --frozen test-imod-coupler
             """.trimIndent()
         }
     }

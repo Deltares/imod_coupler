@@ -454,8 +454,8 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/b1/8b/88f16936a8e8070a83d36239555227ecd91728f9ef222c5382cda07e0fd6/h5netcdf-1.8.1-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/fe/db/68ba1fccb71278b2124fb90b37b7c8c0bc4c1173fba45b94466df3d9cb7f/pyinstaller-6.20.0-py3-none-manylinux2014_x86_64.whl
       - pypi: https://files.pythonhosted.org/packages/88/f4/035fb8c06deff827f540a9a4ed9122c54e5376fca3e42eddf0c263730775/pyinstaller_hooks_contrib-2026.4-py3-none-any.whl
+      - pypi: git+https://github.com/Deltares/Ribasim.git?subdirectory=python%2Fribasim_api&tag=v2025.6.0#5d1465bead380e98e9d58dc761ea025b868e5b98
       - pypi: git+https://github.com/Deltares/Ribasim.git?subdirectory=python%2Fribasim_testmodels&tag=v2025.6.0#5d1465bead380e98e9d58dc761ea025b868e5b98
-      - pypi: https://files.pythonhosted.org/packages/58/f7/7fd6fdbe1f61e778e30c12561d2b11bdf3ad8692024ef180974940a17e71/ribasim_api-2026.1.0-py3-none-any.whl
       - pypi: ./
       - pypi: ./pre-processing
       win-64:
@@ -813,8 +813,8 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/54/16/12b82f791c7f50ddec566873d5bdd245baa1491bac11d15ffb98aecc8f8b/pefile-2024.8.26-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/76/8c/300f57578882cce259bfb5ae56fda3b69caa3fe9df40a176c719920ea6e2/pyinstaller-6.20.0-py3-none-win_amd64.whl
       - pypi: https://files.pythonhosted.org/packages/88/f4/035fb8c06deff827f540a9a4ed9122c54e5376fca3e42eddf0c263730775/pyinstaller_hooks_contrib-2026.4-py3-none-any.whl
+      - pypi: git+https://github.com/Deltares/Ribasim.git?subdirectory=python%2Fribasim_api&tag=v2025.6.0#5d1465bead380e98e9d58dc761ea025b868e5b98
       - pypi: git+https://github.com/Deltares/Ribasim.git?subdirectory=python%2Fribasim_testmodels&tag=v2025.6.0#5d1465bead380e98e9d58dc761ea025b868e5b98
-      - pypi: https://files.pythonhosted.org/packages/58/f7/7fd6fdbe1f61e778e30c12561d2b11bdf3ad8692024ef180974940a17e71/ribasim_api-2026.1.0-py3-none-any.whl
       - pypi: ./
       - pypi: ./pre-processing
   dev:
@@ -1395,8 +1395,8 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/50/fa/a2561d6837cd45a3971c514222e94d3ded3f105993ddcf4983ed68ce3da3/mypy2junit-1.9.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/fe/db/68ba1fccb71278b2124fb90b37b7c8c0bc4c1173fba45b94466df3d9cb7f/pyinstaller-6.20.0-py3-none-manylinux2014_x86_64.whl
       - pypi: https://files.pythonhosted.org/packages/88/f4/035fb8c06deff827f540a9a4ed9122c54e5376fca3e42eddf0c263730775/pyinstaller_hooks_contrib-2026.4-py3-none-any.whl
+      - pypi: git+https://github.com/Deltares/Ribasim.git?subdirectory=python%2Fribasim_api&tag=v2025.6.0#5d1465bead380e98e9d58dc761ea025b868e5b98
       - pypi: git+https://github.com/Deltares/Ribasim.git?subdirectory=python%2Fribasim_testmodels&tag=v2025.6.0#5d1465bead380e98e9d58dc761ea025b868e5b98
-      - pypi: https://files.pythonhosted.org/packages/58/f7/7fd6fdbe1f61e778e30c12561d2b11bdf3ad8692024ef180974940a17e71/ribasim_api-2026.1.0-py3-none-any.whl
       - pypi: ./
       - pypi: ./pre-processing
       win-64:
@@ -1875,8 +1875,8 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/54/16/12b82f791c7f50ddec566873d5bdd245baa1491bac11d15ffb98aecc8f8b/pefile-2024.8.26-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/76/8c/300f57578882cce259bfb5ae56fda3b69caa3fe9df40a176c719920ea6e2/pyinstaller-6.20.0-py3-none-win_amd64.whl
       - pypi: https://files.pythonhosted.org/packages/88/f4/035fb8c06deff827f540a9a4ed9122c54e5376fca3e42eddf0c263730775/pyinstaller_hooks_contrib-2026.4-py3-none-any.whl
+      - pypi: git+https://github.com/Deltares/Ribasim.git?subdirectory=python%2Fribasim_api&tag=v2025.6.0#5d1465bead380e98e9d58dc761ea025b868e5b98
       - pypi: git+https://github.com/Deltares/Ribasim.git?subdirectory=python%2Fribasim_testmodels&tag=v2025.6.0#5d1465bead380e98e9d58dc761ea025b868e5b98
-      - pypi: https://files.pythonhosted.org/packages/58/f7/7fd6fdbe1f61e778e30c12561d2b11bdf3ad8692024ef180974940a17e71/ribasim_api-2026.1.0-py3-none-any.whl
       - pypi: ./
       - pypi: ./pre-processing
   pixi-update:
@@ -2556,8 +2556,8 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/b1/8b/88f16936a8e8070a83d36239555227ecd91728f9ef222c5382cda07e0fd6/h5netcdf-1.8.1-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/fe/db/68ba1fccb71278b2124fb90b37b7c8c0bc4c1173fba45b94466df3d9cb7f/pyinstaller-6.20.0-py3-none-manylinux2014_x86_64.whl
       - pypi: https://files.pythonhosted.org/packages/88/f4/035fb8c06deff827f540a9a4ed9122c54e5376fca3e42eddf0c263730775/pyinstaller_hooks_contrib-2026.4-py3-none-any.whl
+      - pypi: git+https://github.com/Deltares/Ribasim.git?subdirectory=python%2Fribasim_api&tag=v2025.6.0#5d1465bead380e98e9d58dc761ea025b868e5b98
       - pypi: git+https://github.com/Deltares/Ribasim.git?subdirectory=python%2Fribasim_testmodels&tag=v2025.6.0#5d1465bead380e98e9d58dc761ea025b868e5b98
-      - pypi: https://files.pythonhosted.org/packages/58/f7/7fd6fdbe1f61e778e30c12561d2b11bdf3ad8692024ef180974940a17e71/ribasim_api-2026.1.0-py3-none-any.whl
       - pypi: ./
       - pypi: ./pre-processing
       win-64:
@@ -3035,8 +3035,8 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/54/16/12b82f791c7f50ddec566873d5bdd245baa1491bac11d15ffb98aecc8f8b/pefile-2024.8.26-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/76/8c/300f57578882cce259bfb5ae56fda3b69caa3fe9df40a176c719920ea6e2/pyinstaller-6.20.0-py3-none-win_amd64.whl
       - pypi: https://files.pythonhosted.org/packages/88/f4/035fb8c06deff827f540a9a4ed9122c54e5376fca3e42eddf0c263730775/pyinstaller_hooks_contrib-2026.4-py3-none-any.whl
+      - pypi: git+https://github.com/Deltares/Ribasim.git?subdirectory=python%2Fribasim_api&tag=v2025.6.0#5d1465bead380e98e9d58dc761ea025b868e5b98
       - pypi: git+https://github.com/Deltares/Ribasim.git?subdirectory=python%2Fribasim_testmodels&tag=v2025.6.0#5d1465bead380e98e9d58dc761ea025b868e5b98
-      - pypi: https://files.pythonhosted.org/packages/58/f7/7fd6fdbe1f61e778e30c12561d2b11bdf3ad8692024ef180974940a17e71/ribasim_api-2026.1.0-py3-none-any.whl
       - pypi: ./
       - pypi: ./pre-processing
   user-acceptance:
@@ -3684,8 +3684,8 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/b1/8b/88f16936a8e8070a83d36239555227ecd91728f9ef222c5382cda07e0fd6/h5netcdf-1.8.1-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/fe/db/68ba1fccb71278b2124fb90b37b7c8c0bc4c1173fba45b94466df3d9cb7f/pyinstaller-6.20.0-py3-none-manylinux2014_x86_64.whl
       - pypi: https://files.pythonhosted.org/packages/88/f4/035fb8c06deff827f540a9a4ed9122c54e5376fca3e42eddf0c263730775/pyinstaller_hooks_contrib-2026.4-py3-none-any.whl
+      - pypi: git+https://github.com/Deltares/Ribasim.git?subdirectory=python%2Fribasim_api&tag=v2025.6.0#5d1465bead380e98e9d58dc761ea025b868e5b98
       - pypi: git+https://github.com/Deltares/Ribasim.git?subdirectory=python%2Fribasim_testmodels&tag=v2025.6.0#5d1465bead380e98e9d58dc761ea025b868e5b98
-      - pypi: https://files.pythonhosted.org/packages/58/f7/7fd6fdbe1f61e778e30c12561d2b11bdf3ad8692024ef180974940a17e71/ribasim_api-2026.1.0-py3-none-any.whl
       - pypi: ./
       - pypi: ./pre-processing
       win-64:
@@ -4232,8 +4232,8 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/54/16/12b82f791c7f50ddec566873d5bdd245baa1491bac11d15ffb98aecc8f8b/pefile-2024.8.26-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/76/8c/300f57578882cce259bfb5ae56fda3b69caa3fe9df40a176c719920ea6e2/pyinstaller-6.20.0-py3-none-win_amd64.whl
       - pypi: https://files.pythonhosted.org/packages/88/f4/035fb8c06deff827f540a9a4ed9122c54e5376fca3e42eddf0c263730775/pyinstaller_hooks_contrib-2026.4-py3-none-any.whl
+      - pypi: git+https://github.com/Deltares/Ribasim.git?subdirectory=python%2Fribasim_api&tag=v2025.6.0#5d1465bead380e98e9d58dc761ea025b868e5b98
       - pypi: git+https://github.com/Deltares/Ribasim.git?subdirectory=python%2Fribasim_testmodels&tag=v2025.6.0#5d1465bead380e98e9d58dc761ea025b868e5b98
-      - pypi: https://files.pythonhosted.org/packages/58/f7/7fd6fdbe1f61e778e30c12561d2b11bdf3ad8692024ef180974940a17e71/ribasim_api-2026.1.0-py3-none-any.whl
       - pypi: ./
       - pypi: ./pre-processing
 packages:
@@ -15536,10 +15536,9 @@ packages:
   - pkg:pypi/ribasim?source=hash-mapping
   size: 75721
   timestamp: 1761639315991
-- pypi: https://files.pythonhosted.org/packages/58/f7/7fd6fdbe1f61e778e30c12561d2b11bdf3ad8692024ef180974940a17e71/ribasim_api-2026.1.0-py3-none-any.whl
+- pypi: git+https://github.com/Deltares/Ribasim.git?subdirectory=python%2Fribasim_api&tag=v2025.6.0#5d1465bead380e98e9d58dc761ea025b868e5b98
   name: ribasim-api
-  version: 2026.1.0
-  sha256: 23e837119089f26ae17a8dbb900106c90200c58e237b592c7811d28b6e541940
+  version: 2025.6.0
   requires_dist:
   - xmipy>=1.3
   - pytest ; extra == 'tests'
