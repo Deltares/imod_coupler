@@ -96,6 +96,7 @@ build-coupler = { cmd = "rm --recursive --force dist && python -m build && twine
 publish-coupler = { cmd = "twine upload dist/*", cwd = "." }
 
 [feature.pixi-update.dependencies]
+gh = "*"
 pip = "*"
 pixi-diff-to-markdown = "*"
 
