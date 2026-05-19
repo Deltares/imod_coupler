@@ -410,6 +410,67 @@ def test_metamod_exchange_logging(
     assert len(list((tmp_path_dev).glob("*.nc"))) == 2
 
 
+@parametrize_with_cases("metamod_model", glob="storage_coefficient_no_sprinkling")
+def test_metamod_solve_failure(
+    tmp_path_dev: Path,
+    metamod_model: MetaMod,
+    metaswap_dll_devel: Path,
+    metaswap_dll_dep_dir_devel: Path,
+    modflow_dll_devel: Path,
+    run_coupler_function: Callable[[Path], None],
+) -> None:
+    """
+    Test if logging works as intended
+    """
+    # update solver settings; should not solve in 2 outer iterations
+    metamod_model.mf6_simulation["solver"]["outer_maximum"] = 2
+    metamod_model.mf6_simulation["solver"]["outer_dvclose"] = 0.000000001
+    metamod_model.mf6_simulation["solver"]
+    metamod_model.write(
+        tmp_path_dev,
+        modflow6_dll=modflow_dll_devel,
+        metaswap_dll=metaswap_dll_devel,
+        metaswap_dll_dependency=metaswap_dll_dep_dir_devel,
+    )
+    with pytest.raises(subprocess.CalledProcessError):
+        run_coupler_function(tmp_path_dev / metamod_model._toml_name)
+    # now set continue solve to true
+    # imod-python does not support this yet, update mfsim.nam file manually
+    mfsim_path = tmp_path_dev / metamod_model._modflow6_model_dir / "mfsim.nam"
+    add_continue_to_mfsim_nam(mfsim_path)
+    run_coupler_function(tmp_path_dev / metamod_model._toml_name)
+
+
+def add_continue_to_mfsim_nam(mfsim_path: Path) -> None:
+    """
+    Read mfsim.nam and insert CONTINUE into the OPTIONS block.
+    If no OPTIONS block exists, one is prepended at the top of the file.
+    """
+    content = mfsim_path.read_text()
+    lines = content.splitlines(keepends=True)
+
+    # Check if OPTIONS block already exists
+    begin_idx = next(
+        (i for i, line in enumerate(lines) if line.strip().upper() == "BEGIN OPTIONS"),
+        None,
+    )
+    if begin_idx is not None:
+        # Insert CONTINUE after BEGIN OPTIONS if not already present
+        end_idx = next(
+            i
+            for i, line in enumerate(lines[begin_idx:], start=begin_idx)
+            if line.strip().upper() == "END OPTIONS"
+        )
+        block = [line.strip().upper() for line in lines[begin_idx + 1 : end_idx]]
+        if "CONTINUE" not in block:
+            lines.insert(begin_idx + 1, "  CONTINUE\n")
+    else:
+        # Prepend a new OPTIONS block
+        lines = ["BEGIN OPTIONS\n", "  CONTINUE\n", "END OPTIONS\n"] + lines
+
+    mfsim_path.write_text("".join(lines))
+
+
 def add_logging_request_to_toml_file(toml_dir: Path, toml_filename: str) -> None:
     """
     This function takes as input the path to a toml file written by MetaMod. It then adds a reference to an

@@ -245,10 +245,18 @@ class MetaMod(Driver):
         for kiter in range(1, self.mf6.max_iter + 1):
             has_converged = self.do_iter(1)
             if has_converged:
-                logger.debug(f"MF6-MSW converged in {kiter} iterations")
+                logger.debug(f"coupled simulation converged in {kiter} iterations")
                 break
+        if not has_converged:
+            if self.mf6.continue_solve:
+                logger.warning(
+                    "coupled simulation did not converge; mf6 continue = true, continue simulation"
+                )
+            else:
+                raise RuntimeError(
+                    "coupled simulation did not converge; mf6 continue = false, stop simulation"
+                )
         self.mf6.finalize_solve(1)
-
         self.mf6.finalize_time_step()
         self.msw.finalize_time_step()
         self.log_exchanges()

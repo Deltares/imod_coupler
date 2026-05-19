@@ -151,6 +151,11 @@ class Mf6Wrapper(XmiWrapper):
         mf6_max_iter = self.get_value_ptr(mf6_max_iter_tag)[0]
         return mf6_max_iter
 
+    @property
+    def continue_solve(self) -> bool:
+        continue_solve = bool(self.get_value_ptr("__INPUT__/SIM/NAM/CONTINUE")[0] == 1)
+        return continue_solve
+
 
 class Mf6Boundary(ABC):
     nodelist: NDArray[np.int32]
