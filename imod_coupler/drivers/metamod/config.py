@@ -18,6 +18,7 @@ class Coupling(BaseModel):
     mf6_msw_well_pkg: str | None = (
         None  # the well package that will be used for coupling when sprinkling is active
     )
+    mf6_uzf_pkg: str | None = None  # the UZF package that will be used for coupling
     mf6_msw_node_map: FilePath  # the path to the node map file
     mf6_msw_recharge_map: FilePath  # the path to the recharge map file
     mf6_msw_sprinkling_map_groundwater: FilePath | None = (
@@ -25,6 +26,9 @@ class Coupling(BaseModel):
     )
     # for deprecation warning on label
     mf6_msw_sprinkling_map: FilePath | None = None
+
+    mf6_node_max_layer: FilePath | None = None
+    mf6_msw_uzf_map: FilePath | None = None
 
     output_config_file: FilePath | None = None
 

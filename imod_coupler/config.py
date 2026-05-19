@@ -24,3 +24,4 @@ class BaseConfig(BaseModel):
     timing: bool = False
     driver_type: DriverType
     driver: BaseModel
+    modflow_newton_formulation: bool = False

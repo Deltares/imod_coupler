@@ -7,7 +7,13 @@ import xarray as xr
 from imod import mf6, msw
 from numpy import nan
 
-from .common import get_times, grid_sizes
+from .common import (
+    create_wells,
+    get_extendet_times,
+    get_times,
+    grid_sizes,
+    grid_sizes_perched,
+)
 
 
 def metaswap_model(
@@ -20,8 +26,8 @@ def metaswap_model(
     # fmt: on
     msw_grid = xr.ones_like(active, dtype=float)
 
-    precipitation = msw_grid.expand_dims(time=times)
-    evapotranspiration = msw_grid.expand_dims(time=times) * 10.0
+    precipitation = msw_grid.expand_dims(time=times[:-1])
+    evapotranspiration = msw_grid.expand_dims(time=times[:-1]) * 0.0
     if "layer" in msw_grid.coords:
         precipitation = precipitation.drop_vars("layer")
         evapotranspiration = evapotranspiration.drop_vars("layer")
@@ -156,7 +162,7 @@ def metaswap_model(
 
 
 def make_msw_model(idomain: xr.DataArray) -> msw.MetaSwapModel:
-    times = get_times()
+    times = get_extendet_times()
     unsaturated_database = "./unsat_database"
 
     x, y, layer, dx, dy, dz = grid_sizes()
@@ -204,6 +210,39 @@ def make_msw_model(idomain: xr.DataArray) -> msw.MetaSwapModel:
     return metaswap_model(times,area,active,dis,unsaturated_database)
 
 
+def make_msw_model_free(
+    idomain: xr.DataArray, grid: callable = grid_sizes
+) -> msw.MetaSwapModel:
+    times = get_extendet_times()
+    unsaturated_database = "./unsat_database"
+
+    x, y, layer, dx, dy, dz = grid()
+
+    nrow = len(y)
+    ncol = len(x)
+
+    top = 0.0
+    bottom = top - xr.DataArray(np.cumsum(dz), coords={"layer": layer}, dims="layer")
+
+    active = idomain.isel(layer=0, drop=True) > 0
+
+    area1 = (
+        xr.ones_like(idomain, dtype=np.float64).sel(layer=1, drop=True) * dx * -dy
+    ).expand_dims(dim={"subunit": np.array([0])})
+    area2 = (
+        xr.full_like(idomain, fill_value=nan, dtype=np.float64)
+        .sel(layer=1, drop=True)
+        .expand_dims(dim={"subunit": np.array([1])})
+    )
+    area = xr.concat([area1, area2], dim="subunit").where(active)
+
+    well = create_wells(idomain)
+
+    dis = mf6.StructuredDiscretization(idomain=idomain, top=top, bottom=bottom)
+
+    return metaswap_model(times, area, active, dis, unsaturated_database)
+
+
 @pytest_cases.fixture(scope="function")
 def prepared_msw_model(
     active_idomain: xr.DataArray,
@@ -224,4 +263,49 @@ def prepared_msw_model_inactive(
     msw_model = make_msw_model(inactive_idomain)
     # Override unsat_svat_path with path from environment
     msw_model.simulation_settings["unsa_svat_path"] = metaswap_lookup_table
+    return msw_model
+
+
+@pytest_cases.fixture(scope="function")
+def prepared_msw_model_newton(
+    partly_inactive_idomain: xr.DataArray,
+    metaswap_lookup_table: Path,
+) -> msw.MetaSwapModel:
+    msw_model = make_msw_model(partly_inactive_idomain)
+    # increase precipitation, zero evaporation
+    msw_model["meteo_grid"].dataset["precipitation"] = (
+        msw_model["meteo_grid"].dataset["precipitation"] * 6.0
+    )
+    msw_model["meteo_grid"].dataset["evapotranspiration"] = (
+        msw_model["meteo_grid"].dataset["evapotranspiration"] * 0.0
+    )
+
+    # Override unsat_svat_path with path from environment
+    msw_model.simulation_settings["unsa_svat_path"] = metaswap_lookup_table
+
+    return msw_model
+
+
+@pytest_cases.fixture(scope="function")
+def prepared_msw_model_newton_perched(
+    partly_inactive_idomain_perched: xr.DataArray,
+    metaswap_lookup_table: Path,
+) -> msw.MetaSwapModel:
+    msw_model = make_msw_model_free(partly_inactive_idomain_perched, grid_sizes_perched)
+    # increase precipitation, zero evaporation
+    msw_model["meteo_grid"].dataset["precipitation"] = (
+        msw_model["meteo_grid"].dataset["precipitation"] * 14.0
+    )
+    pp = msw_model["meteo_grid"].dataset["precipitation"]
+    # pp[120:140, :, :] = pp[120:140, :, :] * 1.0
+    # pp[140:-1, :, :] = pp[140:-1, :, :] * 4.0
+    pp[80:130] = 0.0
+    pp[200:] = 0.0
+    msw_model["meteo_grid"].dataset["evapotranspiration"] = (
+        msw_model["meteo_grid"].dataset["evapotranspiration"] * 0.0
+    )
+
+    # Override unsat_svat_path with path from environment
+    msw_model.simulation_settings["unsa_svat_path"] = metaswap_lookup_table
+
     return msw_model

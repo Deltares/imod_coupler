@@ -77,10 +77,78 @@ class Mf6Wrapper(XmiWrapper):
         )
         return self.get_value_ptr(mf6_recharge_nodes_tag)
 
+    def get_uzf_infiltration(
+        self, mf6_flowmodel_key: str, mf6_uzf_pkg: str
+    ) -> NDArray[np.float64]:
+        mf6_infiltration_tag = self.get_var_address(
+            "SINF_PVAR", mf6_flowmodel_key, mf6_uzf_pkg
+        )
+        return self.get_value_ptr(mf6_infiltration_tag)
+
+    def get_uzf_nodes(
+        self, mf6_flowmodel_key: str, mf6_uzf_pkg: str
+    ) -> NDArray[np.float64]:
+        mf6_infiltration_tag = self.get_var_address(
+            "NODELIST", mf6_flowmodel_key, mf6_uzf_pkg
+        )
+        return self.get_value_ptr(mf6_infiltration_tag)
+
+    def get_uzf_ids(
+        self, mf6_flowmodel_key: str, mf6_uzf_pkg: str
+    ) -> NDArray[np.float64]:
+        mf6_infiltration_tag = self.get_var_address(
+            "ID", mf6_flowmodel_key, mf6_uzf_pkg
+        )
+        return self.get_value_ptr(mf6_infiltration_tag)
+
+    def get_uzf_landflag(
+        self, mf6_flowmodel_key: str, mf6_uzf_pkg: str
+    ) -> NDArray[np.float64]:
+        mf6_infiltration_tag = self.get_var_address(
+            "LANDFLAG", mf6_flowmodel_key, mf6_uzf_pkg
+        )
+        return self.get_value_ptr(mf6_infiltration_tag)
+
+    def get_uzf_top(
+        self, mf6_flowmodel_key: str, mf6_uzf_pkg: str
+    ) -> NDArray[np.float64]:
+        mf6_infiltration_tag = self.get_var_address(
+            "CELTOP", mf6_flowmodel_key, mf6_uzf_pkg
+        )
+        return self.get_value_ptr(mf6_infiltration_tag)
+
     def get_storage(self, mf6_flowmodel_key: str) -> NDArray[np.float64]:
         mf6_storage_tag = self.get_var_address("SS", mf6_flowmodel_key, "STO")
         mf6_storage = self.get_value_ptr(mf6_storage_tag)
         return mf6_storage
+
+    def get_ss(self, mf6_flowmodel_key: str) -> NDArray[np.float64]:
+        mf6_storage_tag = self.get_var_address("SS", mf6_flowmodel_key, "STO")
+        mf6_storage = self.get_value_ptr(mf6_storage_tag)
+        return mf6_storage
+
+    def get_sy(self, mf6_flowmodel_key: str) -> NDArray[np.float64]:
+        mf6_storage_tag = self.get_var_address("SY", mf6_flowmodel_key, "STO")
+        mf6_storage = self.get_value_ptr(mf6_storage_tag)
+        return mf6_storage
+
+    def get_dis_shape(self, mf6_flowmodel_key: str) -> tuple:
+        nlay_tag = self.get_var_address("NLAY", mf6_flowmodel_key, "DIS")
+        nrow_tag = self.get_var_address("NROW", mf6_flowmodel_key, "DIS")
+        ncol_tag = self.get_var_address("NCOL", mf6_flowmodel_key, "DIS")
+        return (
+            self.get_value_ptr(nlay_tag)[0],
+            self.get_value_ptr(nrow_tag)[0],
+            self.get_value_ptr(ncol_tag)[0],
+        )
+
+    def get_nodeuser(self, mf6_flowmodel_key: str) -> NDArray[np.int32]:
+        nodeuser_tag = self.get_var_address("NODEUSER", mf6_flowmodel_key, "DIS")
+        return self.get_value_ptr(nodeuser_tag)
+
+    def get_saturation(self, mf6_flowmodel_key: str) -> NDArray[np.float64]:
+        saturation_tag = self.get_var_address("SAT", mf6_flowmodel_key, "NPF")
+        return self.get_value_ptr(saturation_tag)
 
     def has_sc1(self, mf6_flowmodel_key: str) -> bool:
         mf6_is_sc1_tag = self.get_var_address("ISTOR_COEF", mf6_flowmodel_key, "STO")
