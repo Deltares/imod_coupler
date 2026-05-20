@@ -31,10 +31,14 @@ def run_coupler_function(imod_coupler_exec_devel: Path) -> Callable[[Path], None
                 future = executor.submit(_run_coupler_worker, file)
                 future.result()
             except Exception as e:
-                raise subprocess.CalledProcessError(returncode=1, cmd=[str(run_coupler), str(file)], output=None, stderr=e.args[0])
+                raise subprocess.CalledProcessError(
+                    returncode=1,
+                    cmd=[str(run_coupler), str(file)],
+                    output=None,
+                    stderr=e.args[0],
+                )
             finally:
                 executor.shutdown(wait=False)
-
 
         return run_coupler_debug
     else:
