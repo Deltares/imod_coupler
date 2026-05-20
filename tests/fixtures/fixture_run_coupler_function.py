@@ -1,9 +1,9 @@
+import concurrent
 import subprocess
 import sys
 from collections.abc import Callable
 from pathlib import Path
 
-import concurrent
 import pytest
 
 from imod_coupler.__main__ import run_coupler
