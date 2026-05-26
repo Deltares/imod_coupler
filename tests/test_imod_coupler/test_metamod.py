@@ -465,8 +465,7 @@ def add_continue_to_mfsim_nam(mfsim_path: Path) -> None:
         if "CONTINUE" not in block:
             lines.insert(begin_idx + 1, "  CONTINUE\n")
     else:
-        # Prepend a new OPTIONS block
-        lines = ["BEGIN OPTIONS\n", "  CONTINUE\n", "END OPTIONS\n"] + lines
+        raise ValueError("MFSIM name file is corrupted, no OPTIONS block found")
 
     mfsim_path.write_text("".join(lines))
 
