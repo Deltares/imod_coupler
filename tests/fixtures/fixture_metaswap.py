@@ -173,14 +173,19 @@ def make_msw_model_free(
 
     active = idomain.isel(layer=0, drop=True) > 0
 
+    dxy = dx * -dy
+
     area1 = (
-        xr.ones_like(idomain, dtype=np.float64).sel(layer=1, drop=True) * dx * -dy
+        xr.ones_like(idomain, dtype=np.float64).sel(layer=1, drop=True) * dxy * 0.5
     ).expand_dims(dim={"subunit": np.array([0])})
     area2 = (
-        xr.full_like(idomain, fill_value=nan, dtype=np.float64)
+        xr.full_like(idomain, fill_value=dxy * 0.5, dtype=np.float64)
         .sel(layer=1, drop=True)
         .expand_dims(dim={"subunit": np.array([1])})
     )
+    area1[:, :, :4] = np.nan  # first 4 columns inactive
+    area2[:, :, :8] = np.nan  # first 8 columns inactive
+
     area = xr.concat([area1, area2], dim="subunit").where(active)
 
     dis = mf6.StructuredDiscretization(idomain=idomain, top=top, bottom=bottom)
@@ -288,7 +293,7 @@ def prepared_msw_model_newton_perched(
     msw_model = make_msw_model_free(partly_inactive_idomain_perched, grid_sizes_perched)
     # increase precipitation, zero evaporation
     msw_model["meteo_grid"].dataset["precipitation"] = (
-        msw_model["meteo_grid"].dataset["precipitation"] * 20.0
+        msw_model["meteo_grid"].dataset["precipitation"] * 14.0
     )
     pp = msw_model["meteo_grid"].dataset["precipitation"]
     # pp[120:140, :, :] = pp[120:140, :, :] * 1.0

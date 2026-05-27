@@ -13,6 +13,38 @@ from .common import (
 )
 
 
+def add_uzf_model(gwf_model: mf6.GroundwaterFlowModel) -> mf6.GroundwaterFlowModel:
+    # add UZF-package
+    # only under pwt
+    idomain = gwf_model["dis"]["idomain"]
+    bottom = gwf_model["dis"]["bottom"]
+    head = gwf_model["ghb"]["head"]
+    k = gwf_model["npf"]["k"]
+
+    idomain_uzf = xr.zeros_like(idomain, dtype=np.int32)
+    idomain_uzf[10:, 0, 40:45] = 1  # laag 11
+
+    bot = bottom * xr.ones_like(idomain.isel(layer=8))
+    gwf_model["uzf"] = mf6.UnsaturatedZoneFlow(
+        surface_depression_depth=(xr.ones_like(bot) * 0.01).where(idomain_uzf == 1),
+        kv_sat=k.where(idomain_uzf == 1),
+        epsilon=(xr.ones_like(bot) * 4).where(idomain_uzf == 1),
+        theta_res=(xr.ones_like(bot) * 0.001).where(idomain_uzf == 1),
+        theta_sat=(xr.ones_like(bot) * 0.2).where(idomain_uzf == 1),
+        theta_init=(xr.ones_like(bot) * 0.1).where(idomain_uzf == 1),
+        infiltration_rate=xr.zeros_like(head)
+        .where(idomain_uzf == 1)
+        .where(head.layer == 11),
+        save_flows=True,
+        budget_fileout="GWF_1/budget_uzf.cbc",
+        water_content_file="GWF_1/water_content_uzf.wc",
+        budgetcsv_fileout="GWF_1/budget_uzf.csv",
+        print_flows=True,
+        ntrailwaves=50,
+    )
+    return gwf_model
+
+
 def make_mf6_model(
     idomain: xr.DataArray, newton: bool = False, grid: callable = grid_sizes
 ) -> mf6.GroundwaterFlowModel:
@@ -392,6 +424,15 @@ def coupled_mf6_model_newton_perched(
     partly_inactive_idomain_perched: xr.DataArray,
 ) -> mf6.Modflow6Simulation:
     return make_coupled_mf6_model_newton_perched(partly_inactive_idomain_perched)
+
+
+@pytest_cases.fixture(scope="function")
+def coupled_mf6_model_newton_perched_uzf(
+    partly_inactive_idomain_perched: xr.DataArray,
+) -> mf6.Modflow6Simulation:
+    simulation = make_coupled_mf6_model_newton_perched(partly_inactive_idomain_perched)
+    simulation["GWF_1"] = add_uzf_model(simulation["GWF_1"])
+    return simulation
 
 
 @pytest_cases.fixture(scope="function")

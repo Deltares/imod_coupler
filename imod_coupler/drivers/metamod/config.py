@@ -23,6 +23,7 @@ class Coupling(BaseModel):
     mf6_msw_sprinkling_map_groundwater: FilePath | None = (
         None  # the path to the sprinkling map file
     )
+    mf6_uzf_pkg: str | None = None  # the UZF package that will be used for coupling
     # for deprecation warning on label
     mf6_msw_sprinkling_map: FilePath | None = None
     mf6_node_max_layer: FilePath | None = None

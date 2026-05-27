@@ -6,6 +6,7 @@ description:
 
 from __future__ import annotations
 
+import os
 from pathlib import Path
 from typing import Any
 
@@ -20,6 +21,7 @@ from imod_coupler.drivers.metamod.utils import (
     CoupledPhreaticHeads,
     CoupledPhreaticRecharge,
     CoupledPhreaticStorage,
+    CoupledUZF,
 )
 from imod_coupler.kernelwrappers.mf6_wrapper import Mf6Wrapper
 from imod_coupler.kernelwrappers.msw_wrapper import MswWrapper
@@ -39,15 +41,17 @@ class MetaMod(Driver):
 
     max_iter: NDArray[Any]  # max. nr outer iterations in MODFLOW kernel
     delt: float  # time step from MODFLOW 6 (leading)
-
+    iter_debug: float = 0.0
     enable_sprinkling_groundwater: bool = False
+    simulation_time: float = 0.0  # for ATS
 
     couplings: dict[
         str,
         MemoryExchange
         | CoupledPhreaticStorage
         | CoupledPhreaticRecharge
-        | CoupledPhreaticHeads,
+        | CoupledPhreaticHeads
+        | CoupledUZF,
     ]
 
     def __init__(self, base_config: BaseConfig, metamod_config: MetaModConfig):
@@ -77,6 +81,7 @@ class MetaMod(Driver):
         self.msw.initialize()
         self.log_version()
         self.set_coupling()
+        self.mf6.set_ats_package()  # should be optional together with the msw save state logic
 
     def get_exchange_logger(self) -> ExchangeCollector:
         if self.coupling_config.output_config_file is not None:
@@ -233,30 +238,43 @@ class MetaMod(Driver):
     def update(self) -> None:
         # heads to MetaSWAP
         self.couplings["head"].exchange()
+        # save the MetaSWAP state
+        self.msw_save_state()
 
-        # we cannot set the timestep (yet) in Modflow
-        # -> set to the (dummy) value 0.0 for now
+        # reset
+        self.mf6.ats.prepare()
+
         self.mf6.prepare_time_step(0.0)
-        self.delt = self.mf6.get_time_step()
-        self.msw.prepare_time_step(self.delt)
+        for attempt in range(10):  # max 10 retry attempts
+            # heads to MetaSWAP
+            self.couplings["head"].exchange()
+            self.delt = self.mf6.get_time_step()
+            self.msw.prepare_time_step(self.delt)
+            converged = self.do_solve()
+            if converged or not self.mf6.ats.should_retry():
+                break
+            self.mf6.ats.retry()
+            self.msw_restore_state()
+        self.mf6.finalize_time_step()
+        self.msw.finalize_time_step()
 
-        # convergence loop
+    def do_solve(self) -> bool:
         self.mf6.prepare_solve(1)
         for kiter in range(1, self.mf6.max_iter() + 1):
-            has_converged = self.do_iter(1)
+            has_converged = self.do_iter(kiter)
+            self.log_exchanges()
+            self.iter_debug += 1.0
             if has_converged:
                 logger.debug(f"MF6-MSW converged in {kiter} iterations")
                 break
+        logger.info(f"has converged: {has_converged}")
         self.mf6.finalize_solve(1)
-
-        self.mf6.finalize_time_step()
-        self.msw.finalize_time_step()
-        self.log_exchanges()
+        return has_converged
 
     def log_exchanges(self) -> None:
         for coupling in self.couplings.values():
             coupling.log(
-                self.get_current_time(),
+                self.iter_debug,  # self.get_current_time()
             )
 
     def finalize(self) -> None:
@@ -279,7 +297,7 @@ class MetaMod(Driver):
         self.couplings["recharge"].exchange(self.delt)
         if self.enable_sprinkling_groundwater:
             self.couplings["sprinkling"].exchange(self.delt)
-        has_converged = self.mf6.solve(sol_id)
+        has_converged = self.mf6.solve(1)
         self.couplings["head"].exchange()
         self.msw.finalize_solve(0)
         return has_converged
@@ -290,13 +308,23 @@ class MetaMod(Driver):
         total = total_mf6 + total_msw
         logger.info(f"Total elapsed time in numerical kernels: {total:0.4f} seconds")
 
+    def msw_restore_state(self) -> None:
+        path_org = os.getcwd()
+        os.chdir(path_org + "/MetaSWAP")
+        self.msw.restore_state()
+        os.chdir(path_org)
+        self.simulation_time = np.copy(self.mf6.get_current_time())
+
+    def msw_save_state(self) -> None:
+        self.msw.save_state()
+
 
 class MetaModNewton(MetaMod):
     """
     MetaModNewton: the coupling between MetaSWAP and MODFLOW 6, for the Newton formulation of MODFLOW 6
     """
 
-    uzf_active: bool = True
+    uzf_active: bool = False
     max_layer_idx: NDArray[np.int32]
 
     def __init__(self, base_config: BaseConfig, metamod_config: MetaModConfig):
@@ -325,7 +353,7 @@ class MetaModNewton(MetaMod):
             1.0 / mf6_area[recharge_nodes]
         )  # volume to length
         # get aditional info
-        first_layer_node_idx = self.get_first_layer_node_idx(
+        first_layer_node_idx = self.get_first_layer_user_idx(
             coupled_nodes["mf6_gwf_nodes"]
         )
         userid = self.mf6_get_userid() - 1
@@ -333,7 +361,8 @@ class MetaModNewton(MetaMod):
         sy = self.mf6.get_sy(self.coupling_config.mf6_model)
         ss = self.mf6.get_ss(self.coupling_config.mf6_model)
         nlay, nrow, ncol = self.mf6.get_dis_shape(self.coupling_config.mf6_model)
-        max_layer_idx = self.get_max_layer_idx(coupled_nodes, nlay)
+        max_layer_idx = self.get_max_layer_idx(first_layer_node_idx, nlay)
+        self.uzf_active = self.coupling_config.mf6_uzf_pkg is not None
         # fill dictionary of couplings
         self.couplings = {
             "storage": CoupledPhreaticStorage(
@@ -343,15 +372,18 @@ class MetaModNewton(MetaMod):
                 ptr_storage_sy=sy,
                 ptr_storage_ss=ss,
                 active_top_layer_nodes=first_layer_node_idx,
+                coupled_top_layer_nodes=np.unique(coupled_nodes["mf6_gwf_nodes"]),
                 max_layer=max_layer_idx,
                 coupling=MemoryExchange(
                     self.msw.get_storage_ptr(),
                     np.full_like(first_layer_node_idx, 0.0, dtype=np.float64),
                     coupled_nodes["msw_gwf_nodes"],
-                    coupled_nodes["mf6_gwf_nodes"],
+                    coupled_nodes["mf6_gwf_nodes"],  #
                     exchange_logger,
                     "sy",
-                    ptr_b_conversion=conversion_terms_sy[first_layer_node_idx],
+                    ptr_a_conversion=conversion_terms_sy[
+                        coupled_nodes["mf6_gwf_nodes"]
+                    ],
                 ),
             ),
             "recharge": CoupledPhreaticRecharge(
@@ -413,8 +445,60 @@ class MetaModNewton(MetaMod):
                 exchange_operator="sum",
             )
             self.enable_sprinkling_groundwater = True
+        if self.uzf_active:
+            self.couplings["uzf"] = CoupledUZF(
+                shape=(nlay, nrow, ncol),
+                new_recharge=self.mf6.get_recharge(
+                    self.coupling_config.mf6_model,
+                    self.coupling_config.mf6_msw_recharge_pkg,
+                ),
+                head=self.mf6.get_head(self.coupling_config.mf6_model),
+                infiltration_ptr=self.mf6.get_uzf_infiltration(
+                    self.coupling_config.mf6_model, self.coupling_config.mf6_uzf_pkg
+                ),
+                nodelist_ptr=self.mf6.get_uzf_nodes(
+                    self.coupling_config.mf6_model, self.coupling_config.mf6_uzf_pkg
+                ),
+                userid=userid,
+                max_layer_index=self.get_max_layer_idx(nlay),
+                first_layer_nodes=self.get_first_layer_user_idx(
+                    coupled_nodes["mf6_gwf_nodes"]
+                ),
+                top=self.mf6.get_uzf_top(
+                    self.coupling_config.mf6_model, self.coupling_config.mf6_uzf_pkg
+                ),
+                landflag=self.mf6.get_uzf_landflag(
+                    self.coupling_config.mf6_model, self.coupling_config.mf6_uzf_pkg
+                ),
+            )
 
-    def get_first_layer_node_idx(self, node_idx: NDArray[Any]) -> NDArray[np.int32]:
+    def do_iter(self, sol_id: int) -> bool:
+        """Execute a single iteration"""
+        self.msw.prepare_solve(0)
+        self.msw.solve(0)
+        self.couplings["storage"].exchange()
+        if self.uzf_active:
+            self.couplings["uzf"].exchange(self.delt)
+        self.couplings["recharge"].exchange(self.delt)
+        if self.enable_sprinkling_groundwater:
+            self.couplings["sprinkling"].exchange(self.delt)
+        has_converged = self.mf6.solve(1)
+        self.couplings["head"].exchange()
+        self.msw.finalize_solve(0)
+        return has_converged
+
+    def get_first_layer_user_idx(
+        self, node_idx: NDArray[np.int32]
+    ) -> NDArray[np.int32]:
+        """
+        MF6 nodes reduced layer 1:       |    |    |  1  |  2  |  3   |  4   |
+        MF6 nodes userid's layer 1:      |  1 |  2 |  3  |  4  |  5   |  6   |
+
+        MSW nodes subunit 1:             |    |    |     |     |  1   |  2   |
+        MSW nodes subunit 2:             |    |    |     |  3  |  4   |  5   |
+
+        firsts_layer_user_idx = [1, 2, 3, 4]
+        Get the user defined first layer indexes for couped elements"""
         _, nrow, ncol = self.mf6.get_dis_shape(self.coupling_config.mf6_model)
         userid = self.mf6_get_userid()
         first_layer_ids = userid[userid <= (nrow * ncol)]
@@ -434,8 +518,9 @@ class MetaModNewton(MetaMod):
         return userid
 
     def get_max_layer_idx(
-        self, coupled_nodes: dict[str, NDArray[np.int32]], nlay: int
+        self, first_layer_node_idx: NDArray[np.int32], nlay
     ) -> NDArray[np.int32]:
+        table_node_layer = np.array([0])
         if self.coupling_config.mf6_node_max_layer is not None:
             table_node_layer: NDArray[np.int32] = np.loadtxt(
                 self.coupling_config.mf6_node_max_layer,
@@ -443,8 +528,20 @@ class MetaModNewton(MetaMod):
                 ndmin=2,
                 skiprows=1,
             )
-            return table_node_layer[:, 1] - 1
         else:
-            return np.full_like(
-                coupled_nodes["mf6_gwf_nodes"], fill_value=nlay - 1, dtype=np.int32
-            )
+            return np.full_like(first_layer_node_idx, nlay, dtype=np.int32)
+        # phreatic mapping is done based on all first layer nodes,
+        # broadcast to this shape so it can be used in max/min array operation
+        max_layer_idx = table_node_layer[:, 1] - 1
+        nodes_idx = table_node_layer[:, 0] - 1
+        broadcast = np.full_like(first_layer_node_idx, max_layer_idx.max())
+        broadcast[nodes_idx] = max_layer_idx
+        return broadcast
+
+    def get_bottom_coupled_nodes(self, layers, node_indx) -> NDArray[Any]:
+        nlay, nrow, ncol = self.mf6.get_dis_shape(self.coupling.mf6_model)
+        userid = self.mf6_get_userid()
+        bottom_nodes = np.full(nlay * nrow * ncol, np.nan, dtype=np.float64)
+        bottom_nodes[userid - 1] = self.mf6.get_bot(self.coupling.mf6_model)
+        bottom_nodes = bottom_nodes.reshape((nlay, nrow * ncol))
+        return bottom_nodes[layers - 1, userid[node_indx] - 1]

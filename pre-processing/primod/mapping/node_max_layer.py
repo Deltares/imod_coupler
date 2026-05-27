@@ -1,6 +1,7 @@
 from pathlib import Path
 from typing import Any
 
+import imod
 import numpy as np
 import pandas as pd
 import xarray as xr
@@ -15,7 +16,13 @@ class ModMaxLayer:
         self._get_max_layer(mod_id, mf6_max_layer)
 
     def _get_max_layer(self, mod_id: xr.DataArray, mf6_max_layer: xr.DataArray) -> None:
-        id = mod_id.isel(subunit=0)
+        id = mod_id.max(dim="subunit")  # map to mf6 grid
+        imod.idf.save(
+            r"c:\werkmap\newton_testmodel\modif1.idf", mod_id.isel(subunit=0, drop=True)
+        )
+        imod.idf.save(
+            r"c:\werkmap\newton_testmodel\modif2.idf", mod_id.isel(subunit=1, drop=True)
+        )
         modid = id.where(id > 0).to_numpy().ravel()
         max_layer = mf6_max_layer.where(id > 0).to_numpy().ravel()
         self.dataset["mod_id"] = modid[np.isfinite(modid)].astype(dtype=np.int64)

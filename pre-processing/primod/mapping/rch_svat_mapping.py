@@ -1,3 +1,4 @@
+import imod
 import numpy as np
 import xarray as xr
 from imod import mf6
@@ -6,6 +7,8 @@ from numpy.typing import NDArray
 
 from primod.mapping.mappingbase import MetaModMapping
 from primod.typing import Int
+
+imod.mf6.AdaptiveTimeStepping
 
 
 class RechargeSvatMapping(MetaModMapping):

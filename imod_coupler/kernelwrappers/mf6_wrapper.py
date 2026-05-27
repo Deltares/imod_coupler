@@ -12,6 +12,7 @@ from xmipy import XmiWrapper
 
 class Mf6Wrapper(XmiWrapper):
     packages: dict[str, Mf6River | Mf6Drainage | Mf6Api] = {}
+    ats: ATSRetryController
 
     def __init__(
         self,
@@ -26,6 +27,9 @@ class Mf6Wrapper(XmiWrapper):
         mf6_head_tag = self.get_var_address("X", mf6_flowmodel_key)
         mf6_head = self.get_value_ptr(mf6_head_tag)
         return mf6_head
+
+    def set_ats_package(self) -> None:
+        self.ats = ATSRetryController(self)
 
     def set_api_packages(
         self, mf6_flowmodel_key: str, mf6_api_keys: Sequence[str]
@@ -56,6 +60,38 @@ class Mf6Wrapper(XmiWrapper):
     ) -> NDArray[np.float64]:
         wel_tag = self.get_var_address("Q", mf6_flowmodel_key, mf6_msw_recharge_pkg)
         return self.get_value_ptr(wel_tag)
+
+    def get_uzf_infiltration(
+        self, mf6_flowmodel_key: str, mf6_uzf_pkg: str
+    ) -> NDArray[np.float64]:
+        mf6_infiltration_tag = self.get_var_address(
+            "SINF_PVAR", mf6_flowmodel_key, mf6_uzf_pkg
+        )
+        return self.get_value_ptr(mf6_infiltration_tag)
+
+    def get_uzf_nodes(
+        self, mf6_flowmodel_key: str, mf6_uzf_pkg: str
+    ) -> NDArray[np.float64]:
+        mf6_infiltration_tag = self.get_var_address(
+            "NODELIST", mf6_flowmodel_key, mf6_uzf_pkg
+        )
+        return self.get_value_ptr(mf6_infiltration_tag)
+
+    def get_uzf_landflag(
+        self, mf6_flowmodel_key: str, mf6_uzf_pkg: str
+    ) -> NDArray[np.float64]:
+        mf6_infiltration_tag = self.get_var_address(
+            "LANDFLAG", mf6_flowmodel_key, mf6_uzf_pkg
+        )
+        return self.get_value_ptr(mf6_infiltration_tag)
+
+    def get_uzf_top(
+        self, mf6_flowmodel_key: str, mf6_uzf_pkg: str
+    ) -> NDArray[np.float64]:
+        mf6_infiltration_tag = self.get_var_address(
+            "CELTOP", mf6_flowmodel_key, mf6_uzf_pkg
+        )
+        return self.get_value_ptr(mf6_infiltration_tag)
 
     def get_recharge(
         self,
@@ -422,3 +458,174 @@ class Mf6Drainage(Mf6HeadBoundary):
         np.subtract(self.elevation, max_head, out=self.q_estimate)
         np.multiply(self.conductance, self.q_estimate, out=self.q_estimate)
         return self.q_estimate
+
+
+"""
+ATS retry logic for XMI-based MODFLOW 6 coupling.
+
+The XMI path (prepare_solve -> solve -> finalize_solve) bypasses the
+internal retry loop that exists in Mf6DoTimestep(). This module
+replicates that retry behavior in Python using BMI memory access to
+read ATS parameters and reset delt on non-convergence.
+
+Memory addresses used:
+  ATS/KPERATS   - array mapping stress periods to ATS record index (size NPER)
+  ATS/DTFAILADJ - failure adjustment factor per ATS record
+  ATS/DTMIN     - minimum time step per ATS record
+  TDIS/DELT     - current time step size
+  TDIS/KPER     - current stress period
+  TDIS/KSTP     - current time step number
+  SIM/ISIMCNVG  - simulation convergence flag
+"""
+
+
+
+class ATSRetryController:
+    """Implements ATS retry logic for XMI-based MODFLOW 6 coupling.
+
+    """
+
+    def __init__(self, mf6: XmiWrapper):
+        """Initialize with a reference to the XMI wrapper.
+
+        Args:
+            mf6: XMI wrapper object that provides get_value_ptr()
+                 for BMI memory access.
+        """
+        self.mf6 = mf6
+
+        # Get pointers to ATS arrays
+        self.kperats = mf6.get_value_ptr("ATS/KPERATS")  # int array (NPER)
+        self.dtfailadj = mf6.get_value_ptr("ATS/DTFAILADJ")  # float array (MAXATS)
+        self.dtmin = mf6.get_value_ptr("ATS/DTMIN")  # float array (MAXATS)
+
+        # Get pointers to TDIS scalars
+        self.delt = mf6.get_value_ptr("TDIS/DELT")  # float scalar
+        self.kper = mf6.get_value_ptr("TDIS/KPER")  # int scalar
+        self.kstp = mf6.get_value_ptr("TDIS/KSTP")  # int scalar
+
+        self.totim = self.mf6.get_value_ptr("TDIS/TOTIM")
+        self.totimsav = self.mf6.get_value_ptr("TDIS/TOTIMSAV")
+        self.pertim = self.mf6.get_value_ptr("TDIS/PERTIM")
+        self.pertimsav = self.mf6.get_value_ptr("TDIS/PERTIMSAV")
+
+        # Get pointers to end-of-period/simulation flags and period lengths
+        # These are needed by tdis_delt_reset logic
+        self.endofperiod = mf6.get_value_ptr("TDIS/ENDOFPERIOD") 
+        self.endofsimulation = mf6.get_value_ptr("TDIS/ENDOFSIMULATION")
+        self.perlen = mf6.get_value_ptr("TDIS/PERLEN")  # float array (NPER)
+        self.nper = mf6.get_value_ptr("TDIS/NPER")  # int scalar
+        self.totalsimtime = mf6.get_value_ptr("TDIS/TOTALSIMTIME")  # float scalar
+        self.nstp = mf6.get_value_ptr("TDIS/NSTP")  # int array (NPER)
+
+        # Convergence flag for the solution (equivalent to converge_reset)
+        self.icnvg = mf6.get_value_ptr("SLN_1/ICNVG")  # int scalar
+
+        # Fortran LOGICAL(4) convention: .TRUE. = -1, .FALSE. = 0
+        self.FORTRAN_TRUE = -1
+        self.FORTRAN_FALSE = 0
+
+        self._finished_trying = True
+        self._retry_count = 0
+
+    def _is_adaptive_period(self) -> bool:
+        """Check if current stress period has ATS active."""
+        kper = int(self.kper[0])  # 1-based in Fortran
+        if kper < 1 or kper > len(self.kperats):
+            return False
+        return self.kperats[kper - 1] > 0  # 0-based Python index
+
+    def _get_ats_index(self) -> int:
+        """Get the ATS record index for the current stress period (0-based)."""
+        kper = int(self.kper[0])
+        return self.kperats[kper - 1] - 1  # Fortran 1-based -> Python 0-based
+
+    def prepare(self) -> None:
+        """Call before the solve loop for each time step."""
+        self._finished_trying = True
+        self._retry_count = 0
+
+    def should_retry(self) -> bool:
+        """Check if the time step should be retried with a smaller delt.
+
+        Replicates the logic in ats_reset_delt() from src/Timing/ats.f90.
+
+        Returns:
+            True if a retry should be attempted (delt has been reduced).
+            False if giving up (not adaptive, or delt already at minimum).
+        """
+        if not self._is_adaptive_period():
+            return False
+
+        n = self._get_ats_index()
+        tsfact = self.dtfailadj[n]
+
+        if tsfact <= 1.0:
+            # No failure adjustment configured
+            return False
+
+        delt_new = self.delt[0] / tsfact
+        kper = int(self.kper[0])
+        kstp = int(self.kstp[0])
+
+        if delt_new < self.dtmin[n]:
+            # Would go below minimum time step - give up
+            print(
+                f"  Failed solution for step {kstp} and period {kper} "
+                f"new delt of {delt_new:.7E} below minimum of {self.dtmin[n]:.7E}; giving up"
+            )
+            return False
+
+        # Reduce delt
+        self.delt[0] = delt_new
+        self._finished_trying = False
+
+        print(
+            f"  Failed solution for step {kstp} and period {kper} "
+            f"will be retried using time step of {delt_new:.7E}"
+        )
+        return True
+
+    def retry(self) -> None:
+        """Reset MODFLOW state for a retry attempt.
+
+        This replicates what sim_step_retry() does in mf6core.f90:
+        1. ats_reset_delt: reduce delt (already done in should_retry)
+        2. tdis_delt_reset: update totim, pertim, endofperiod, endofsimulation
+        3. converge_reset: reset the simulation convergence flag
+
+        After calling this, the caller should re-run:
+          prepare_solve() -> solve() loop -> finalize_solve()
+        """
+        # The delt was already reduced in should_retry().
+        self._retry_count += 1
+
+        # --- Replicate tdis_delt_reset(deltnew) ---
+        # Update totim and pertim to match the new (reduced) delt
+        self.totim[0] = self.totimsav[0] + self.delt[0]
+        self.pertim[0] = self.pertimsav[0] + self.delt[0]
+
+        # Update end-of-period indicator
+        kper = int(self.kper[0])  # 1-based
+        self.endofperiod[0] = self.FORTRAN_FALSE
+
+        if self._is_adaptive_period():
+            # ats_set_endofperiod: end of period when pertim ≈ perlen
+            n = self._get_ats_index()
+            perlencurrent = self.perlen[kper - 1]
+            if abs(self.pertim[0] - perlencurrent) < self.dtmin[n]:
+                self.endofperiod[0] = self.FORTRAN_TRUE
+        else:
+            # Non-adaptive: end of period at last time step
+            if int(self.kstp[0]) == self.nstp[kper - 1]:
+                self.endofperiod[0] = self.FORTRAN_TRUE
+
+        # Update end-of-simulation indicator
+        if self.endofperiod[0] != self.FORTRAN_FALSE and kper == int(self.nper[0]):
+            self.endofsimulation[0] = self.FORTRAN_TRUE
+            self.totim[0] = self.totalsimtime[0]
+
+        # --- Replicate converge_reset() ---
+        # Reset the convergence flag so MODFLOW considers the solution
+        # unconverged and models know to restore their state
+        self.icnvg[0] = 1

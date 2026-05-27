@@ -10,6 +10,7 @@ import tomli
 import tomli_w
 from common_scripts.mf6_water_balance.combine import create_modflow_waterbalance_file
 from imod.mf6 import open_cbc, open_hds
+from imod.mf6.uzf import UnsaturatedZoneFlow
 from imod.msw.fixed_format import VariableMetaData, format_fixed_width
 from numpy.testing import assert_array_almost_equal
 from primod.metamod import MetaMod
@@ -135,6 +136,7 @@ def test_metamod_develop(
         modflow6_dll=modflow_dll_devel,
         metaswap_dll=metaswap_dll_devel,
         metaswap_dll_dependency=metaswap_dll_dep_dir_devel,
+        modflow6_write_kwargs={"binary": False, "validate": False},
     )
 
     dbot_active = metamod_model.mf6_simulation["GWF_1"].is_use_newton() & (
@@ -163,6 +165,21 @@ def test_metamod_develop(
                     content = format_fixed_width(row[index + 1], metadata)
                     file.write(content)
                 file.write("\n")
+        # if uzf-active
+        uzf_active = False
+        for package in metamod_model.mf6_simulation["GWF_1"].values():
+            if isinstance(package, UnsaturatedZoneFlow):
+                uzf_active = True
+                break
+        if uzf_active:
+            # add to coupler toml
+            with open(tmp_path_dev / "imod_coupler.toml", "rb") as f:
+                config = tomli.load(f)
+            # config["driver"]["coupling"][0]["mf6_msw_uzf_map"] = "./exchanges/uzfindex2svat.dxc"
+            config["driver"]["coupling"][0]["mf6_uzf_pkg"] = "uzf"
+            # Write the updated configuration back to the file
+            with open(tmp_path_dev / "imod_coupler.toml", "wb") as f:
+                tomli_w.dump(config, f)
 
     run_coupler_function(tmp_path_dev / metamod_model._toml_name)
 
@@ -321,7 +338,7 @@ def test_metamod_regression_balance_output(
 
 @parametrize_with_cases("metamod_ss,metamod_sc", prefix="cases_metamod_")
 def test_metamodel_storage_options(
-    metamod_ss: MetaMod,
+    *metamod_ss: MetaMod,
     metamod_sc: MetaMod,
     tmp_path: Path,
     metaswap_dll_devel: Path,
@@ -488,7 +505,7 @@ def test_newton_classes() -> None:
         saturation,
         recharge,
         recharge_nodelist,
-        max_layer[recharge_nodelist - 1],
+        max_layer,
     )
     recharge_org = np.copy(recharge)
     rch.set(recharge * 2)
@@ -505,6 +522,7 @@ def test_newton_classes() -> None:
     ).flatten()  # -1 to remove inactive second layer from internal array
     ss_org = np.copy(ss)
     coupled_nodes = np.array([1, 2, 3, 5, 6, 7, 9, 10, 11, 13, 14, 15]) - 1
+    top_layer_nodes = np.arange(nrow * ncol)
     # set storage pointers based on saturation
     sto = PhreaticStorage(
         (nlay, nrow, ncol),
@@ -512,10 +530,11 @@ def test_newton_classes() -> None:
         saturation,
         sy,
         ss,
+        top_layer_nodes,
+        max_layer,
         coupled_nodes,
-        max_layer[coupled_nodes],
     )
-    new_sy = np.full((coupled_nodes.size), fill_value=0.20)
+    new_sy = np.full((top_layer_nodes.size), fill_value=0.20)
     # coupled first layer, first three columns
     # should only updates the phreatic nodes underlying the coupled nodes
     sto.set(new_sy)
@@ -560,11 +579,11 @@ def test_newton_classes() -> None:
         userid,
         saturation,
         heads,
-        coupled_nodes,
-        max_layer[coupled_nodes],
+        top_layer_nodes,  # coupled_nodes,
+        max_layer,
     )
     phreatic_heads = hds.get()
-    assert (phreatic_heads == heads[phreatic_nodes]).all()
+    assert (phreatic_heads[coupled_nodes] == heads[phreatic_nodes]).all()
 
 
 def test_coupled_newton_classes() -> None:
@@ -609,7 +628,7 @@ def test_coupled_newton_classes() -> None:
         ptr_saturation=saturation,
         ptr_recharge=recharge_mf6,
         ptr_recharge_nodelist=recharge_mf6_nodelist,
-        max_layer=max_layer[recharge_mf6_nodelist - 1],
+        max_layer=max_layer,
         coupling=MemoryExchange(
             recharge_msw,
             recharge_mf6,
@@ -628,7 +647,7 @@ def test_coupled_newton_classes() -> None:
     sy_mf6 = np.full(
         (nlay - 1, nrow, ncol), fill_value=0.15
     ).flatten()  # -1 to remove inactive second layer from internal array
-    sy_mf6_subset_top_layers = sy_mf6[: nrow * ncol]
+    sy_mf6_subset_top_layers = np.zeros(ncol * nrow)
     sy_msw = np.full((nrow, ncol), fill_value=0.2).flatten()
     sy_mf6_org = np.copy(sy_mf6)
     ss_mf6 = np.full(
@@ -637,20 +656,22 @@ def test_coupled_newton_classes() -> None:
     ss_mf6_org = np.copy(ss_mf6)
     coupled_nodes = (
         np.array([1, 2, 3, 5, 6, 7, 9, 10, 11, 13, 14, 15]) - 1
-    )  # zero based
+    )  # zero based, no coupling to first column
+    top_layer_nodes = np.arange(nrow * ncol)
     sto = CoupledPhreaticStorage(
         shape=(nlay, nrow, ncol),
         userid=userid,
         ptr_saturation=saturation,
         ptr_storage_sy=sy_mf6,
         ptr_storage_ss=ss_mf6,
-        active_top_layer_nodes=coupled_nodes,
-        max_layer=max_layer[coupled_nodes],
+        active_top_layer_nodes=top_layer_nodes,
+        coupled_top_layer_nodes=coupled_nodes,
+        max_layer=max_layer,
         coupling=MemoryExchange(
             sy_msw,
-            sy_mf6_subset_top_layers[coupled_nodes],
+            sy_mf6_subset_top_layers,
             coupled_nodes,
-            np.arange(coupled_nodes.size),
+            coupled_nodes,
             ExchangeCollector(),
             "sy",
             exchange_operator="avg",
@@ -701,12 +722,12 @@ def test_coupled_newton_classes() -> None:
         userid=userid,
         ptr_saturation=saturation,
         ptr_heads=heads_mf6,
-        active_top_layer_nodes=coupled_nodes,
-        max_layer=max_layer[coupled_nodes],
+        active_top_layer_nodes=top_layer_nodes,
+        max_layer=max_layer[top_layer_nodes],
         coupling=MemoryExchange(
-            heads_mf6[coupled_nodes],
+            np.zeros(ncol * nrow),
             heads_msw,
-            np.arange(coupled_nodes.size),
+            coupled_nodes,
             coupled_nodes,
             ExchangeCollector(),
             "heads",

@@ -130,7 +130,9 @@ class MetaModDriverCoupling(DriverCoupling):
 
         max_layer = None
         if self.mf6_max_layer is not None:
-            max_layer = ModMaxLayer(grid_mapping["mod_id"], self.mf6_max_layer)
+            max_layer = ModMaxLayer(
+                grid_mapping["mod_id"].where(svat > 0), self.mf6_max_layer
+            )
 
         recharge = gwf_model[self.mf6_recharge_package]
 

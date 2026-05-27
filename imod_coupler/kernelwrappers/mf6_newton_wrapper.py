@@ -3,6 +3,8 @@ from typing import Any, cast
 import numpy as np
 from numpy.typing import NDArray
 
+eps = 0.0
+
 
 class ExpandArray:
     """
@@ -135,12 +137,14 @@ class PhreaticModelArray:
         ptr_variable: NDArray[Any],
         node_idx: NDArray[Any],
         max_layer_idx: NDArray[np.int32],
+        coupled_idx: NDArray[Any] | None = None,  # zero based
     ) -> None:
         self.nlay, self.nrow, self.ncol = shape
         self.variable = ExpandArray(shape, userid, ptr_variable)
         self.saturation = ExpandArray(shape, userid, ptr_saturation)
         self.initialised = False
         self.node_idx = node_idx
+        self.coupled_idx = coupled_idx
         self.max_layer_idx = max_layer_idx
 
     def _ensure_user_indices(self) -> None:
@@ -165,7 +169,13 @@ class PhreaticModelArray:
         Args:
             new_values (NDArray[Any]): new values at nodes selection
         """
-        self.variable.reduced[self.phreatic_reduced_idx] = new_values
+        if self.coupled_idx is None:
+            raise ValueError(
+                "coupled_idx should be provided to set values at phreatic nodes"
+            )
+        self.variable.reduced[self.phreatic_reduced_idx[self.coupled_idx]] = new_values[
+            self.coupled_idx
+        ]
 
     def get_at_phreatic(self) -> NDArray[Any]:
         """
@@ -188,7 +198,7 @@ class PhreaticModelArray:
         # TODO: use max layer from input in case of dry columns?
         self._ensure_user_indices()
         phreatic_layer: NDArray[np.int32] = (
-            np.argmax(self.saturation.to_full_3d() > 0, axis=0)
+            np.argmax(self.saturation.to_full_3d() > eps, axis=0)
             .astype(np.int32)
             .flatten()[self.node_idx]
         )
@@ -261,6 +271,8 @@ class PhreaticBCArray:
             ]
             self.initial_nodes_idx = np.copy(self.nodes_idx)
             self.initialised = True
+            # update max_layer_idx to subset
+            self.max_layer_idx = self.max_layer_idx[self.initial_nodes_idx]
 
     def set_at_phreatic(self, new_values: NDArray[Any]) -> None:
         # the variable values does not need to be mapped, since the nodelist points to the phreatic nodes
@@ -274,7 +286,7 @@ class PhreaticBCArray:
         # self._ensure_user_indices()
         # use initial_nodes since self.nodes is updated by set_ptr method
         phreatic_layer: NDArray[np.int32] = (
-            np.argmax(self.saturation.to_full_3d() > 0, axis=0)
+            np.argmax(self.saturation.to_full_3d() > eps, axis=0)
             .astype(np.int32)
             .flatten()[self.variable.userid[self.initial_nodes_idx]]
         )
@@ -321,6 +333,7 @@ class PhreaticStorage:
         ptr_storage_ss: NDArray[Any],
         active_top_layer_node_idx: NDArray[Any],
         max_layer: NDArray[np.int32],
+        coupled_top_layer_nodes: NDArray[Any],  # zero based index array
     ) -> None:
         self.zeros = np.zeros(active_top_layer_node_idx.size)
         self.initial_sy = np.copy(ptr_storage_sy)
@@ -332,6 +345,7 @@ class PhreaticStorage:
             ptr_storage_sy,
             active_top_layer_node_idx,
             max_layer,
+            coupled_top_layer_nodes,
         )
         self.ss = PhreaticModelArray(
             shape,
@@ -340,6 +354,7 @@ class PhreaticStorage:
             ptr_storage_ss,
             active_top_layer_node_idx,
             max_layer,
+            coupled_top_layer_nodes,
         )
 
     def reset(self) -> None:
