@@ -1,3 +1,4 @@
+import pytest
 from imod.mf6 import Modflow6Simulation
 from imod.msw import CouplerMapping, MetaSwapModel
 from imod.msw.fixed_format import VariableMetaData
@@ -192,6 +193,9 @@ def cases_metamod_sprinkling(
     return metamod_ss, metamod_sc
 
 
+@pytest.mark.skip(
+    reason="fails silently since bugfix for convergence check in release 6.6.3"
+)
 def case_newton(
     coupled_mf6_model_newton: Modflow6Simulation,
     prepared_msw_model_newton: MetaSwapModel,
