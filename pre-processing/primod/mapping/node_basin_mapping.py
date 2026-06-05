@@ -209,7 +209,8 @@ def add_subgrid_index(subgrid_df: pd.DataFrame) -> pd.DataFrame:
     # subgrid_id is an ordered label; the index is the zero based position in the ordered array
     subgrid_df = subgrid_df.copy()
     _, unique_index = np.unique(subgrid_df["subgrid_id"], return_index=True)
-    subgrid_index = np.argsort(subgrid_df["subgrid_id"][unique_index])
-    subgrid_df["subgrid_index"] = np.full_like(subgrid_df["subgrid_id"], -1)
-    subgrid_df["subgrid_index"][unique_index] = subgrid_index
+    subgrid_index = np.argsort(subgrid_df["subgrid_id"].iloc[unique_index])
+    values = np.full_like(subgrid_df["subgrid_id"], -1)
+    values[unique_index] = subgrid_index
+    subgrid_df["subgrid_index"] = values
     return subgrid_df
