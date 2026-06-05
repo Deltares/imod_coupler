@@ -803,6 +803,11 @@ def test_ribametamod_two_basin_sprinkling_sw(
     assert bool(mf6head.isel(time=-1, layer=0).diff("x").all())
 
 
+@pytest.mark.xfail(
+    reason="Ribasim v2026.1.1 allocation solver infeasibility bug, fixed in v2026.1.2",
+    raises=Exception,
+    strict=True,
+)
 @pytest.mark.xdist_group(name="ribasim")
 @parametrize_with_cases(
     "ribametamod_model", glob="two_basin_model_sprinkling_sw_allocation"
@@ -840,6 +845,11 @@ def test_ribametamod_two_basin_sprinkling_sw_allocation(
     assert_results(tmp_path_dev, ribametamod_model, results)
 
 
+@pytest.mark.xfail(
+    reason="Ribasim v2026.1.1 allocation solver infeasibility bug, fixed in v2026.1.2",
+    raises=Exception,
+    strict=True,
+)
 @pytest.mark.xdist_group(name="ribasim")
 @parametrize_with_cases(
     "ribametamod_model", glob="two_basin_model_sprinkling_sw_allocation_dtsw_05"
