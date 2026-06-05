@@ -198,9 +198,8 @@ def two_basin_model_sprinkling_sw_variations(
     ribasim_two_basin_model = add_water_users(ribasim_two_basin_model)
 
     # increase initial stage second basin, to be able to extract irrigation water.
-    ribasim_two_basin_model.basin.state.df["level"].loc[
-        ribasim_two_basin_model.basin.node.df.index == 3
-    ] = 8.0
+    mask = ribasim_two_basin_model.basin.node.df.index == 3
+    ribasim_two_basin_model.basin.state.df.loc[mask, "level"] = 8.0
     ribasim_two_basin_model.basin.profile.df.loc[4] = [2, 400.0, 3000.0, None]
     ribasim_two_basin_model.basin.profile.df.loc[5] = [3, 400.0, 3000.0, None]
     new_df = pd.DataFrame(
@@ -214,8 +213,8 @@ def two_basin_model_sprinkling_sw_variations(
     new_df.index.name = "fid"
     ribasim_two_basin_model.tabulated_rating_curve.static.df = new_df
 
-    # increase inflow rate first basinto be able to extract irrigation water
-    ribasim_two_basin_model.flow_boundary.static.df["flow_rate"][0] = 0.05
+    # increase inflow rate first basin to be able to extract irrigation water
+    ribasim_two_basin_model.flow_boundary.static.df.loc[0, "flow_rate"] = 0.05
 
     # increase river resistance so basins don't run dry
     cond = mf6_two_basin_model_3layer[mf6_modelname][
@@ -490,7 +489,7 @@ def case_two_basin_model_dtgw_2(
         mf6_two_basin_model["GWF_1"]["riv_1"]["conductance"] / 10
     )
     # update delt-gw for MODFLOW and MetaSWAP
-    times = pd.date_range("2020-01-01", "2021-01-01", freq="2d")
+    times = pd.date_range("2020-01-01", "2021-01-01", freq="2D")
     mf6_two_basin_model.create_time_discretization(additional_times=times)
     msw_two_basin_model.simulation_settings["dtgw"] = 2.0
 
@@ -543,7 +542,7 @@ def case_two_basin_model_dtgw_2_dtsw_05(
         mf6_two_basin_model["GWF_1"]["riv_1"]["conductance"] / 10
     )
     # update delt-gw for MODFLOW and MetaSWAP
-    times = pd.date_range("2020-01-01", "2021-01-01", freq="2d")
+    times = pd.date_range("2020-01-01", "2021-01-01", freq="2D")
     mf6_two_basin_model.create_time_discretization(additional_times=times)
     msw_two_basin_model.simulation_settings["dtgw"] = 2.0
     # update delt-sw for MetaSWAP
