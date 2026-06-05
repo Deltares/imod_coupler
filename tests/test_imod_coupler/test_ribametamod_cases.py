@@ -650,7 +650,7 @@ def case_two_basin_model_sprinkling_sw_allocation(
         msw_two_basin_model_3layer,
         ribasim_two_basin_model,
     )
-    ribametamod.ribasim_model.allocation = ribasim.Allocation(timestep=86400.0)
+    ribametamod.ribasim_model.allocation = ribasim.Allocation(dt=86400.0)
     ribametamod.ribasim_model.experimental.allocation = True
     return ribametamod
 
@@ -665,7 +665,7 @@ def case_two_basin_model_sprinkling_sw_allocation_dtsw_05(
         msw_two_basin_model_3layer,
         ribasim_two_basin_model,
     )
-    ribametamod.ribasim_model.allocation = ribasim.Allocation(timestep=86400.0)
+    ribametamod.ribasim_model.allocation = ribasim.Allocation(dt=86400.0)
     ribametamod.ribasim_model.experimental.allocation = False
     # update delt-sw for MetaSWAP
     ribametamod.msw_model.simulation_settings["dtsw"] = 0.5
