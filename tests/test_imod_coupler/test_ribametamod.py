@@ -845,7 +845,7 @@ def test_ribametamod_two_basin_sprinkling_sw_allocation(
     assert_results(tmp_path_dev, ribametamod_model, results)
 
 
-@pytest.mark.xfail(
+@pytest.mark.skip(
     reason="Ribasim v2026.1.1 allocation solver infeasibility bug, fixed in v2026.1.2",
     raises=Exception,
     strict=True,
