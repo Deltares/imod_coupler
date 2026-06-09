@@ -449,23 +449,12 @@ def add_continue_to_mfsim_nam(mfsim_path: Path) -> None:
     content = mfsim_path.read_text()
     lines = content.splitlines(keepends=True)
 
-    # Check if OPTIONS block already exists
-    begin_idx = next(
-        (i for i, line in enumerate(lines) if line.strip().upper() == "BEGIN OPTIONS"),
-        None,
-    )
-    if begin_idx is not None:
-        # Insert CONTINUE after BEGIN OPTIONS if not already present
-        end_idx = next(
-            i
-            for i, line in enumerate(lines[begin_idx:], start=begin_idx)
-            if line.strip().upper() == "END OPTIONS"
-        )
-        block = [line.strip().upper() for line in lines[begin_idx + 1 : end_idx]]
-        if "CONTINUE" not in block:
-            lines.insert(begin_idx + 1, "  CONTINUE\n")
-    else:
-        raise ValueError("MFSIM name file is corrupted, no OPTIONS block found")
+    begin_idx = [line.strip().upper() for line in lines].index("BEGIN OPTIONS")
+    end_idx = [line.strip().upper() for line in lines].index("END OPTIONS", begin_idx)
+    block = [line.strip().upper() for line in lines[begin_idx + 1 : end_idx]]
+
+    if "CONTINUE" not in block:
+        lines.insert(begin_idx + 1, "  CONTINUE\n")
 
     mfsim_path.write_text("".join(lines))
 
