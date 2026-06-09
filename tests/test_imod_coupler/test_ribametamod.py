@@ -803,7 +803,7 @@ def test_ribametamod_two_basin_sprinkling_sw(
     assert bool(mf6head.isel(time=-1, layer=0).diff("x").all())
 
 
-@pytest.mark.xfail(
+@pytest.mark.skip(
     reason="Ribasim v2026.1.1 allocation solver infeasibility bug, fixed in v2026.1.2",
     raises=Exception,
     strict=True,
