@@ -1,4 +1,4 @@
-import multiprocessing
+import concurrent
 import subprocess
 import sys
 from collections.abc import Callable
@@ -26,11 +26,19 @@ def run_coupler_function(imod_coupler_exec_devel: Path) -> Callable[[Path], None
         def run_coupler_debug(file: Path) -> None:
             # Start the coupler in a separate process. This avoids dll unloading issues
             # when the dll crashes.
-            p = multiprocessing.Process(target=_run_coupler_worker, args=(file,))
-            p.start()
-            p.join()
-            if p.exitcode != 0:
-                raise subprocess.CalledProcessError(p.exitcode, "run_coupler")
+            executor = concurrent.futures.ProcessPoolExecutor(max_workers=1)
+            try:
+                future = executor.submit(_run_coupler_worker, file)
+                future.result()
+            except Exception as e:
+                raise subprocess.CalledProcessError(
+                    returncode=1,
+                    cmd=[str(run_coupler), str(file)],
+                    output=None,
+                    stderr=e.args[0],
+                )
+            finally:
+                executor.shutdown(wait=False)
 
         return run_coupler_debug
     else:
