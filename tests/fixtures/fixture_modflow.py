@@ -135,8 +135,7 @@ def make_coupled_mf6_model_newton(idomain: xr.DataArray) -> mf6.Modflow6Simulati
     simulation["solver"].dataset["outer_dvclose"] = 1e-4
     simulation["solver"].dataset["inner_dvclose"] = 1e-5
     simulation["solver"].dataset["outer_maximum"] = 500
-    # don't use backtracking since we update parameters in outer iteration
-    simulation["solver"].dataset["backtracking_number"] = 0
+    simulation["solver"].dataset["backtracking_number"] = 20
     return simulation
 
 
