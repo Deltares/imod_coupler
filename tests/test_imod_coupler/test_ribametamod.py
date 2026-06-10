@@ -805,8 +805,6 @@ def test_ribametamod_two_basin_sprinkling_sw(
 
 @pytest.mark.skip(
     reason="Ribasim v2026.1.1 allocation solver infeasibility bug, fixed in v2026.1.2",
-    raises=Exception,
-    strict=True,
 )
 @pytest.mark.xdist_group(name="ribasim")
 @parametrize_with_cases(
@@ -847,8 +845,6 @@ def test_ribametamod_two_basin_sprinkling_sw_allocation(
 
 @pytest.mark.skip(
     reason="Ribasim v2026.1.1 allocation solver infeasibility bug, fixed in v2026.1.2",
-    raises=Exception,
-    strict=True,
 )
 @pytest.mark.xdist_group(name="ribasim")
 @parametrize_with_cases(
