@@ -459,12 +459,22 @@ def write_run_read(
     exchange_budget = exchange_budgets.get_results()
 
     # Read Ribasim output
-    basin_df = pd.read_feather(
-        tmp_path / ribametamod_model._ribasim_model_dir / "results" / "basin.arrow"
+    basin_df = (
+        xr.open_dataset(
+            tmp_path / ribametamod_model._ribasim_model_dir / "results" / "basin.nc"
+        )
+        .to_dataframe()
+        .reset_index()
     )
-    file = tmp_path / ribametamod_model._ribasim_model_dir / "results" / "flow.arrow"
-    if file.is_file():
-        flow_df = pd.read_feather(file)
+
+    if not ribametamod_model.ribasim_model.link.df.empty:
+        flow_df = (
+            xr.open_dataset(
+                tmp_path / ribametamod_model._ribasim_model_dir / "results" / "flow.nc"
+            )
+            .to_dataframe()
+            .reset_index()
+        )
     else:
         flow_df = None
 
@@ -793,6 +803,9 @@ def test_ribametamod_two_basin_sprinkling_sw(
     assert bool(mf6head.isel(time=-1, layer=0).diff("x").all())
 
 
+@pytest.mark.skip(
+    reason="Ribasim v2026.1.1 allocation solver infeasibility bug, fixed in v2026.1.2",
+)
 @pytest.mark.xdist_group(name="ribasim")
 @parametrize_with_cases(
     "ribametamod_model", glob="two_basin_model_sprinkling_sw_allocation"
@@ -830,6 +843,9 @@ def test_ribametamod_two_basin_sprinkling_sw_allocation(
     assert_results(tmp_path_dev, ribametamod_model, results)
 
 
+@pytest.mark.skip(
+    reason="Ribasim v2026.1.1 allocation solver infeasibility bug, fixed in v2026.1.2",
+)
 @pytest.mark.xdist_group(name="ribasim")
 @parametrize_with_cases(
     "ribametamod_model", glob="two_basin_model_sprinkling_sw_allocation_dtsw_05"

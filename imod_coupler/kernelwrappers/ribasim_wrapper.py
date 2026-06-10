@@ -1,4 +1,3 @@
-from ctypes import byref, c_int, create_string_buffer
 from os import PathLike
 from typing import Any
 
@@ -11,34 +10,13 @@ class RibasimWrapper(XmiWrapper):
     drainage_infiltration: NDArray[np.float64]
     drainage: NDArray[np.float64]
     infiltration: NDArray[np.float64]
-    _julia_initialised: bool = False
-    _in_del: bool = False
 
     def initialize(self, config_file: str | PathLike[Any] = "") -> None:
-        self.initialize_julia()
         super().initialize(config_file)
         self.set_infiltration_drainage_array()
 
     def finalize(self) -> None:
         super().finalize()
-        if not self._in_del:
-            self.finalize_julia()
-
-    def initialize_julia(self) -> None:
-        if not RibasimWrapper._julia_initialised:
-            argument = create_string_buffer(0)
-            self.lib.init_julia(c_int(0), byref(argument))
-            RibasimWrapper._julia_initialised = True
-
-    def finalize_julia(self) -> None:
-        if RibasimWrapper._julia_initialised:
-            self.lib.shutdown_julia(c_int(0))
-            RibasimWrapper._julia_initialised = False
-
-    def __del__(self) -> None:
-        # this will call finalize without the Julia shutdown
-        self._in_del = True
-        super().__del__()
 
     def get_constant_int(self, name: str) -> int:
         match name:

@@ -276,13 +276,14 @@ def test_nullify_on_write(
     )
     # check if columns will be nullified correctly
     node_id = coupled_models.ribasim_model.basin.node.df.index.to_numpy()
-    df = pd.DataFrame.from_dict(
+    df = pd.DataFrame(
         {
-            "fid": node_id,
-            "drainage": np.ones_like(node_id),
-            "infiltration": np.ones_like(node_id),
+            "node_id": node_id,
+            "drainage": np.ones_like(node_id, dtype=float),
+            "infiltration": np.ones_like(node_id, dtype=float),
         }
-    ).set_index("fid")
+    )
+    df.index.name = "fid"
     coupled_models.ribasim_model.basin.static.df = df
     coupled_models.write(
         directory=tmp_path,

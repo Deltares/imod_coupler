@@ -86,7 +86,6 @@ class RibaMetaMod(Driver):
                 lib_dependency=self.ribametamod_config.kernels.ribasim.dll_dep_dir,
                 timing=self.base_config.timing,
             )
-            self.ribasim.initialize_julia()  # only once per session
             self.has_ribasim = True
         else:
             self.has_ribasim = False

@@ -24,18 +24,18 @@ tomli = "*"
 tomli-w = "*"
 xmipy = "*"
 imod = "=1.0.0.post1"
-ribasim = "=2025.6.0"
+ribasim = "=2026.1.1"
 
 [pypi-dependencies]
-ribasim_testmodels = { git = "https://github.com/Deltares/Ribasim.git", tag = "v2025.6.0", subdirectory = "python/ribasim_testmodels" }
-ribasim_api = { git = "https://github.com/Deltares/Ribasim.git", tag = "v2025.6.0", subdirectory = "python/ribasim_api" }
+ribasim_testmodels = { git = "https://github.com/Deltares/Ribasim.git", tag = "v2026.1.1", subdirectory = "python/ribasim_testmodels" }
 imod_coupler = { path = ".", editable = true }
 primod = { path = "pre-processing", editable = true }
 pyinstaller = "*" # Use pypi version instead of condforge due to issues with the AV
+ribasim = "==2026.1.1"
 
 [feature.common.tasks]
 # Install
-install-ribasim = { cmd = "python scripts/download_ribasim.py 2025.6.0 ./.imod_collector/develop/ribasim", cwd="." }
+install-ribasim = { cmd = "python scripts/download_ribasim.py 2026.1.1 ./.imod_collector/develop/ribasim", cwd="." }
 install-modflow = { cmd = "python scripts/download_modflow.py 6.7.0 ./.imod_collector/develop/modflow6", cwd="." }
 install-metaswap = "aws s3 cp s3://metaswap/releases/r2410 ./.imod_collector/develop/metaswap --recursive --no-sign-request --endpoint-url https://s3.deltares.nl --no-verify-ssl"
 install-metaswap-test-db = "aws s3 cp s3://metaswap/db/LHM2016_v01vrz ./.imod_collector/LHM2016_v01vrz --recursive --no-sign-request --endpoint-url https://s3.deltares.nl --no-verify-ssl"
@@ -57,8 +57,8 @@ jupyterlab = "*"
 mypy = "*"
 pytest = "*"
 pytest-cases = "*"
-pytest-dotenv = "*"
 pytest-xdist = "*"
+python-dotenv = "*"
 ruff = "*"
 tqdm = "*"
 twine = "*"

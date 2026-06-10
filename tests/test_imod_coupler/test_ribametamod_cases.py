@@ -94,10 +94,11 @@ def remove_sprinkling_from_groundwater(msw_model: MetaSwapModel) -> MetaSwapMode
 
 def add_water_users(ribasim_model: ribasim.Model) -> ribasim.Model:
     # add subnetwork id to basins
-    ribasim_model.basin.node.df["subnetwork_id"][2] = 2
-    ribasim_model.basin.node.df["subnetwork_id"][3] = 3
-    ribasim_model.terminal.node.df["subnetwork_id"][1] = 3
-    ribasim_model.flow_boundary.node.df["subnetwork_id"][1] = 2
+    ribasim_model.node.df.loc[1, "subnetwork_id"] = 2  # flow boundary
+    ribasim_model.node.df.loc[2, "subnetwork_id"] = 2  # left basin
+    ribasim_model.node.df.loc[3, "subnetwork_id"] = 3  # right basin
+    ribasim_model.node.df.loc[4, "subnetwork_id"] = 3  # tabulated rating curve
+    ribasim_model.node.df.loc[5, "subnetwork_id"] = 3  # terminal
 
     # Add waterusers to model; basin 2
     ribasim_model.user_demand.add(
@@ -105,7 +106,6 @@ def add_water_users(ribasim_model: ribasim.Model) -> ribasim.Model:
         [
             user_demand.Static(  # type: ignore
                 demand=[1.0],
-                active=True,
                 return_factor=[0.0],
                 min_level=[-999.0],
                 demand_priority=[2],
@@ -117,7 +117,6 @@ def add_water_users(ribasim_model: ribasim.Model) -> ribasim.Model:
         [
             user_demand.Static(  # type: ignore
                 demand=[0.00001, 0.00002],
-                active=True,
                 return_factor=[0.0, 0.0],
                 min_level=[-999.0, -999.0],
                 demand_priority=[4, 8],
@@ -130,7 +129,6 @@ def add_water_users(ribasim_model: ribasim.Model) -> ribasim.Model:
         [
             user_demand.Static(  # type: ignore
                 demand=[1.0],
-                active=True,
                 return_factor=[0.0],
                 min_level=[-999.0],
                 demand_priority=[3],
@@ -200,15 +198,13 @@ def two_basin_model_sprinkling_sw_variations(
     ribasim_two_basin_model = add_water_users(ribasim_two_basin_model)
 
     # increase initial stage second basin, to be able to extract irrigation water.
-    ribasim_two_basin_model.basin.state.df["level"].loc[
-        ribasim_two_basin_model.basin.node.df.index == 3
-    ] = 8.0
+    mask = ribasim_two_basin_model.basin.node.df.index == 3
+    ribasim_two_basin_model.basin.state.df.loc[mask, "level"] = 8.0
     ribasim_two_basin_model.basin.profile.df.loc[4] = [2, 400.0, 3000.0, None]
     ribasim_two_basin_model.basin.profile.df.loc[5] = [3, 400.0, 3000.0, None]
     new_df = pd.DataFrame(
         {
             "node_id": np.array([4] * 3),
-            "active": np.array([pd.NA] * 3),
             "level": np.array([0, 3.0, 6.0]),
             "flow_rate": np.array([0.0, 0.0, 0.000000001]),
             "control_state": [None, None, None],
@@ -217,8 +213,8 @@ def two_basin_model_sprinkling_sw_variations(
     new_df.index.name = "fid"
     ribasim_two_basin_model.tabulated_rating_curve.static.df = new_df
 
-    # increase inflow rate first basinto be able to extract irrigation water
-    ribasim_two_basin_model.flow_boundary.static.df["flow_rate"][0] = 0.05
+    # increase inflow rate first basin to be able to extract irrigation water
+    ribasim_two_basin_model.flow_boundary.static.df.loc[0, "flow_rate"] = 0.05
 
     # increase river resistance so basins don't run dry
     cond = mf6_two_basin_model_3layer[mf6_modelname][
@@ -493,7 +489,7 @@ def case_two_basin_model_dtgw_2(
         mf6_two_basin_model["GWF_1"]["riv_1"]["conductance"] / 10
     )
     # update delt-gw for MODFLOW and MetaSWAP
-    times = pd.date_range("2020-01-01", "2021-01-01", freq="2d")
+    times = pd.date_range("2020-01-01", "2021-01-01", freq="2D")
     mf6_two_basin_model.create_time_discretization(additional_times=times)
     msw_two_basin_model.simulation_settings["dtgw"] = 2.0
 
@@ -546,7 +542,7 @@ def case_two_basin_model_dtgw_2_dtsw_05(
         mf6_two_basin_model["GWF_1"]["riv_1"]["conductance"] / 10
     )
     # update delt-gw for MODFLOW and MetaSWAP
-    times = pd.date_range("2020-01-01", "2021-01-01", freq="2d")
+    times = pd.date_range("2020-01-01", "2021-01-01", freq="2D")
     mf6_two_basin_model.create_time_discretization(additional_times=times)
     msw_two_basin_model.simulation_settings["dtgw"] = 2.0
     # update delt-sw for MetaSWAP
@@ -654,7 +650,7 @@ def case_two_basin_model_sprinkling_sw_allocation(
         msw_two_basin_model_3layer,
         ribasim_two_basin_model,
     )
-    ribametamod.ribasim_model.allocation = ribasim.Allocation(timestep=86400.0)
+    ribametamod.ribasim_model.allocation = ribasim.Allocation(dt=86400.0)
     ribametamod.ribasim_model.experimental.allocation = True
     return ribametamod
 
@@ -669,7 +665,7 @@ def case_two_basin_model_sprinkling_sw_allocation_dtsw_05(
         msw_two_basin_model_3layer,
         ribasim_two_basin_model,
     )
-    ribametamod.ribasim_model.allocation = ribasim.Allocation(timestep=86400.0)
+    ribametamod.ribasim_model.allocation = ribasim.Allocation(dt=86400.0)
     ribametamod.ribasim_model.experimental.allocation = False
     # update delt-sw for MetaSWAP
     ribametamod.msw_model.simulation_settings["dtsw"] = 0.5

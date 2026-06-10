@@ -226,7 +226,7 @@ class RibaModActiveDriverCoupling(RibaModDriverCoupling):
             )
         self.subgrid_df = pd.concat([sgrid_df, sgrid_time_df], ignore_index=True)
         if "time" in self.subgrid_df.columns:
-            self.subgrid_df = self.subgrid_df.drop(columns=["time"], axis=1)
+            self.subgrid_df = self.subgrid_df.drop(columns=["time"])
         self.subgrid_df.index.names = ["fid"]
 
     def derive_mapping(

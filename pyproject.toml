@@ -24,7 +24,6 @@ dependencies = [
     "loguru",
     "numpy",
     "pydantic",
-    "ribasim_api",
     "scipy",
     "tomli-w",
     "tomli",

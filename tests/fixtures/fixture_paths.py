@@ -1,7 +1,6 @@
 import os
 from pathlib import Path
 
-import dotenv
 import pytest
 from pytest import FixtureRequest
 
@@ -18,11 +17,6 @@ def tmp_path_reg(
     tmp_path: Path,
 ) -> Path:
     return tmp_path / "regression"
-
-
-@pytest.fixture(scope="session", autouse=True)
-def load_dotenv() -> None:
-    dotenv.load_dotenv()
 
 
 @pytest.fixture(scope="session")

@@ -1,3 +1,10 @@
+from dotenv import load_dotenv
+
+
+def pytest_configure(config: object) -> None:
+    load_dotenv(override=True)
+
+
 pytest_plugins = [
     "fixtures.fixture_fixed_format_parser",
     "fixtures.fixture_ribasim",
