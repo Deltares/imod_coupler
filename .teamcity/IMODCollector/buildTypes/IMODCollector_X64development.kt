@@ -44,7 +44,7 @@ object IMODCollector_X64development : BuildType({
             name = "Get coupler dependencies"
             workingDir = "coupler"
             scriptContent = """
-                pixi run -e dev install-imod-collector
+                pixi run -e dev fetch-imod-collector
             """.trimIndent()
         }
         script {
