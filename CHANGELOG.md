@@ -12,7 +12,7 @@ All notable changes to this project will be documented in this file.
 
 ### Removed
 
-## [v2026.1.0]
+## [v2026.6.0]
 
 ### Added
 - Add continue logic for non-converging coupled simulations: when MODFLOW 6
