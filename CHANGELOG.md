@@ -12,6 +12,31 @@ All notable changes to this project will be documented in this file.
 
 ### Removed
 
+## [v2026.6.0]
+
+### Added
+- Add continue logic for non-converging coupled simulations: when MODFLOW 6
+  `CONTINUE` is set in `mfsim.nam`, the coupler logs a warning instead of
+  raising an error on non-convergence
+- Add user acceptance test to CI pipeline
+- Add SonarQube buildstep to TeamCity pipeline
+- Add Deploy pipeline to TeamCity (PyPI publishing and GitHub releases)
+- Add pixi update build to TeamCity
+
+### Fixed
+- Fix silent crash when encountered an exception during unit tetst
+- Fix exchange logger not being closed after ribametamod run, causing file
+  lock errors on Windows
+
+### Changed
+- Update Ribasim to version v2026.1.1
+- Update MetaSWAP to version v9.0
+- Update MODFLOW6 to version 6.7.0
+- Rename `install-*` tasks to `fetch-*` in `pixi.toml` to better reflect
+  that these tasks download binaries rather than install packages
+- Rename `install-test-dependencies` to `setup-test-dependencies`
+
+
 ## [v2025.11.0]
 
 ### Changed

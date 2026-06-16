@@ -32,10 +32,10 @@ To develop `imod_coupler` locally:
    pixi install -e dev
    ```
 
-4. Install the test dependencies:
+4. Setup the test dependencies:
 
    ```sh
-   pixi run -e dev install-test-dependencies
+   pixi run -e dev setup-test-dependencies
    ```
 
    This command:

@@ -491,6 +491,7 @@ class RibaMetaMod(Driver):
             self.ribasim.finalize()
         for coupling in self.couplings.values():
             coupling.finalize_log()
+        self.exchange_logger.finalize()
 
     def exchange_rib2mod(self) -> None:
         self.ribasim.update_subgrid_level()

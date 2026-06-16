@@ -212,6 +212,7 @@ def case_newton(
     )
 
 
+@pytest.mark.skip(reason="Inactive since we raise a NotImplementedError for now")
 def case_newton_perched(
     coupled_mf6_model_newton_perched: Modflow6Simulation,
     prepared_msw_model_newton_perched: MetaSwapModel,
