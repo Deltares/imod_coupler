@@ -31,7 +31,7 @@ class MetaModMixin:
             for coupling_dict in coupling_dicts
         ]
         mf6_dis_pkg: dict[str, StructuredDiscretization] = {}
-        mf6_wel_pkg: dict[str, Mf6Wel]
+        mf6_wel_pkg: dict[str, Mf6Wel] = {}
 
         for mf6_model_key, msw_model_key, mf6_wel_pkg_key in zip(
             mf6_model_keys, msw_model_keys, mf6_wel_pkg_keys
