@@ -288,7 +288,8 @@ class MetaMod(Driver):
             )
             # append to list of gwf-model exchanges per exchange type
             for coupling in self.couplings.keys():
-                self.couplings[coupling].append(couplings[coupling])
+                if coupling in couplings:
+                    self.couplings[coupling].append(couplings[coupling])
 
     def log_version(self) -> None:
         logger.info(f"MODFLOW version: {self.mf6.get_version()}")
