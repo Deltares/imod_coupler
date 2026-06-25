@@ -25,6 +25,7 @@ tomli-w = "*"
 xmipy = "*"
 ribasim = "=2026.1.1"
 pip = "*"
+rasterio = ">=1.5.0,<2"
 
 [pypi-dependencies]
 imod = { git = "https://github.com/Deltares/imod-python.git" }
