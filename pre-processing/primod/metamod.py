@@ -30,13 +30,17 @@ class MetaMod(CoupledModel, MetaModMixin):
 
     def __init__(
         self,
-        msw_model: dict[str, MetaSwapModel],
+        msw_model: dict[str, MetaSwapModel] | MetaSwapModel,
         mf6_simulation: Modflow6Simulation,
         coupling_list: Sequence[MetaModDriverCoupling],
     ):
-        self.msw_model = msw_model
         self.mf6_simulation = mf6_simulation
         self.coupling_list = coupling_list
+        if isinstance(msw_model, MetaSwapModel):
+            self.msw_model = {"MSW": msw_model}
+            self.coupling_list[0].msw_model = "MSW"
+        else:
+            self.msw_model = msw_model
         self.newton_formulation = self.coupling_list[0].has_newton_formulation(
             self.mf6_simulation
         )
