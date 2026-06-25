@@ -344,12 +344,10 @@ class MetaMod(Driver):
                     exchange_logger.finalize_log()
 
     def get_current_time(self) -> float:
-        print("@@@@@@@ MF6 current time", self.mf6.get_current_time())
         sys.stdout.flush()
         return self.mf6.get_current_time()
 
     def get_end_time(self) -> float:
-        print("@@@@@@@ MF6 end time", self.mf6.get_end_time())
         sys.stdout.flush()
         return self.mf6.get_end_time()
 

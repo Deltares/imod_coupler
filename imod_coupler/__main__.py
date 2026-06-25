@@ -58,8 +58,6 @@ def run_coupler(config_path: Path) -> None:
     driver = get_driver(config_dict, config_dir, base_config)
     driver.execute()
 
-    print("@@@@@@@@@@@@@ Report timing")
-
     # Report timing
     if base_config.timing:
         driver.report_timing_totals()

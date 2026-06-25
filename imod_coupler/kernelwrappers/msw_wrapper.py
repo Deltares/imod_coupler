@@ -10,7 +10,7 @@ from imod_coupler.drivers.kernel_config import Metaswap
 import shutil
 
 """The MswMultiWrapper class is currently for metamod coupling only."""
-class MswMultiWrapper(XmiWrapper):
+class MswMultiWrapper:
     models: dict[str, XmiWrapper] = {}
     model_names: list[str] = []
     working_dirs: dict[str, str] = {}

@@ -44,18 +44,11 @@ class Driver(ABC):
         self.initialize()
 
         # Run the time loop
-        i = 0
         while self.get_current_time() < self.get_end_time():
             self.update()
-            i += 1
-        print("@@@@@@@@@@ Number of time steps:", i)
 
         logger.info("New simulation terminated normally")
-
-        print("@@@@@@ BEGIN finalizing")
-
         self.finalize()
-        print("@@@@@@ END finalizing")
 
     @abstractmethod
     def initialize(self) -> None:
