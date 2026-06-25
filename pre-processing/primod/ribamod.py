@@ -83,10 +83,10 @@ class RibaMod(CoupledModel):
         directory.mkdir(parents=True, exist_ok=True)
 
         # Write exchanges
-        coupling_dict = self.write_exchanges(directory)
+        coupling_dicts = self.write_exchanges(directory)
         self.write_toml(
             directory,
-            coupling_dict,
+            coupling_dicts,
             modflow6_dll,
             ribasim_dll,
             ribasim_dll_dependency,
@@ -102,7 +102,7 @@ class RibaMod(CoupledModel):
     def write_toml(
         self,
         directory: str | Path,
-        coupling_dict: dict[str, Any],
+        coupling_dicts: list[dict[str, Any]],
         modflow6_dll: str | Path,
         ribasim_dll: str | Path,
         ribasim_dll_dependency: str | Path,
@@ -146,7 +146,7 @@ class RibaMod(CoupledModel):
                         ),
                     },
                 },
-                "coupling": [coupling_dict],
+                "coupling": [coupling_dicts[0]],
             },
         }
 

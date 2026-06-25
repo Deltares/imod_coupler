@@ -12,7 +12,7 @@ class MetaModMixin:
     @staticmethod
     def get_mf6_pkgs_for_metaswap(
         coupling_dicts: list[dict[str, str]], mf6_simulation: Modflow6Simulation
-    ) -> tuple[dict[str, StructuredDiscretization], dict[str, Mf6Wel] | None]:
+    ) -> tuple[dict[str, StructuredDiscretization], dict[str, Mf6Wel]]:
         """
         Get names of DIS and possibly WEL packages from coupling_dict then fetch
         these MODFLOW 6 packages from simulation.
@@ -30,18 +30,21 @@ class MetaModMixin:
             else None
             for coupling_dict in coupling_dicts
         ]
-        mf6_dis_pkg = {}
-        mf6_wel_pkg = {}
+        mf6_dis_pkg: dict[str, StructuredDiscretization] = {}
+        mf6_wel_pkg: dict[str, Mf6Wel]
 
-        for mf6_model_key, msw_model_key, mf6_wel_pkg_key in zip(mf6_model_keys, msw_model_keys, mf6_wel_pkg_keys):
-            mf6_dis_pkg[msw_model_key] = None
-
+        for mf6_model_key, msw_model_key, mf6_wel_pkg_key in zip(
+            mf6_model_keys, msw_model_keys, mf6_wel_pkg_keys
+        ):
             gwf_model = mf6_simulation[mf6_model_key]
             mf6_dis_key = gwf_model.get_diskey()
             mf6_dis_pkg[msw_model_key] = gwf_model[mf6_dis_key]
 
-            mf6_wel_pkg[msw_model_key] = None
             if mf6_wel_pkg_key is not None:
-                mf6_wel_pkg[msw_model_key] = gwf_model.prepare_wel_for_mf6(mf6_wel_pkg_key, True, True)
+                mf6_wel_pkg[msw_model_key] = gwf_model.prepare_wel_for_mf6(
+                    mf6_wel_pkg_key, True, True
+                )
+            else:
+                mf6_wel_pkg[msw_model_key] = None
 
         return mf6_dis_pkg, mf6_wel_pkg

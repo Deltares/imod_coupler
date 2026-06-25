@@ -195,6 +195,7 @@ def cases_metamod_sprinkling(
 
     return metamod_ss, metamod_sc
 
+
 def case_multi_model_no_sprinkling_two_subdomains(
     coupled_mf6_model: Modflow6Simulation,
     prepared_msw_model: MetaSwapModel,
@@ -296,6 +297,7 @@ def case_multi_model_no_sprinkling_three_subdomains(
 
     # Couple MetaSWAP and MODFLOW 6
     return MetaMod(msw_splitted, mf6_splitted, coupling_list=coupling_list)
+
 
 @pytest.mark.skip(
     reason="fails silently since bugfix for convergence check in release 6.6.3"

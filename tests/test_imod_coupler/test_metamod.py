@@ -31,7 +31,9 @@ from imod_coupler.utils import MemoryExchange
 decimal_tolerance = 8
 
 
-def mf6_output_files(path: Path, mf6_model: str | None = "GWF_1") -> tuple[Path, Path, Path, Path]:
+def mf6_output_files(
+    path: Path, mf6_model: str | None = "GWF_1"
+) -> tuple[Path, Path, Path, Path]:
     """return paths to Modflow 6 output files"""
     path_mf6 = path / "Modflow6" / mf6_model
 
@@ -175,14 +177,16 @@ def test_metamod_develop(
 
     # Test if MetaSWAP output written
     if dbot_active:
-        assert (
-            len(list((tmp_path_dev / "MetaSWAP").rglob("*/*.idf"))) == (2928 * nsub_msw)
+        assert len(list((tmp_path_dev / "MetaSWAP").rglob("*/*.idf"))) == (
+            2928 * nsub_msw
         )  # longer runtime
     else:
-        assert len(list((tmp_path_dev / "MetaSWAP").rglob("*/*.idf"))) == (1704 * nsub_msw)
+        assert len(list((tmp_path_dev / "MetaSWAP").rglob("*/*.idf"))) == (
+            1704 * nsub_msw
+        )
 
     # Test if Modflow6 output written
-    for mf6_model in  mf6_model_list:
+    for mf6_model in mf6_model_list:
         headfile, cbcfile, _, _ = mf6_output_files(tmp_path_dev, mf6_model)
 
         assert headfile.exists()

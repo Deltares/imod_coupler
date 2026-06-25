@@ -113,7 +113,7 @@ class MetaMod(CoupledModel, MetaModMixin):
                 directory_msw,
                 mf6_dis_pkg[msw_model_key],
                 mf6_wel_pkg[msw_model_key],
-            )    
+            )
 
     def write_toml(
         self,
@@ -157,7 +157,7 @@ class MetaMod(CoupledModel, MetaModMixin):
         for msw_model in self.msw_model.keys():
             d = {}
             d["msw_model"] = msw_model
-            d["mpi_rank"] = 0
+            d["mpi_rank"] = "0"
             d["dll"] = str(metaswap_dll)
             d["work_dir"] = f".\\{self._metaswap_model_dir}\\{msw_model}"
             msw_list.append(d)

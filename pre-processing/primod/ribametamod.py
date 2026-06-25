@@ -96,10 +96,10 @@ class RibaMetaMod(CoupledModel, MetaModMixin):
         directory.mkdir(parents=True, exist_ok=True)
 
         # Write exchange files
-        coupling_dict = self.write_exchanges(directory)
+        coupling_dicts = self.write_exchanges(directory)
         self.write_toml(
             directory,
-            coupling_dict,
+            coupling_dicts,
             modflow6_dll,
             metaswap_dll,
             metaswap_dll_dependency,
@@ -114,7 +114,7 @@ class RibaMetaMod(CoupledModel, MetaModMixin):
             **modflow6_write_kwargs,
         )
         mf6_dis_pkg, mf6_wel_pkg = self.get_mf6_pkgs_for_metaswap(
-            coupling_dict, self.mf6_simulation
+            coupling_dicts, self.mf6_simulation
         )
         self.msw_model.write(
             directory / self._metaswap_model_dir, mf6_dis_pkg, mf6_wel_pkg
@@ -124,7 +124,7 @@ class RibaMetaMod(CoupledModel, MetaModMixin):
     def write_toml(
         self,
         directory: str | Path,
-        coupling_dict: dict[str, Any],
+        coupling_dicts: list[dict[str, Any]],
         modflow6_dll: str | Path,
         metaswap_dll: str | Path,
         metaswap_dll_dependency: str | Path,
@@ -187,7 +187,7 @@ class RibaMetaMod(CoupledModel, MetaModMixin):
                         ),
                     },
                 },
-                "coupling": [coupling_dict],
+                "coupling": [coupling_dicts[0]],
             },
         }
 

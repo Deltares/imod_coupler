@@ -45,7 +45,7 @@ class CoupledModel(abc.ABC):
                 exchange_dir = Path(directory) / "exchanges" / f"{coupling.mf6_model}"
             else:
                 exchange_dir = Path(directory) / "exchanges"
-            exchange_dir.mkdir(exist_ok=True, parents=True)            
+            exchange_dir.mkdir(exist_ok=True, parents=True)
             coupling_dict = coupling.write_exchanges(
                 directory=exchange_dir, coupled_model=self
             )

@@ -18,6 +18,7 @@ from imod_coupler.parser import parse_args
 from imod_coupler.utils import setup_logger
 from mpi4py import MPI
 
+
 def main() -> None:
     args = parse_args()
 
