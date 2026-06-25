@@ -66,7 +66,7 @@ class MetaMod(Driver):
             msw_kernels = []
             msw_models = []
             for kernel in msw_kernels_all:
-                if kernel.mpi_rank == self.mpi_rank:
+                if int(kernel.mpi_rank) == self.mpi_rank:
                     msw_kernels.append(kernel)
                     msw_models.append(kernel.msw_model)
 
