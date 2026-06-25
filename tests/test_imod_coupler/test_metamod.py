@@ -31,15 +31,15 @@ from imod_coupler.utils import MemoryExchange
 decimal_tolerance = 8
 
 
-def mf6_output_files(path: Path) -> tuple[Path, Path, Path, Path]:
+def mf6_output_files(path: Path, mf6_model: str | None = "GWF_1") -> tuple[Path, Path, Path, Path]:
     """return paths to Modflow 6 output files"""
-    path_mf6 = path / "Modflow6" / "GWF_1"
+    path_mf6 = path / "Modflow6" / mf6_model
 
     return (
-        path_mf6 / "GWF_1.hds",
-        path_mf6 / "GWF_1.cbc",
-        path_mf6 / "dis.dis.grb",
-        path_mf6 / "GWF_1.lst",
+        path_mf6 / f"{mf6_model}.hds",
+        path_mf6 / f"{mf6_model}.cbc",
+        path_mf6 / f"dis.dis.grb",
+        path_mf6 / f"{mf6_model}.lst",
     )
 
 
@@ -136,7 +136,15 @@ def test_metamod_develop(
         metaswap_dll_dependency=metaswap_dll_dep_dir_devel,
     )
 
-    dbot_active = metamod_model.mf6_simulation["GWF_1"].is_use_newton() & (
+    nsub_mf6 = len(metamod_model.mf6_simulation.get_models().keys())
+    nsub_msw = len(metamod_model.msw_model.keys())
+
+    mf6_model_ref = "GWF_1"
+    if nsub_mf6 > 1:
+        mf6_model_list = [f"{mf6_model_ref}_{i}" for i in range(nsub_mf6)]
+    else:
+        mf6_model_list = [mf6_model_ref]
+    dbot_active = metamod_model.mf6_simulation[mf6_model_list[0]].is_use_newton() & (
         "newton_pe" in str(tmp_path_dev)
     )
     if dbot_active:
@@ -168,20 +176,21 @@ def test_metamod_develop(
     # Test if MetaSWAP output written
     if dbot_active:
         assert (
-            len(list((tmp_path_dev / "MetaSWAP").glob("*/*.idf"))) == 2928
+            len(list((tmp_path_dev / "MetaSWAP").rglob("*/*.idf"))) == (2928 * nsub_msw)
         )  # longer runtime
     else:
-        assert len(list((tmp_path_dev / "MetaSWAP").glob("*/*.idf"))) == 1704
+        assert len(list((tmp_path_dev / "MetaSWAP").rglob("*/*.idf"))) == (1704 * nsub_msw)
 
     # Test if Modflow6 output written
-    headfile, cbcfile, _, _ = mf6_output_files(tmp_path_dev)
+    for mf6_model in  mf6_model_list:
+        headfile, cbcfile, _, _ = mf6_output_files(tmp_path_dev, mf6_model)
 
-    assert headfile.exists()
-    assert cbcfile.exists()
-    # If computation failed, Modflow6 usually writes a headfile and cbcfile of 0
-    # bytes.
-    assert headfile.stat().st_size > 0
-    assert cbcfile.stat().st_size > 0
+        assert headfile.exists()
+        assert cbcfile.exists()
+        # If computation failed, Modflow6 usually writes a headfile and cbcfile of 0
+        # bytes.
+        assert headfile.stat().st_size > 0
+        assert cbcfile.stat().st_size > 0
 
 
 @parametrize_with_cases("metamod_model")

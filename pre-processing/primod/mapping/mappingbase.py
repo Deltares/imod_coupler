@@ -125,4 +125,4 @@ class MetaModMapping(abc.ABC):
 
         with open(directory / self._file_name, "w") as f:
             self._render(f, index=index, svat=self.dataset["svat"])
-        return f"./{directory.name}/{self._file_name}"
+        return f"./{directory.parents[0].name}/{directory.name}/{self._file_name}"

@@ -44,12 +44,18 @@ class Driver(ABC):
         self.initialize()
 
         # Run the time loop
+        i = 0
         while self.get_current_time() < self.get_end_time():
             self.update()
+            i += 1
+        print("@@@@@@@@@@ Number of time steps:", i)
 
         logger.info("New simulation terminated normally")
 
+        print("@@@@@@ BEGIN finalizing")
+
         self.finalize()
+        print("@@@@@@ END finalizing")
 
     @abstractmethod
     def initialize(self) -> None:
@@ -94,8 +100,13 @@ def get_driver(
 
     # resolve library locations using which
     for kernel in config_dict["driver"]["kernels"].values():
-        if "dll" in kernel:
-            kernel["dll"] = resolve_path(kernel["dll"])
+        if type(kernel) == list:
+            for i in range(len(kernel)):
+                if "dll" in kernel[i]:
+                    kernel[i]["dll"] = resolve_path(kernel[i]["dll"])
+        else:
+            if "dll" in kernel:
+                kernel["dll"] = resolve_path(kernel["dll"])
 
     if base_config.driver_type == "metamod":
         metamod_config = MetaModConfig(config_dir=config_dir, **config_dict["driver"])
