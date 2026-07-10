@@ -9,7 +9,7 @@ from loguru import logger
 # Trick to force the inclusion of the fft package,
 # because it is 'needed' by array_api_compat\numpy
 # To be fixed/removed as soon as possible !!
-from scipy._lib.array_api_compat.numpy import fft  # noqa: F401
+# from scipy._lib.array_api_compat.numpy import fft  # noqa: F401
 
 from imod_coupler import __version__
 from imod_coupler.config import BaseConfig
