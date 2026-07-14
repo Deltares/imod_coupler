@@ -99,6 +99,12 @@ def test_modstrip_model(
 
     shutil.copytree(modstrip_loc / "input", tmp_path, dirs_exist_ok=True)
 
+    # Copy DLLs to MetaSWAP working directory, only when they exist.
+    if metaswap_dll_devel.is_file():
+        shutil.copy(metaswap_dll_devel, tmp_path / "msw" / metaswap_dll_devel.name)
+    for dep_dll_path in list((metaswap_dll_dep_dir_devel).glob("*")):
+        shutil.copy(dep_dll_path, tmp_path / "msw")
+
     fill_para_sim_template(tmp_path / "msw", metaswap_lookup_table)
 
     toml_path = tmp_path / "imod_coupler.toml"
