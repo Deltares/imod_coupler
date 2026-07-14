@@ -26,6 +26,8 @@ xmipy = "*"
 ribasim = "=2026.1.1"
 pip = "*"
 rasterio = ">=1.5.0,<2"
+mpi4py = ">=4.1.2,<5"
+impi_rt = ">=2021.18.0,<2022"
 
 [pypi-dependencies]
 imod = { git = "https://github.com/Deltares/imod-python.git" }
@@ -45,7 +47,6 @@ fetch-metaswap-test-db = "aws s3 cp s3://metaswap/db/LHM2016_v01vrz ./.imod_coll
 fetch-imod-collector = { depends-on = ["fetch-metaswap", "fetch-ribasim", "fetch-modflow"] }
 fetch-imod-collector-regression = "python scripts/download_regression.py 2025.11.0 ./.imod_collector/regression"
 generate-env-file = "python scripts/generate_env_file.py"
-install-mpi = "python -m pip install mpi4py impi-rt"
 
 # Tests
 test-primod = "pytest --junitxml=report.xml tests/test_primod"
