@@ -113,9 +113,9 @@ class MetaMod(CoupledModel, MetaModMixin):
         )
 
         if isinstance(metaswap_dll, str):
-            dll_name = Path(metaswap_dll).name
+            metaswap_dll_path = Path(metaswap_dll)
         else:
-            dll_name = metaswap_dll.name
+            metaswap_dll_path = metaswap_dll
 
         for msw_model_key, msw_model in self.msw_model.items():
             directory_msw = directory / self._metaswap_model_dir / Path(msw_model_key)
@@ -127,9 +127,10 @@ class MetaMod(CoupledModel, MetaModMixin):
                 mf6_wel_pkg[msw_model_key],
             )
 
-            # Copy the DLLs
-            dll_path = Path(directory_msw, dll_name)
-            shutil.copy(metaswap_dll, dll_path)
+            # Copy DLLs to MetaSWAP working directory, only when they exist.
+            if metaswap_dll_path.is_file():
+                dll_path = Path(directory_msw, metaswap_dll_path.name)
+                shutil.copy(metaswap_dll, dll_path)
             if metaswap_dll_dependency is not None:
                 if isinstance(metaswap_dll_dependency, str):
                     dll_dep_dir_path = Path(metaswap_dll_dependency)
