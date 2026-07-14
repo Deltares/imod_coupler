@@ -186,7 +186,7 @@ def test_metamod_write_toml(prepared_msw_model, coupled_mf6_model, tmp_path):
     coupling_dict = {
         "mf6_model": "GWF_1",
         "msw_model": "MSW",
-        "mf6_msw_node_map": "./exchanges/nodenr2svat.dxc",
+        "mf6_msw_node_map": "./exchanges/GWF_1/nodenr2svat.dxc",
         "mf6_msw_recharge_map": "./exchanges/rchindex2svat.dxc",
         "mf6_msw_recharge_pkg": "rch_msw",
         "mf6_msw_well_pkg": "wells_msw",

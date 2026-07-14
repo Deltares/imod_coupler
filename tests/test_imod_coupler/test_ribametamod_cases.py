@@ -278,7 +278,7 @@ def two_basin_model_sprinkling_sw_variations(
         ribasim_model=ribasim_two_basin_model,
         msw_model=msw_two_basin_model_3layer,
         mf6_simulation=mf6_two_basin_model_3layer,
-        coupling_list=[metamod_coupling, ribamod_coupling, ribameta_coupling],
+        coupling_list=[[metamod_coupling, ribamod_coupling, ribameta_coupling]],
     )
 
 
@@ -327,7 +327,7 @@ def case_bucket_model(
         ribasim_model=ribasim_bucket_model,
         msw_model=msw_bucket_model,
         mf6_simulation=mf6_bucket_model,
-        coupling_list=[metamod_coupling, ribamod_coupling, ribameta_coupling],
+        coupling_list=[[metamod_coupling, ribamod_coupling, ribameta_coupling]],
     )
 
 
@@ -380,7 +380,7 @@ def case_bucket_model_no_subgrid(
         ribasim_model=ribasim_bucket_model_no_subgrid,
         msw_model=msw_bucket_model,
         mf6_simulation=mf6_bucket_model,
-        coupling_list=[metamod_coupling, ribamod_coupling, ribameta_coupling],
+        coupling_list=[[metamod_coupling, ribamod_coupling, ribameta_coupling]],
     )
 
 
@@ -470,7 +470,7 @@ def case_two_basin_model(
         ribasim_model=ribasim_two_basin_model,
         msw_model=msw_two_basin_model,
         mf6_simulation=mf6_two_basin_model,
-        coupling_list=[metamod_coupling, ribamod_coupling, ribameta_coupling],
+        coupling_list=[[metamod_coupling, ribamod_coupling, ribameta_coupling]],
     )
 
 
@@ -524,7 +524,7 @@ def case_two_basin_model_dtgw_2(
         ribasim_model=ribasim_two_basin_model,
         msw_model=msw_two_basin_model,
         mf6_simulation=mf6_two_basin_model,
-        coupling_list=[metamod_coupling, ribamod_coupling, ribameta_coupling],
+        coupling_list=[[metamod_coupling, ribamod_coupling, ribameta_coupling]],
     )
 
 
@@ -580,7 +580,7 @@ def case_two_basin_model_dtgw_2_dtsw_05(
         ribasim_model=ribasim_two_basin_model,
         msw_model=msw_two_basin_model,
         mf6_simulation=mf6_two_basin_model,
-        coupling_list=[metamod_coupling, ribamod_coupling, ribameta_coupling],
+        coupling_list=[[metamod_coupling, ribamod_coupling, ribameta_coupling]],
     )
 
 
@@ -627,7 +627,7 @@ def case_two_basin_model_dtsw_05(
         ribasim_model=ribasim_two_basin_model,
         msw_model=msw_two_basin_model,
         mf6_simulation=mf6_two_basin_model,
-        coupling_list=[metamod_coupling, ribamod_coupling, ribameta_coupling],
+        coupling_list=[[metamod_coupling, ribamod_coupling, ribameta_coupling]],
     )
 
 

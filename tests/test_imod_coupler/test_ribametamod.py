@@ -90,7 +90,9 @@ def get_coupled_msw_mask(
     svat_indices = coupling_data["svat_index"].to_numpy() - 1
     basin_indices = coupling_data[coupling_file[1]].to_numpy()
     node2svat = pd.read_csv(
-        coupling_file[0].parent / "nodenr2svat.dxc", delimiter="\s+", header=None
+        coupling_file[0].parent / "GWF_1" / "nodenr2svat.dxc",
+        delimiter="\s+",
+        header=None,
     )
     mf6_user_indices = np.arange(mf6_idomain.size)[
         mf6_idomain.to_numpy().ravel() == 1
@@ -235,7 +237,7 @@ def assert_results(
         summed_riv_flux_estimate = np.array([])
         summed_correction_flux = np.array([])
         summed_riv_flux_output = np.array([])
-        for item in ribametamod_model.coupling_list:
+        for item in ribametamod_model.coupling_list[0]:
             if isinstance(item, RibaModActiveDriverCoupling):
                 for package in item.mf6_packages:
                     # river flux estimate from coupler logging
@@ -512,7 +514,7 @@ def write_run_read(
             "user_demand_index",
         ]
     msw_results = get_metaswap_results(
-        tmp_path / ribametamod_model._metaswap_model_dir,
+        tmp_path / ribametamod_model._metaswap_model_dir / "MSW",
         coupling_files,
         mf6_idomain,
     )
@@ -821,7 +823,7 @@ def test_ribametamod_two_basin_sprinkling_sw_allocation(
     run_coupler_function: Callable[[Path], None],
 ) -> None:
     """
-    Test if the two-basin model model works as expected
+    Test if the two-basin model works as expected
     """
     results = write_run_read(
         tmp_path_dev,

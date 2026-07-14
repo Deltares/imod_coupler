@@ -212,8 +212,12 @@ class RibaMetaMod(CoupledModel, MetaModMixin):
 
         if len(coupling_dict_list) == 1:
             coupling_dat_toml = coupling_dict_list[0]
+            if output_config_file is not None:
+                coupling_dat_toml["output_config_file"] = str(output_config_file)
         else:
             coupling_dat_toml = coupling_dict_list
+            if output_config_file is not None:
+                coupling_dat_toml[0]["output_config_file"] = str(output_config_file)
 
         toml_path = directory / self._toml_name
         coupler_toml = {
@@ -238,11 +242,6 @@ class RibaMetaMod(CoupledModel, MetaModMixin):
                 "coupling": coupling_dat_toml,
             },
         }
-
-        if output_config_file is not None:
-            coupler_toml["driver"]["coupling"]["output_config_file"] = str(  # type: ignore
-                output_config_file
-            )
 
         with open(toml_path, "wb") as f:
             tomli_w.dump(coupler_toml, f)
