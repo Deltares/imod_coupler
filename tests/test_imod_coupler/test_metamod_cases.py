@@ -197,6 +197,9 @@ def cases_metamod_sprinkling(
     return metamod_ss, metamod_sc
 
 
+@pytest.mark.skip(
+    "For this test, a MetaSWAP DLL should be used without MPI dependencies."
+)
 def case_multi_model_no_sprinkling_two_subdomains(
     coupled_mf6_model: Modflow6Simulation,
     prepared_msw_model: MetaSwapModel,
@@ -248,6 +251,9 @@ def case_multi_model_no_sprinkling_two_subdomains(
     return MetaMod(msw_splitted, mf6_splitted, coupling_list=coupling_list)
 
 
+@pytest.mark.skip(
+    "For this test, a MetaSWAP DLL should be used without MPI dependencies."
+)
 def case_multi_model_no_sprinkling_three_subdomains(
     coupled_mf6_model: Modflow6Simulation,
     prepared_msw_model: MetaSwapModel,
