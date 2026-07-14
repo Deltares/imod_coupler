@@ -9,7 +9,7 @@ from imod_coupler.drivers.kernel_config import Metaswap, Modflow6
 
 class Kernels(BaseModel):
     modflow6: Modflow6
-    metaswap: list[Metaswap]
+    metaswap: Metaswap | list[Metaswap]
 
 
 class Coupling(BaseModel):

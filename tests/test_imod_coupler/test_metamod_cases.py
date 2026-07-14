@@ -1,11 +1,12 @@
+from pathlib import Path
+
 import pytest
 from imod.mf6 import Modflow6Simulation
 from imod.msw import CouplerMapping, MetaSwapModel
 from imod.msw.fixed_format import VariableMetaData
-from primod import MetaMod, MetaModDriverCoupling
 from imod.msw.meteo_grid import MeteoGridCopy
-from pathlib import Path
-from test_utilities import write_mete_grid_inp_abs_path, get_mf6_gwf_model_names
+from primod import MetaMod, MetaModDriverCoupling
+from test_utilities import get_mf6_gwf_model_names, write_mete_grid_inp_abs_path
 
 
 def case_sprinkling(

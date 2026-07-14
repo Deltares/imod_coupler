@@ -6,11 +6,13 @@ description:
 
 from __future__ import annotations
 
+import sys
 from pathlib import Path
 from typing import Any
 
 import numpy as np
 from loguru import logger
+from mpi4py import MPI
 from numpy.typing import NDArray
 
 from imod_coupler.config import BaseConfig
@@ -25,9 +27,6 @@ from imod_coupler.kernelwrappers.mf6_wrapper import Mf6Wrapper
 from imod_coupler.kernelwrappers.msw_wrapper import MswMultiWrapper
 from imod_coupler.logging.exchange_collector import ExchangeCollector
 from imod_coupler.utils import MemoryExchange
-
-from mpi4py import MPI
-import sys
 
 
 class MetaMod(Driver):
@@ -56,36 +55,14 @@ class MetaMod(Driver):
         """Constructs the `MetaMod` object"""
         self.base_config = base_config
         self.mpi_comm = MPI.COMM_WORLD
-        if base_config.parallel:
+        if len(base_config.hpc) > 0:
             self.mpi_size = self.mpi_comm.Get_size()
             self.mpi_rank = self.mpi_comm.Get_rank()
-
-            #            if self.mpi_size < 2:
-            #                raise ValueError("Number of MPI processes should be > 1.")
-            msw_kernels_all = metamod_config.kernels.metaswap
-            msw_kernels = []
-            msw_models = []
-            for kernel in msw_kernels_all:
-                if int(kernel.mpi_rank) == self.mpi_rank:
-                    msw_kernels.append(kernel)
-                    msw_models.append(kernel.msw_model)
-
-            metamod_config.kernels.metaswap = msw_kernels
-            self.metamod_config = metamod_config
-
-            couplings_all = metamod_config.coupling
-            couplings = []
-            for coupling in couplings_all:
-                # Fow now, only check for presence of MetaSWAP. FUTURE: include MODFLOW
-                if coupling.msw_model in msw_models:
-                    couplings.append(coupling)
-
-            self.coupling_configs = couplings
         else:
             self.mpi_size = 1
             self.mpi_rank = 0
-            self.metamod_config = metamod_config
-            self.coupling_configs = metamod_config.coupling
+        self.metamod_config = metamod_config
+        self.coupling_configs = metamod_config.coupling
 
     def initialize(self) -> None:
         self.mf6 = Mf6Wrapper(
@@ -94,8 +71,14 @@ class MetaMod(Driver):
             working_directory=self.metamod_config.kernels.modflow6.work_dir,
             timing=self.base_config.timing,
         )
+
+        if not isinstance(self.metamod_config.kernels.metaswap, list):
+            msw_kernel_list = [self.metamod_config.kernels.metaswap]
+        else:
+            msw_kernel_list = self.metamod_config.kernels.metaswap
+
         self.msw = MswMultiWrapper(
-            msw_kernels=self.metamod_config.kernels.metaswap,
+            msw_kernel_list=msw_kernel_list,
             timing=self.base_config.timing,
         )
 

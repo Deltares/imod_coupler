@@ -7,7 +7,6 @@ from xmipy import XmiWrapper
 from xmipy.utils import cd
 
 from imod_coupler.drivers.kernel_config import Metaswap
-import shutil
 
 
 class MswWrapper(XmiWrapper):
@@ -209,14 +208,12 @@ class MswMultiWrapper:
 
     def __init__(
         self,
-        msw_kernels: list[Metaswap],
+        msw_kernel_list: list[Metaswap],
         timing: bool = False,
     ):
-        for kernel in msw_kernels:
+        for kernel in msw_kernel_list:
             msw_model_name = kernel.msw_model
-            # copy the DLL
             dll_path = Path(kernel.work_dir, kernel.dll.name)
-            shutil.copy(kernel.dll, dll_path)
             model = MswWrapper(
                 lib_path=dll_path,
                 lib_dependency=kernel.dll_dep_dir,

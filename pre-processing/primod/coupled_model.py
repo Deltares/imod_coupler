@@ -39,18 +39,30 @@ class CoupledModel(abc.ABC):
         """
         directory = Path(directory)
 
-        coupling_dicts = []
-        for coupling in self.coupling_list:
-            if isinstance(coupling, MetaModDriverCoupling):
-                exchange_dir = Path(directory) / "exchanges" / f"{coupling.mf6_model}"
+        coupling_dict_list: list[dict[str, Any]] = []
+        for item in self.coupling_list:
+            if isinstance(item, list):
+                coupling_list = item
             else:
-                exchange_dir = Path(directory) / "exchanges"
-            exchange_dir.mkdir(exist_ok=True, parents=True)
-            coupling_dict = coupling.write_exchanges(
-                directory=exchange_dir, coupled_model=self
-            )
-            coupling_dicts.append(coupling_dict)
+                coupling_list = [item]
+
+            coupling_dicts: list[dict[str, Any]] = []
+            for coupling in coupling_list:
+                if isinstance(coupling, MetaModDriverCoupling):
+                    exchange_dir = (
+                        Path(directory) / "exchanges" / f"{coupling.mf6_model}"
+                    )
+                else:
+                    exchange_dir = Path(directory) / "exchanges"
+                exchange_dir.mkdir(exist_ok=True, parents=True)
+                coupling_dict = coupling.write_exchanges(
+                    directory=exchange_dir, coupled_model=self
+                )
+                coupling_dicts.append(coupling_dict)
+
+            merged_coupling_dict = self._merge_coupling_dicts(coupling_dicts)
+            coupling_dict_list.append(merged_coupling_dict)
 
         # FUTURE: if we support multiple MF6 models, group them by name before
         # merging, and return a list of coupling_dicts.
-        return coupling_dicts
+        return coupling_dict_list

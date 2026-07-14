@@ -1,9 +1,8 @@
+import csv
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
-import csv
-
 from imod.mf6 import Modflow6Simulation
 from imod.mf6.model_gwf import GroundwaterFlowModel
 

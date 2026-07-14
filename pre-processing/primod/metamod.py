@@ -1,3 +1,4 @@
+import shutil
 from collections.abc import Sequence
 from pathlib import Path
 from typing import Any
@@ -89,13 +90,13 @@ class MetaMod(CoupledModel, MetaModMixin):
         directory.mkdir(parents=True, exist_ok=True)
 
         # Write exchange files
-        coupling_dict = self.write_exchanges(directory)
+        coupling_dict_list = self.write_exchanges(directory)
         self.write_toml(
             directory,
             modflow6_dll,
             metaswap_dll,
             metaswap_dll_dependency,
-            coupling_dict,
+            coupling_dict_list,
         )
 
         # Write models
@@ -108,16 +109,34 @@ class MetaMod(CoupledModel, MetaModMixin):
         )
 
         mf6_dis_pkg, mf6_wel_pkg = self.get_mf6_pkgs_for_metaswap(
-            coupling_dict, self.mf6_simulation
+            coupling_dict_list, self.mf6_simulation
         )
+
+        if isinstance(metaswap_dll, str):
+            dll_name = Path(metaswap_dll).name
+        else:
+            dll_name = metaswap_dll.name
 
         for msw_model_key, msw_model in self.msw_model.items():
             directory_msw = directory / self._metaswap_model_dir / Path(msw_model_key)
+
+            # Write the MetaSWAP (sub)models
             msw_model.write(
                 directory_msw,
                 mf6_dis_pkg[msw_model_key],
                 mf6_wel_pkg[msw_model_key],
             )
+
+            # Copy the DLLs
+            dll_path = Path(directory_msw, dll_name)
+            shutil.copy(metaswap_dll, dll_path)
+            if metaswap_dll_dependency is not None:
+                if isinstance(metaswap_dll_dependency, str):
+                    dll_dep_dir_path = Path(metaswap_dll_dependency)
+                else:
+                    dll_dep_dir_path = metaswap_dll_dependency
+                for dep_dll_path in list((dll_dep_dir_path).glob("*")):
+                    shutil.copy(dep_dll_path, directory_msw)
 
     def write_toml(
         self,
@@ -125,7 +144,7 @@ class MetaMod(CoupledModel, MetaModMixin):
         modflow6_dll: str | Path,
         metaswap_dll: str | Path,
         metaswap_dll_dependency: str | Path,
-        coupling_dicts: list[dict[str, Any]],
+        coupling_dict_list: list[dict[str, Any]],
     ) -> None:
         """
         Write .toml file which configures the imod coupler run.
@@ -157,17 +176,30 @@ class MetaMod(CoupledModel, MetaModMixin):
         toml_path = directory / self._toml_name
 
         # create MetaSWAP dictionary
-        msw_list = []
+        msw_dict_list: list[dict[str, Any]] = []
         for msw_model in self.msw_model.keys():
+            work_dir = f".\\{self._metaswap_model_dir}\\{msw_model}"
             d = {}
             d["msw_model"] = msw_model
-            d["mpi_rank"] = "0"
-            d["dll"] = str(metaswap_dll)
-            d["work_dir"] = f".\\{self._metaswap_model_dir}\\{msw_model}"
-            msw_list.append(d)
+            d["dll"] = f"{work_dir}\\{Path(metaswap_dll).name}"
+            d["dll_dep_dir"] = work_dir
+            d["work_dir"] = work_dir
+            msw_dict_list.append(d)
+
+        msw_dat_toml: dict[str, Any] | list[dict[str, Any]]
+        coupling_dat_toml: dict[str, Any] | list[dict[str, Any]]
+
+        if len(msw_dict_list) == 1:
+            msw_dat_toml = msw_dict_list[0]
+        else:
+            msw_dat_toml = msw_dict_list
+
+        if len(coupling_dict_list) == 1:
+            coupling_dat_toml = coupling_dict_list[0]
+        else:
+            coupling_dat_toml = coupling_dict_list
 
         coupler_toml = {
-            "parallel": False,
             "timing": False,
             "log_level": "INFO",
             "driver_type": "metamod",
@@ -177,9 +209,9 @@ class MetaMod(CoupledModel, MetaModMixin):
                         "dll": str(modflow6_dll),
                         "work_dir": f".\\{self._modflow6_model_dir}",
                     },
-                    "metaswap": msw_list,
+                    "metaswap": msw_dat_toml,
                 },
-                "coupling": coupling_dicts,
+                "coupling": coupling_dat_toml,
             },
         }
         if self.newton_formulation:

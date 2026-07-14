@@ -29,7 +29,7 @@ class MetaModDriverCoupling(DriverCoupling):
     """
 
     mf6_model: str
-    msw_model: str | None = None
+    msw_model: str = "MSW"
     mf6_recharge_package: str
     mf6_wel_package: str | None = None
     mf6_max_layer: xr.DataArray | None = None

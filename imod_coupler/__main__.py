@@ -5,6 +5,7 @@ from pathlib import Path
 
 import tomli as tomllib
 from loguru import logger
+from mpi4py import MPI
 
 # Trick to force the inclusion of the fft package,
 # because it is 'needed' by array_api_compat\numpy
@@ -16,7 +17,6 @@ from imod_coupler.config import BaseConfig
 from imod_coupler.drivers.driver import get_driver
 from imod_coupler.parser import parse_args
 from imod_coupler.utils import setup_logger
-from mpi4py import MPI
 
 
 def main() -> None:
@@ -42,13 +42,13 @@ def run_coupler(config_path: Path) -> None:
     config_dir = config_path.parent
     base_config = BaseConfig(**config_dict)
 
-    if base_config.parallel:
+    if len(base_config.hpc) > 0:
         comm = MPI.COMM_WORLD
         rank = comm.Get_rank()
         log_file = f"imod_coupler_p{rank}.log"
         print(log_file)
     else:
-        log_file = f"imod_coupler.log"
+        log_file = "imod_coupler.log"
 
     setup_logger(base_config.log_level, config_dir / log_file)
     logger.info(f"iMOD Coupler {__version__}")

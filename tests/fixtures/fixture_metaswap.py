@@ -16,7 +16,7 @@ from .common import (
 
 
 def metaswap_model(
-    times: list[pd.date_range],
+    times: list[pd.date_range] | xr.DataArray,
     area: xr.DataArray,
     active: xr.DataArray,
     dis: mf6.StructuredDiscretization,
@@ -157,7 +157,10 @@ def metaswap_model(
     msw_model["oc_var"] = msw.VariableOutputControl()
     msw_model["oc_time"] = msw.TimeOutputControl(time=times + pd.Timedelta(days=1))
 
-    msw_model.starttime = times[0].strftime("%d/%m/%Y")
+    if isinstance(times[0], xr.DataArray):
+        msw_model.starttime = pd.to_datetime(times[0].values).strftime("%d/%m/%Y")
+    else:
+        msw_model.starttime = times[0].strftime("%d/%m/%Y")
 
     return msw_model
 

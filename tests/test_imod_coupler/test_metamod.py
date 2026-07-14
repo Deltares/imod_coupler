@@ -40,7 +40,7 @@ def mf6_output_files(
     return (
         path_mf6 / f"{mf6_model}.hds",
         path_mf6 / f"{mf6_model}.cbc",
-        path_mf6 / f"dis.dis.grb",
+        path_mf6 / "dis.dis.grb",
         path_mf6 / f"{mf6_model}.lst",
     )
 
@@ -69,6 +69,40 @@ def test_modflow_dll_devel_present(modflow_dll_devel: Path) -> None:
 
 def test_modflow_dll_regression_present(modflow_dll_regression: Path) -> None:
     assert modflow_dll_regression.is_file()
+
+
+""" TEMPORARY function to write the MODFLOW 6 HPC file."""
+
+
+def write_mf6_hpc(hpc_path: Path, model_list: list) -> None:
+    parts = "\n".join([f"  {model_list[i]} {i}" for i in range(len(model_list))])
+
+    block = (
+        "begin options\n"
+        "end options\n\n"
+        "begin partitions\n"
+        "  # mname MPI-ranks\n"
+        f"{parts}\n"
+        "end partitions\n"
+    )
+
+    with open(hpc_path, "w") as f:
+        f.write(block)
+
+
+""" TEMPORARY function to add the MODFLOW 6 HPC file fo the nam file."""
+
+
+def add_mf6_hpc(hpc_path: Path, hpc_file: str) -> None:
+    with open(hpc_path) as file:
+        s = file.read().rstrip()
+
+    block = (f"begin options\n  hpc6 filein {hpc_file}\nend options") + s.split(
+        "end options"
+    )[1]
+
+    with open(hpc_path, "w") as f:
+        f.write(block)
 
 
 @parametrize_with_cases("metamod_model", prefix="fail_write_")
@@ -144,6 +178,9 @@ def test_metamod_develop(
     mf6_model_ref = "GWF_1"
     if nsub_mf6 > 1:
         mf6_model_list = [f"{mf6_model_ref}_{i}" for i in range(nsub_mf6)]
+        hpc_path = tmp_path_dev / "modflow6/partitions.hpc6"
+        write_mf6_hpc(hpc_path, mf6_model_list)
+        add_mf6_hpc(tmp_path_dev / "modflow6/mfsim.nam", hpc_path.name)
     else:
         mf6_model_list = [mf6_model_ref]
     dbot_active = metamod_model.mf6_simulation[mf6_model_list[0]].is_use_newton() & (

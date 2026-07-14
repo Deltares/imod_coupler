@@ -425,7 +425,7 @@ def case_backwater_model(
         ribasim_model=ribasim_backwater_model,
         msw_model=msw_backwater_model,
         mf6_simulation=mf6_backwater_model,
-        coupling_list=[metamod_coupling, ribamod_coupling, ribameta_coupling],
+        coupling_list=[[metamod_coupling, ribamod_coupling, ribameta_coupling]],
     )
 
 
@@ -454,6 +454,7 @@ def case_two_basin_model(
 
     metamod_coupling = MetaModDriverCoupling(
         mf6_model=mf6_modelname,
+        msw_model="MSW",
         mf6_recharge_package="rch_msw",
     )
     ribamod_coupling = RibaModActiveDriverCoupling(
@@ -507,6 +508,7 @@ def case_two_basin_model_dtgw_2(
 
     metamod_coupling = MetaModDriverCoupling(
         mf6_model=mf6_modelname,
+        msw_model="MSW",
         mf6_recharge_package="rch_msw",
     )
     ribamod_coupling = RibaModActiveDriverCoupling(
@@ -562,6 +564,7 @@ def case_two_basin_model_dtgw_2_dtsw_05(
 
     metamod_coupling = MetaModDriverCoupling(
         mf6_model=mf6_modelname,
+        msw_model="MSW",
         mf6_recharge_package="rch_msw",
     )
     ribamod_coupling = RibaModActiveDriverCoupling(

@@ -126,7 +126,7 @@ class RibaMetaDriverCoupling(DriverCoupling):
 
     def write_exchanges(self, directory: Path, coupled_model: Any) -> dict[str, Any]:
         ribasim_model = coupled_model.ribasim_model
-        msw_model = coupled_model.msw_model
+        msw_model = coupled_model.msw_model["MSW"]  # TODO: multi model
 
         svat_basin_mapping, svat_user_demand_mapping = self.derive_mapping(
             ribasim_model=ribasim_model,
