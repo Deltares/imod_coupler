@@ -687,10 +687,6 @@ def test_ribametamod_two_basin_dtgw_2(
         ],
     )
     # frequentie for MODFLOW-6 and MetaSWAP output
-    print("@JVK", ribametamod_model.msw_model)
-
-
-
     delt_gw = int(ribametamod_model.msw_model["MSW"].simulation_settings["dtgw"])
     assert_results(tmp_path_dev, ribametamod_model, results, delt_gw=delt_gw)
 
