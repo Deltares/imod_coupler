@@ -60,7 +60,7 @@ def test_metamod_write_exchange(
         output_dir,
     )
 
-    exchange_dir = output_dir / "exchanges"
+    exchange_dir = output_dir / "exchanges" / "GWF_1"
     nodes_dxc = fixed_format_parser(
         exchange_dir / NodeSvatMapping._file_name,
         NodeSvatMapping._metadata_dict,
@@ -133,7 +133,7 @@ def test_metamod_write_exchange_no_sprinkling(
         output_dir,
     )
 
-    exchange_dir = output_dir / "exchanges"
+    exchange_dir = output_dir / "exchanges" / "GWF_1"
     nodes_dxc = fixed_format_parser(
         exchange_dir / NodeSvatMapping._file_name,
         NodeSvatMapping._metadata_dict,
@@ -185,7 +185,8 @@ def test_metamod_write_toml(prepared_msw_model, coupled_mf6_model, tmp_path):
 
     coupling_dict = {
         "mf6_model": "GWF_1",
-        "mf6_msw_node_map": "./exchanges/nodenr2svat.dxc",
+        "msw_model": "MSW",
+        "mf6_msw_node_map": "./exchanges/GWF_1/nodenr2svat.dxc",
         "mf6_msw_recharge_map": "./exchanges/rchindex2svat.dxc",
         "mf6_msw_recharge_pkg": "rch_msw",
         "mf6_msw_well_pkg": "wells_msw",
@@ -210,12 +211,13 @@ def test_metamod_write_toml(prepared_msw_model, coupled_mf6_model, tmp_path):
                     "work_dir": f".\\{coupled_models._modflow6_model_dir}",
                 },
                 "metaswap": {
-                    "dll": "./metaswap.dll",
-                    "work_dir": f".\\{coupled_models._metaswap_model_dir}",
-                    "dll_dep_dir": "./metaswap",
+                    "msw_model": "MSW",
+                    "dll": f".\\{coupled_models._metaswap_model_dir}\\MSW\\metaswap.dll",
+                    "dll_dep_dir": f".\\{coupled_models._metaswap_model_dir}\\MSW",
+                    "work_dir": f".\\{coupled_models._metaswap_model_dir}\\MSW",
                 },
             },
-            "coupling": [coupling_dict],
+            "coupling": coupling_dict,
         },
     }
 
@@ -232,20 +234,23 @@ def test_metamod_get_coupling_dict(prepared_msw_model, coupled_mf6_model, tmp_pa
         prepared_msw_model, coupled_mf6_model, coupling_list=[driver_coupling]
     )
 
-    dict_expected = {
-        "mf6_model": "GWF_1",
-        "mf6_msw_node_map": "./exchanges/nodenr2svat.dxc",
-        "mf6_msw_recharge_map": "./exchanges/rchindex2svat.dxc",
-        "mf6_msw_recharge_pkg": "rch_msw",
-        "mf6_msw_well_pkg": "wells_msw",
-        "mf6_msw_sprinkling_map_groundwater": "./exchanges/wellindex2svat.dxc",
-    }
+    dicts_expected = [
+        {
+            "mf6_model": "GWF_1",
+            "msw_model": "MSW",
+            "mf6_msw_node_map": "./exchanges/GWF_1/nodenr2svat.dxc",
+            "mf6_msw_recharge_map": "./exchanges/GWF_1/rchindex2svat.dxc",
+            "mf6_msw_recharge_pkg": "rch_msw",
+            "mf6_msw_well_pkg": "wells_msw",
+            "mf6_msw_sprinkling_map_groundwater": "./exchanges/GWF_1/wellindex2svat.dxc",
+        }
+    ]
 
-    coupled_dict = coupled_models.write_exchanges(
+    coupled_dicts = coupled_models.write_exchanges(
         output_dir,
     )
 
-    assert dict_expected == coupled_dict
+    assert dicts_expected == coupled_dicts
 
 
 def test_metamod_get_coupling_dict_no_sprinkling(
@@ -263,18 +268,21 @@ def test_metamod_get_coupling_dict_no_sprinkling(
         prepared_msw_model, coupled_mf6_model, coupling_list=[driver_coupling]
     )
 
-    dict_expected = {
-        "mf6_model": "GWF_1",
-        "mf6_msw_node_map": "./exchanges/nodenr2svat.dxc",
-        "mf6_msw_recharge_map": "./exchanges/rchindex2svat.dxc",
-        "mf6_msw_recharge_pkg": "rch_msw",
-    }
+    dicts_expected = [
+        {
+            "mf6_model": "GWF_1",
+            "msw_model": "MSW",
+            "mf6_msw_node_map": "./exchanges/GWF_1/nodenr2svat.dxc",
+            "mf6_msw_recharge_map": "./exchanges/GWF_1/rchindex2svat.dxc",
+            "mf6_msw_recharge_pkg": "rch_msw",
+        }
+    ]
 
-    coupled_dict = coupled_models.write_exchanges(
+    coupled_dicts = coupled_models.write_exchanges(
         output_dir,
     )
 
-    assert dict_expected == coupled_dict
+    assert dicts_expected == coupled_dicts
 
 
 def test_metamod_init_no_sprinkling_fail(

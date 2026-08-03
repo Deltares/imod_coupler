@@ -16,21 +16,25 @@ def coupling_dict() -> dict[str, str]:
 def test_get_mf6_pkgs_for_metaswap__sprinkling(
     coupling_dict: dict[str, str], coupled_mf6_model: Modflow6Simulation
 ):
+    coupling_dicts = [coupling_dict]
+    coupling_dicts[0]["msw_model"] = "MSW"
     mf6_dis, mf6_wel = MetaModMixin.get_mf6_pkgs_for_metaswap(
-        coupling_dict, coupled_mf6_model
+        coupling_dicts, coupled_mf6_model
     )
 
-    assert isinstance(mf6_dis, StructuredDiscretization)
-    assert isinstance(mf6_wel, Mf6Wel)
+    assert isinstance(mf6_dis["MSW"], StructuredDiscretization)
+    assert isinstance(mf6_wel["MSW"], Mf6Wel)
 
 
 def test_get_mf6_pkgs_for_metaswap__no_sprinkling(
     coupling_dict: dict[str, str], coupled_mf6_model: Modflow6Simulation
 ):
     coupling_dict.pop("mf6_msw_well_pkg")
+    coupling_dicts = [coupling_dict]
+    coupling_dicts[0]["msw_model"] = "MSW"
     mf6_dis, mf6_wel = MetaModMixin.get_mf6_pkgs_for_metaswap(
-        coupling_dict, coupled_mf6_model
+        coupling_dicts, coupled_mf6_model
     )
 
-    assert isinstance(mf6_dis, StructuredDiscretization)
-    assert mf6_wel is None
+    assert isinstance(mf6_dis["MSW"], StructuredDiscretization)
+    assert mf6_wel["MSW"] is None

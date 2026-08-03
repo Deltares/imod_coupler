@@ -22,6 +22,7 @@ class Modflow6(BaseModel):
 
 
 class Metaswap(BaseModel):
+    msw_model: str
     dll: FilePath
     dll_dep_dir: DirectoryPath | None = None
     work_dir: DirectoryPath

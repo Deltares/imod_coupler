@@ -12,6 +12,7 @@ authors = [
     { name = "Joeri van Engelen", email = "Joeri.vanEngelen@deltares.nl" },
     { name = "Hendrik Kok", email = "Hendrik.Kok@deltares.nl"},
     { name = "Huite Bootsma", email = "Huite.Bootsma@deltares.nl" },
+    { name = "Jarno Verkaik", email = "Jarno.Verkaik@deltares.nl" },
 ]
 license = { text = "MIT" }
 classifiers = [

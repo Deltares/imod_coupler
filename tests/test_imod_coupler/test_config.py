@@ -29,9 +29,9 @@ def set_container(data_dict: dict[Any, Any], map_list: list[Any], value: Any) ->
 cases_missing_files = [
     ["driver", "kernels", "modflow6", "dll"],
     ["driver", "kernels", "metaswap", "dll"],
-    ["driver", "coupling", 0, "mf6_msw_node_map"],
-    ["driver", "coupling", 0, "mf6_msw_recharge_map"],
-    ["driver", "coupling", 0, "mf6_msw_sprinkling_map_groundwater"],
+    ["driver", "coupling", "mf6_msw_node_map"],
+    ["driver", "coupling", "mf6_msw_recharge_map"],
+    ["driver", "coupling", "mf6_msw_sprinkling_map_groundwater"],
 ]
 
 
@@ -106,7 +106,7 @@ def test_sprinkling_requires_files(
 
     # Get the path of `mf6_msw_sprinkling_map`
     sprinkling_map = config_path.parent / get_from_container(
-        config_dict, ["driver", "coupling", 0, "mf6_msw_sprinkling_map_groundwater"]
+        config_dict, ["driver", "coupling", "mf6_msw_sprinkling_map_groundwater"]
     )
     # Delete `mf6_msw_sprinkling_map`
 

@@ -117,16 +117,18 @@ def test_ribamod_write(
         coupling_list=[driver_coupling],
     )
     output_dir = tmp_path / "ribamod"
-    coupling_dict = coupled_models.write_exchanges(output_dir)
+    coupling_dicts = coupled_models.write_exchanges(output_dir)
 
-    expected_dict = {
-        "mf6_model": "GWF_1",
-        "mf6_active_river_packages": {"riv-1": "./exchanges/riv-1.tsv"},
-        "mf6_passive_river_packages": {},
-        "mf6_active_drainage_packages": {},
-        "mf6_passive_drainage_packages": {},
-    }
-    assert coupling_dict == expected_dict
+    expected_dicts = [
+        {
+            "mf6_model": "GWF_1",
+            "mf6_active_river_packages": {"riv-1": "./exchanges/riv-1.tsv"},
+            "mf6_passive_river_packages": {},
+            "mf6_active_drainage_packages": {},
+            "mf6_passive_drainage_packages": {},
+        }
+    ]
+    assert coupling_dicts == expected_dicts
 
     exchange_path = Path("./exchanges/riv-1.tsv")
     assert (output_dir / exchange_path).exists()
@@ -200,7 +202,7 @@ def test_ribamod_write_toml(
                     "config_file": str(Path("ribasim") / "ribasim.toml"),
                 },
             },
-            "coupling": [coupling_dict],
+            "coupling": coupling_dict,
         },
     }
     assert toml_dict == dict_expected

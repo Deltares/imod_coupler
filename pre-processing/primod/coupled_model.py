@@ -3,6 +3,7 @@ from collections.abc import Sequence
 from pathlib import Path
 from typing import Any
 
+from primod.driver_coupling import MetaModDriverCoupling
 from primod.driver_coupling.driver_coupling_base import DriverCoupling
 
 
@@ -31,23 +32,37 @@ class CoupledModel(abc.ABC):
                     coupling_dict[top_key] = top_value
         return coupling_dict
 
-    def write_exchanges(self, directory: str | Path) -> dict[str, Any]:
+    def write_exchanges(self, directory: str | Path) -> list[dict[str, Any]]:
         """
         Write exchanges and return their filenames for the coupler
         configuration file.
         """
         directory = Path(directory)
-        exchange_dir = Path(directory) / "exchanges"
-        exchange_dir.mkdir(exist_ok=True, parents=True)
 
-        coupling_dicts = []
-        for coupling in self.coupling_list:
-            coupling_dict = coupling.write_exchanges(
-                directory=exchange_dir, coupled_model=self
-            )
-            coupling_dicts.append(coupling_dict)
+        coupling_dict_list: list[dict[str, Any]] = []
+        for item in self.coupling_list:
+            if isinstance(item, list):
+                coupling_list = item
+            else:
+                coupling_list = [item]
+
+            coupling_dicts: list[dict[str, Any]] = []
+            for coupling in coupling_list:
+                if isinstance(coupling, MetaModDriverCoupling):
+                    exchange_dir = (
+                        Path(directory) / "exchanges" / f"{coupling.mf6_model}"
+                    )
+                else:
+                    exchange_dir = Path(directory) / "exchanges"
+                exchange_dir.mkdir(exist_ok=True, parents=True)
+                coupling_dict = coupling.write_exchanges(
+                    directory=exchange_dir, coupled_model=self
+                )
+                coupling_dicts.append(coupling_dict)
+
+            merged_coupling_dict = self._merge_coupling_dicts(coupling_dicts)
+            coupling_dict_list.append(merged_coupling_dict)
 
         # FUTURE: if we support multiple MF6 models, group them by name before
         # merging, and return a list of coupling_dicts.
-        merged_coupling_dict = self._merge_coupling_dicts(coupling_dicts)
-        return merged_coupling_dict
+        return coupling_dict_list

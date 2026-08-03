@@ -17,6 +17,7 @@ def write_toml(
 ) -> None:
     coupling_dict = {
         "mf6_model": "GWF_1",
+        "msw_model": "MSW",
         "mf6_msw_node_map": "./NODENR2SVAT.DXC",
         "mf6_msw_recharge_pkg": "rch_msw",
         "mf6_msw_recharge_map": "./RCHINDEX2SVAT.DXC",
@@ -33,11 +34,14 @@ def write_toml(
                     "dll": str(modflow_dll_devel),
                     "work_dir": ".",
                 },
-                "metaswap": {
-                    "dll": str(metaswap_dll_devel),
-                    "work_dir": ".\\msw",
-                    "dll_dep_dir": str(metaswap_dll_dep_dir_devel),
-                },
+                "metaswap": [
+                    {
+                        "msw_model": "MSW",
+                        "dll": str(metaswap_dll_devel),
+                        "work_dir": ".\\msw",
+                        "dll_dep_dir": str(metaswap_dll_dep_dir_devel),
+                    }
+                ],
             },
             "coupling": [coupling_dict],
         },
@@ -94,6 +98,12 @@ def test_modstrip_model(
     """
 
     shutil.copytree(modstrip_loc / "input", tmp_path, dirs_exist_ok=True)
+
+    # Copy DLLs to MetaSWAP working directory, only when they exist.
+    if metaswap_dll_devel.is_file():
+        shutil.copy(metaswap_dll_devel, tmp_path / "msw" / metaswap_dll_devel.name)
+    for dep_dll_path in list((metaswap_dll_dep_dir_devel).glob("*")):
+        shutil.copy(dep_dll_path, tmp_path / "msw")
 
     fill_para_sim_template(tmp_path / "msw", metaswap_lookup_table)
 

@@ -487,6 +487,8 @@ class RibaMetaMod(Driver):
 
     def finalize(self) -> None:
         self.mf6.finalize()
+        if self.has_metaswap:
+            self.msw.finalize()
         if self.has_ribasim:
             self.ribasim.finalize()
         for coupling in self.couplings.values():

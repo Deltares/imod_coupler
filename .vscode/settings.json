@@ -16,6 +16,7 @@
         ".env.jinja": "jinja-properties"
     },
     "cSpell.diagnosticLevel": "Hint",
+    "python-envs.defaultEnvManager": "ms-python.python:system",
     "sonarlint.connectedMode.project": {
         "connectionId": "deltares",
         "projectKey": "Deltares_imod_coupler"

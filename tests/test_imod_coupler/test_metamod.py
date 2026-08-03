@@ -31,15 +31,17 @@ from imod_coupler.utils import MemoryExchange
 decimal_tolerance = 8
 
 
-def mf6_output_files(path: Path) -> tuple[Path, Path, Path, Path]:
+def mf6_output_files(
+    path: Path, mf6_model: str | None = "GWF_1"
+) -> tuple[Path, Path, Path, Path]:
     """return paths to Modflow 6 output files"""
-    path_mf6 = path / "Modflow6" / "GWF_1"
+    path_mf6 = path / "Modflow6" / mf6_model
 
     return (
-        path_mf6 / "GWF_1.hds",
-        path_mf6 / "GWF_1.cbc",
+        path_mf6 / f"{mf6_model}.hds",
+        path_mf6 / f"{mf6_model}.cbc",
         path_mf6 / "dis.dis.grb",
-        path_mf6 / "GWF_1.lst",
+        path_mf6 / f"{mf6_model}.lst",
     )
 
 
@@ -67,6 +69,40 @@ def test_modflow_dll_devel_present(modflow_dll_devel: Path) -> None:
 
 def test_modflow_dll_regression_present(modflow_dll_regression: Path) -> None:
     assert modflow_dll_regression.is_file()
+
+
+""" TEMPORARY function to write the MODFLOW 6 HPC file."""
+
+
+def write_mf6_hpc(hpc_path: Path, model_list: list) -> None:
+    parts = "\n".join([f"  {model_list[i]} {i}" for i in range(len(model_list))])
+
+    block = (
+        "begin options\n"
+        "end options\n\n"
+        "begin partitions\n"
+        "  # mname MPI-ranks\n"
+        f"{parts}\n"
+        "end partitions\n"
+    )
+
+    with open(hpc_path, "w") as f:
+        f.write(block)
+
+
+""" TEMPORARY function to add the MODFLOW 6 HPC file fo the nam file."""
+
+
+def add_mf6_hpc(hpc_path: Path, hpc_file: str) -> None:
+    with open(hpc_path) as file:
+        s = file.read().rstrip()
+
+    block = (f"begin options\n  hpc6 filein {hpc_file}\nend options") + s.split(
+        "end options"
+    )[1]
+
+    with open(hpc_path, "w") as f:
+        f.write(block)
 
 
 @parametrize_with_cases("metamod_model", prefix="fail_write_")
@@ -136,7 +172,18 @@ def test_metamod_develop(
         metaswap_dll_dependency=metaswap_dll_dep_dir_devel,
     )
 
-    dbot_active = metamod_model.mf6_simulation["GWF_1"].is_use_newton() & (
+    nsub_mf6 = len(metamod_model.mf6_simulation.get_models().keys())
+    nsub_msw = len(metamod_model.msw_model.keys())
+
+    mf6_model_ref = "GWF_1"
+    if nsub_mf6 > 1:
+        mf6_model_list = [f"{mf6_model_ref}_{i}" for i in range(nsub_mf6)]
+        hpc_path = tmp_path_dev / "modflow6/partitions.hpc6"
+        write_mf6_hpc(hpc_path, mf6_model_list)
+        add_mf6_hpc(tmp_path_dev / "modflow6/mfsim.nam", hpc_path.name)
+    else:
+        mf6_model_list = [mf6_model_ref]
+    dbot_active = metamod_model.mf6_simulation[mf6_model_list[0]].is_use_newton() & (
         "newton_pe" in str(tmp_path_dev)
     )
     if dbot_active:
@@ -167,21 +214,24 @@ def test_metamod_develop(
 
     # Test if MetaSWAP output written
     if dbot_active:
-        assert (
-            len(list((tmp_path_dev / "MetaSWAP").glob("*/*.idf"))) == 2928
+        assert len(list((tmp_path_dev / "MetaSWAP").rglob("*/*.idf"))) == (
+            2928 * nsub_msw
         )  # longer runtime
     else:
-        assert len(list((tmp_path_dev / "MetaSWAP").glob("*/*.idf"))) == 1704
+        assert len(list((tmp_path_dev / "MetaSWAP").rglob("*/*.idf"))) == (
+            1704 * nsub_msw
+        )
 
     # Test if Modflow6 output written
-    headfile, cbcfile, _, _ = mf6_output_files(tmp_path_dev)
+    for mf6_model in mf6_model_list:
+        headfile, cbcfile, _, _ = mf6_output_files(tmp_path_dev, mf6_model)
 
-    assert headfile.exists()
-    assert cbcfile.exists()
-    # If computation failed, Modflow6 usually writes a headfile and cbcfile of 0
-    # bytes.
-    assert headfile.stat().st_size > 0
-    assert cbcfile.stat().st_size > 0
+        assert headfile.exists()
+        assert cbcfile.exists()
+        # If computation failed, Modflow6 usually writes a headfile and cbcfile of 0
+        # bytes.
+        assert headfile.stat().st_size > 0
+        assert cbcfile.stat().st_size > 0
 
 
 @parametrize_with_cases("metamod_model")
@@ -470,9 +520,7 @@ def add_logging_request_to_toml_file(toml_dir: Path, toml_filename: str) -> None
         toml_dict = tomli.load(f)
 
     with open(toml_dir / toml_filename, "wb") as f:
-        toml_dict["driver"]["coupling"][0]["output_config_file"] = (
-            "./output_config.toml"
-        )
+        toml_dict["driver"]["coupling"]["output_config_file"] = "./output_config.toml"
         tomli_w.dump(toml_dict, f)
 
     # write output_config file

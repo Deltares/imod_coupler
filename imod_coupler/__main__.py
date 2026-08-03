@@ -5,6 +5,7 @@ from pathlib import Path
 
 import tomli as tomllib
 from loguru import logger
+from mpi4py import MPI
 
 from imod_coupler import __version__
 from imod_coupler.config import BaseConfig
@@ -35,7 +36,16 @@ def run_coupler(config_path: Path) -> None:
 
     config_dir = config_path.parent
     base_config = BaseConfig(**config_dict)
-    setup_logger(base_config.log_level, config_dir / "imod_coupler.log")
+
+    if len(base_config.hpc) > 0:
+        comm = MPI.COMM_WORLD
+        rank = comm.Get_rank()
+        log_file = f"imod_coupler_p{rank}.log"
+        print(log_file)
+    else:
+        log_file = "imod_coupler.log"
+
+    setup_logger(base_config.log_level, config_dir / log_file)
     logger.info(f"iMOD Coupler {__version__}")
 
     if base_config.timing:
