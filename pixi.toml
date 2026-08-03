@@ -19,17 +19,18 @@ numpy = ">=2.0"
 pydantic = ">=2.11.0"
 python = ">=3.10"
 xarray = ">=2025.8.0"
+pip = "*"
 scipy = "*"
 tomli = "*"
 tomli-w = "*"
 xmipy = "*"
+imod = "=1.0.0.post1"
 ribasim = "=2026.1.1"
 rasterio = ">=1.5.0,<2"
 mpi4py = ">=4.1.2,<5"
 impi_rt = ">=2021.18.0,<2022"
 
 [pypi-dependencies]
-imod = { git = "https://github.com/Deltares/imod-python.git" }
 ribasim_testmodels = { git = "https://github.com/Deltares/Ribasim.git", tag = "v2026.1.1", subdirectory = "python/ribasim_testmodels" }
 imod_coupler = { path = ".", editable = true }
 primod = { path = "pre-processing", editable = true }
@@ -38,6 +39,7 @@ ribasim = "==2026.1.1"
 
 [feature.common.tasks]
 # Fetch binaries
+fetch-imod = { cmd = "pip install git+https://github.com/Deltares/imod-python.git" }
 fetch-ribasim = { cmd = "python scripts/download_ribasim.py 2026.1.1 ./.imod_collector/develop/ribasim", cwd="." }
 fetch-modflow = { cmd = "python scripts/download_modflow.py 6.7.0 ./.imod_collector/develop/modflow6", cwd="." }
 fetch-metaswap = "aws s3 cp s3://metaswap/releases/r2410 ./.imod_collector/develop/metaswap --recursive --no-sign-request --endpoint-url https://s3.deltares.nl --no-verify-ssl"
@@ -53,7 +55,7 @@ test-primod = "pytest --junitxml=report.xml tests/test_primod"
 [feature.common.dependencies]
 awscli = "*"
 python-build = "*"
-gh = "*"
+gh = "*" 
 httpx = "*"
 ipython = "*"
 jupyterlab = "*"
@@ -73,6 +75,7 @@ mypy2junit = "*"
 [feature.dev.tasks]
 # Setup
 setup-test-dependencies = { depends-on = [
+    "fetch-imod",
     "fetch-metaswap-test-db",
     "fetch-imod-collector",
     "fetch-imod-collector-regression",
