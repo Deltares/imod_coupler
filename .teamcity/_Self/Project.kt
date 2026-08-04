@@ -13,6 +13,7 @@ import jetbrains.buildServer.configs.kotlin.Project
 import jetbrains.buildServer.configs.kotlin.buildFeatures.PullRequests
 import jetbrains.buildServer.configs.kotlin.buildFeatures.pullRequests
 import jetbrains.buildServer.configs.kotlin.triggers.vcs
+import jetbrains.buildServer.configs.kotlin.projectFeatures.dockerRegistry
 
 object Project : Project({
     description = "Python scripts coupling components"
@@ -21,6 +22,16 @@ object Project : Project({
     vcsRoot(ImodCoupler)
 
     template(GitHubIntegrationTemplate)
+
+    features {
+        dockerRegistry {
+            id = "PROJECT_EXT_342"
+            name = "Hydrology"
+            url = "https://containers.deltares.nl/"
+            userName = "robot${'$'}hydrology_product_line_imod+coupler"
+            password = "credentialsJSON:64b319c1-8310-4f16-bc84-bda637763af1"
+        }
+    }
 
     buildType(Lint)
     buildType(MyPy)
