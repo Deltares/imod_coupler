@@ -23,6 +23,7 @@ object Lint : BuildType({
             id = "Run_ruff_format_check"
             workingDir = "imod_coupler"
             scriptContent = """
+                    pixi config set --local detached-environments "C:\pixi_envs"
                     pixi run --environment dev --frozen format-check 
                 """.trimIndent()
             formatStderrAsError = true
@@ -36,6 +37,7 @@ object Lint : BuildType({
             id = "Run_ruff"
             workingDir = "imod_coupler"
             scriptContent = """
+                    pixi config set --local detached-environments "C:\pixi_envs"
                     pixi run --environment dev --frozen ruff
                 """.trimIndent()
             formatStderrAsError = true
