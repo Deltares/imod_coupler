@@ -37,6 +37,12 @@ object IMODCollector_X64development : BuildType({
             name = "Set up pixi"
             workingDir = "coupler"
             scriptContent = """
+                echo "Correct temp folders"
+                rem Use the temp directory inside the container instead of
+                rem the host system one
+                set TEMP=C:\Windows\TEMP
+                set TMP=C:\Windows\TEMP
+                
                 pixi --version
                 pixi config set --local detached-environments "C:\pixi_envs"
                 pixi install -e dev
