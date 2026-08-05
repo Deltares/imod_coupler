@@ -2,6 +2,7 @@ package Pixi
 
 import _Self.vcsRoots.ImodCoupler
 import jetbrains.buildServer.configs.kotlin.BuildType
+import jetbrains.buildServer.configs.kotlin.buildFeatures.dockerRegistryConnections
 import jetbrains.buildServer.configs.kotlin.Project
 import jetbrains.buildServer.configs.kotlin.buildSteps.powerShell
 import jetbrains.buildServer.configs.kotlin.triggers.schedule
@@ -71,6 +72,10 @@ object UpdateDependencies : BuildType({
                 """.trimIndent()
             }
             noProfile = false
+            param("plugin.docker.imagePlatform", "windows")
+            param("plugin.docker.pull.enabled", "false")
+            param("plugin.docker.imageId", "%DockerContainer%:%DockerVersion%")
+            param("plugin.docker.run.parameters", "--cpus=4 --memory=16g")
         }
     }
 
@@ -87,5 +92,13 @@ object UpdateDependencies : BuildType({
 
     failureConditions {
         errorMessage = true
+    }
+
+    features {
+        dockerRegistryConnections {
+            loginToRegistry = on {
+                dockerRegistryId = "PROJECT_EXT_342"
+            }
+        }
     }
 })
