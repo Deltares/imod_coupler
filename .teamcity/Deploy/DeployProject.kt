@@ -51,7 +51,7 @@ object BuildPrimodPackage : BuildType({
     }
 
     requirements {
-        equals("env.OS", "Windows_NT")
+        equals("teamcity.agent.jvm.os.name", "Windows 11")
     }
 
 })
@@ -101,7 +101,7 @@ object DeployPrimodPackage : BuildType({
     }
 
     requirements {
-        equals("env.OS", "Windows_NT")
+        equals("teamcity.agent.jvm.os.name", "Windows 11")
     }
 })
 
@@ -135,7 +135,7 @@ object BuildCouplerPackage : BuildType({
     }
 
     requirements {
-        equals("env.OS", "Windows_NT")
+        equals("teamcity.agent.jvm.os.name", "Windows 11")
     }
 
 })
@@ -185,7 +185,7 @@ object DeployCouplerPackage : BuildType({
     }
 
     requirements {
-        equals("env.OS", "Windows_NT")
+        equals("teamcity.agent.jvm.os.name", "Windows 11")
     }
 })
 
