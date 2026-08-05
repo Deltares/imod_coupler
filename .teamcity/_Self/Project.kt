@@ -18,6 +18,11 @@ import jetbrains.buildServer.configs.kotlin.projectFeatures.dockerRegistry
 object Project : Project({
     description = "Python scripts coupling components"
 
+    params {
+        param("DockerContainer", "containers.deltares.nl/hydrology_product_line_imod/windows-pixi")
+        param("DockerVersion", "v0.69.0")
+    }
+
     vcsRoot(MetaSwapLookupTable)
     vcsRoot(ImodCoupler)
 

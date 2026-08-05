@@ -34,6 +34,6 @@ object SonarCloud : BuildType({
     }
 
     requirements {
-        equals("env.OS", "Windows_NT")
+        equals("teamcity.agent.jvm.os.name", "Windows 11")
     }
 })

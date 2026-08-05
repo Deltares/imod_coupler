@@ -51,7 +51,7 @@ object BuildPrimodPackage : BuildType({
     }
 
     requirements {
-        equals("env.OS", "Windows_NT")
+        equals("teamcity.agent.jvm.os.name", "Windows 11")
     }
 
 })
@@ -88,10 +88,6 @@ object DeployPrimodPackage : BuildType({
         }
     }
 
-    requirements {
-        equals("env.OS", "Windows_NT")
-    }
-
     dependencies {
         dependency(BuildPrimodPackage) {
             snapshot {
@@ -99,15 +95,13 @@ object DeployPrimodPackage : BuildType({
             }
 
             artifacts {
-                buildRule = sameChain()
                 artifactRules = """+:dist.zip!** => imod_coupler\pre-processing\dist"""
-                cleanDestination = true
             }
         }
     }
 
     requirements {
-        equals("env.OS", "Windows_NT")
+        equals("teamcity.agent.jvm.os.name", "Windows 11")
     }
 })
 
@@ -141,7 +135,7 @@ object BuildCouplerPackage : BuildType({
     }
 
     requirements {
-        equals("env.OS", "Windows_NT")
+        equals("teamcity.agent.jvm.os.name", "Windows 11")
     }
 
 })
@@ -178,10 +172,6 @@ object DeployCouplerPackage : BuildType({
         }
     }
 
-    requirements {
-        equals("env.OS", "Windows_NT")
-    }
-
     dependencies {
         dependency(BuildCouplerPackage) {
             snapshot {
@@ -189,11 +179,13 @@ object DeployCouplerPackage : BuildType({
             }
 
             artifacts {
-                buildRule = sameChain()
                 artifactRules = """+:dist.zip!** => imod_coupler\dist"""
-                cleanDestination = true
             }
         }
+    }
+
+    requirements {
+        equals("teamcity.agent.jvm.os.name", "Windows 11")
     }
 })
 
@@ -227,13 +219,6 @@ object CreateGitHubRelease : BuildType({
             scriptMode = script {
                 content = """
                     ${'$'}tag = git describe --tags --abbrev=0 --exact-match
-                    if (${'$'}LASTEXITCODE -ne 0){
-                        throw "Current commit does not have an exact Git tag"
-                    }
-
-                    if ([System.String]::IsNullOrWhiteSpace(${'$'}tag)) {
-                        throw "Git returned an empty tag"
-                    }
                     
                     echo "Creating GitHub release for: ${'$'}tag"
                     
@@ -247,10 +232,6 @@ object CreateGitHubRelease : BuildType({
         }
     }
 
-    requirements {
-        equals("env.OS", "Windows_NT")
-    }
-
     dependencies {
         dependency(AbsoluteId("SigningAndCertificates_IMOD_SigningCollector")) {
             snapshot {
@@ -258,9 +239,8 @@ object CreateGitHubRelease : BuildType({
             }
 
             artifacts {
-                buildRule = sameChain()
+                buildRule = lastSuccessful()
                 artifactRules = "+:**/* => release"
-                cleanDestination = true
             }
         }
     }
