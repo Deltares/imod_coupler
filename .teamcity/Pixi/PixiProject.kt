@@ -39,6 +39,9 @@ object UpdateDependencies : BuildType({
                     ${'$'}ErrorActionPreference = "Stop"
                     ${'$'}PSNativeCommandUseErrorActionPreference = ${'$'}true
 
+                    echo "Set environment location for detached environments" 
+                    pixi config set --local detached-environments "C:\pixi_envs"
+
                     echo "Create update branch"
                     git remote set-url origin https://%GH_USER%:%env.GH_TOKEN%@github.com/Deltares/imod_coupler.git
                     git checkout -b pixi_update_%build.counter%
