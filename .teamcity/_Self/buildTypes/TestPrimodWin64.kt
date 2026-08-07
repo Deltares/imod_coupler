@@ -5,10 +5,12 @@ import Templates.GitHubIntegrationTemplate
 import _Self.vcsRoots.ImodCoupler
 import _Self.vcsRoots.MetaSwapLookupTable
 import jetbrains.buildServer.configs.kotlin.BuildType
+import jetbrains.buildServer.configs.kotlin.buildFeatures.dockerRegistryConnections
 import jetbrains.buildServer.configs.kotlin.FailureAction
 import jetbrains.buildServer.configs.kotlin.PublishMode
 import jetbrains.buildServer.configs.kotlin.buildFeatures.XmlReport
 import jetbrains.buildServer.configs.kotlin.buildFeatures.xmlReport
+import jetbrains.buildServer.configs.kotlin.buildSteps.ScriptBuildStep
 import jetbrains.buildServer.configs.kotlin.buildSteps.script
 
 object TestPrimodWin64 : BuildType({
@@ -53,7 +55,15 @@ object TestPrimodWin64 : BuildType({
             name = "Run tests"
             id = "RUNNER_1503"
             workingDir = "imod_coupler"
-            scriptContent = "pixi run --environment %pixi-environment% test-primod"
+            scriptContent = """
+                    pixi config set --local detached-environments "C:\pixi_envs"
+                    pixi run --environment %pixi-environment% test-primod
+                """.trimIndent()
+            formatStderrAsError = true
+            dockerImage = "%DockerContainer%:%DockerVersion%"
+            dockerImagePlatform = ScriptBuildStep.ImagePlatform.Windows
+            dockerRunParameters = """--cpus=4 --memory=16g"""
+            dockerPull = false
         }
     }
 
@@ -63,6 +73,11 @@ object TestPrimodWin64 : BuildType({
             reportType = XmlReport.XmlReportType.JUNIT
             rules = "imod_coupler/report.xml"
             verbose = true
+        }
+        dockerRegistryConnections {
+            loginToRegistry = on {
+                dockerRegistryId = "PROJECT_EXT_342"
+            }
         }
     }
 
@@ -79,9 +94,5 @@ object TestPrimodWin64 : BuildType({
                 """.trimIndent()
             }
         }
-    }
-
-    requirements {
-        equals("teamcity.agent.jvm.os.name", "Windows 11")
     }
 })

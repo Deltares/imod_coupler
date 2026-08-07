@@ -6,7 +6,9 @@ import _Self.buildTypes.MyPy
 import _Self.buildTypes.TwineCheck
 import _Self.vcsRoots.ImodCoupler
 import jetbrains.buildServer.configs.kotlin.BuildType
+import jetbrains.buildServer.configs.kotlin.buildFeatures.dockerRegistryConnections
 import jetbrains.buildServer.configs.kotlin.FailureAction
+import jetbrains.buildServer.configs.kotlin.buildSteps.ScriptBuildStep
 import jetbrains.buildServer.configs.kotlin.buildSteps.script
 
 object IMODCollector_X64development : BuildType({
@@ -35,29 +37,32 @@ object IMODCollector_X64development : BuildType({
             name = "Set up pixi"
             workingDir = "coupler"
             scriptContent = """
+                echo "Configure temporary directories for Docker container"
+                rem Override TEMP and TMP to use container's temp directory
+                rem instead of the host system's temp directory to prevent
+                rem the host system from locking the files
+                set TEMP=C:\Windows\TEMP
+                set TMP=C:\Windows\TEMP
+                
                 pixi --version
+                pixi config set --local detached-environments "C:\pixi_envs"
                 pixi install -e dev
                 pixi list
-            """.trimIndent()
-        }
-        script {
-            name = "Get coupler dependencies"
-            workingDir = "coupler"
-            scriptContent = """
+                
+                echo "Get coupler dependencies"
                 pixi run -e dev fetch-imod-collector
-            """.trimIndent()
-        }
-        script {
-            name = "Create executable with pyinstaller"
-            workingDir = "coupler"
-            scriptContent = """
+                
+                echo "Create executable with pyinstaller"
                 pixi run -e dev build-imod-coupler
+                
+                echo "Get version from imod coupler"
+                call dist\imodc --version
             """.trimIndent()
-        }
-        script {
-            name = "Get version from imod coupler"
-            workingDir = "coupler"
-            scriptContent = """call dist\imodc --version"""
+            formatStderrAsError = true
+            dockerImage = "%DockerContainer%:%DockerVersion%"
+            dockerImagePlatform = ScriptBuildStep.ImagePlatform.Windows
+            dockerRunParameters = """--cpus=4 --memory=16g"""
+            dockerPull = false
         }
     }
 
@@ -75,7 +80,11 @@ object IMODCollector_X64development : BuildType({
         }
     }
 
-    requirements {
-        equals("teamcity.agent.jvm.os.name", "Windows 11")
+    features {
+        dockerRegistryConnections {
+            loginToRegistry = on {
+                dockerRegistryId = "PROJECT_EXT_342"
+            }
+        }
     }
 })
