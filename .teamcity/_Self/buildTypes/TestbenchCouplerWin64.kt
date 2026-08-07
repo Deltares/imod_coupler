@@ -8,7 +8,9 @@ import jetbrains.buildServer.configs.kotlin.BuildType
 import jetbrains.buildServer.configs.kotlin.FailureAction
 import jetbrains.buildServer.configs.kotlin.PublishMode
 import jetbrains.buildServer.configs.kotlin.buildFeatures.XmlReport
+import jetbrains.buildServer.configs.kotlin.buildFeatures.dockerRegistryConnections
 import jetbrains.buildServer.configs.kotlin.buildFeatures.xmlReport
+import jetbrains.buildServer.configs.kotlin.buildSteps.ScriptBuildStep
 import jetbrains.buildServer.configs.kotlin.buildSteps.script
 
 
@@ -60,20 +62,29 @@ object TestbenchCouplerWin64 : BuildType({
 
     steps {
         script {
-            name = "Set up pixi"
-            workingDir = "imod_coupler"
-            scriptContent = """
-                pixi --version
-                pixi install -e dev --frozen
-                pixi list -e dev
-            """.trimIndent()
-        }
-        script {
             name = "Run tests"
             workingDir = "imod_coupler"
             scriptContent = """
+                echo "Configure temporary directories for Docker container"
+                rem Override TEMP and TMP to use container's temp directory
+                rem instead of the host system's temp directory to prevent
+                rem the host system from locking the files
+                set TEMP=C:\Windows\TEMP
+                set TMP=C:\Windows\TEMP
+
+                pixi --version
+                
+                pixi config set --local detached-environments "C:\pixi_envs"
+                pixi install -e dev --frozen
+                pixi list -e dev
+                
                 pixi run -e dev --frozen test-imod-coupler
             """.trimIndent()
+            formatStderrAsError = true
+            dockerImage = "%DockerContainer%:%DockerVersion%"
+            dockerImagePlatform = ScriptBuildStep.ImagePlatform.Windows
+            dockerRunParameters = """--cpus=4 --memory=16g"""
+            dockerPull = false
         }
     }
 
@@ -82,6 +93,11 @@ object TestbenchCouplerWin64 : BuildType({
             reportType = XmlReport.XmlReportType.JUNIT
             rules = "imod_coupler/report.xml"
             verbose = true
+        }
+        dockerRegistryConnections {
+            loginToRegistry = on {
+                dockerRegistryId = "PROJECT_EXT_342"
+            }
         }
     }
 
@@ -111,9 +127,5 @@ object TestbenchCouplerWin64 : BuildType({
                 artifactRules = "+:imod_coupler_release.zip!** => imod_collector_regression"
             }
         }
-    }
-
-    requirements {
-        equals("teamcity.agent.jvm.os.name", "Windows 11")
     }
 })

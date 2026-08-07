@@ -3,6 +3,8 @@ package _Self.buildTypes
 import Templates.GitHubIntegrationTemplate
 import _Self.vcsRoots.ImodCoupler
 import jetbrains.buildServer.configs.kotlin.*
+import jetbrains.buildServer.configs.kotlin.buildFeatures.dockerRegistryConnections
+import jetbrains.buildServer.configs.kotlin.buildSteps.ScriptBuildStep
 import jetbrains.buildServer.configs.kotlin.buildSteps.script
 
 object SonarCloud : BuildType({
@@ -30,10 +32,19 @@ object SonarCloud : BuildType({
                 tar -xf sonar-cli.zip
                 sonar-scanner-%sonar_scanner_version%-windows-x64\bin\sonar-scanner.bat "-Dsonar.token=%sonar_token%"
             """.trimIndent()
+            formatStderrAsError = true
+            dockerImage = "%DockerContainer%:%DockerVersion%"
+            dockerImagePlatform = ScriptBuildStep.ImagePlatform.Windows
+            dockerRunParameters = """--cpus=4 --memory=16g"""
+            dockerPull = false
         }
     }
 
-    requirements {
-        equals("teamcity.agent.jvm.os.name", "Windows 11")
+    features {
+        dockerRegistryConnections {
+            loginToRegistry = on {
+                dockerRegistryId = "PROJECT_EXT_342"
+            }
+        }
     }
 })

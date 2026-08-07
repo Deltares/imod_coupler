@@ -3,9 +3,11 @@ package _Self.buildTypes
 import Templates.GitHubIntegrationTemplate
 import _Self.vcsRoots.ImodCoupler
 import jetbrains.buildServer.configs.kotlin.BuildType
+import jetbrains.buildServer.configs.kotlin.buildFeatures.dockerRegistryConnections
 import jetbrains.buildServer.configs.kotlin.buildFeatures.XmlReport
 import jetbrains.buildServer.configs.kotlin.buildFeatures.xmlReport
 import jetbrains.buildServer.configs.kotlin.buildSteps.script
+import jetbrains.buildServer.configs.kotlin.buildSteps.ScriptBuildStep
 import jetbrains.buildServer.configs.kotlin.failureConditions.BuildFailureOnMetric
 import jetbrains.buildServer.configs.kotlin.failureConditions.failOnMetricChange
 
@@ -25,20 +27,30 @@ object MyPy : BuildType({
             id = "Run_mypy_on_imodc"
             workingDir = "imod_coupler"
             scriptContent = """
+                    pixi config set --local detached-environments "C:\pixi_envs"
                     pixi run --environment dev --frozen mypy-imodc-report
                     pixi run --environment dev --frozen mypy-imodc
                 """.trimIndent()
             formatStderrAsError = true
+            dockerImage = "%DockerContainer%:%DockerVersion%"
+            dockerImagePlatform = ScriptBuildStep.ImagePlatform.Windows
+            dockerRunParameters = """--cpus=4 --memory=16g"""
+            dockerPull = false
         }
         script {
             name = "Run mypy on primod"
             id = "Run_mypy_on_primod"
             workingDir = "imod_coupler"
             scriptContent = """
+                    pixi config set --local detached-environments "C:\pixi_envs"
                     pixi run --environment dev --frozen mypy-primod-report
                     pixi run --environment dev --frozen mypy-primod
                 """.trimIndent()
             formatStderrAsError = true
+            dockerImage = "%DockerContainer%:%DockerVersion%"
+            dockerImagePlatform = ScriptBuildStep.ImagePlatform.Windows
+            dockerRunParameters = """--cpus=4 --memory=16g"""
+            dockerPull = false
         }
     }
 
@@ -59,9 +71,10 @@ object MyPy : BuildType({
             reportType = XmlReport.XmlReportType.JUNIT
             rules = "imod_coupler/*.xml"
         }
-    }
-
-    requirements {
-        equals("teamcity.agent.jvm.os.name", "Windows 11")
+        dockerRegistryConnections {
+            loginToRegistry = on {
+                dockerRegistryId = "PROJECT_EXT_342"
+            }
+        }
     }
 })
