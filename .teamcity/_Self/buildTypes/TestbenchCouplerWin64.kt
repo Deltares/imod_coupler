@@ -65,6 +65,13 @@ object TestbenchCouplerWin64 : BuildType({
             name = "Run tests"
             workingDir = "imod_coupler"
             scriptContent = """
+                echo "Configure temporary directories for Docker container"
+                rem Override TEMP and TMP to use container's temp directory
+                rem instead of the host system's temp directory to prevent
+                rem the host system from locking the files
+                set TEMP=C:\Windows\TEMP
+                set TMP=C:\Windows\TEMP
+
                 pixi --version
                 
                 pixi config set --local detached-environments "C:\pixi_envs"

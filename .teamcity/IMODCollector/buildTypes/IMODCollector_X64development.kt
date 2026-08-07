@@ -37,9 +37,10 @@ object IMODCollector_X64development : BuildType({
             name = "Set up pixi"
             workingDir = "coupler"
             scriptContent = """
-                echo "Correct temp folders"
-                rem Use the temp directory inside the container instead of
-                rem the host system one
+                echo "Configure temporary directories for Docker container"
+                rem Override TEMP and TMP to use container's temp directory
+                rem instead of the host system's temp directory to prevent
+                rem the host system from locking the files
                 set TEMP=C:\Windows\TEMP
                 set TMP=C:\Windows\TEMP
                 
