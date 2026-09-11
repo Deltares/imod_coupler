@@ -1,3 +1,4 @@
+import os
 import subprocess
 import textwrap
 from collections.abc import Callable
@@ -212,32 +213,15 @@ def test_metamod_regression(
 
     run_coupler_function(tmp_path_dev / metamod_model._toml_name)
 
-    # Read Modflow 6 output
+    # Read Modflow 6 output dev
     headfile_dev, cbcfile_dev, grbfile_dev, _ = mf6_output_files(tmp_path_dev)
-
-    # Regression testing temporarilily disable to be able to merge this branch
-    # With imod_coupler issue #430 this situation is to be resolved
-    """
     heads_dev = open_hds(headfile_dev, grbfile_dev)
     budgets_dev = open_cbc(cbcfile_dev, grbfile_dev)
 
-    # Write model again, but now with paths to regression dll
-    metamod_model.write(
-        tmp_path_reg,
-        modflow6_dll=modflow_dll_regression,
-        metaswap_dll=metaswap_dll_regression,
-        metaswap_dll_dependency=metaswap_dll_dep_dir_regression,
-    )
-
-    subprocess.run(
-        [imod_coupler_exec_regression, tmp_path_reg / metamod_model._toml_name],
-        check=True,
-        capture_output=True,
-    )
-
-    # Read Modflow 6 output
+    # Read Modflow 6 output reg
+    _, testname = os.path.split(os.path.split(tmp_path_dev)[0])
+    tmp_path_reg = Path(__file__).parent.parent / "reference_output" / testname
     headfile_reg, cbcfile_reg, grbfile_reg, _ = mf6_output_files(tmp_path_reg)
-
     heads_reg = open_hds(headfile_reg, grbfile_reg)
     budgets_reg = open_cbc(cbcfile_reg, grbfile_reg)
 
@@ -253,7 +237,6 @@ def test_metamod_regression(
             budgets_reg[varname].compute(),
             decimal=decimal_tolerance,
         )
-    """
 
 
 @pytest.mark.xfail(reason="MetaSWAP issues")
