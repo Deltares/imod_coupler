@@ -23,7 +23,6 @@ scipy = "*"
 tomli = "*"
 tomli-w = "*"
 xmipy = "*"
-imod = "=1.0.0.post1"
 ribasim = "=2026.1.1"
 
 [pypi-dependencies]
@@ -32,6 +31,7 @@ imod_coupler = { path = ".", editable = true }
 primod = { path = "pre-processing", editable = true }
 pyinstaller = "*" # Use pypi version instead of condforge due to issues with the AV
 ribasim = "==2026.1.1"
+imod={ git = "https://github.com/Deltares/imod-python.git"}
 
 [feature.common.tasks]
 # Fetch binaries
