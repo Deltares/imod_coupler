@@ -1,5 +1,6 @@
 import os
 import subprocess
+import sys
 import textwrap
 from collections.abc import Callable
 from pathlib import Path
@@ -225,18 +226,30 @@ def test_metamod_regression(
     heads_reg = open_hds(headfile_reg, grbfile_reg)
     budgets_reg = open_cbc(cbcfile_reg, grbfile_reg)
 
-    assert_array_almost_equal(
-        heads_dev.compute(), heads_reg.compute(), decimal=decimal_tolerance
-    )
+    try:
+        assert_array_almost_equal(
+            heads_dev.compute(), heads_reg.compute(), decimal=decimal_tolerance
+        )
+    except AssertionError:
+        sys.stderr.write(
+            'Heads comparison failed. Check the output files in "tests/reference_output" for details.\n'
+        )
+        raise
 
     assert budgets_dev.keys() == budgets_reg.keys()
 
     for varname in budgets_dev.keys():
-        assert_array_almost_equal(
-            budgets_dev[varname].compute(),
-            budgets_reg[varname].compute(),
-            decimal=decimal_tolerance,
-        )
+        try:
+            assert_array_almost_equal(
+                budgets_dev[varname].compute(),
+                budgets_reg[varname].compute(),
+                decimal=decimal_tolerance,
+            )
+        except AssertionError:
+            sys.stderr.write(
+                f'Budget comparison failed for variable "{varname}". Check the output files in "tests/reference_output" for details.\n'
+            )
+            raise
 
 
 @parametrize_with_cases("metamod_model", glob="storage_coefficient_no_sprinkling")
