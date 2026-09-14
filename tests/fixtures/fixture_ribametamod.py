@@ -51,7 +51,7 @@ def make_msw_model(
     active = active & modflow_active
 
     msw_model = metaswap_model(
-        times, area, active, gwf["GWF_1"]["dis"], unsaturated_database
+        times, area, active, gwf["GWF_1"]["dis"], unsaturated_database, abstraction_type="surfacewater"
     )
     # remove bizar large et-flux
     evaporation = msw_model["meteo_grid"].dataset["evapotranspiration"]

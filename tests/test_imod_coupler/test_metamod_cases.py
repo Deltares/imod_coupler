@@ -7,13 +7,13 @@ from primod import MetaMod, MetaModDriverCoupling
 
 def case_sprinkling(
     coupled_mf6_model: Modflow6Simulation,
-    prepared_msw_model_gw_sprinkling: MetaSwapModel,
+    prepared_msw_model: MetaSwapModel,
 ) -> MetaMod:
     driver_coupling = MetaModDriverCoupling(
         mf6_model="GWF_1", mf6_recharge_package="rch_msw", mf6_wel_package="wells_msw"
     )
     return MetaMod(
-        prepared_msw_model_gw_sprinkling,
+        prepared_msw_model,
         coupled_mf6_model,
         coupling_list=[driver_coupling],
     )
@@ -21,15 +21,15 @@ def case_sprinkling(
 
 def case_no_sprinkling(
     coupled_mf6_model: Modflow6Simulation,
-    prepared_msw_model_gw_sprinkling: MetaSwapModel,
+    prepared_msw_model: MetaSwapModel,
 ) -> MetaMod:
-    prepared_msw_model_gw_sprinkling.pop("sprinkling")
+    prepared_msw_model.pop("sprinkling")
 
     driver_coupling = MetaModDriverCoupling(
         mf6_model="GWF_1", mf6_recharge_package="rch_msw"
     )
     return MetaMod(
-        prepared_msw_model_gw_sprinkling,
+        prepared_msw_model,
         coupled_mf6_model,
         coupling_list=[driver_coupling],
     )
@@ -37,13 +37,13 @@ def case_no_sprinkling(
 
 def case_storage_coefficient(
     coupled_mf6_model_storage_coefficient: Modflow6Simulation,
-    prepared_msw_model_gw_sprinkling: MetaSwapModel,
+    prepared_msw_model: MetaSwapModel,
 ) -> MetaMod:
     driver_coupling = MetaModDriverCoupling(
         mf6_model="GWF_1", mf6_recharge_package="rch_msw", mf6_wel_package="wells_msw"
     )
     return MetaMod(
-        prepared_msw_model_gw_sprinkling,
+        prepared_msw_model,
         coupled_mf6_model_storage_coefficient,
         coupling_list=[driver_coupling],
     )
@@ -51,15 +51,15 @@ def case_storage_coefficient(
 
 def case_storage_coefficient_no_sprinkling(
     coupled_mf6_model_storage_coefficient: Modflow6Simulation,
-    prepared_msw_model_gw_sprinkling: MetaSwapModel,
+    prepared_msw_model: MetaSwapModel,
 ) -> MetaMod:
-    prepared_msw_model_gw_sprinkling.pop("sprinkling")
+    prepared_msw_model.pop("sprinkling")
 
     driver_coupling = MetaModDriverCoupling(
         mf6_model="GWF_1", mf6_recharge_package="rch_msw"
     )
     return MetaMod(
-        prepared_msw_model_gw_sprinkling,
+        prepared_msw_model,
         coupled_mf6_model_storage_coefficient,
         coupling_list=[driver_coupling],
     )
@@ -165,7 +165,7 @@ def cases_metamod_no_sprinkling(
 
 
 def cases_metamod_sprinkling(
-    prepared_msw_model_gw_sprinkling: MetaSwapModel,
+    prepared_msw_model: MetaSwapModel,
     coupled_mf6_model: Modflow6Simulation,
     coupled_mf6_model_storage_coefficient: Modflow6Simulation,
 ) -> tuple[MetaMod, MetaMod]:
@@ -179,13 +179,13 @@ def cases_metamod_sprinkling(
     )
 
     metamod_ss = MetaMod(
-        prepared_msw_model_gw_sprinkling,
+        prepared_msw_model,
         coupled_mf6_model,
         [driver_coupling],
     )
 
     metamod_sc = MetaMod(
-        prepared_msw_model_gw_sprinkling,
+        prepared_msw_model,
         coupled_mf6_model_storage_coefficient,
         [driver_coupling],
     )
