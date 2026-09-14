@@ -84,7 +84,7 @@ def metaswap_model(
     msw_model["mapping_evt"] = msw.EvapotranspirationMapping(precipitation * 1.5)
 
     # Sprinkling
-    msw_model["sprinkling"] = msw.Sprinkling(
+    msw_model["sprinkling"] = msw.SprinklingGrid(
         max_abstraction_groundwater=xr.full_like(area, 0.0),
         max_abstraction_surfacewater=xr.full_like(area, 0.02 * (20 * 20)),  # 20 mm/d
     )
@@ -257,6 +257,24 @@ def prepared_msw_model_inactive(
     msw_model = make_msw_model(inactive_idomain)
     # Override unsat_svat_path with path from environment
     msw_model.simulation_settings["unsa_svat_path"] = metaswap_lookup_table
+    return msw_model
+
+
+@pytest_cases.fixture(scope="function")
+def prepared_msw_model_gw_sprinkling(
+    active_idomain: xr.DataArray,
+    metaswap_lookup_table: Path,
+) -> msw.MetaSwapModel:
+    msw_model = make_msw_model(active_idomain)
+    # Flip grids in sprinkling package
+    sprinkling = msw_model["sprinkling"]
+    zero_grid = sprinkling.dataset["max_abstraction_groundwater"].copy()
+    abstraction_grid = sprinkling.dataset["max_abstraction_surfacewater"].copy()
+    sprinkling.dataset["max_abstraction_surfacewater"] = zero_grid
+    sprinkling.dataset["max_abstraction_groundwater"] = abstraction_grid
+    # Override unsat_svat_path with path from environment
+    msw_model.simulation_settings["unsa_svat_path"] = metaswap_lookup_table
+
     return msw_model
 
 
