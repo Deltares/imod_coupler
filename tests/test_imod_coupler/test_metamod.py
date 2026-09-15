@@ -116,6 +116,30 @@ def test_metamod_run_failure(
     with pytest.raises(subprocess.CalledProcessError):
         run_coupler_function(tmp_path_dev / metamod_model._toml_name)
 
+def _write_dbot_svat_inp(tmp_path_dev, metamod_model):
+    """FUTURE: Replace this logic when iMOd-python supports writing dbot input files"""
+    _metadata_dict = {
+        "svat": VariableMetaData(10, 1, 9999999, int),
+        "bottom": VariableMetaData(10, -9999.0, 9999.0, float),
+        "sc2": VariableMetaData(10, 0.0, 1.0, float),
+    }
+    _, svat = metamod_model.msw_model["grid"].generate_index_array()
+    out = {}
+    out["svat"] = svat.to_numpy()[svat.to_numpy() > 0]
+    out["bottom"] = np.array([99.0] * out["svat"].size)
+    index = metamod_model.coupling_list[0].mf6_max_layer.to_numpy()[0, 10:40].min()
+    out["bottom"][10:40] = 5.0
+    out["sc2"] = np.array([0.01] * out["svat"].size)
+
+    with open(
+        tmp_path_dev / metamod_model._metaswap_model_dir / "dbot_svat.inp", "w"
+    ) as file:
+        for row in pd.DataFrame(out).itertuples():
+            for index, metadata in enumerate(_metadata_dict.values()):
+                content = format_fixed_width(row[index + 1], metadata)
+                file.write(content)
+            file.write("\n")
+
 
 @parametrize_with_cases("metamod_model")
 def test_metamod_develop(
@@ -140,28 +164,7 @@ def test_metamod_develop(
         "newton_pe" in str(tmp_path_dev)
     )
     if dbot_active:
-        # TODO replace this logic when iMOd-python supports writing dbot input files
-        _metadata_dict = {
-            "svat": VariableMetaData(10, 1, 9999999, int),
-            "bottom": VariableMetaData(10, -9999.0, 9999.0, float),
-            "sc2": VariableMetaData(10, 0.0, 1.0, float),
-        }
-        _, svat = metamod_model.msw_model["grid"].generate_index_array()
-        out = {}
-        out["svat"] = svat.to_numpy()[svat.to_numpy() > 0]
-        out["bottom"] = np.array([99.0] * out["svat"].size)
-        index = metamod_model.coupling_list[0].mf6_max_layer.to_numpy()[0, 10:40].min()
-        out["bottom"][10:40] = 5.0
-        out["sc2"] = np.array([0.01] * out["svat"].size)
-
-        with open(
-            tmp_path_dev / metamod_model._metaswap_model_dir / "dbot_svat.inp", "w"
-        ) as file:
-            for row in pd.DataFrame(out).itertuples():
-                for index, metadata in enumerate(_metadata_dict.values()):
-                    content = format_fixed_width(row[index + 1], metadata)
-                    file.write(content)
-                file.write("\n")
+        _write_dbot_svat_inp(tmp_path_dev, metamod_model)
 
     run_coupler_function(tmp_path_dev / metamod_model._toml_name)
 
