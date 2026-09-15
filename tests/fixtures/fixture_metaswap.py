@@ -201,7 +201,9 @@ def make_msw_model_free(
     return metaswap_model(times, area, active, dis, unsaturated_database)
 
 
-def make_msw_model(idomain: xr.DataArray, abstraction_type: Literal["groundwater", "surfacewater"]) -> msw.MetaSwapModel:
+def make_msw_model(
+    idomain: xr.DataArray, abstraction_type: Literal["groundwater", "surfacewater"]
+) -> msw.MetaSwapModel:
     times = get_times()
     unsaturated_database = "./unsat_database"
 
