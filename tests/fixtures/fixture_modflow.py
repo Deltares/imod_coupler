@@ -6,6 +6,7 @@ from imod import mf6
 
 from .common import (
     create_wells,
+    create_single_well,
     get_extendet_times,
     get_times,
     grid_sizes,
@@ -229,6 +230,12 @@ def make_coupled_mf6_model(idomain: xr.DataArray) -> mf6.Modflow6Simulation:
     return simulation
 
 
+def make_coupled_mf6_model_single_well(idomain: xr.DataArray) -> mf6.Modflow6Simulation:
+    simulation = make_coupled_mf6_model(idomain)
+    simulation["GWF_1"]["wells_msw"] = create_single_well(idomain)
+    return simulation
+
+
 def convert_storage_package(
     gwf_model: mf6.GroundwaterFlowModel,
 ) -> mf6.GroundwaterFlowModel:
@@ -377,6 +384,10 @@ def recharge(active_idomain: xr.DataArray) -> mf6.Recharge:
 def coupled_mf6_model(active_idomain: xr.DataArray) -> mf6.Modflow6Simulation:
     return make_coupled_mf6_model(active_idomain)
 
+
+@pytest_cases.fixture(scope="function")
+def coupled_mf6_model_single_well(active_idomain: xr.DataArray) -> mf6.Modflow6Simulation:
+    return make_coupled_mf6_model_single_well(active_idomain)
 
 @pytest_cases.fixture(scope="function")
 def coupled_mf6_model_newton(

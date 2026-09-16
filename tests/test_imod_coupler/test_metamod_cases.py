@@ -83,6 +83,20 @@ def case_inactive_cell(
     )
 
 
+@pytest_cases.case(tags=["sprinkling"])
+def case_sprinkling_from_point(
+    coupled_mf6_model_single_well: Modflow6Simulation,
+    prepared_msw_model_sprinkling_points: MetaSwapModel,
+) -> MetaMod:
+    driver_coupling = MetaModDriverCoupling(
+        mf6_model="GWF_1", mf6_recharge_package="rch_msw", mf6_wel_package="wells_msw"
+    )
+    return MetaMod(
+        prepared_msw_model_sprinkling_points,
+        coupled_mf6_model_single_well,
+        coupling_list=[driver_coupling],
+    )
+
 def fail_write_inactive_cell(
     coupled_mf6_model_inactive: Modflow6Simulation,
     prepared_msw_model: MetaSwapModel,
