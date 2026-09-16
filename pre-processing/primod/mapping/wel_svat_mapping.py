@@ -73,7 +73,11 @@ class WellSvatMapping(MetaModMapping):
         layer = np.tile(well_layer, (n_subunit, 1))
         layer_1d = layer[well_active]
 
-        well_id = well_cellid.coords["ncellid"] + 1
+        # Use contiguous MF6 boundary indices (1-based).
+        # The Q array exposed through BMI is indexed by boundary entry order,
+        # not by potentially sparse node-like identifiers in coordinates.
+        n_well = well_cellid.sizes["ncellid"]
+        well_id = np.arange(1, n_well + 1, dtype=np.int32)
         well_id_1d = np.tile(well_id, (n_subunit, 1))[well_active]
 
         return (well_id_1d, well_svat_1d, layer_1d)
