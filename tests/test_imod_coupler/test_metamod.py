@@ -176,9 +176,7 @@ def test_metamod_develop(
     # Test if MetaSWAP output written
     metaswap_dir = tmp_path_dev / "metaswap"
     if dbot_active:
-        assert (
-            len(list(metaswap_dir.glob("*/*.idf"))) == 2928
-        )  # longer runtime
+        assert len(list(metaswap_dir.glob("*/*.idf"))) == 2928  # longer runtime
     else:
         assert len(list(metaswap_dir.glob("*/*.idf"))) == 1704
 
@@ -202,17 +200,23 @@ def test_metamod_develop(
         msw_sprinkling_fluxes = msw_sprinkling_fluxes.sel(layer=1, drop=True).compute()
         # mf6 extraction in layer 3.
         # mf6 domain one column larger than msw domain, so drop first column
-        mf6_sprinking_fluxes = mf6_sprinking_fluxes.sel(layer=3, drop=True).drop_sel(x=100.0).compute()
+        mf6_sprinking_fluxes = (
+            mf6_sprinking_fluxes.sel(layer=3, drop=True).drop_sel(x=100.0).compute()
+        )
         # Test if selection resulted in right shape
         assert msw_sprinkling_fluxes.shape == mf6_sprinking_fluxes.shape
         # Test if fluxes abstracted from MODFLOW 6 are precipitated on MetaSWAP consistently.
         cell_area = 100 * 100
-        np.testing.assert_allclose(msw_sprinkling_fluxes.data * cell_area * -1, mf6_sprinking_fluxes.data)
+        np.testing.assert_allclose(
+            msw_sprinkling_fluxes.data * cell_area * -1, mf6_sprinking_fluxes.data
+        )
         # Test if the unique values in the MODFLOW 6 sprinkling fluxes match the
         # expected values. We pump 8 m3/d from cells connected to one svat, and
         # 16 m3/d from cells connected to two svats.
         expected_unique_values = np.array([-16.0, -8.0, 0.0])
-        np.testing.assert_array_almost_equal(np.unique(mf6_sprinking_fluxes), expected_unique_values)
+        np.testing.assert_array_almost_equal(
+            np.unique(mf6_sprinking_fluxes), expected_unique_values
+        )
 
 
 @parametrize_with_cases("metamod_model")

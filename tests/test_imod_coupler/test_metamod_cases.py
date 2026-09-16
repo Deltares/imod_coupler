@@ -20,6 +20,7 @@ def case_sprinkling(
         coupling_list=[driver_coupling],
     )
 
+
 def case_no_sprinkling(
     coupled_mf6_model: Modflow6Simulation,
     prepared_msw_model: MetaSwapModel,
