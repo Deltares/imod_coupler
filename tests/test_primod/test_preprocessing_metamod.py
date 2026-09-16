@@ -201,7 +201,12 @@ def test_metamod_write_exchange_inactive_well_ids_within_bounds(
     n_mf6_wells = coupled_mf6_model_inactive["GWF_1"]["wells_msw"].dataset.sizes[
         "index"
     ]
-    assert max(wel_dxc["wel_id"]) <= n_mf6_wells
+
+    expected_unique_wel_ids = np.delete(np.arange(n_mf6_wells - 1) + 1, [0, 5, 9])
+    np.testing.assert_array_equal(
+        np.unique(wel_dxc["wel_id"]),
+        expected_unique_wel_ids,
+    )
 
 
 def test_metamod_write_toml(prepared_msw_model, coupled_mf6_model, tmp_path):
