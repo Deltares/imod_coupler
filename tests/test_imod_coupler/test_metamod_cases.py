@@ -1,9 +1,9 @@
 import pytest
+import pytest_cases
 from imod.mf6 import Modflow6Simulation
 from imod.msw import CouplerMapping, MetaSwapModel
 from imod.msw.fixed_format import VariableMetaData
 from primod import MetaMod, MetaModDriverCoupling
-import pytest_cases
 
 
 @pytest_cases.case(tags=["sprinkling"])

@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import Literal
 
 import numpy as np
 import pandas as pd
@@ -6,8 +7,6 @@ import pytest_cases
 import xarray as xr
 from imod import mf6, msw
 from numpy import nan
-
-from typing import Literal
 
 from .common import (
     get_extendet_times,
