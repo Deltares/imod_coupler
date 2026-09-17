@@ -97,6 +97,7 @@ def case_sprinkling_from_point(
         coupling_list=[driver_coupling],
     )
 
+
 def fail_write_inactive_cell(
     coupled_mf6_model_inactive: Modflow6Simulation,
     prepared_msw_model: MetaSwapModel,

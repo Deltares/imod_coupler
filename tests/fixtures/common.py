@@ -85,7 +85,10 @@ def create_wells(idomain: xr.DataArray, wel_layer: int | None = None) -> Layered
 
     return LayeredWell(ix_active, iy_active, layer, rate, save_flows=True)
 
-def create_single_well(idomain: xr.DataArray, wel_layer: int | None = None) -> LayeredWell:
+
+def create_single_well(
+    idomain: xr.DataArray, wel_layer: int | None = None
+) -> LayeredWell:
     """
     Create a single well in the specified layer of the MODFLOW 6 model.
     """

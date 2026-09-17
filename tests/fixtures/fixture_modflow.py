@@ -386,8 +386,11 @@ def coupled_mf6_model(active_idomain: xr.DataArray) -> mf6.Modflow6Simulation:
 
 
 @pytest_cases.fixture(scope="function")
-def coupled_mf6_model_single_well(active_idomain: xr.DataArray) -> mf6.Modflow6Simulation:
+def coupled_mf6_model_single_well(
+    active_idomain: xr.DataArray,
+) -> mf6.Modflow6Simulation:
     return make_coupled_mf6_model_single_well(active_idomain)
+
 
 @pytest_cases.fixture(scope="function")
 def coupled_mf6_model_newton(

@@ -193,7 +193,9 @@ def test_metamod_develop(
     # Perform additional checks or setup for sprinkling cases
     model_case = current_cases["metamod_model"].func
     has_sprinkling = pytest_cases.matches_tag_query(model_case, has_tag="sprinkling")
-    has_sprinkling_grid = pytest_cases.matches_tag_query(model_case, has_tag="sprinkling_grid")
+    has_sprinkling_grid = pytest_cases.matches_tag_query(
+        model_case, has_tag="sprinkling_grid"
+    )
     if has_sprinkling:
         msw_sprinkling_fluxes = imod.idf.open(metaswap_dir / "bdgPsgw" / "bdgPsgw*.idf")
         mf6_sprinking_fluxes = imod.mf6.open_cbc(cbcfile, grbfile)["wel_wells_msw"]
@@ -212,8 +214,8 @@ def test_metamod_develop(
         # Sum along the spatial dimensions (y and x) to compare total fluxes for
         # points as well as grid cells.
         np.testing.assert_allclose(
-            msw_sprinkling_fluxes_m3.sum(dim=["y", "x"]).data, 
-            mf6_sprinking_fluxes.sum(dim=["y", "x"]).data
+            msw_sprinkling_fluxes_m3.sum(dim=["y", "x"]).data,
+            mf6_sprinking_fluxes.sum(dim=["y", "x"]).data,
         )
         # Verify fluxes are nonzero
         assert msw_sprinkling_fluxes_m3.sum().values < 0.0
