@@ -193,6 +193,7 @@ def test_metamod_develop(
     # Perform additional checks or setup for sprinkling cases
     model_case = current_cases["metamod_model"].func
     has_sprinkling = pytest_cases.matches_tag_query(model_case, has_tag="sprinkling")
+    has_sprinkling_grid = pytest_cases.matches_tag_query(model_case, has_tag="sprinkling_grid")
     if has_sprinkling:
         msw_sprinkling_fluxes = imod.idf.open(metaswap_dir / "bdgPsgw" / "bdgPsgw*.idf")
         mf6_sprinking_fluxes = imod.mf6.open_cbc(cbcfile, grbfile)["wel_wells_msw"]
@@ -207,14 +208,26 @@ def test_metamod_develop(
         assert msw_sprinkling_fluxes.shape == mf6_sprinking_fluxes.shape
         # Test if fluxes abstracted from MODFLOW 6 are precipitated on MetaSWAP consistently.
         cell_area = imod.idf.open(metaswap_dir / "bdgPsgw" / "area*.idf").squeeze()
+        msw_sprinkling_fluxes_m3 = msw_sprinkling_fluxes * cell_area * -1
+        # Sum along the spatial dimensions (y and x) to compare total fluxes for
+        # points as well as grid cells.
         np.testing.assert_allclose(
-            msw_sprinkling_fluxes.data * cell_area.data * -1, mf6_sprinking_fluxes.data
+            msw_sprinkling_fluxes_m3.sum(dim=["y", "x"]).data, 
+            mf6_sprinking_fluxes.sum(dim=["y", "x"]).data
         )
+        # Verify fluxes are nonzero
+        assert msw_sprinkling_fluxes_m3.sum().values < 0.0
+        # If the model has a sprinkling grid, compare the full spatial
+        # distribution of fluxes.
+        if has_sprinkling_grid:
+            np.testing.assert_allclose(
+                msw_sprinkling_fluxes_m3.data, mf6_sprinking_fluxes.data
+            )
         # Test if the unique values in the MODFLOW 6 sprinkling fluxes match the
         # expected values. We pump 8 m3/d from cells connected to one svat, and
         # 16 m3/d from cells connected to two svats.
         expected_unique_values = np.array([-16.0, -8.0, 0.0])
-        unique_flux_values = np.unique(mf6_sprinking_fluxes.values)
+        unique_flux_values = np.unique(msw_sprinkling_fluxes_m3.values)
         np.testing.assert_array_almost_equal(
             unique_flux_values[~np.isnan(unique_flux_values)],
             expected_unique_values,

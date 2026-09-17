@@ -6,7 +6,7 @@ from imod.msw.fixed_format import VariableMetaData
 from primod import MetaMod, MetaModDriverCoupling
 
 
-@pytest_cases.case(tags=["sprinkling"])
+@pytest_cases.case(tags=["sprinkling", "sprinkling_grid"])
 def case_sprinkling(
     coupled_mf6_model: Modflow6Simulation,
     prepared_msw_model: MetaSwapModel,
@@ -37,7 +37,7 @@ def case_no_sprinkling(
     )
 
 
-@pytest_cases.case(tags=["sprinkling"])
+@pytest_cases.case(tags=["sprinkling", "sprinkling_grid"])
 def case_storage_coefficient(
     coupled_mf6_model_storage_coefficient: Modflow6Simulation,
     prepared_msw_model: MetaSwapModel,
@@ -68,7 +68,7 @@ def case_storage_coefficient_no_sprinkling(
     )
 
 
-@pytest_cases.case(tags=["sprinkling"])
+@pytest_cases.case(tags=["sprinkling", "sprinkling_grid"])
 def case_inactive_cell(
     coupled_mf6_model_inactive: Modflow6Simulation,
     prepared_msw_model_inactive: MetaSwapModel,
@@ -83,7 +83,7 @@ def case_inactive_cell(
     )
 
 
-@pytest_cases.case(tags=["sprinkling"])
+@pytest_cases.case(tags=["sprinkling", "sprinkling_point"])
 def case_sprinkling_from_point(
     coupled_mf6_model_single_well: Modflow6Simulation,
     prepared_msw_model_sprinkling_points: MetaSwapModel,
