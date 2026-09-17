@@ -196,6 +196,9 @@ def test_metamod_develop(
     has_sprinkling_grid = pytest_cases.matches_tag_query(
         model_case, has_tag="sprinkling_grid"
     )
+    has_sprinkling_point = pytest_cases.matches_tag_query(
+        model_case, has_tag="sprinkling_point"
+    )
     if has_sprinkling:
         msw_sprinkling_fluxes = imod.idf.open(metaswap_dir / "bdgPsgw" / "bdgPsgw*.idf")
         mf6_sprinking_fluxes = imod.mf6.open_cbc(cbcfile, grbfile)["wel_wells_msw"]
@@ -211,8 +214,8 @@ def test_metamod_develop(
         # Test if fluxes abstracted from MODFLOW 6 are precipitated on MetaSWAP consistently.
         cell_area = imod.idf.open(metaswap_dir / "bdgPsgw" / "area*.idf").squeeze()
         msw_sprinkling_fluxes_m3 = msw_sprinkling_fluxes * cell_area * -1
-        # Sum along the spatial dimensions (y and x) to compare total fluxes for
-        # points as well as grid cells.
+        # Sum along the spatial dimensions (y and x) to compare fluxes as
+        # timeseries.
         np.testing.assert_allclose(
             msw_sprinkling_fluxes_m3.sum(dim=["y", "x"]).data,
             mf6_sprinking_fluxes.sum(dim=["y", "x"]).data,
@@ -225,6 +228,18 @@ def test_metamod_develop(
             np.testing.assert_allclose(
                 msw_sprinkling_fluxes_m3.data, mf6_sprinking_fluxes.data
             )
+        elif has_sprinkling_point:
+            wel_ds = metamod_model.mf6_simulation["GWF_1"]["wells_msw"].dataset
+            x_p = wel_ds["x"].item()
+            y_p = wel_ds["y"].item()
+            mf6_sprinking_fluxes_ts = mf6_sprinking_fluxes.sel(
+                x=x_p, y=y_p, drop=True
+            ).compute()
+            np.testing.assert_allclose(
+                msw_sprinkling_fluxes_m3.sum(dim=["y", "x"]).data,
+                mf6_sprinking_fluxes_ts.data,
+            )
+
         # Test if the unique values in the MODFLOW 6 sprinkling fluxes match the
         # expected values. We pump 8 m3/d from cells connected to one svat, and
         # 16 m3/d from cells connected to two svats.
