@@ -77,6 +77,66 @@ def _write_dbot_svat_inp(tmp_path_dev, metamod_model):
             file.write("\n")
 
 
+def assert_sprinkling_fluxes(metaswap_dir, cbcfile, grbfile, model_case, metamod_model):
+    """
+    All assertion checks for sprinkling fluxes between MetaSWAP and MODFLOW 6.
+    """
+    has_sprinkling_grid = pytest_cases.matches_tag_query(
+        model_case, has_tag="sprinkling_grid"
+    )
+    has_sprinkling_point = pytest_cases.matches_tag_query(
+        model_case, has_tag="sprinkling_point"
+    )
+    msw_sprinkling_fluxes = imod.idf.open(metaswap_dir / "bdgPsgw" / "bdgPsgw*.idf")
+    mf6_sprinking_fluxes = imod.mf6.open_cbc(cbcfile, grbfile)["wel_wells_msw"]
+    # msw extraction in layer 1.
+    msw_sprinkling_fluxes = msw_sprinkling_fluxes.sel(layer=1, drop=True).compute()
+    # mf6 extraction in layer 3.
+    # mf6 domain one column larger than msw domain, so drop first column
+    mf6_sprinking_fluxes = (
+        mf6_sprinking_fluxes.sel(layer=3, drop=True).drop_sel(x=100.0).compute()
+    )
+    # Test if selection resulted in right shape
+    assert msw_sprinkling_fluxes.shape == mf6_sprinking_fluxes.shape
+    # Test if fluxes abstracted from MODFLOW 6 are precipitated on MetaSWAP consistently.
+    cell_area = imod.idf.open(metaswap_dir / "bdgPsgw" / "area*.idf").squeeze()
+    msw_sprinkling_fluxes_m3 = msw_sprinkling_fluxes * cell_area * -1
+    # Sum along the spatial dimensions (y and x) to compare fluxes as
+    # timeseries.
+    np.testing.assert_allclose(
+        msw_sprinkling_fluxes_m3.sum(dim=["y", "x"]).data,
+        mf6_sprinking_fluxes.sum(dim=["y", "x"]).data,
+    )
+    # Verify fluxes are nonzero
+    assert msw_sprinkling_fluxes_m3.sum().to_numpy() < 0.0
+    # Test the full spatial distribution of fluxes.
+    if has_sprinkling_grid:
+        np.testing.assert_allclose(
+            msw_sprinkling_fluxes_m3.data, mf6_sprinking_fluxes.data
+        )
+    elif has_sprinkling_point:
+        wel_ds = metamod_model.mf6_simulation["GWF_1"]["wells_msw"].dataset
+        x_p = wel_ds["x"].item()
+        y_p = wel_ds["y"].item()
+        mf6_sprinking_fluxes_ts = mf6_sprinking_fluxes.sel(
+            x=x_p, y=y_p, drop=True
+        ).compute()
+        np.testing.assert_allclose(
+            msw_sprinkling_fluxes_m3.sum(dim=["y", "x"]).data,
+            mf6_sprinking_fluxes_ts.data,
+        )
+
+    # Test if the unique values in the MODFLOW 6 sprinkling fluxes match the
+    # expected values. We pump 8 m3/d from cells connected to one svat, and
+    # 16 m3/d from cells connected to two svats.
+    expected_unique_values = np.array([-16.0, -8.0, 0.0])
+    unique_flux_values = np.unique(msw_sprinkling_fluxes_m3.values)
+    np.testing.assert_array_almost_equal(
+        unique_flux_values[~np.isnan(unique_flux_values)],
+        expected_unique_values,
+    )
+
+
 def test_lookup_table_present(metaswap_lookup_table: Path) -> None:
     assert metaswap_lookup_table.is_dir()
 
@@ -193,61 +253,13 @@ def test_metamod_develop(
     # Perform additional checks or setup for sprinkling cases
     model_case = current_cases["metamod_model"].func
     has_sprinkling = pytest_cases.matches_tag_query(model_case, has_tag="sprinkling")
-    has_sprinkling_grid = pytest_cases.matches_tag_query(
-        model_case, has_tag="sprinkling_grid"
-    )
-    has_sprinkling_point = pytest_cases.matches_tag_query(
-        model_case, has_tag="sprinkling_point"
-    )
     if has_sprinkling:
-        msw_sprinkling_fluxes = imod.idf.open(metaswap_dir / "bdgPsgw" / "bdgPsgw*.idf")
-        mf6_sprinking_fluxes = imod.mf6.open_cbc(cbcfile, grbfile)["wel_wells_msw"]
-        # msw extraction in layer 1.
-        msw_sprinkling_fluxes = msw_sprinkling_fluxes.sel(layer=1, drop=True).compute()
-        # mf6 extraction in layer 3.
-        # mf6 domain one column larger than msw domain, so drop first column
-        mf6_sprinking_fluxes = (
-            mf6_sprinking_fluxes.sel(layer=3, drop=True).drop_sel(x=100.0).compute()
-        )
-        # Test if selection resulted in right shape
-        assert msw_sprinkling_fluxes.shape == mf6_sprinking_fluxes.shape
-        # Test if fluxes abstracted from MODFLOW 6 are precipitated on MetaSWAP consistently.
-        cell_area = imod.idf.open(metaswap_dir / "bdgPsgw" / "area*.idf").squeeze()
-        msw_sprinkling_fluxes_m3 = msw_sprinkling_fluxes * cell_area * -1
-        # Sum along the spatial dimensions (y and x) to compare fluxes as
-        # timeseries.
-        np.testing.assert_allclose(
-            msw_sprinkling_fluxes_m3.sum(dim=["y", "x"]).data,
-            mf6_sprinking_fluxes.sum(dim=["y", "x"]).data,
-        )
-        # Verify fluxes are nonzero
-        assert msw_sprinkling_fluxes_m3.sum().to_numpy() < 0.0
-        # If the model has a sprinkling grid, compare the full spatial
-        # distribution of fluxes.
-        if has_sprinkling_grid:
-            np.testing.assert_allclose(
-                msw_sprinkling_fluxes_m3.data, mf6_sprinking_fluxes.data
-            )
-        elif has_sprinkling_point:
-            wel_ds = metamod_model.mf6_simulation["GWF_1"]["wells_msw"].dataset
-            x_p = wel_ds["x"].item()
-            y_p = wel_ds["y"].item()
-            mf6_sprinking_fluxes_ts = mf6_sprinking_fluxes.sel(
-                x=x_p, y=y_p, drop=True
-            ).compute()
-            np.testing.assert_allclose(
-                msw_sprinkling_fluxes_m3.sum(dim=["y", "x"]).data,
-                mf6_sprinking_fluxes_ts.data,
-            )
-
-        # Test if the unique values in the MODFLOW 6 sprinkling fluxes match the
-        # expected values. We pump 8 m3/d from cells connected to one svat, and
-        # 16 m3/d from cells connected to two svats.
-        expected_unique_values = np.array([-16.0, -8.0, 0.0])
-        unique_flux_values = np.unique(msw_sprinkling_fluxes_m3.values)
-        np.testing.assert_array_almost_equal(
-            unique_flux_values[~np.isnan(unique_flux_values)],
-            expected_unique_values,
+        assert_sprinkling_fluxes(
+            metaswap_dir,
+            cbcfile,
+            grbfile,
+            model_case,
+            metamod_model,
         )
 
 
