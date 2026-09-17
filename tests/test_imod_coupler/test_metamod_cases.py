@@ -1,10 +1,12 @@
 import pytest
+import pytest_cases
 from imod.mf6 import Modflow6Simulation
 from imod.msw import CouplerMapping, MetaSwapModel
 from imod.msw.fixed_format import VariableMetaData
 from primod import MetaMod, MetaModDriverCoupling
 
 
+@pytest_cases.case(tags=["sprinkling"])
 def case_sprinkling(
     coupled_mf6_model: Modflow6Simulation,
     prepared_msw_model: MetaSwapModel,
@@ -35,6 +37,7 @@ def case_no_sprinkling(
     )
 
 
+@pytest_cases.case(tags=["sprinkling"])
 def case_storage_coefficient(
     coupled_mf6_model_storage_coefficient: Modflow6Simulation,
     prepared_msw_model: MetaSwapModel,
@@ -65,6 +68,7 @@ def case_storage_coefficient_no_sprinkling(
     )
 
 
+@pytest_cases.case(tags=["sprinkling"])
 def case_inactive_cell(
     coupled_mf6_model_inactive: Modflow6Simulation,
     prepared_msw_model_inactive: MetaSwapModel,

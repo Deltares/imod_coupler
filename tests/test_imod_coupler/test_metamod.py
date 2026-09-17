@@ -2,10 +2,13 @@ import subprocess
 import textwrap
 from collections.abc import Callable
 from pathlib import Path
+from typing import Any
 
+import imod
 import numpy as np
 import pandas as pd
 import pytest
+import pytest_cases
 import tomli
 import tomli_w
 from common_scripts.mf6_water_balance.combine import create_modflow_waterbalance_file
@@ -47,6 +50,31 @@ def msw_output_files(path: Path) -> Path:
     path_msw = path / "MetaSWAP"
 
     return path_msw / "msw" / "csv" / "tot_svat_per.csv"
+
+
+def _write_dbot_svat_inp(tmp_path_dev, metamod_model):
+    """FUTURE: Replace this logic when iMOd-python supports writing dbot input files"""
+    _metadata_dict = {
+        "svat": VariableMetaData(10, 1, 9999999, int),
+        "bottom": VariableMetaData(10, -9999.0, 9999.0, float),
+        "sc2": VariableMetaData(10, 0.0, 1.0, float),
+    }
+    _, svat = metamod_model.msw_model["grid"].generate_index_array()
+    out = {}
+    out["svat"] = svat.to_numpy()[svat.to_numpy() > 0]
+    out["bottom"] = np.array([99.0] * out["svat"].size)
+    index = metamod_model.coupling_list[0].mf6_max_layer.to_numpy()[0, 10:40].min()
+    out["bottom"][10:40] = 5.0
+    out["sc2"] = np.array([0.01] * out["svat"].size)
+
+    with open(
+        tmp_path_dev / metamod_model._metaswap_model_dir / "dbot_svat.inp", "w"
+    ) as file:
+        for row in pd.DataFrame(out).itertuples():
+            for index, metadata in enumerate(_metadata_dict.values()):
+                content = format_fixed_width(row[index + 1], metadata)
+                file.write(content)
+            file.write("\n")
 
 
 def test_lookup_table_present(metaswap_lookup_table: Path) -> None:
@@ -125,6 +153,7 @@ def test_metamod_develop(
     metaswap_dll_dep_dir_devel: Path,
     modflow_dll_devel: Path,
     run_coupler_function: Callable[[Path], None],
+    current_cases: dict[str, tuple[dict[str, Any], ...]],
 ) -> None:
     """
     Test if coupled models run with the iMOD Coupler development version.
@@ -140,41 +169,19 @@ def test_metamod_develop(
         "newton_pe" in str(tmp_path_dev)
     )
     if dbot_active:
-        # TODO replace this logic when iMOd-python supports writing dbot input files
-        _metadata_dict = {
-            "svat": VariableMetaData(10, 1, 9999999, int),
-            "bottom": VariableMetaData(10, -9999.0, 9999.0, float),
-            "sc2": VariableMetaData(10, 0.0, 1.0, float),
-        }
-        _, svat = metamod_model.msw_model["grid"].generate_index_array()
-        out = {}
-        out["svat"] = svat.to_numpy()[svat.to_numpy() > 0]
-        out["bottom"] = np.array([99.0] * out["svat"].size)
-        index = metamod_model.coupling_list[0].mf6_max_layer.to_numpy()[0, 10:40].min()
-        out["bottom"][10:40] = 5.0
-        out["sc2"] = np.array([0.01] * out["svat"].size)
-
-        with open(
-            tmp_path_dev / metamod_model._metaswap_model_dir / "dbot_svat.inp", "w"
-        ) as file:
-            for row in pd.DataFrame(out).itertuples():
-                for index, metadata in enumerate(_metadata_dict.values()):
-                    content = format_fixed_width(row[index + 1], metadata)
-                    file.write(content)
-                file.write("\n")
+        _write_dbot_svat_inp(tmp_path_dev, metamod_model)
 
     run_coupler_function(tmp_path_dev / metamod_model._toml_name)
 
     # Test if MetaSWAP output written
+    metaswap_dir = tmp_path_dev / "metaswap"
     if dbot_active:
-        assert (
-            len(list((tmp_path_dev / "MetaSWAP").glob("*/*.idf"))) == 2928
-        )  # longer runtime
+        assert len(list(metaswap_dir.glob("*/*.idf"))) == 2928  # longer runtime
     else:
-        assert len(list((tmp_path_dev / "MetaSWAP").glob("*/*.idf"))) == 1704
+        assert len(list(metaswap_dir.glob("*/*.idf"))) == 1704
 
     # Test if Modflow6 output written
-    headfile, cbcfile, _, _ = mf6_output_files(tmp_path_dev)
+    headfile, cbcfile, grbfile, _ = mf6_output_files(tmp_path_dev)
 
     assert headfile.exists()
     assert cbcfile.exists()
@@ -182,6 +189,34 @@ def test_metamod_develop(
     # bytes.
     assert headfile.stat().st_size > 0
     assert cbcfile.stat().st_size > 0
+
+    # Perform additional checks or setup for sprinkling cases
+    model_case = current_cases["metamod_model"].func
+    has_sprinkling = pytest_cases.matches_tag_query(model_case, has_tag="sprinkling")
+    if has_sprinkling:
+        msw_sprinkling_fluxes = imod.idf.open(metaswap_dir / "bdgPsgw" / "bdgPsgw*.idf")
+        mf6_sprinking_fluxes = imod.mf6.open_cbc(cbcfile, grbfile)["wel_wells_msw"]
+        # msw extraction in layer 1.
+        msw_sprinkling_fluxes = msw_sprinkling_fluxes.sel(layer=1, drop=True).compute()
+        # mf6 extraction in layer 3.
+        # mf6 domain one column larger than msw domain, so drop first column
+        mf6_sprinking_fluxes = (
+            mf6_sprinking_fluxes.sel(layer=3, drop=True).drop_sel(x=100.0).compute()
+        )
+        # Test if selection resulted in right shape
+        assert msw_sprinkling_fluxes.shape == mf6_sprinking_fluxes.shape
+        # Test if fluxes abstracted from MODFLOW 6 are precipitated on MetaSWAP consistently.
+        cell_area = imod.idf.open(metaswap_dir / "bdgPsgw" / "area*.idf").squeeze()
+        np.testing.assert_allclose(
+            msw_sprinkling_fluxes.data * cell_area.data * -1, mf6_sprinking_fluxes.data
+        )
+        # Test if the unique values in the MODFLOW 6 sprinkling fluxes match the
+        # expected values. We pump 8 m3/d from cells connected to one svat, and
+        # 16 m3/d from cells connected to two svats.
+        expected_unique_values = np.array([-16.0, -8.0, 0.0])
+        np.testing.assert_array_almost_equal(
+            np.unique(mf6_sprinking_fluxes), expected_unique_values
+        )
 
 
 @parametrize_with_cases("metamod_model")

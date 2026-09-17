@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import Literal
 
 import numpy as np
 import pandas as pd
@@ -21,6 +22,7 @@ def metaswap_model(
     active: xr.DataArray,
     dis: mf6.StructuredDiscretization,
     unsaturated_database: str,
+    abstraction_type: Literal["groundwater", "surfacewater"] = "surfacewater",
 ) -> msw.MetaSwapModel:
     # fmt: on
     msw_grid = xr.ones_like(active, dtype=float)
@@ -84,10 +86,20 @@ def metaswap_model(
     msw_model["mapping_evt"] = msw.EvapotranspirationMapping(precipitation * 1.5)
 
     # Sprinkling
-    msw_model["sprinkling"] = msw.Sprinkling(
-        max_abstraction_groundwater=xr.full_like(area, 0.0),
-        max_abstraction_surfacewater=xr.full_like(area, 0.02 * (20 * 20)),  # 20 mm/d
-    )
+    abstraction_grid = xr.full_like(area, 0.02 * (20 * 20))  # 20 mm/d
+    zero_grid = xr.full_like(area, 0.0)
+    if abstraction_type == "groundwater":
+        msw_model["sprinkling"] = msw.SprinklingGrid(
+            max_abstraction_groundwater=abstraction_grid,
+            max_abstraction_surfacewater=zero_grid,
+        )
+    elif abstraction_type == "surfacewater":
+        msw_model["sprinkling"] = msw.SprinklingGrid(
+            max_abstraction_groundwater=zero_grid,
+            max_abstraction_surfacewater=abstraction_grid,
+        )
+    else:
+        raise ValueError(f"Invalid abstraction_type: {abstraction_type}")
 
     # Ponding
     msw_model["ponding"] = msw.Ponding(
@@ -188,7 +200,9 @@ def make_msw_model_free(
     return metaswap_model(times, area, active, dis, unsaturated_database)
 
 
-def make_msw_model(idomain: xr.DataArray) -> msw.MetaSwapModel:
+def make_msw_model(
+    idomain: xr.DataArray, abstraction_type: Literal["groundwater", "surfacewater"]
+) -> msw.MetaSwapModel:
     times = get_times()
     unsaturated_database = "./unsat_database"
 
@@ -234,7 +248,7 @@ def make_msw_model(idomain: xr.DataArray) -> msw.MetaSwapModel:
 
     dis = mf6.StructuredDiscretization(idomain=idomain, top=top, bottom=bottom)
 
-    return metaswap_model(times,area,active,dis,unsaturated_database)
+    return metaswap_model(times,area,active,dis,unsaturated_database, abstraction_type=abstraction_type)
 
 
 @pytest_cases.fixture(scope="function")
@@ -242,7 +256,7 @@ def prepared_msw_model(
     active_idomain: xr.DataArray,
     metaswap_lookup_table: Path,
 ) -> msw.MetaSwapModel:
-    msw_model = make_msw_model(active_idomain)
+    msw_model = make_msw_model(active_idomain, abstraction_type="groundwater")
     # Override unsat_svat_path with path from environment
     msw_model.simulation_settings["unsa_svat_path"] = metaswap_lookup_table
 
@@ -254,9 +268,21 @@ def prepared_msw_model_inactive(
     inactive_idomain: xr.DataArray,
     metaswap_lookup_table: Path,
 ) -> msw.MetaSwapModel:
-    msw_model = make_msw_model(inactive_idomain)
+    msw_model = make_msw_model(inactive_idomain, abstraction_type="groundwater")
     # Override unsat_svat_path with path from environment
     msw_model.simulation_settings["unsa_svat_path"] = metaswap_lookup_table
+    return msw_model
+
+
+@pytest_cases.fixture(scope="function")
+def prepared_msw_model_sw_sprinkling(
+    active_idomain: xr.DataArray,
+    metaswap_lookup_table: Path,
+) -> msw.MetaSwapModel:
+    msw_model = make_msw_model(active_idomain, abstraction_type="surfacewater")
+    # Override unsat_svat_path with path from environment
+    msw_model.simulation_settings["unsa_svat_path"] = metaswap_lookup_table
+
     return msw_model
 
 
@@ -265,7 +291,7 @@ def prepared_msw_model_newton(
     partly_inactive_idomain: xr.DataArray,
     metaswap_lookup_table: Path,
 ) -> msw.MetaSwapModel:
-    msw_model = make_msw_model(partly_inactive_idomain)
+    msw_model = make_msw_model(partly_inactive_idomain, abstraction_type="groundwater")
     # increase precipitation, zero evaporation
     msw_model["meteo_grid"].dataset["precipitation"] = (
         msw_model["meteo_grid"].dataset["precipitation"] * 6.0

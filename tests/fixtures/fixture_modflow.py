@@ -127,7 +127,6 @@ def make_coupled_mf6_model_newton(idomain: xr.DataArray) -> mf6.Modflow6Simulati
 
     # add coupling packages
     gwf_model["rch_msw"] = make_recharge_pkg(idomain)
-    # gwf_model["wells_msw"] = create_wells(nrow, ncol, idomain)
 
     simulation = make_mf6_simulation(gwf_model)
     simulation.pop("solver")

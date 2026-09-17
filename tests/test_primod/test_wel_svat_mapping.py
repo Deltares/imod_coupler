@@ -38,9 +38,11 @@ def test_simple_model(fixed_format_parser):
         layer=[3, 2, 1], row=[1, 2, 3], column=[2, 2, 2]
     )
     well_rate = xr.DataArray([-5.0] * 3, coords={"index": [0, 1, 2]}, dims=("index",))
+    id = xr.DataArray(["0", "1", "2"], coords={"index": [0, 1, 2]}, dims=("index",))
     well = Mf6Wel(
         cellid=cellid,
         rate=well_rate,
+        id=id,
     )
 
     coupler_mapping = WellSvatMapping(svat, well, index=index)
@@ -83,9 +85,11 @@ def test_simple_model_1_subunit(fixed_format_parser):
     # Well
     cellid = cellid_from_arrays__structured(layer=[3, 2], row=[1, 3], column=[2, 2])
     well_rate = xr.DataArray([-5.0] * 2, coords={"index": [0, 1]}, dims=("index",))
+    id = xr.DataArray(["0", "1"], coords={"index": [0, 1]}, dims=("index",))
     well = Mf6Wel(
         cellid=cellid,
         rate=well_rate,
+        id=id,
     )
 
     coupler_mapping = WellSvatMapping(svat, well, index=index)
@@ -141,9 +145,13 @@ def test_simple_model_inactive(fixed_format_parser):
     well_rate = xr.DataArray(
         [-5.0] * 4, coords={"index": [0, 1, 2, 3]}, dims=("index",)
     )
+    id = xr.DataArray(
+        ["0", "1", "2", "3"], coords={"index": [0, 1, 2, 3]}, dims=("index",)
+    )
     well = Mf6Wel(
         cellid=cellid,
         rate=well_rate,
+        id=id,
     )
 
     coupler_mapping = WellSvatMapping(svat, well, index=index)
