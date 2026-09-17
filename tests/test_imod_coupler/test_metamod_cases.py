@@ -88,6 +88,10 @@ def case_sprinkling_from_point(
     coupled_mf6_model_single_well: Modflow6Simulation,
     prepared_msw_model_sprinkling_points: MetaSwapModel,
 ) -> MetaMod:
+    """
+    Case for sprinkling from a point source. All svats are connected to one
+    single well.
+    """
     driver_coupling = MetaModDriverCoupling(
         mf6_model="GWF_1", mf6_recharge_package="rch_msw", mf6_wel_package="wells_msw"
     )
