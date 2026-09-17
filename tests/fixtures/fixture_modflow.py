@@ -5,8 +5,8 @@ import xarray as xr
 from imod import mf6
 
 from .common import (
-    create_wells,
     create_single_well,
+    create_wells,
     get_extendet_times,
     get_times,
     grid_sizes,

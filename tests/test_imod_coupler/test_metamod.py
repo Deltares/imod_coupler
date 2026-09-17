@@ -218,7 +218,7 @@ def test_metamod_develop(
             mf6_sprinking_fluxes.sum(dim=["y", "x"]).data,
         )
         # Verify fluxes are nonzero
-        assert msw_sprinkling_fluxes_m3.sum().values < 0.0
+        assert msw_sprinkling_fluxes_m3.sum().to_numpy() < 0.0
         # If the model has a sprinkling grid, compare the full spatial
         # distribution of fluxes.
         if has_sprinkling_grid:

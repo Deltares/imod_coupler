@@ -9,11 +9,11 @@ from imod import mf6, msw
 from numpy import nan
 
 from .common import (
+    create_single_well,
     get_extendet_times,
     get_times,
     grid_sizes,
     grid_sizes_perched,
-    create_single_well,
 )
 
 
@@ -279,7 +279,6 @@ def prepared_msw_model_sprinkling_points(
     y_p = well.dataset["y"].to_numpy()
     layer_p = well.dataset["layer"].to_numpy()
 
-    # TODO: Make sure this works
     art_grid = active_idomain.sel(layer=1, drop=True).expand_dims(subunit=[0, 1])
 
     # Replace the sprinkling package with SprinklingPoints instance.
