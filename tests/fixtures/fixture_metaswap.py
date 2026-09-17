@@ -280,7 +280,7 @@ def prepared_msw_model_sprinkling_points(
     layer_p = well.dataset["layer"].to_numpy()
 
     #TODO: Make sure this works
-    art_grid = active_idomain.expand_dims(subunit=[0, 1])
+    art_grid = active_idomain.sel(layer=1, drop=True).expand_dims(subunit=[0, 1])
 
     # Replace the sprinkling package with SprinklingPoints instance.
     msw_model["sprinkling"] = msw.SprinklingPoints(
