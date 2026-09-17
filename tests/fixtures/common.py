@@ -86,6 +86,24 @@ def create_wells(idomain: xr.DataArray, wel_layer: int | None = None) -> Layered
     return LayeredWell(ix_active, iy_active, layer, rate, save_flows=True)
 
 
+def create_single_well(
+    idomain: xr.DataArray, wel_layer: int | None = None
+) -> LayeredWell:
+    """
+    Create a single well in the specified layer of the MODFLOW 6 model.
+    """
+    if wel_layer is None:
+        wel_layer = 3
+
+    ix_active = idomain.coords["x"][[1]]
+    iy_active = idomain.coords["y"][[0]]
+
+    rate = np.zeros(ix_active.shape)
+    layer = np.full_like(ix_active, wel_layer, dtype=int)
+
+    return LayeredWell(ix_active, iy_active, layer, rate, save_flows=True)
+
+
 def create_wells_max_layer(idomain: xr.DataArray) -> LayeredWell:
     """
     Create wells in deepest layer of MODFLOW 6 model

@@ -9,6 +9,7 @@ from imod import mf6, msw
 from numpy import nan
 
 from .common import (
+    create_single_well,
     get_extendet_times,
     get_times,
     grid_sizes,
@@ -259,6 +260,39 @@ def prepared_msw_model(
     msw_model = make_msw_model(active_idomain, abstraction_type="groundwater")
     # Override unsat_svat_path with path from environment
     msw_model.simulation_settings["unsa_svat_path"] = metaswap_lookup_table
+
+    return msw_model
+
+
+@pytest_cases.fixture(scope="function")
+def prepared_msw_model_sprinkling_points(
+    active_idomain: xr.DataArray,
+    metaswap_lookup_table: Path,
+) -> msw.MetaSwapModel:
+    msw_model = make_msw_model(active_idomain, abstraction_type="groundwater")
+    # Override unsat_svat_path with path from environment
+    msw_model.simulation_settings["unsa_svat_path"] = metaswap_lookup_table
+
+    # Create a single well, just like in
+    well = create_single_well(active_idomain)
+    x_p = well.dataset["x"].to_numpy()
+    y_p = well.dataset["y"].to_numpy()
+    layer_p = well.dataset["layer"].to_numpy()
+
+    sprinkling_active = active_idomain.sel(layer=1, drop=True).where(
+        msw_model["grid"]["active"], 0
+    )
+    art_grid = sprinkling_active.expand_dims(subunit=[0, 1])
+
+    # Replace the sprinkling package with SprinklingPoints instance.
+    msw_model["sprinkling"] = msw.SprinklingPoints(
+        art_grid=art_grid,
+        x_p=x_p,
+        y_p=y_p,
+        layer_p=layer_p,
+        id_sprinkling_p=[1],
+        capacity_p=[8.0],
+    )
 
     return msw_model
 
