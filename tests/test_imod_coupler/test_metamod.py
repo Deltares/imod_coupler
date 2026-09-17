@@ -206,9 +206,9 @@ def test_metamod_develop(
         # Test if selection resulted in right shape
         assert msw_sprinkling_fluxes.shape == mf6_sprinking_fluxes.shape
         # Test if fluxes abstracted from MODFLOW 6 are precipitated on MetaSWAP consistently.
-        cell_area = 100 * 100
+        cell_area = imod.idf.open(metaswap_dir / "bdgPsgw" / "area*.idf").squeeze()
         np.testing.assert_allclose(
-            msw_sprinkling_fluxes.data * cell_area * -1, mf6_sprinking_fluxes.data
+            msw_sprinkling_fluxes.data * cell_area.data * -1, mf6_sprinking_fluxes.data
         )
         # Test if the unique values in the MODFLOW 6 sprinkling fluxes match the
         # expected values. We pump 8 m3/d from cells connected to one svat, and
