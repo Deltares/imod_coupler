@@ -214,8 +214,10 @@ def test_metamod_develop(
         # expected values. We pump 8 m3/d from cells connected to one svat, and
         # 16 m3/d from cells connected to two svats.
         expected_unique_values = np.array([-16.0, -8.0, 0.0])
+        unique_flux_values = np.unique(mf6_sprinking_fluxes.values)
         np.testing.assert_array_almost_equal(
-            np.unique(mf6_sprinking_fluxes), expected_unique_values
+            unique_flux_values[~np.isnan(unique_flux_values)],
+            expected_unique_values,
         )
 
 

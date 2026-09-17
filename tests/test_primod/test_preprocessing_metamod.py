@@ -172,6 +172,43 @@ def test_metamod_write_exchange_no_sprinkling(
     )
 
 
+def test_metamod_write_exchange_inactive_well_ids_within_bounds(
+    prepared_msw_model_inactive,
+    coupled_mf6_model_inactive,
+    fixed_format_parser,
+    tmp_path,
+):
+    output_dir = tmp_path
+    output_dir.mkdir(exist_ok=True, parents=True)
+
+    driver_coupling = MetaModDriverCoupling(
+        mf6_model="GWF_1", mf6_wel_package="wells_msw", mf6_recharge_package="rch_msw"
+    )
+    coupled_models = MetaMod(
+        prepared_msw_model_inactive,
+        coupled_mf6_model_inactive,
+        coupling_list=[driver_coupling],
+    )
+
+    coupled_models.write_exchanges(output_dir)
+
+    exchange_dir = output_dir / "exchanges"
+    wel_dxc = fixed_format_parser(
+        exchange_dir / WellSvatMapping._file_name,
+        WellSvatMapping._metadata_dict,
+    )
+
+    n_mf6_wells = coupled_mf6_model_inactive["GWF_1"]["wells_msw"].dataset.sizes[
+        "index"
+    ]
+
+    expected_unique_wel_ids = np.delete(np.arange(n_mf6_wells - 1) + 1, [0, 5, 9])
+    np.testing.assert_array_equal(
+        np.unique(wel_dxc["wel_id"]),
+        expected_unique_wel_ids,
+    )
+
+
 def test_metamod_write_toml(prepared_msw_model, coupled_mf6_model, tmp_path):
     output_dir = tmp_path
     output_dir.mkdir(exist_ok=True, parents=True)
