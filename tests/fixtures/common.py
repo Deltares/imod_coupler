@@ -93,7 +93,7 @@ def create_single_well(idomain: xr.DataArray, wel_layer: int | None = None) -> L
         wel_layer = 3
 
     ix_active = idomain.coords["x"][[1]]
-    iy_active = idomain.coords["y"][[1]]
+    iy_active = idomain.coords["y"][[0]]
 
     rate = np.zeros(ix_active.shape)
     layer = np.full_like(ix_active, wel_layer, dtype=int)
