@@ -95,7 +95,9 @@ object DeployPrimodPackage : BuildType({
             }
 
             artifacts {
+                buildRule = sameChain()
                 artifactRules = """+:dist.zip!** => imod_coupler\pre-processing\dist"""
+                cleanDestination = true
             }
         }
     }
@@ -179,7 +181,9 @@ object DeployCouplerPackage : BuildType({
             }
 
             artifacts {
+                buildRule = sameChain()
                 artifactRules = """+:dist.zip!** => imod_coupler\dist"""
+                cleanDestination = true
             }
         }
     }
@@ -219,6 +223,13 @@ object CreateGitHubRelease : BuildType({
             scriptMode = script {
                 content = """
                     ${'$'}tag = git describe --tags --abbrev=0 --exact-match
+                    if (${'$'}LASTEXITCODE -ne 0){
+                        throw "Current commit does not have an exact Git tag"
+                    }
+
+                    if ([System.String]::IsNullOrWhiteSpace(${'$'}tag)) {
+                        throw "Git returned an empty tag"
+                    }
                     
                     echo "Creating GitHub release for: ${'$'}tag"
                     
@@ -239,8 +250,9 @@ object CreateGitHubRelease : BuildType({
             }
 
             artifacts {
-                buildRule = lastSuccessful()
+                buildRule = sameChain()
                 artifactRules = "+:**/* => release"
+                cleanDestination = true
             }
         }
     }
