@@ -21,7 +21,7 @@ object TwineCheck : BuildType({
             id = "Run_twine_check_on_primod"
             workingDir = "imod_coupler"
             scriptContent = """
-                    pixi run check-package-primod
+                    pixi run --frozen check-package-primod
                 """.trimIndent()
             formatStderrAsError = true
         }
