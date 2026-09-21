@@ -38,5 +38,6 @@ object Lint : BuildType({
 
     requirements {
         equals("env.OS", "Windows_NT")
+        equals("system.pixi.installed", "true")
     }
 })
