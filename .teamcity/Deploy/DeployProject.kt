@@ -52,7 +52,6 @@ object BuildPrimodPackage : BuildType({
 
     requirements {
         equals("env.OS", "Windows_NT")
-        equals("system.pixi.installed", "true")
     }
 
 })
@@ -91,7 +90,6 @@ object DeployPrimodPackage : BuildType({
 
     requirements {
         equals("env.OS", "Windows_NT")
-        equals("system.pixi.installed", "true")
     }
 
     dependencies {
@@ -144,7 +142,6 @@ object BuildCouplerPackage : BuildType({
 
     requirements {
         equals("env.OS", "Windows_NT")
-        equals("system.pixi.installed", "true")
     }
 
 })
@@ -183,7 +180,6 @@ object DeployCouplerPackage : BuildType({
 
     requirements {
         equals("env.OS", "Windows_NT")
-        equals("system.pixi.installed", "true")
     }
 
     dependencies {
@@ -253,7 +249,6 @@ object CreateGitHubRelease : BuildType({
 
     requirements {
         equals("env.OS", "Windows_NT")
-        equals("system.pixi.installed", "true")
     }
 
     dependencies {
