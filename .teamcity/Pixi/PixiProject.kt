@@ -88,8 +88,4 @@ object UpdateDependencies : BuildType({
     failureConditions {
         errorMessage = true
     }
-
-    requirements {
-        equals("system.pixi.installed", "true")
-    }
 })
