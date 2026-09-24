@@ -1,4 +1,4 @@
-import os
+import re
 import subprocess
 import sys
 import textwrap
@@ -15,6 +15,7 @@ from imod.mf6 import open_cbc, open_hds
 from imod.msw.fixed_format import VariableMetaData, format_fixed_width
 from numpy.testing import assert_array_almost_equal
 from primod.metamod import MetaMod
+from pytest import FixtureRequest
 from pytest_cases import parametrize_with_cases
 from test_utilities import numeric_csvfiles_equal
 
@@ -199,6 +200,7 @@ def test_metamod_regression(
     modflow_dll_regression: Path,
     run_coupler_function: Callable[[Path], None],
     imod_coupler_exec_regression: Path,
+    request: FixtureRequest,
 ) -> None:
     """
     Regression test if coupled models run with the iMOD Coupler development and
@@ -220,7 +222,7 @@ def test_metamod_regression(
     budgets_dev = open_cbc(cbcfile_dev, grbfile_dev)
 
     # Read Modflow 6 output reg
-    _, testname = os.path.split(os.path.split(tmp_path_dev)[0])
+    testname = re.sub(r"[\W]", "_", request.node.name)
     tmp_path_reg = Path(__file__).parent.parent / "reference_output" / testname
     headfile_reg, cbcfile_reg, grbfile_reg, _ = mf6_output_files(tmp_path_reg)
     heads_reg = open_hds(headfile_reg, grbfile_reg)
@@ -301,7 +303,7 @@ def test_metamod_regression_balance_output(
     assert numeric_csvfiles_equal(
         mf6_balance_output_file,
         reference_result_folder
-        / "test_metamod_regression_no_sprinkling"
+        / "test_metamod_regression_no_sprinkling_"
         / "waterbalance_output.csv",
         ";",
         mf6_tolerance_balance,
@@ -310,7 +312,7 @@ def test_metamod_regression_balance_output(
     assert numeric_csvfiles_equal(
         msw_balance_results,
         reference_result_folder
-        / "test_metamod_regression_no_sprinkling"
+        / "test_metamod_regression_no_sprinkling_"
         / "tot_svat_per.csv",
         ",",
         msw_tolerance_balance,
