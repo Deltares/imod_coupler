@@ -13,8 +13,5 @@ changeBuildType(RelativeId("IMODCollector_X64development")) {
         add {
             param("env.nexus_username", "%keeper:PxeQ80xmQFPTKEraN-kyzQ/custom_field/nexususertoken%")
         }
-        add {
-            password("env.nexus_password", "credentialsJSON:2aa15869-3ed1-489d-9fb9-9ff379a9fdf8")
-        }
     }
 }
