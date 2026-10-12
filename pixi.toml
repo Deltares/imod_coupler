@@ -37,7 +37,7 @@ imod={ git = "https://github.com/Deltares/imod-python.git"}
 [feature.common.tasks]
 # Fetch binaries
 fetch-ribasim = { cmd = "python scripts/download_ribasim.py 2026.1.1 ./.imod_collector/develop/ribasim", cwd="." }
-fetch-modflow = { cmd = "python scripts/download_modflow.py 6.7.0 ./.imod_collector/develop/modflow6", cwd="." }
+fetch-modflow = { cmd = "python scripts/download_modflow.py 6.8.1 ./.imod_collector/develop/modflow6", cwd="." }
 fetch-metaswap = "aws s3 cp s3://metaswap/releases/r2410 ./.imod_collector/develop/metaswap --recursive --no-sign-request --endpoint-url https://s3.deltares.nl --no-verify-ssl"
 fetch-metaswap-test-db = "aws s3 cp s3://metaswap/db/LHM2016_v01vrz ./.imod_collector/LHM2016_v01vrz --recursive --no-sign-request --endpoint-url https://s3.deltares.nl --no-verify-ssl"
 
