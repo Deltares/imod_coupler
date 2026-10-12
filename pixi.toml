@@ -108,6 +108,7 @@ update = "pixi update --json | pixi-diff-to-markdown > diff.md"
 dvc = "*"
 dvc-s3 = "*"
 rioxarray = "*"
+xugrid = "*"
 bottleneck = "*"  # Not automatically shipped with xarray anymore
 
 [feature.user-acceptance.tasks]
