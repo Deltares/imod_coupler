@@ -1,4 +1,6 @@
+import re
 import subprocess
+import sys
 import textwrap
 from collections.abc import Callable
 from pathlib import Path
@@ -16,6 +18,7 @@ from imod.mf6 import open_cbc, open_hds
 from imod.msw.fixed_format import VariableMetaData, format_fixed_width
 from numpy.testing import assert_array_almost_equal
 from primod.metamod import MetaMod
+from pytest import FixtureRequest
 from pytest_cases import parametrize_with_cases
 from test_utilities import numeric_csvfiles_equal
 
@@ -276,6 +279,7 @@ def test_metamod_regression(
     modflow_dll_regression: Path,
     run_coupler_function: Callable[[Path], None],
     imod_coupler_exec_regression: Path,
+    request: FixtureRequest,
 ) -> None:
     """
     Regression test if coupled models run with the iMOD Coupler development and
@@ -291,51 +295,44 @@ def test_metamod_regression(
 
     run_coupler_function(tmp_path_dev / metamod_model._toml_name)
 
-    # Read Modflow 6 output
+    # Read Modflow 6 output dev
     headfile_dev, cbcfile_dev, grbfile_dev, _ = mf6_output_files(tmp_path_dev)
-
-    # Regression testing temporarilily disable to be able to merge this branch
-    # With imod_coupler issue #430 this situation is to be resolved
-    """
     heads_dev = open_hds(headfile_dev, grbfile_dev)
     budgets_dev = open_cbc(cbcfile_dev, grbfile_dev)
 
-    # Write model again, but now with paths to regression dll
-    metamod_model.write(
-        tmp_path_reg,
-        modflow6_dll=modflow_dll_regression,
-        metaswap_dll=metaswap_dll_regression,
-        metaswap_dll_dependency=metaswap_dll_dep_dir_regression,
-    )
-
-    subprocess.run(
-        [imod_coupler_exec_regression, tmp_path_reg / metamod_model._toml_name],
-        check=True,
-        capture_output=True,
-    )
-
-    # Read Modflow 6 output
+    # Read Modflow 6 output reg
+    testname = re.sub(r"[\W]", "_", request.node.name)
+    tmp_path_reg = Path(__file__).parent.parent / "reference_output" / testname
     headfile_reg, cbcfile_reg, grbfile_reg, _ = mf6_output_files(tmp_path_reg)
-
     heads_reg = open_hds(headfile_reg, grbfile_reg)
     budgets_reg = open_cbc(cbcfile_reg, grbfile_reg)
 
-    assert_array_almost_equal(
-        heads_dev.compute(), heads_reg.compute(), decimal=decimal_tolerance
-    )
+    try:
+        assert_array_almost_equal(
+            heads_dev.compute(), heads_reg.compute(), decimal=decimal_tolerance
+        )
+    except AssertionError:
+        sys.stderr.write(
+            'Heads comparison failed. Check the output files in "tests/reference_output" for details.\n'
+        )
+        raise
 
     assert budgets_dev.keys() == budgets_reg.keys()
 
     for varname in budgets_dev.keys():
-        assert_array_almost_equal(
-            budgets_dev[varname].compute(),
-            budgets_reg[varname].compute(),
-            decimal=decimal_tolerance,
-        )
-    """
+        try:
+            assert_array_almost_equal(
+                budgets_dev[varname].compute(),
+                budgets_reg[varname].compute(),
+                decimal=decimal_tolerance,
+            )
+        except AssertionError:
+            sys.stderr.write(
+                f'Budget comparison failed for variable "{varname}". Check the output files in "tests/reference_output" for details.\n'
+            )
+            raise
 
 
-@pytest.mark.xfail(reason="MetaSWAP issues")
 @parametrize_with_cases("metamod_model", glob="storage_coefficient_no_sprinkling")
 def test_metamod_regression_balance_output(
     metamod_model: MetaMod,
@@ -385,7 +382,7 @@ def test_metamod_regression_balance_output(
     assert numeric_csvfiles_equal(
         mf6_balance_output_file,
         reference_result_folder
-        / "test_metamod_regression_no_sprinkling"
+        / "test_metamod_regression_no_sprinkling_"
         / "waterbalance_output.csv",
         ";",
         mf6_tolerance_balance,
@@ -394,7 +391,7 @@ def test_metamod_regression_balance_output(
     assert numeric_csvfiles_equal(
         msw_balance_results,
         reference_result_folder
-        / "test_metamod_regression_no_sprinkling"
+        / "test_metamod_regression_no_sprinkling_"
         / "tot_svat_per.csv",
         ",",
         msw_tolerance_balance,
