@@ -53,13 +53,35 @@ class ExchangeBalance:
 
     def _check_valid_shortage(self, shortage: NDArray[np.float64]) -> None:
         eps: float = 1.0e-04
-        if np.any(np.logical_and(self.demand > 0.0, np.absolute(shortage) > eps)):
-            raise ValueError(
-                "Invalid realised volumes: found shortage for positive demand"
+        demand = self.demand
+        demand_negative = self.demand_negative
+        positive_demand_issue = np.logical_and(
+            demand > 0.0, np.absolute(shortage) > eps
+        )
+        if np.any(positive_demand_issue):
+            basin_details = ", ".join(
+                f"{index} (demand={demand[index]:g}, shortage={shortage[index]:g})"
+                for index in np.flatnonzero(positive_demand_issue)
             )
-        if np.any(shortage < self.demand_negative - eps):
             raise ValueError(
-                "Invalid realised volumes: found shortage larger than negative demand contributions"
+                "Invalid realised volumes: found shortage for positive demand; "
+                "basin indices (0-based): "
+                f"{basin_details}"
+            )
+        negative_demand_issue = shortage < demand_negative - eps
+        if np.any(negative_demand_issue):
+            basin_details = ", ".join(
+                f"{index} (demand={demand[index]:g}, "
+                f"negative demand={demand_negative[index]:g}, "
+                f"shortage={shortage[index]:g}, "
+                f"realised volume={demand[index] - shortage[index]:g})"
+                for index in np.flatnonzero(negative_demand_issue)
+            )
+            raise ValueError(
+                "Invalid realised volumes: found shortage larger than negative "
+                "demand contributions; "
+                "basin indices (0-based): "
+                f"{basin_details}"
             )
 
     def _zeros_array(self) -> NDArray[np.float64]:
