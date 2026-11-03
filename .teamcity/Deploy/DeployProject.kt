@@ -57,7 +57,7 @@ object BuildPrimodPackage : BuildType({
 })
 
 object DeployPrimodPackage : BuildType({
-     name = "Deploy Primod Package"
+    name = "Deploy Primod Package"
 
     params {
         param("env.TWINE_USERNAME", "__token__")
