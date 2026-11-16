@@ -233,6 +233,11 @@ class RibaMetaMod(Driver):
                 ptr_b=self.exchange_balance.demands[package_name],
                 ptr_a_index=coupled_node["bound_index"],
                 ptr_b_index=coupled_node["basin_index"],
+                # Reverse MF6's sign: a negative DRN flux is positive drainage
+                # from the surface-water perspective.
+                ptr_a_conversion=np.full_like(
+                    self.mf6.packages[package_name].q_estimate, -1.0
+                ),
                 exchange_logger=self.exchange_logger,
                 label=package_name + "_exchange_demand",
                 exchange_operator="sum",
